@@ -1,0 +1,7 @@
+.*
+!.coveragerc
+!.gitignore
+__pycache__
+*.pyc
+*.ckpt
+videos
