@@ -48,6 +48,8 @@ class DisplayResults:
 
 class DisplayMETandCalories:
 
+    lateral_offset = 350
+
     def __init__(self, y_offset=20):
         self.y_offset = y_offset
 
@@ -55,11 +57,13 @@ class DisplayMETandCalories:
         offset = 10
         for key in ['Met value', 'Total calories']:
             put_text(img, "{}: {:.1f}".format(key, display_data[key]), (offset, self.y_offset))
-            offset += 300
+            offset += self.lateral_offset
         return img
 
 
 class DisplayTopKClassificationOutputs:
+
+    lateral_offset = DisplayMETandCalories.lateral_offset
 
     def __init__(self, top_k=1, threshold=0.2, y_offset=20):
         self.top_k = top_k
@@ -73,5 +77,6 @@ class DisplayTopKClassificationOutputs:
             y_pos = 20 * (index + 1) + self.y_offset
             if proba >= self.threshold:
                 put_text(img, 'Activity: {}'.format(activity[0:50]), (10, y_pos))
-                put_text(img, 'Proba: {:0.2f}'.format(proba), (310, y_pos))
+                put_text(img, 'Proba: {:0.2f}'.format(proba), (10 + self.lateral_offset,
+                                                               y_pos))
         return img
