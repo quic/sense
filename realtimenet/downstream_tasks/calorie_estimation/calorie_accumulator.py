@@ -54,7 +54,9 @@ class CalorieAccumulator(PostProcessor):
             self.update_running_met_value(duration)
             self.calorie_count += self.weight * (duration / 3600) * self.met_value_running
             self.met_value_live += 0.2 * (met_value_live - self.met_value_live)
-        return {'Total calories': self.calorie_count, 'Met value': self.met_value_live}
+        return {'Total calories': self.calorie_count,
+                'Met value': self.met_value_live,
+                'Corrected met value': self.met_value_running}
 
     def update_running_met_value(self, duration):
         """

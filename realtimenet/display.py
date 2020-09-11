@@ -61,6 +61,24 @@ class DisplayMETandCalories:
         return img
 
 
+class DisplayDetailedMETandCalories:
+
+    def __init__(self, y_offset=20):
+        self.y_offset = y_offset
+
+    def display(self, img, display_data):
+        offset = 10
+        text = "MET (live): {:.1f}".format(display_data['Met value'])
+        put_text(img, text, (offset, self.y_offset))
+        offset += 175
+        text = "MET (avg, corrected): {:.1f}".format(display_data['Corrected met value'])
+        put_text(img, text, (offset, self.y_offset))
+        offset += 275
+        text = "CALORIES: {:.1f}".format(display_data['Total calories'])
+        put_text(img, text, (offset, self.y_offset))
+        return img
+
+
 class DisplayTopKClassificationOutputs:
 
     lateral_offset = DisplayMETandCalories.lateral_offset
