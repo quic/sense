@@ -75,9 +75,12 @@ Best performance are obtained in these conditions:
 python scripts/fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
+![](gifs/fitness_tracking.gif "Test")
+
 ### Gesture Recognition
 
 ```shell
 python scripts/gesture_recognition.py
 ```
 
+![](gifs/gesture_recognition.gif "Test")
