@@ -7,6 +7,12 @@ networks are rather small and should smoothly run in real time on a CPU.
 
 The following steps have been confirmed to work on a Linux machine (Ubuntu 18.04 LTS). They probably also work on MacOS/Windows.
 
+To begin, clone this repository to a local directory:
+```
+git clone git@github.com:TwentyBN/20bn-realtimenet.git
+cd 20bn-realtimenet
+```
+
 
 ### Dependencies
 
@@ -39,7 +45,7 @@ Downloaded files should be placed into `20bn-realtimenet/resources`.
 
 
 ```shell
-python calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female
+python scripts/calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
 Weight, age, height should be respectively given in kilograms, years and centimeters. If not provided, default values will be used.
@@ -65,12 +71,12 @@ Best performance are obtained in these conditions:
 ### Fitness Activity Tracking
 
 ```shell
-python fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
+python scripts/fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
 ### Gesture Recognition
 
 ```shell
-python gesture_recognition.py
+python scripts/gesture_recognition.py
 ```
 
