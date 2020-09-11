@@ -45,7 +45,7 @@ if __name__ == "__main__":
     # Load MET value converter
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=30)
-    checkpoint = torch.load('resources/gesture_detection/mobilenet_logistic_regression.ckpt')
+    checkpoint = torch.load('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
     gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 
