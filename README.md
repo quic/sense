@@ -67,12 +67,12 @@ Best performance are obtained in these conditions:
 ### Fitness Activity Tracking
 
 ```shell
-python fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
+python scripts/fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
 ### Gesture Recognition
 
 ```shell
-python gesture_recognition.py
+python scripts/gesture_recognition.py
 ```
 
