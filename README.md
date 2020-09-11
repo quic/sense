@@ -30,6 +30,10 @@ Install Python dependencies.
 pip install -r requirements.txt
 ```
 
+Note: `pip install -r requirements.txt` will install the CPU-only version of PyTorch. 
+You will have to install another version of PyTorch (e.g. `conda install pytorch torchvision cudatoolkit=10.2 -c pytorch`, see options [here](https://pytorch.org/)) if you want to use a GPU.
+
+
 ### Pretrained weights
 
 Pretraineds weights can be downloaded from this [google drive](https://drive.google.com/drive/folders/11UFnZDcpqehMYpv88PSE4m3bIPLiAZXh?usp=sharing). 
