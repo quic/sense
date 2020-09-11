@@ -15,7 +15,7 @@ cd 20bn-realtimenet
 
 ### Dependencies
 
-Create [conda](https://docs.conda.io/en/latest/miniconda.html) environment:
+Create a new [conda](https://docs.conda.io/en/latest/miniconda.html) environment:
 
 ```shell
 conda create -y -n realtimenet python=3.6
@@ -23,7 +23,7 @@ conda activate realtimenet
 ```
 
 
-Install Python dependencies.
+Install Python dependencies:
 
 ```shell
 pip install -r requirements.txt
@@ -34,7 +34,7 @@ another version of PyTorch should be installed (e.g. `conda install pytorch torc
 see all available options [here](https://pytorch.org/)).
 
 
-### Pretrained weights
+### Pre-trained weights
 
 Pre-trained weights can be downloaded from this [google drive](https://drive.google.com/drive/folders/11UFnZDcpqehMYpv88PSE4m3bIPLiAZXh?usp=sharing). Be sure to download the entire directory and place it into `20bn-realtimenet/resources`.
 
