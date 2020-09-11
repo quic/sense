@@ -79,7 +79,7 @@ if __name__ == "__main__":
     ]
 
     display_ops = [
-        realtimenet.display.DisplayMETandCalories(),
+        realtimenet.display.DisplayDetailedMETandCalories(),
     ]
     display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops)
 
