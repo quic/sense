@@ -1,6 +1,6 @@
 # 20bn-realtimenet
 
-This repo contains the inference code for two neural networks that were pretrained on millions of videos. Both neural
+This repo contains the inference code for two neural networks that were pre-trained on millions of videos. Both neural
 networks are rather small and should smoothly run in real time on a CPU. 
 
 ## Installation
@@ -36,8 +36,7 @@ see all available options [here](https://pytorch.org/)).
 
 ### Pretrained weights
 
-Pretraineds weights can be downloaded from this [google drive](https://drive.google.com/drive/folders/11UFnZDcpqehMYpv88PSE4m3bIPLiAZXh?usp=sharing). 
-Downloaded files should be placed into `20bn-realtimenet/resources`.
+Pre-trained weights can be downloaded from this [google drive](https://drive.google.com/drive/folders/11UFnZDcpqehMYpv88PSE4m3bIPLiAZXh?usp=sharing). Be sure to download the entire directory and place it into `20bn-realtimenet/resources`.
 
 
 ## Available scripts
@@ -45,7 +44,7 @@ Downloaded files should be placed into `20bn-realtimenet/resources`.
 
 ### Fitness Activity Tracking
 
-`scripts/fitness_tracker.py` applies our pretrained models to real-time fitness activity recognition and calorie estimation. 
+`scripts/fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/d539046fe71e43e37ad439d08e093ea1f489bd29/realtimenet/downstream_tasks/fitness_activity_recognition/__init__.py)).
 
@@ -89,13 +88,13 @@ and convert them to calories using the user's weight.
 If you're only interested in the calorie estimation part, you might want to use `scripts/calorie_estimation.py` which has a slightly more
 detailed display (see video [here](https://drive.google.com/file/d/1VIAnFPm9JJAbxTMchTazUE3cRRgql6Z6/view?usp=sharing) which compares two videos produced by that script).
 
-Obviously, these estimated calorie counts have to be taken with a grain of salt. Compared to industrial wearable devices, our approach seem
+The estimated calories should be taken with a grain of salt. Compared to industrial wearable devices, our approach seems
 to produce estimates that are roughly in the same range. From our experiments, our estimates correlate well with the workout intensity 
 (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
 
 ### Gesture Recognition
 
-`scripts/gesture_recognition.py` applies our pretrained models to hand gesture recognition. 30 gestures are supported (see full list 
+`scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition. 30 gestures are supported (see full list 
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py))
 
 ```shell
