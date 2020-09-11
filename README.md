@@ -10,6 +10,7 @@ The following steps have been confirmed to work on a Linux machine (Ubuntu 18.04
 To begin, clone this repository to a local directory:
 ```
 git clone git@github.com:TwentyBN/20bn-realtimenet.git
+cd 20bn-realtimenet
 ```
 
 
