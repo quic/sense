@@ -55,7 +55,7 @@ In total, 80 different fitness exercises are recognized (see full list
 Usage:
 
 ```shell
-python scripts/fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
+PYTHONPATH=./ python scripts/fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
 Weight, age, height should be respectively given in kilograms, years and centimeters. If not provided, default values will be used.
@@ -98,7 +98,7 @@ to produce estimates that are roughly in the same range. From our experiments, o
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py))
 
 ```shell
-python scripts/gesture_recognition.py
+PYTHONPATH=./ python scripts/gesture_recognition.py
 ```
 
 ![](gifs/gesture_recognition.gif)
