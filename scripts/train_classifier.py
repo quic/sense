@@ -121,6 +121,6 @@ if __name__ == "__main__":
     new_state_dict['0.weight'] = torch.Tensor(weights)
     new_state_dict['0.bias'] = torch.Tensor(bias)
     torch.save(new_state_dict, os.path.join(path_in, "classifier.checkpoint"))
-    json.dumps(class2int, open("class2int.json", "w"))
+    json.dumps(class2int, open(os.path.join(path_in,"class2int.json"), "w"))
 
 
