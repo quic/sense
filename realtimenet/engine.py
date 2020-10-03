@@ -53,26 +53,26 @@ class InferenceEngine(Thread):
                 clip = None
 
             if clip is not None:
-                with torch.no_grad():
-
-                    clip = self.net.preprocess(clip)
-
-                    if self.use_gpu:
-                        clip = clip.cuda()
-
-                    predictions = self.net(clip)
-
+                predictions = self.process_clip(predictions)
                 if self._queue_out.full():
                     # Remove one frame
                     self._queue_out.get_nowait()
                     print("*** Unused predictions ***")
-
-                if isinstance(predictions, list):
-                    predictions = [pred.cpu().numpy()[0] for pred in predictions]
-                else:
-                    predictions = predictions.cpu().numpy()[0]
-
                 self._queue_out.put(predictions, block=False)
+
+    def process_clip(self, clip):
+        with torch.no_grad():
+            clip = self.net.preprocess(clip)
+
+            if self.use_gpu:
+                clip = clip.cuda()
+
+            predictions = self.net(clip)
+        if isinstance(predictions, list):
+            predictions = [pred.cpu().numpy()[0] for pred in predictions]
+        else:
+            predictions = predictions.cpu().numpy()[0]
+        return predictions
 
 
 def run_inference_engine(inference_engine, framegrabber, post_processors, results_display, path_out):
