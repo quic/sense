@@ -36,7 +36,7 @@ see all available options [here](https://pytorch.org/)).
 
 ### Pre-trained weights
 
-Pre-trained weights can be downloaded from this [google drive](https://drive.google.com/drive/folders/11UFnZDcpqehMYpv88PSE4m3bIPLiAZXh?usp=sharing). Be sure to download the entire directory and place it into `20bn-realtimenet/resources`.
+Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation). After download, be sure to unzip and place the contents of the directory into `20bn-realtimenet/resources`.
 
 
 ## Available scripts
