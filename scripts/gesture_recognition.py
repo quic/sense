@@ -6,6 +6,7 @@ Usage:
   gesture_recognition.py [--camera_id=CAMERA_ID]
                          [--path_in=FILENAME]
                          [--path_out=FILENAME]
+                         [--custom_classifier=PATH]
                          [--title=TITLE]
                          [--use_gpu]
   gesture_recognition.py (-h | --help)
@@ -13,9 +14,12 @@ Usage:
 Options:
   --path_in=FILENAME              Video file to stream from
   --path_out=FILENAME             Video file to stream to
+  --custom_classifier=PATH        Path to the custom classifier to use
   --title=TITLE                   This adds a title to the window display
 """
 import torch
+import os
+import json
 from docopt import docopt
 
 import realtimenet.display
@@ -33,6 +37,7 @@ if __name__ == "__main__":
     camera_id = args['--camera_id'] or 0
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
+    custom_classifier = args['--custom_classifier'] or None
     title = args['--title'] or None
     use_gpu = args['--use_gpu']
 
@@ -43,9 +48,16 @@ if __name__ == "__main__":
     feature_extractor.eval()
 
     # Load a logistic regression classifier
+    if custom_classifier is not None:
+        with open(os.path.join(custom_classifier, 'class2int.json')) as file:
+            class2int = json.load(file)
+            INT2LAB = {value: key for key, value in class2int.items()}
+            num_out = len(INT2LAB)
+    else:
+        num_out = 30
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
-                                            num_out=30)
-    checkpoint = torch.load('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
+                                            num_out=num_out)
+    checkpoint = torch.load(os.path.join(custom_classifier,'classifier.ckpt'))
     gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 
