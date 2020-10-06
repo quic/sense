@@ -53,7 +53,7 @@ class InferenceEngine(Thread):
                 clip = None
 
             if clip is not None:
-                predictions = self.process_clip(predictions)
+                predictions = self.process_clip(clip)
                 if self._queue_out.full():
                     # Remove one frame
                     self._queue_out.get_nowait()

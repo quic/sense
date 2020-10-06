@@ -57,7 +57,7 @@ if __name__ == "__main__":
         num_out = 30
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_out)
-    checkpoint = torch.load(os.path.join(custom_classifier,'classifier.ckpt'))
+    checkpoint = torch.load(os.path.join(custom_classifier, 'classifier.checkpoint'))
     gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 
