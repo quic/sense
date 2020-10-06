@@ -63,37 +63,42 @@ if __name__ == "__main__":
         videos = os.listdir(os.path.join(videos_dir, label))
         videos = [x for x in videos if not x.startswith('.')]
         for video in videos:
-            print(f"extract features from video {number_videos_processed} / {number_videos_found}")
-            # reset the buffer
-            net.train()
-            net.eval()
             number_videos_processed += 1
-            file_path = os.path.join(videos_dir, label, video)
+            print(f"extract features from video {number_videos_processed} / {number_videos_found}")
             path_out = os.path.join(path_in, "features", label, video.replace(".mp4", ".npy"))
-
-            video_source = camera.VideoSource(camera_id=None,
-                                              size=inference_engine.expected_frame_size,
-                                              filename=file_path)
-            frames = []
-            features = []
-            while True:
-                images = video_source.get_image()
-                if images is None:
-                    break
-                else:
-                    image, image_rescaled = images
-                    frames.append(image_rescaled)
-                    if len(frames) == net.step_size:
-                        clip = np.array([frames]).astype(np.float32)
-                        frames = []
-                        predictions = inference_engine.process_clip(clip)
-                        features.append(predictions)
-            if len(features) < 13:
-                print("video too short")
+            if os.path.isfile(path_out):
+                print("features found for this file, skip")
             else:
-                features = np.array(features[12:])
-                os.makedirs(os.path.dirname((path_out)), exist_ok=True)
-                np.save(path_out, features)
+                # reset the buffer
+                net.train()
+                net.eval()
+
+                file_path = os.path.join(videos_dir, label, video)
+                path_out = os.path.join(path_in, "features", label, video.replace(".mp4", ".npy"))
+
+                video_source = camera.VideoSource(camera_id=None,
+                                                  size=inference_engine.expected_frame_size,
+                                                  filename=file_path)
+                frames = []
+                features = []
+                while True:
+                    images = video_source.get_image()
+                    if images is None:
+                        break
+                    else:
+                        image, image_rescaled = images
+                        frames.append(image_rescaled)
+                        if len(frames) == net.step_size:
+                            clip = np.array([frames]).astype(np.float32)
+                            frames = []
+                            predictions = inference_engine.process_clip(clip)
+                            features.append(predictions)
+                if len(features) < 13:
+                    print("video too short")
+                else:
+                    features = np.array(features[12:])
+                    os.makedirs(os.path.dirname((path_out)), exist_ok=True)
+                    np.save(path_out, features)
 
     features_dir =  os.path.join(path_in, "features")
 
@@ -111,7 +116,8 @@ if __name__ == "__main__":
     X = np.array(X)
     y = np.array(y)
 
-    clf = LogisticRegression(random_state=0, multi_class="multinomial")
+    print("features extracted, fitting logistic regression")
+    clf = LogisticRegression(random_state=0, multi_class="multinomial", solver='lbfgs',max_iter=5000)
     clf.fit(X,y)
     weights = clf.coef_
     bias = clf.intercept_
@@ -121,6 +127,6 @@ if __name__ == "__main__":
     new_state_dict['0.weight'] = torch.Tensor(weights)
     new_state_dict['0.bias'] = torch.Tensor(bias)
     torch.save(new_state_dict, os.path.join(path_in, "classifier.checkpoint"))
-    json.dumps(class2int, open(os.path.join(path_in,"class2int.json"), "w"))
+    json.dump(class2int, open(os.path.join(path_in,"class2int.json"), "w"))
 
 
