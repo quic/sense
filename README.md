@@ -36,8 +36,7 @@ see all available options [here](https://pytorch.org/)).
 
 ### Pre-trained weights
 
-Pre-trained weights can be downloaded from this [google drive](https://drive.google.com/drive/folders/11UFnZDcpqehMYpv88PSE4m3bIPLiAZXh?usp=sharing). Be sure to download the entire directory and place it into `20bn-realtimenet/resources`.
-
+Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation). After download, be sure to unzip and place the contents of the directory into `20bn-realtimenet/resources`.
 
 ## Available scripts
 
@@ -104,3 +103,11 @@ PYTHONPATH=./ python scripts/gesture_recognition.py
 ![](gifs/gesture_recognition.gif)
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
+
+
+## License 
+
+The code is copyright (c) 2018 Twenty Billion Neurons GmbH under an MIT Licence. See the file LICENSE for details. Note that this license 
+only covers the source code of this repo. Pretrained weights have their own license which must be accepted [here](https://20bn.com/licensing/sdk/evaluation).
+
+This repo uses PyTorch, which is licensed under a 3-clause BSD License. See the file LICENSE_PYTORCH for details.
