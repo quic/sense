@@ -38,14 +38,14 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    checkpoint = torch.load('resources/strided_inflated_efficientnet.ckpt')
+    checkpoint = engine.load_weights('resources/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
     # Load a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=30)
-    checkpoint = torch.load('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
+    checkpoint = engine.load_weights('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
     gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 
