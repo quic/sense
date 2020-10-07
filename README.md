@@ -40,9 +40,33 @@ Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk
 
 ## Available scripts
 
+### Train your own classifier
+
+Run this command to train the classifier on top of one of our pretrained models:
+```shell
+PYTHONPATH=./ python scripts/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu]
+```
+
+This script expects training videos to follow this structure:
+
+```
+    /path/to/your/dataset/
+    ├── videos/
+        ├── label1/
+            ├── video1.mp4
+            ├── video2.mp4
+            ├── ...
+        ├── label2/
+            ├── video3.mp4
+            ├── video4.mp4
+            ├── ...
+        ├── ...
+```
+
+
 ### Gesture Recognition
 
-`scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition. 30 gestures are supported (see full list 
+By default, `scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition. 30 gestures are supported (see full list
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py))
 
 ```shell
@@ -52,6 +76,13 @@ PYTHONPATH=./ python scripts/gesture_recognition.py
 ![](gifs/gesture_recognition.gif)
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
+
+You can apply this script to your own trained classifier by adding the option:
+
+```shell
+PYTHONPATH=./ python scripts/gesture_recognition.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
+```
+(see section "Train your own classifier" below)
 
 
 ### Fitness Activity Tracking
