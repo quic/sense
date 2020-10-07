@@ -85,7 +85,7 @@ It is also possible to save the display window to a video file using:
 
 #### Ideal setup:
 
-Best performance are obtained in these conditions: 
+Best performance is obtained in these conditions: 
 - Camera on the floor 
 - Body fully visible (head-to-toe) 
 - Clean background 
