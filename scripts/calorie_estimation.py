@@ -47,13 +47,13 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedMobileNetV2()
-    checkpoint = torch.load('resources/strided_inflated_mobilenet.ckpt')
+    checkpoint = engine.load_weights('resources/strided_inflated_mobilenet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
     # Load MET value converter
     met_value_converter = calorie_estimation.METValueMLPConverter()
-    checkpoint = torch.load('resources/calorie_estimation/mobilenet_features_met_converter.ckpt')
+    checkpoint = engine.load_weights('resources/calorie_estimation/mobilenet_features_met_converter.ckpt')
     met_value_converter.load_state_dict(checkpoint)
     met_value_converter.eval()
 

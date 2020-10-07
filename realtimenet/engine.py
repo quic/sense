@@ -154,3 +154,12 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
 
     if display_error:
         raise display_error
+
+
+def load_weights(checkpoint_path):
+    try:
+        return torch.load(checkpoint_path)
+    except:
+        raise Exception('ERROR - Weights file missing: {}. To download, please go to '
+                        'https://20bn.com/licensing/sdk/evaluation and follow the '
+                        'instructions.'.format(checkpoint_path))
