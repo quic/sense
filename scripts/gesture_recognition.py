@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    checkpoint = torch.load('resources/strided_inflated_efficientnet.ckpt')
+    checkpoint = engine.load_weights('resources/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
@@ -53,11 +53,12 @@ if __name__ == "__main__":
             class2int = json.load(file)
             INT2LAB = {value: key for key, value in class2int.items()}
             num_out = len(INT2LAB)
+            checkpoint = engine.load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
     else:
         num_out = 30
+        checkpoint = engine.load_weights('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_out)
-    checkpoint = torch.load(os.path.join(custom_classifier, 'classifier.checkpoint'))
     gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 

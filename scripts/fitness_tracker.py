@@ -48,14 +48,14 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedMobileNetV2()
-    checkpoint = torch.load('resources/strided_inflated_mobilenet.ckpt')
+    checkpoint = engine.load_weights('resources/strided_inflated_mobilenet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
     # Load fitness activity classifier
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=81)
-    checkpoint = torch.load('resources/fitness_activity_recognition/mobilenet_logistic_regression.ckpt')
+    checkpoint = engine.load_weights('resources/fitness_activity_recognition/mobilenet_logistic_regression.ckpt')
     gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 
