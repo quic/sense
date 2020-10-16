@@ -44,8 +44,6 @@ if __name__ == "__main__":
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     checkpoint = engine.load_weights('resources/strided_inflated_efficientnet.ckpt')
-    feature_extractor.load_state_dict(checkpoint)
-    feature_extractor.eval()
 
     # Load a logistic regression classifier
     if custom_classifier is not None:
@@ -53,13 +51,21 @@ if __name__ == "__main__":
             class2int = json.load(file)
             INT2LAB = {value: key for key, value in class2int.items()}
             num_out = len(INT2LAB)
-            checkpoint = engine.load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
+            checkpoint_classifier = engine.load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
+            # change the keys in the checkpoints for part of the network that have been finetuned
+            overlap = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
+            for key in overlap:
+                checkpoint[key] = checkpoint_classifier.pop(key)
+
     else:
         num_out = 30
         checkpoint = engine.load_weights('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
+
+    feature_extractor.load_state_dict(checkpoint)
+    feature_extractor.eval()
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_out)
-    gesture_classifier.load_state_dict(checkpoint)
+    gesture_classifier.load_state_dict(checkpoint_classifier)
     gesture_classifier.eval()
 
     # Concatenate feature extractor and met converter

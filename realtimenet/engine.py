@@ -74,6 +74,27 @@ class InferenceEngine(Thread):
             predictions = predictions.cpu().numpy()[0]
         return predictions
 
+    def process_clip_features_map(self, clip, layer=-2):
+        """
+        extract features map of a clip at given layer
+        :param clip:
+        :param layer: layer position where to extract features map
+        :return:
+        features map
+        """
+        with torch.no_grad():
+            clip = self.net.preprocess(clip)
+
+            if self.use_gpu:
+                clip = clip.cuda()
+
+            predictions = self.net.cnn[0:layer](clip)
+        if isinstance(predictions, list):
+            predictions = [pred.cpu().numpy()[0] for pred in predictions]
+        else:
+            predictions = predictions.cpu().numpy()[0]
+        return predictions
+
 
 def run_inference_engine(inference_engine, framegrabber, post_processors, results_display, path_out):
 
