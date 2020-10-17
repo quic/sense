@@ -60,7 +60,7 @@ class InferenceEngine(Thread):
                     print("*** Unused predictions ***")
                 self._queue_out.put(predictions, block=False)
 
-    def process_clip(self, clip):
+    def process_clip(self, clip, training=False):
         with torch.no_grad():
             clip = self.net.preprocess(clip)
 
@@ -68,10 +68,16 @@ class InferenceEngine(Thread):
                 clip = clip.cuda()
 
             predictions = self.net(clip)
-        if isinstance(predictions, list):
-            predictions = [pred.cpu().numpy()[0] for pred in predictions]
+        if training:
+            if isinstance(predictions, list):
+                predictions = [pred.cpu().numpy() for pred in predictions]
+            else:
+                predictions = predictions.cpu().numpy()
         else:
-            predictions = predictions.cpu().numpy()[0]
+            if isinstance(predictions, list):
+                predictions = [pred.cpu().numpy()[0] for pred in predictions]
+            else:
+                predictions = predictions.cpu().numpy()[0]
         return predictions
 
     def process_clip_features_map(self, clip, layer=-2):
@@ -90,9 +96,9 @@ class InferenceEngine(Thread):
 
             predictions = self.net.cnn[0:layer](clip)
         if isinstance(predictions, list):
-            predictions = [pred.cpu().numpy()[0] for pred in predictions]
+            predictions = [pred.cpu().numpy() for pred in predictions]
         else:
-            predictions = predictions.cpu().numpy()[0]
+            predictions = predictions.cpu().numpy()
         return predictions
 
 

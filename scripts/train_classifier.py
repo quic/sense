@@ -28,6 +28,51 @@ from realtimenet import feature_extractors
 import json
 
 
+class FeaturesDataset(torch.utils.data.Dataset):
+    """Face Landmarks dataset."""
+
+    def __init__(self, files, labels):
+        self.files = files
+        self.labels = labels
+        self.num_timestamp = 5
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, idx):
+        feature = np.load(self.files[idx])
+        num_preds = feature.shape[0]
+        if num_preds <= self.num_timestamp:
+            return self.__getitem__(idx + 1)
+        else:
+            position = np.random.randint(0, num_preds - self.num_timestamp)
+            return [feature[position:position+self.num_timestamp], self.labels[idx]]
+
+def generate_data_loader(features_dir, classes, shuffle=True):
+    features = []
+    labels = []
+    for label in classes:
+        files = os.listdir(os.path.join(features_dir, label))
+        # used to remove .DSstore files on mac
+        feature_temp = [os.path.join(features_dir, label, x) for x in files if not x.startswith('.')]
+        features += feature_temp
+        labels += [class2int[label]] * len(feature_temp)
+    dataset = FeaturesDataset(features, labels)
+    data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=64)
+    return data_loader
+
+def uniform_frame_sample(video, sample_rate):
+    """
+    Uniformly sample video frames according to the sample_rate.
+    """
+
+    depth = video.shape[0]
+    if sample_rate < 1.:
+        indices = np.arange(0, depth, 1./sample_rate)
+        offset = int((depth - indices[-1]) / 2)
+        sampled_frames = (indices + offset).astype(np.int32)
+        return video[sampled_frames]
+    return video
 
 if __name__ == "__main__":
     # Parse arguments
@@ -39,7 +84,7 @@ if __name__ == "__main__":
 
 
     # Load feature extractor
-    feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+    feature_extractor = feature_extractors.StridedInflatedEfficientNet(internal_padding=False)
     checkpoint = torch.load('resources/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
@@ -60,7 +105,6 @@ if __name__ == "__main__":
     features_dir = os.path.join(path_in, "features_train")
     classes = os.listdir(videos_dir)
     classes = [x for x in classes if not x.startswith('.')]
-    print(classes)
 
 
     # extract features
@@ -81,18 +125,17 @@ if __name__ == "__main__":
                 if os.path.isfile(path_out):
                     print("features found for this file, skip")
                 else:
-                    # reset the buffer
-                    net.train()
-                    net.eval()
-
                     file_path = os.path.join(videos_dir, label, video)
                     path_out = os.path.join(features_dir, label, video.replace(".mp4", ".npy"))
 
                     video_source = camera.VideoSource(camera_id=None,
                                                       size=inference_engine.expected_frame_size,
-                                                      filename=file_path)
+                                                      filename=file_path,
+                                                      )
                     frames = []
                     features = []
+                    video_fps = video_source.get_sample_rate()
+
                     while True:
                         images = video_source.get_image()
                         if images is None:
@@ -100,21 +143,25 @@ if __name__ == "__main__":
                         else:
                             image, image_rescaled = images
                             frames.append(image_rescaled)
-                            if len(frames) == net.step_size:
-                                clip = np.array([frames]).astype(np.float32)
-                                frames = []
-                                if num_layer_finetune > 0:
-                                    predictions = inference_engine.process_clip_features_map(clip,
-                                                                                         layer=-num_layer_finetune)
-                                else:
-                                    predictions = inference_engine.process_clip(clip)
-                                features.append(predictions)
-                    if len(features) < 13:
-                        print("video too short")
-                    else:
-                        features = np.array(features[12:])
+                    frames = uniform_frame_sample(np.array(frames), 16/video_fps)
+                    clip = np.array([frames]).astype(np.float32)
+
+                    frames = []
+                    try:
+                        if num_layer_finetune > 0:
+                            predictions = inference_engine.process_clip_features_map(clip,
+                                                                                 layer=-num_layer_finetune)
+
+                        else:
+                            predictions = inference_engine.process_clip(clip, training=True)
+                        features = np.array(predictions)
                         os.makedirs(os.path.dirname((path_out)), exist_ok=True)
                         np.save(path_out, features)
+                    except:
+                        print("video too short")
+
+
+
 
 
 
@@ -124,25 +171,6 @@ if __name__ == "__main__":
     X_train, X_valid = [], []
     class2int = {x:e for e,x in enumerate(classes)}
 
-
-    def generate_data_loader(features_dir, classes, shuffle=True):
-        X = []
-        y = []
-        for label in classes:
-            features = os.listdir(os.path.join(features_dir, label))
-            # used to remove .DSstore files on mac
-            features = [x for x in features if not x.startswith('.')]
-            for feature in features:
-                feature = np.load(os.path.join(features_dir, label, feature))
-                X += list(feature)
-                y += [class2int[label]] * feature.shape[0]
-        X = np.array(X)
-        y = np.array(y)
-        data = []
-        for i in range(len(X)):
-            data.append([X[i], y[i]])
-        data_loader = torch.utils.data.DataLoader(data, shuffle=shuffle, batch_size=64)
-        return data_loader
 
     trainloader = generate_data_loader(os.path.join(path_in, "features_train_" + str(num_layer_finetune)), classes)
     validloader = generate_data_loader(os.path.join(path_in, "features_valid_" + str(num_layer_finetune)), classes)
@@ -159,9 +187,12 @@ if __name__ == "__main__":
         net = net.cuda()
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(net.parameters(), lr=0.00001)
+    optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
-    for epoch in range(20):  # loop over the dataset multiple times
+    for epoch in range(80):  # loop over the dataset multiple times
+        if epoch == 40:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = 0.00001
 
         running_loss = 0.0
         net.train()
@@ -177,7 +208,11 @@ if __name__ == "__main__":
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(inputs)
+            outputs = []
+            for i in range(len(inputs)):
+                pred = net(inputs[i])
+                outputs.append(pred.mean(dim=0).unsqueeze(0))
+            outputs = torch.cat(outputs, dim=0)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -202,8 +237,11 @@ if __name__ == "__main__":
                 labels = labels.cuda()
 
 
-                # forward + backward + optimize
-                outputs = net(inputs)
+                outputs = []
+                for i in range(len(inputs)):
+                    outputs.append(net(inputs[i]).mean(dim=0).unsqueeze(0))
+                outputs = torch.cat(outputs, dim=0)
+
                 label += list(labels.cpu().numpy())
                 top_pred += list(outputs.argmax(dim=1).cpu().numpy())
 
@@ -222,18 +260,22 @@ if __name__ == "__main__":
 
     pred = []
     y = []
+    net.eval()
     for label in classes:
         features = os.listdir(os.path.join(features_dir, label))
         # used to remove .DSstore files on mac
         features = [x for x in features if not x.startswith('.')]
         for feature in features:
-            feature = np.load(os.path.join(features_dir, label, feature))
-            feature = torch.Tensor(feature).cuda()
-            with torch.no_grad():
-                output = net(feature).cpu().numpy()
-            top_pred = output.mean(axis=0)
-            pred.append(top_pred.argmax())
-            y.append(class2int[label])
+            try:
+                feature = np.load(os.path.join(features_dir, label, feature))
+                feature = torch.Tensor(feature).cuda()
+                with torch.no_grad():
+                    output = net(feature).cpu().numpy()
+                top_pred = output.mean(axis=0)
+                pred.append(top_pred.argmax())
+                y.append(class2int[label])
+            except:
+                1
     pred = np.array(pred)
     y = np.array(y)
     percent = (np.sum(pred == y) / len(pred))

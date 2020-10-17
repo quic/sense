@@ -42,6 +42,9 @@ class VideoSource:
         pad_right = square_size - img.shape[1] - pad_left
         return cv2.copyMakeBorder(img, pad_top, pad_bottom, pad_left, pad_right, cv2.BORDER_CONSTANT)
 
+    def get_sample_rate(self):
+        return self._cam.get(cv2.CAP_PROP_FPS)
+
 
 class VideoStream(Thread):
     """
