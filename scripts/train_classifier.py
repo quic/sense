@@ -161,7 +161,7 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.00001)
 
-    for epoch in range(10):  # loop over the dataset multiple times
+    for epoch in range(20):  # loop over the dataset multiple times
 
         running_loss = 0.0
         net.train()
@@ -217,6 +217,27 @@ if __name__ == "__main__":
                                                                                       valid_loss, valid_top1))
 
     print('Finished Training')
+    print("score on videos")
+    features_dir = os.path.join(path_in, "features_valid_" + str(num_layer_finetune))
+
+    pred = []
+    y = []
+    for label in classes:
+        features = os.listdir(os.path.join(features_dir, label))
+        # used to remove .DSstore files on mac
+        features = [x for x in features if not x.startswith('.')]
+        for feature in features:
+            feature = np.load(os.path.join(features_dir, label, feature))
+            feature = torch.Tensor(feature).cuda()
+            with torch.no_grad():
+                output = net(feature).cpu().numpy()
+            top_pred = output.mean(axis=0)
+            pred.append(top_pred.argmax())
+            y.append(class2int[label])
+    pred = np.array(pred)
+    y = np.array(y)
+    percent = (np.sum(pred == y) / len(pred))
+    print(f"top 1 : {percent}")
     if num_layer_finetune > 0:
         state_dict = {**net.feature_extractor.state_dict(), **net.feature_converter.state_dict()}
     else:
