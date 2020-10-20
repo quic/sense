@@ -101,7 +101,7 @@ This script expects training videos to follow this structure:
 
 ```
     /path/to/your/dataset/
-    ├── videos/
+    ├── videos_train/
         ├── label1/
             ├── video1.mp4
             ├── video2.mp4
@@ -109,6 +109,16 @@ This script expects training videos to follow this structure:
         ├── label2/
             ├── video3.mp4
             ├── video4.mp4
+            ├── ...
+        ├── ...
+    ├── videos_valid/
+        ├── label1/
+            ├── video5.mp4
+            ├── video6.mp4
+            ├── ...
+        ├── label2/
+            ├── video7.mp4
+            ├── video8.mp4
             ├── ...
         ├── ...
 ```
