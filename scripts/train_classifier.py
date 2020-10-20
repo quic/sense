@@ -73,8 +73,8 @@ if __name__ == "__main__":
     if not num_timestep:
         raise NameError('Num layers to finetune not right. Must be integer between 0 and 32.')
 
-    lr_schedule = {0: 0.0001, 10: 0.00001}
-    num_epochs = 20
+    lr_schedule = {0: 0.0001, 20: 0.00001}
+    num_epochs = 40
 
 
     # Load feature extractor
@@ -103,8 +103,6 @@ if __name__ == "__main__":
     # create the data loaders
     trainloader = generate_data_loader(os.path.join(path_in, "features_train_" + str(num_layer_finetune)),
                                        classes, class2int, num_timesteps=num_timestep)
-    validloader = generate_data_loader(os.path.join(path_in, "features_valid_" + str(num_layer_finetune)),
-                                       classes, class2int, num_timesteps=num_timestep)
 
 
     # modeify the network to generate the training network on top of the features
@@ -118,8 +116,9 @@ if __name__ == "__main__":
     net.train()
     if use_gpu:
         net = net.cuda()
-
-    training_loops(net, trainloader, validloader, use_gpu, num_epochs=num_epochs, lr_schedule=lr_schedule)
+    valid_features_dir = os.path.join(path_in, "features_valid_" + str(num_layer_finetune))
+    training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, valid_features_dir,
+                   classes, class2int, num_timestep)
 
     # save the trained model
     if num_layer_finetune > 0:
@@ -128,11 +127,4 @@ if __name__ == "__main__":
         state_dict = net.state_dict()
     torch.save(state_dict, os.path.join(path_in, "classifier.checkpoint"))
     json.dump(class2int, open(os.path.join(path_in, "class2int.json"), "w"))
-
-    # evaluation score on full videos and not just random temporal crop
-    print("score on videos")
-    features_dir = os.path.join(path_in, "features_valid_" + str(num_layer_finetune))
-    evaluation_model(net, features_dir, classes, class2int, num_timestep, use_gpu)
-
-
 

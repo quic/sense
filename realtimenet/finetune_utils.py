@@ -110,7 +110,7 @@ def extract_features(path_in, classes, net, num_layer_finetune, use_gpu):
                     except:
                         print("video too short")
 
-def training_loops(net, trainloader, validloader, use_gpu, num_epochs, lr_schedule):
+def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_dir, classes, class2int, num_timestep):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -152,59 +152,40 @@ def training_loops(net, trainloader, validloader, use_gpu, num_epochs, lr_schedu
         percentage = np.sum((np.array(label) == np.array(top_pred))) / len(top_pred)
         train_top1 = percentage
         train_loss = running_loss / len(trainloader)
-
-        running_loss = 0.0
-        top_pred = []
-        label = []
-        net.eval()
-        for i, data in enumerate(validloader, 0):
-            # get the inputs; data is a list of [inputs, labels]
-            with torch.no_grad():
-                inputs, labels = data
-                if use_gpu:
-                    inputs = inputs.cuda()
-                    labels = labels.cuda()
-
-                outputs = []
-                for i in range(len(inputs)):
-                    outputs.append(net(inputs[i]).mean(dim=0).unsqueeze(0))
-                outputs = torch.cat(outputs, dim=0)
-
-                label += list(labels.cpu().numpy())
-                top_pred += list(outputs.argmax(dim=1).cpu().numpy())
-
-                # print statistics
-                running_loss += loss.item()
-        percentage = np.sum((np.array(label) == np.array(top_pred))) / len(top_pred)
-        valid_top1 = percentage
-        valid_loss = running_loss / len(trainloader)
-
+        valid_loss, valid_top1 = evaluation_model(net, criterion, features_dir, classes, class2int, num_timestep, use_gpu)
         print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (
         epoch + 1, train_loss, train_top1,
         valid_loss, valid_top1))
 
     print('Finished Training')
 
-def evaluation_model(net, features_dir, classes, class2int, num_timestep, use_gpu):
-    pred = []
-    y = []
-    net.eval()
-    for label in classes:
-        features = os.listdir(os.path.join(features_dir, label))
-        # used to remove .DSstore files on mac
-        features = [x for x in features if not x.startswith('.')]
-        for feature in features:
-            feature = np.load(os.path.join(features_dir, label, feature))
-            if len(feature) > num_timestep:
-                if use_gpu:
-                    feature = torch.Tensor(feature).cuda()
-                with torch.no_grad():
-                    output = net(feature).cpu().numpy()
-                top_pred = output.mean(axis=0)
-                pred.append(top_pred.argmax())
-                y.append(class2int[label])
+def evaluation_model(net, criterion, features_dir, classes, class2int, num_timestep, use_gpu):
+    with torch.no_grad():
+        top_pred = []
+        predictions = []
+        y = []
+        net.eval()
+        for label in classes:
+            features = os.listdir(os.path.join(features_dir, label))
+            # used to remove .DSstore files on mac
+            features = [x for x in features if not x.startswith('.')]
+            for feature in features:
+                feature = np.load(os.path.join(features_dir, label, feature))
+                if len(feature) > num_timestep:
+                    if use_gpu:
+                        feature = torch.Tensor(feature).cuda()
 
-    pred = np.array(pred)
-    y = np.array(y)
-    percent = (np.sum(pred == y) / len(pred))
-    print(f"top 1 : {percent}")
+                    output = net(feature)
+                    pred = output.mean(dim=0)
+                    predictions.append(pred.unsqueeze(0))
+                    top_pred.append(pred.cpu().numpy().argmax())
+                    y.append(class2int[label])
+        predictions = torch.cat(predictions, dim=0)
+        pred = np.array(top_pred)
+        y = np.array(y)
+        y_tensor = torch.Tensor(y).long()
+        if use_gpu:
+            y_tensor = y_tensor.cuda()
+        loss = criterion(predictions, y_tensor).item()
+        percent = (np.sum(pred == y) / len(pred))
+        return loss, percent
