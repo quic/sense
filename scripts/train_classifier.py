@@ -10,7 +10,7 @@ Usage:
 
 Options:
   --path_in=PATH              path to the dataset folder following the structure described in the readme
-  --num_layer_finetune=NUM    Number layer to finetune, must be integer between 0 and 32 [default: 2]
+--num_layer_finetune=NUM    Number layer to finetune, must be integer between 0 and 32 [default: 9]
 
 """
 
@@ -73,8 +73,8 @@ if __name__ == "__main__":
     if not num_timestep:
         raise NameError('Num layers to finetune not right. Must be integer between 0 and 32.')
 
-    lr_schedule = {0: 0.0001, 20: 0.00001}
-    num_epochs = 40
+    lr_schedule = {0: 0.0001, 40: 0.00001}
+    num_epochs = 60
 
 
     # Load feature extractor

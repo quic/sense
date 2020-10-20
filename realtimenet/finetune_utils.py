@@ -38,7 +38,7 @@ def generate_data_loader(features_dir, classes, class2int, num_timesteps=5, shuf
         features += feature_temp
         labels += [class2int[label]] * len(feature_temp)
     dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)
-    data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=64)
+    data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=16)
     return data_loader
 
 def uniform_frame_sample(video, sample_rate):
