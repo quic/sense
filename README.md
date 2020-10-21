@@ -1,27 +1,31 @@
 # 20bn-realtimenet
 
-This repo contains the inference code for two neural networks that were pre-trained on millions of videos. Both neural
-networks are rather small and should smoothly run in real time on a CPU. 
+`20bn-realtimenet` is a lightweight inference engine for two neural networks that were pre-trained on millions of videos,
+including a gesture recognition model and a fitness activity tracking model.
+Both neural networks are small, efficient, and run smoothly in real time on a CPU. 
 
-## Installation
+## Getting Started
+The following steps are confirmed to work on Linux (Ubuntu 18.04 LTS and 20.04 LTS) and macOS (Catalina 10.15.7).
+Windows users should be able to 
 
-The following steps have been confirmed to work on a Linux machine (Ubuntu 18.04 LTS). They probably also work on MacOS/Windows.
+### 1. Clone the Repository
 
-To begin, clone this repository to a local directory:
+To begin, clone this repository to a local directory of your choice using either HTTPS or SSH:
 ```
-git clone git@github.com:TwentyBN/20bn-realtimenet.git
+git clone https://github.com/TwentyBN/20bn-realtimenet.git
+# Or with SSH: git clone git@github.com:TwentyBN/20bn-realtimenet.git
 cd 20bn-realtimenet
 ```
 
-### Dependencies
+### 2. Install Dependencies
 
-Create a new [conda](https://docs.conda.io/en/latest/miniconda.html) environment:
+Create a new virtual environment. The following instruction uses [conda](https://docs.conda.io/en/latest/miniconda.html).
+You can also create a new virtual environment with `virtualenv`.
 
 ```shell
 conda create -y -n realtimenet python=3.6
 conda activate realtimenet
 ```
-
 
 Install Python dependencies:
 
@@ -29,21 +33,29 @@ Install Python dependencies:
 pip install -r requirements.txt
 ```
 
-Note: `pip install -r requirements.txt` will install the CPU-only version of PyTorch. To run inference on your GPU, 
-another version of PyTorch should be installed (e.g. `conda install pytorch torchvision cudatoolkit=10.2 -c pytorch`, 
-see all available options [here](https://pytorch.org/)).
+Note: `pip install -r requirements.txt` only installs the CPU-only version of PyTorch.
+To run inference on your GPU,  another version of PyTorch should be installed. For instance:
+```shell
+conda install pytorch torchvision cudatoolkit=10.2 -c pytorch
+``` 
+See all available options [here](https://pytorch.org/).
 
 
-### Pre-trained weights
+### 3. Download Pre-trained Weights
 
-Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation). After download, be sure to unzip and place the contents of the directory into `20bn-realtimenet/resources`.
+Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation).
+Follow the link, register for your account, and you will be redirected to the download page.
+After downloading the weights, be sure to unzip and place the contents of the directory into `20bn-realtimenet/resources`.
 
 ## Available scripts
+Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,
+`gesture_recognition.py`, `fitness_tracker.py`, and `calorie_estimation.py`.
 
-### Gesture Recognition
+### 1. Gesture Recognition
 
-`scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition. 30 gestures are supported (see full list 
-[here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py))
+`scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
+30 gestures are supported (see full list 
+[here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py)):
 
 ```shell
 PYTHONPATH=./ python scripts/gesture_recognition.py
@@ -54,7 +66,7 @@ PYTHONPATH=./ python scripts/gesture_recognition.py
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
 
 
-### Fitness Activity Tracking
+### 2. Fitness Activity Tracking
 
 `scripts/fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
@@ -83,7 +95,7 @@ It is also possible to save the display window to a video file using:
   --path_out=FILENAME             Video file to stream to
 ```
 
-#### Ideal setup:
+#### Ideal Setup:
 
 Best performance is obtained in these conditions: 
 - Camera on the floor 
@@ -91,7 +103,7 @@ Best performance is obtained in these conditions:
 - Clean background 
 
 
-#### Calorie estimation
+### 3. Calorie Estimation
 
 In order to estimate burned calories, we trained a neural net to convert activity features to the corresponding [MET value](https://en.wikipedia.org/wiki/Metabolic_equivalent_of_task).
 We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
@@ -99,6 +111,11 @@ and convert them to calories using the user's weight.
 
 If you're only interested in the calorie estimation part, you might want to use `scripts/calorie_estimation.py` which has a slightly more
 detailed display (see video [here](https://drive.google.com/file/d/1VIAnFPm9JJAbxTMchTazUE3cRRgql6Z6/view?usp=sharing) which compares two videos produced by that script).
+
+Usage:
+```shell
+PYTHONPATH=./ python scripts/calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female
+```
 
 The estimated calorie estimates are roughly in the range produced by wearable devices, though they have not been verified in terms of accuracy. 
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
