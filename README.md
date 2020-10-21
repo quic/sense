@@ -1,12 +1,11 @@
 # 20bn-realtimenet
 
-`20bn-realtimenet` is a lightweight inference engine for two neural networks that were pre-trained on millions of videos,
+`20bn-realtimenet` is an inference engine for two lightweight neural networks that were pre-trained on millions of videos,
 including a gesture recognition model and a fitness activity tracking model.
 Both neural networks are small, efficient, and run smoothly in real time on a CPU. 
 
 ## Getting Started
 The following steps are confirmed to work on Linux (Ubuntu 18.04 LTS and 20.04 LTS) and macOS (Catalina 10.15.7).
-Windows users should be able to 
 
 ### 1. Clone the Repository
 
@@ -83,7 +82,7 @@ PYTHONPATH=./ python scripts/fitness_tracker.py --weight=65 --age=30 --height=17
 
 Weight, age, height should be respectively given in kilograms, years and centimeters. If not provided, default values will be used.
 
-Some additional arguments can be used to grab frames from a different source:
+Some additional arguments can be used to change the streaming source:
 ```
   --camera_id=CAMERA_ID           ID of the camera to stream from
   --path_in=FILENAME              Video file to stream from. This assumes that the video was encoded at 16 fps.
@@ -96,7 +95,7 @@ It is also possible to save the display window to a video file using:
 
 #### Ideal Setup:
 
-Best performance is obtained in these conditions: 
+For the best performance, the following is recommended: 
 - Camera on the floor 
 - Body fully visible (head-to-toe) 
 - Clean background 
