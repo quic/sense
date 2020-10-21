@@ -10,10 +10,9 @@ Windows users should be able to
 
 ### 1. Clone the Repository
 
-To begin, clone this repository to a local directory of your choice using either HTTPS or SSH:
+To begin, clone this repository to a local directory of your choice:
 ```
 git clone https://github.com/TwentyBN/20bn-realtimenet.git
-# Or with SSH: git clone git@github.com:TwentyBN/20bn-realtimenet.git
 cd 20bn-realtimenet
 ```
 
