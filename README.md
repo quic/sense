@@ -109,11 +109,11 @@ From our experiments, our estimates correlate well with the workout intensity (i
 We now have a [blogpost](ADD) you can cite:
 
 ```bibtex
-@misc{realtimenet,
-    author = "{TODO}",
-    title = {{TODO}},
+@misc{realtimenet2020blogpost,
+    author = {Guillaume Berger and Antoine Mercier and Florian Letsch and Cornelius Boehm and Sunny Panchal and Nahua Kang and Mark Todorovich and Ingo Bax and Roland Memisevic},
+    title = {Towards situated visual AI via end-to-end learning on video clips},
     howpublished = {\url{TODO}},
-    note = {online; accessed 22 October 2020} ,
+    note = {online; accessed 23 October 2020},
     year=2020,
 }
 ```
