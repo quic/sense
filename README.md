@@ -104,6 +104,20 @@ The estimated calorie estimates are roughly in the range produced by wearable de
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
 
 
+## Citation
+
+We now have a [blogpost](ADD) you can cite:
+
+```bibtex
+@misc{realtimenet,
+    author = "{TODO}",
+    title = {{TODO}},
+    howpublished = {\url{TODO}},
+    note = {online; accessed 22 October 2020} ,
+    year=2020,
+}
+```
+
 ## License 
 
 The code is copyright (c) 2018 Twenty Billion Neurons GmbH under an MIT Licence. See the file LICENSE for details. Note that this license 
