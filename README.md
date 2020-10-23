@@ -112,7 +112,7 @@ We now have a [blogpost](ADD) you can cite:
 @misc{realtimenet2020blogpost,
     author = {Guillaume Berger and Antoine Mercier and Florian Letsch and Cornelius Boehm and Sunny Panchal and Nahua Kang and Mark Todorovich and Ingo Bax and Roland Memisevic},
     title = {Towards situated visual AI via end-to-end learning on video clips},
-    howpublished = {\url{TODO}},
+    howpublished = {\url{https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f}},
     note = {online; accessed 23 October 2020},
     year=2020,
 }
