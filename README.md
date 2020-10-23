@@ -119,6 +119,20 @@ The estimated calorie estimates are roughly in the range produced by wearable de
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
 
 
+## Citation
+
+We now have a [blogpost](https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f) you can cite:
+
+```bibtex
+@misc{realtimenet2020blogpost,
+    author = {Guillaume Berger and Antoine Mercier and Florian Letsch and Cornelius Boehm and Sunny Panchal and Nahua Kang and Mark Todorovich and Ingo Bax and Roland Memisevic},
+    title = {Towards situated visual AI via end-to-end learning on video clips},
+    howpublished = {\url{https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f}},
+    note = {online; accessed 23 October 2020},
+    year=2020,
+}
+```
+
 ## License 
 
 The code is copyright (c) 2020 Twenty Billion Neurons GmbH under an MIT Licence. See the file LICENSE for details. Note that this license 
