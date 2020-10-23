@@ -106,7 +106,7 @@ From our experiments, our estimates correlate well with the workout intensity (i
 
 ## Citation
 
-We now have a [blogpost](ADD) you can cite:
+We now have a [blogpost](https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f) you can cite:
 
 ```bibtex
 @misc{realtimenet2020blogpost,
