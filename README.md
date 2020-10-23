@@ -51,14 +51,9 @@ Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,
 
 ### 1. Gesture Recognition
 
-<<<<<<< HEAD
-By default, `scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition. 30 gestures are supported (see full list
-[here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py))
-=======
 `scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
 30 gestures are supported (see full list 
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py)):
->>>>>>> master
 
 ```shell
 PYTHONPATH=./ python scripts/gesture_recognition.py
