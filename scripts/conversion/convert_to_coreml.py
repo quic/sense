@@ -30,7 +30,7 @@ try:
     from coremltools.models.neural_network import datatypes, NeuralNetworkBuilder
 except:
     raise Exception("This CoreML conversion script requires additional dependencies. \n"
-                    "Run: pip install tensorflow==1.14.0 keras==2.2.4 coremltools==3.3 ")
+                    "Run: pip install tensorflow==1.14.0 keras==2.2.4 coremltools==3.3")
 
 
 parser = argparse.ArgumentParser(description='Marknet To Keras/CoreML Converter.')
@@ -119,8 +119,8 @@ def _main(args):
         print(a, getattr(args, a))
     model_dir = 'resources'
     config_file = 'scripts/conversion/cfg/efficientnet.cfg'
-    keras_file = os.path.join(model_dir, 'efficientnet_keras.h5')
     model_name = 'strided_inflated_efficientnet'
+    keras_file = os.path.join(model_dir, model_name + '.h5')
 
     if args.generate_coreml:
         if args.float16:
