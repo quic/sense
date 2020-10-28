@@ -17,7 +17,7 @@ cd 20bn-realtimenet
 
 ### 2. Install Dependencies
 
-Create a new virtual environment. The following instruction uses [conda](https://docs.conda.io/en/latest/miniconda.html).
+Create a new virtual environment. The following instruction uses [conda](https://docs.conda.io/en/latest/miniconda.html) (recommended).
 You can also create a new virtual environment with `virtualenv`.
 
 ```shell
