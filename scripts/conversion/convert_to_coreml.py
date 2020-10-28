@@ -7,7 +7,7 @@ Author: Mark Tordorovich.
 Usage:
   convert_to_coreml.py --backbone=NAME --classifier=NAME --output_name=NAME
                        [--plot_model]
-                       [--float16]
+                       [--float32]
   convert_to_coreml.py (-h | --help)
 
 Options:
@@ -15,7 +15,8 @@ Options:
   --classifier=NAME   Name of the classifier model.
   --output_name=NAME  Base name of the output file.
   --plot_model        Plot intermediate Keras model and save as image.
-  --float16           Quantize to 16-bit floating point.
+  --float32           Use full precision. By default, this script quantizes weights
+                      to 16-bit precision.
   -h --help
 """
 
@@ -29,25 +30,16 @@ from collections import defaultdict
 import torch
 import numpy as np
 
-try:
-    from keras import backend as K
-    from keras.layers import (Conv1D, Conv2D, Input, ZeroPadding2D, Add, SeparableConv1D,
-                              SeparableConv2D, Permute, Dense, GlobalAveragePooling2D,
-                              UpSampling2D, MaxPooling2D, Concatenate, Cropping1D, Cropping2D,
-                              concatenate, Activation, DepthwiseConv2D, Softmax)
-    from keras.layers.advanced_activations import (LeakyReLU, ReLU, PReLU)
-    from keras.layers.normalization import BatchNormalization
-    from keras.initializers import RandomNormal
-    from keras.models import Model
-    from keras.regularizers import l2
-    from keras.utils.vis_utils import plot_model as plot
-    from tensorflow import slice
-    import tensorflow as tf
-    import coremltools
-    from coremltools.models.neural_network import datatypes, NeuralNetworkBuilder
-except:
-    raise Exception("This CoreML conversion script requires additional dependencies. \n"
-                    "Run: pip install tensorflow==1.14.0 keras==2.2.4 coremltools==3.3")
+from keras import backend as K
+from keras.layers import (Conv2D, Input, ZeroPadding2D, Add, Dense, GlobalAveragePooling2D,
+                          UpSampling2D, MaxPooling2D, Concatenate, DepthwiseConv2D, Softmax)
+from keras.layers.advanced_activations import (LeakyReLU, ReLU, PReLU)
+from keras.layers.normalization import BatchNormalization
+from keras.initializers import RandomNormal
+from keras.models import Model
+from keras.regularizers import l2
+from keras.utils.vis_utils import plot_model as plot
+import coremltools
 
 
 DEFAULT_CONVERSION_PARAMETERS = {
@@ -112,19 +104,13 @@ def merge_backbone_and_classifier_cfg_files(backbone_config_file, classifier_con
     return output_stream
 
 
-def convert(backbone_settings, classifier_settings, output_name, float16, plot_model):
+def convert(backbone_settings, classifier_settings, output_name, float32, plot_model):
     output_dir = 'resources/coreml/'
     os.makedirs(output_dir, exist_ok=True)
 
     conversion_parameters = backbone_settings['conversion_parameters']
     keras_file = os.path.join(output_dir, output_name + '.h5')
-
-    if float16:
-        coreml_file = os.path.join(output_dir, output_name + '.FP16-32.mlmodel')
-        normalized_file = os.path.join(output_dir, output_name + '.norm.FP16-32.mlmodel')
-    else:
-        coreml_file = os.path.join(output_dir, output_name + '-32.mlmodel')
-        normalized_file = os.path.join(output_dir, output_name + '.norm-32.mlmodel')
+    coreml_file = os.path.join(output_dir, output_name + '.mlmodel')
 
     if plot_model:
         plot_file = os.path.join(output_dir, output_name + '.png')
@@ -1066,7 +1052,7 @@ def convert(backbone_settings, classifier_settings, output_name, float16, plot_m
 
     build_args['use_float_arraytype'] = True
 
-    if float16:
+    if float32:
         build_args['model_precision'] = 'float16'
 
     if conversion_parameters['normalize_inputs']:
@@ -1086,9 +1072,6 @@ def convert(backbone_settings, classifier_settings, output_name, float16, plot_m
 
     coreml_model = coremltools.converters.keras.convert(keras_file, **build_args)
     coreml_model.short_description = coreml_file
-    print('\nsaving ', coreml_file)
-    coreml_model.save(coreml_file)
-
     spec = coreml_model.get_spec()
 
     if conversion_parameters['normalize_inputs']:
@@ -1128,9 +1111,13 @@ def convert(backbone_settings, classifier_settings, output_name, float16, plot_m
         # print(spec.description)
 
         coreml_model = coremltools.models.MLModel(spec)
-        coreml_model.short_description = normalized_file
-        print('\nsaving normalized network ', normalized_file)
-        coreml_model.save(normalized_file)
+        coreml_model.short_description = coreml_file
+        print('\nsaving normalized network ', coreml_file)
+        coreml_model.save(coreml_file)
+
+    else:
+        print('\nsaving ', coreml_file)
+        coreml_model.save(coreml_file)
 
     if fake_weights == True:
         print('************************* Warning!! **************************')
@@ -1150,7 +1137,7 @@ if __name__ == '__main__':
     backbone_name = args['--backbone']
     classifier_name = args['--classifier']
     output_name = args['--output_name']
-    float16 = args['--float16']
+    float32 = args['--float32']
     plot_model = args['--plot_model']
 
     backbone_settings = SUPPORTED_BACKBONE_CONVERSIONS.get(backbone_name)
@@ -1169,4 +1156,4 @@ if __name__ == '__main__':
         raise Exception('This classifier expects a different backbone: '
                         '{}'.format(classifier_settings['corresponding_backbone']))
 
-    convert(backbone_settings, classifier_settings, output_name, float16, plot_model)
+    convert(backbone_settings, classifier_settings, output_name, float32, plot_model)

@@ -119,6 +119,16 @@ The estimated calorie estimates are roughly in the range produced by wearable de
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
 
 
+## Running on an iOS Device and CoreML Conversion
+
+If you're interested in mobile app development and want to run our models on iOS devices, please check out [20bn-realtimenet-ios](https://github.com/TwentyBN/20bn-realtimenet-iOS).
+This other repo provides step by step instructions on how to get our gesture demo to run on an iOS device.
+One of the steps involves converting our Pytorch models to the CoreML format, which can be done from this repo using the following script:
+
+```shell
+python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=realtimenet
+```
+
 ## Citation
 
 We now have a [blogpost](https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f) you can cite:
