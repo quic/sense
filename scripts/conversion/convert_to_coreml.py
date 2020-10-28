@@ -67,7 +67,6 @@ SUPPORTED_BACKBONE_CONVERSIONS = {
         {
             'config_file': 'scripts/conversion/cfg/efficientnet.cfg',
             'weights_file': 'resources/strided_inflated_efficientnet.ckpt',
-            'model_name': 'strided_inflated_efficientnet',
             'conversion_parameters': {**DEFAULT_CONVERSION_PARAMETERS, 'image_scale': 255.}
         }
 }
@@ -118,9 +117,8 @@ def convert(backbone_settings, classifier_settings, output_name, float16, plot_m
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    model_name = backbone_settings['model_name']
     conversion_parameters = backbone_settings['conversion_parameters']
-    keras_file = os.path.join(output_dir, model_name + '.h5')
+    keras_file = os.path.join(output_dir, output_name + '.h5')
 
     if float16:
         coreml_file = os.path.join(output_dir, output_name + '.FP16-32.mlmodel')
