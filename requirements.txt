@@ -8,4 +8,4 @@ docopt                  ==0.6.2       # MIT
 # Dependencies needed for converting Pytorch models to CoreML
 tensorflow              ==1.14.0
 keras                   ==2.2.4
-coremltool              ==3.3
+coremltools             ==3.3
