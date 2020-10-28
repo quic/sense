@@ -114,8 +114,7 @@ def merge_backbone_and_classifier_cfg_files(backbone_config_file, classifier_con
 
 def convert(backbone_settings, classifier_settings, output_name, float16, plot_model):
     output_dir = 'resources/coreml/'
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
     conversion_parameters = backbone_settings['conversion_parameters']
     keras_file = os.path.join(output_dir, output_name + '.h5')
