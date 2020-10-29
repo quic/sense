@@ -17,7 +17,7 @@ cd 20bn-realtimenet
 
 ### 2. Install Dependencies
 
-Create a new virtual environment. The following instruction uses [conda](https://docs.conda.io/en/latest/miniconda.html).
+Create a new virtual environment. The following instruction uses [conda](https://docs.conda.io/en/latest/miniconda.html) (recommended).
 You can also create a new virtual environment with `virtualenv`.
 
 ```shell
@@ -118,6 +118,15 @@ PYTHONPATH=./ python scripts/calorie_estimation.py --weight=65 --age=30 --height
 The estimated calorie estimates are roughly in the range produced by wearable devices, though they have not been verified in terms of accuracy. 
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
 
+
+## Running on an iOS Device and CoreML Conversion
+
+If you're interested in mobile app development and want to run our models on iOS devices, please check out [20bn-realtimenet-ios](https://github.com/TwentyBN/20bn-realtimenet-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
+One of the steps involves converting our Pytorch models to the CoreML format, which can be done from this repo using the following script:
+
+```shell
+python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=realtimenet
+```
 
 ## Citation
 
