@@ -121,8 +121,7 @@ From our experiments, our estimates correlate well with the workout intensity (i
 
 ## Running on an iOS Device and CoreML Conversion
 
-If you're interested in mobile app development and want to run our models on iOS devices, please check out [20bn-realtimenet-ios](https://github.com/TwentyBN/20bn-realtimenet-iOS).
-This other repo provides step by step instructions on how to get our gesture demo to run on an iOS device.
+If you're interested in mobile app development and want to run our models on iOS devices, please check out [20bn-realtimenet-ios](https://github.com/TwentyBN/20bn-realtimenet-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
 One of the steps involves converting our Pytorch models to the CoreML format, which can be done from this repo using the following script:
 
 ```shell
