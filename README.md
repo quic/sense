@@ -17,7 +17,7 @@ cd 20bn-realtimenet
 
 ### 2. Install Dependencies
 
-Create a new virtual environment. The following instruction uses [conda](https://docs.conda.io/en/latest/miniconda.html).
+Create a new virtual environment. The following instruction uses [conda](https://docs.conda.io/en/latest/miniconda.html) (recommended).
 You can also create a new virtual environment with `virtualenv`.
 
 ```shell
@@ -156,6 +156,29 @@ This script expects training videos to follow this structure:
             ├── video8.mp4
             ├── ...
         ├── ...
+```
+
+## Running on an iOS Device and CoreML Conversion
+
+If you're interested in mobile app development and want to run our models on iOS devices, please check out [20bn-realtimenet-ios](https://github.com/TwentyBN/20bn-realtimenet-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
+One of the steps involves converting our Pytorch models to the CoreML format, which can be done from this repo using the following script:
+
+```shell
+python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=realtimenet
+```
+
+## Citation
+
+We now have a [blogpost](https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f) you can cite:
+
+```bibtex
+@misc{realtimenet2020blogpost,
+    author = {Guillaume Berger and Antoine Mercier and Florian Letsch and Cornelius Boehm and Sunny Panchal and Nahua Kang and Mark Todorovich and Ingo Bax and Roland Memisevic},
+    title = {Towards situated visual AI via end-to-end learning on video clips},
+    howpublished = {\url{https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f}},
+    note = {online; accessed 23 October 2020},
+    year=2020,
+}
 ```
 
 ## License 
