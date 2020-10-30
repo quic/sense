@@ -9,7 +9,7 @@ import os
 
 
 class FeaturesDataset(torch.utils.data.Dataset):
-    """Face Landmarks dataset."""
+    """Features dataset."""
 
     def __init__(self, files, labels, num_timesteps=5):
         self.files = files
@@ -32,9 +32,7 @@ def generate_data_loader(features_dir, classes, class2int, num_timesteps=5, shuf
     features = []
     labels = []
     for label in classes:
-        files = os.listdir(os.path.join(features_dir, label))
-        # used to remove .DSstore files on mac
-        feature_temp = [os.path.join(features_dir, label, x) for x in files if not x.startswith('.')]
+        feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
         features += feature_temp
         labels += [class2int[label]] * len(feature_temp)
     dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)
@@ -94,7 +92,7 @@ def extract_features(path_in, classes, net, num_layer_finetune, use_gpu):
                         else:
                             image, image_rescaled = images
                             frames.append(image_rescaled)
-                    frames = uniform_frame_sample(np.array(frames), 16/video_fps)
+                    frames = uniform_frame_sample(np.array(frames), inference_engine.fps/video_fps)
                     clip = np.array([frames]).astype(np.float32)
 
                     try:

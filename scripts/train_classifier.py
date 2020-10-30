@@ -96,8 +96,6 @@ if __name__ == "__main__":
     # finetune the model
     extract_features(path_in, classes, net, num_layer_finetune, use_gpu)
 
-    y_train, y_valid = [], []
-    X_train, X_valid = [], []
     class2int = {x:e for e,x in enumerate(classes)}
 
     # create the data loaders
