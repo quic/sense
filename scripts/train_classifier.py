@@ -20,7 +20,7 @@ import os
 
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
 from realtimenet.finetune_utils import training_loops, extract_features, generate_data_loader, evaluation_model
-
+from realtimenet.finetune_utils import set_internal_padding_false
 from realtimenet import feature_extractors
 import json
 
@@ -79,7 +79,9 @@ if __name__ == "__main__":
 
 
     # Load feature extractor
-    feature_extractor = feature_extractors.StridedInflatedEfficientNet(internal_padding=False)
+    feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+    # remove internal padding for feature extraction and training
+    feature_extractor.apply(set_internal_padding_false)
     checkpoint = torch.load('resources/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()

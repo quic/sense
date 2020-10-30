@@ -61,13 +61,6 @@ class SteppableConv3dAs2d(nn.Conv2d):
         super().train(mode)
         return self.reset()
 
-
-class SteppableConv3dAs2dTraining(SteppableConv3dAs2d):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.internal_padding = False
-
-
 class SteppableSparseConv3dAs2d(SteppableConv3dAs2d):
 
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, **kwargs):
@@ -89,12 +82,6 @@ class SteppableSparseConv3dAs2d(SteppableConv3dAs2d):
         return out
 
 
-class SteppableSparseConv3dAs2dTraining(SteppableSparseConv3dAs2d):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.internal_padding = False
-
-
 class ConvReLU(nn.Sequential):
 
     def __init__(self, in_planes, out_planes, kernel_size=3, stride=1, groups=1, convlayer=nn.Conv2d,
@@ -109,30 +96,23 @@ class ConvReLU(nn.Sequential):
 class InvertedResidual(nn.Module):  # noqa: D101
 
     def __init__(self, in_planes, out_planes, spatial_kernel_size=3, spatial_stride=1, expand_ratio=1,
-                 temporal_shift=False, temporal_stride=False, sparse_temporal_conv=False, internal_padding=True):
+                 temporal_shift=False, temporal_stride=False, sparse_temporal_conv=False):
         super().__init__()
         assert spatial_stride in [1, 2]
         hidden_dim = round(in_planes * expand_ratio)
         self.use_residual = spatial_stride == 1 and in_planes == out_planes
         self.temporal_shift = temporal_shift
         self.temporal_stride = temporal_stride
-        self.internal_padding = internal_padding
 
         layers = []
         if expand_ratio != 1:
             # Point-wise expansion
             stride = 1 if not temporal_stride else (2, 1, 1)
             if temporal_shift and sparse_temporal_conv:
-                if self.internal_padding:
-                    convlayer = SteppableSparseConv3dAs2d
-                else:
-                    convlayer = SteppableSparseConv3dAs2dTraining
+                convlayer = SteppableSparseConv3dAs2d
                 kernel_size = 1
             elif temporal_shift:
-                if self.internal_padding:
-                    convlayer = SteppableConv3dAs2d
-                else:
-                    convlayer = SteppableConv3dAs2dTraining
+                convlayer = SteppableConv3dAs2d
                 kernel_size = (3, 1, 1)
             else:
                 convlayer = nn.Conv2d

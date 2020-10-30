@@ -7,6 +7,9 @@ import torch.optim as optim
 import torch.nn as nn
 import os
 
+def set_internal_padding_false(module):
+    if hasattr(module, "internal_padding"):
+        module.internal_padding = False
 
 class FeaturesDataset(torch.utils.data.Dataset):
     """Features dataset."""
