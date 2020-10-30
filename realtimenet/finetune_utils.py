@@ -22,11 +22,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         feature = np.load(self.files[idx])
         num_preds = feature.shape[0]
-        if num_preds <= self.num_timesteps:
-            return self.__getitem__(idx + 1)
-        else:
-            position = np.random.randint(0, num_preds - self.num_timesteps)
-            return [feature[position:position+self.num_timesteps], self.labels[idx]]
+        position = np.random.randint(0, num_preds - self.num_timesteps)
+        return [feature[position:position+self.num_timesteps], self.labels[idx]]
 
 def generate_data_loader(features_dir, classes, class2int, num_timesteps=5, shuffle=True):
     features = []
@@ -52,7 +49,7 @@ def uniform_frame_sample(video, sample_rate):
         return video[sampled_frames]
     return video
 
-def extract_features(path_in, classes, net, num_layer_finetune, use_gpu):
+def extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum_frames=45):
 
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
@@ -94,8 +91,7 @@ def extract_features(path_in, classes, net, num_layer_finetune, use_gpu):
                             frames.append(image_rescaled)
                     frames = uniform_frame_sample(np.array(frames), inference_engine.fps/video_fps)
                     clip = np.array([frames]).astype(np.float32)
-
-                    try:
+                    if len(clip) > minimum_frames:
                         if num_layer_finetune > 0:
                             predictions = inference_engine.process_clip_features_map(clip,
                                                                                  layer=-num_layer_finetune)
@@ -105,7 +101,7 @@ def extract_features(path_in, classes, net, num_layer_finetune, use_gpu):
                         features = np.array(predictions)
                         os.makedirs(os.path.dirname((path_out)), exist_ok=True)
                         np.save(path_out, features)
-                    except:
+                    else:
                         print("video too short")
 
 def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_dir, classes, class2int, num_timestep):
