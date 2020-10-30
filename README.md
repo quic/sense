@@ -157,6 +157,8 @@ This script expects training videos to follow this structure:
             ├── ...
         ├── ...
 ```
+- For each category you want to recognize, you should put videos in the train folder and in the valid folder.
+- All videos should have a duration of at least 3 seconds, and at least a framerate of 16 fps.
 
 ## Running on an iOS Device and CoreML Conversion
 
