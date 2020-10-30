@@ -25,7 +25,9 @@ class FeaturesDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         feature = np.load(self.files[idx])
         num_preds = feature.shape[0]
-        position = np.random.randint(0, num_preds - self.num_timesteps)
+        position = 0
+        if num_preds> self.num_timesteps:
+            position = np.random.randint(0, num_preds - self.num_timesteps)
         return [feature[position:position+self.num_timesteps], self.labels[idx]]
 
 def generate_data_loader(features_dir, classes, class2int, num_timesteps=5, shuffle=True):
@@ -94,7 +96,7 @@ def extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum
                             frames.append(image_rescaled)
                     frames = uniform_frame_sample(np.array(frames), inference_engine.fps/video_fps)
                     clip = np.array([frames]).astype(np.float32)
-                    if len(clip) > minimum_frames:
+                    if clip.shape[1] > minimum_frames:
                         if num_layer_finetune > 0:
                             predictions = inference_engine.process_clip_features_map(clip,
                                                                                  layer=-num_layer_finetune)
