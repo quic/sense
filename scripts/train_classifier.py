@@ -60,6 +60,7 @@ num_layers2timesteps = {
     31: 45,
     32: 45
 }
+MIN_CLIP_TIMESTEP = 45
 
 if __name__ == "__main__":
     # Parse arguments
@@ -94,7 +95,7 @@ if __name__ == "__main__":
 
 
     # finetune the model
-    extract_features(path_in, classes, net, num_layer_finetune, use_gpu)
+    extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum_frames=MIN_CLIP_TIMESTEP)
 
     class2int = {x:e for e,x in enumerate(classes)}
 
