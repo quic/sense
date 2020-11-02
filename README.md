@@ -159,7 +159,7 @@ This script expects training videos to be organized according to this structure:
 
 #### 2. Live demo
 
-After your custom classfier was trained, you can run it live using the following script:
+After your custom classifier was trained, you can run it live using the following script:
 
 ```shell
 PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
