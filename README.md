@@ -40,10 +40,23 @@ See all available options [here](https://pytorch.org/).
 
 
 ### 3. Download Pre-trained Weights
-
-Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation).
+The backbones Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation).
 Follow the link, register for your account, and you will be redirected to the download page.
 After downloading the weights, be sure to unzip and place the contents of the directory into `20bn-realtimenet/resources`.
+You should get at the end this file structure:
+20bn-realtimenet/resources/
+├── backbone/
+    ├── strided_inflated_efficientnet.ckpt
+    ├── strided_inflated_efficientnet.ckpt
+├── fitness_activity_recognition/
+    ├── efficientnet_logistic_regression.ckpt
+    ├── mobilenet_logistic_regression.ckpt
+├── gesture_detection/
+    ├── efficientnet_logistic_regression.ckpt
+    ├── mobilenet_logistic_regression.ckpt
+├── ....
+Only the backbone files are to be copied, the other files are already present in the repository. 
+
 
 ## Available scripts
 Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,

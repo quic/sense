@@ -5,6 +5,5 @@ __pycache__
 *.pyc
 videos
 resources/coreml/*
-resources/strided_inflated_efficientnet.ckpt
-resources/strided_inflated_mobilenet.ckpt
+resources/backbone/*
 
