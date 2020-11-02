@@ -3,13 +3,13 @@
 Live estimation of burned calories.
 
 Usage:
-  calorie_estimation.py [--weight=WEIGHT --age=AGE --height=HEIGHT --gender=GENDER]
-                        [--camera_id=CAMERA_ID]
-                        [--path_in=FILENAME]
-                        [--path_out=FILENAME]
-                        [--title=TITLE]
-                        [--use_gpu]
-  calorie_estimation.py (-h | --help)
+  run_calorie_estimation.py [--weight=WEIGHT --age=AGE --height=HEIGHT --gender=GENDER]
+                            [--camera_id=CAMERA_ID]
+                            [--path_in=FILENAME]
+                            [--path_out=FILENAME]
+                            [--title=TITLE]
+                            [--use_gpu]
+  run_calorie_estimation.py (-h | --help)
 
 Options:
   --weight=WEIGHT                 Weight (in kilograms). Will be used to convert predicted MET value to calories [default: 70]
@@ -21,7 +21,6 @@ Options:
   --path_out=FILENAME             Video file to stream to
   --title=TITLE                   This adds a title to the window display
 """
-import torch
 from docopt import docopt
 
 import realtimenet.display
