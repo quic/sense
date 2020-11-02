@@ -3,5 +3,8 @@
 !.gitignore
 __pycache__
 *.pyc
-*.ckpt
 videos
+resources/coreml/*
+resources/strided_inflated_efficientnet.ckpt
+resources/strided_inflated_mobilenet.ckpt
+
