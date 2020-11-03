@@ -118,8 +118,10 @@ PYTHONPATH=./ python scripts/run_calorie_estimation.py --weight=65 --age=30 --he
 The estimated calorie estimates are roughly in the range produced by wearable devices, though they have not been verified in terms of accuracy. 
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
 
-### Transfer learning: train your own custom classifier
 
+### Transfer learning: build your own demo
+
+This repo implements scripts that can be used to finetune and evaluate one of our pretrained models on your specific data. 
 
 #### 1. Training
 
@@ -153,13 +155,14 @@ This script expects training videos to be organized according to this structure:
             ├── ...
         ├── ...
 ```
-- Two top-level folders: one for training data, one for validation data.
-- One sub-folder per label with as many videos as you want (but at least one!)
-- Requirement: all videos should have a duration of at least 3 seconds, and at least a framerate of 16 fps.
+- Two top-level folders: one for the training data, one for the validation data.
+- One sub-folder for each label with as many videos as you want (but at least one!)
+- Requirements: all videos should have a duration of at least 3 seconds, and at least a framerate of 16 fps.
 
 #### 2. Live demo
 
-After your custom classifier was trained, you can run it live using the following script:
+The training script should produce a checkpoint file called `classifier.checkpoint` at the root of the dataset folder.
+You can now run it live using the following script:
 
 ```shell
 PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
