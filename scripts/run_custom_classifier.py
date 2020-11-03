@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # Load original feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    checkpoint = engine.load_weights('resources/strided_inflated_efficientnet.ckpt')
+    checkpoint = engine.load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
 
     # Load custom classifier
     checkpoint_classifier = engine.load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
