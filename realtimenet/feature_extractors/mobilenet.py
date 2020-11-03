@@ -187,8 +187,7 @@ class StridedInflatedMobileNetV2(nn.Module):
         )
 
     def forward(self, video):
-        features = self.cnn(video)
-        return features.mean(dim=-1).mean(dim=-1)
+        return self.cnn(video)
 
     def preprocess(self, clip):
         clip = clip[:, :, :, ::-1].copy()

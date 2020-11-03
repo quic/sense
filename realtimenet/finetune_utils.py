@@ -104,12 +104,7 @@ def extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum
                     frames = uniform_frame_sample(np.array(frames), inference_engine.fps/video_fps)
                     clip = np.array([frames]).astype(np.float32)
                     if clip.shape[1] > minimum_frames:
-                        if num_layer_finetune > 0:
-                            predictions = inference_engine.process_clip_features_map(clip,
-                                                                                 layer=-num_layer_finetune)
-
-                        else:
-                            predictions = inference_engine.process_clip(clip, training=True)
+                        predictions = inference_engine.infer(clip)
                         features = np.array(predictions)
                         os.makedirs(os.path.dirname((path_out)), exist_ok=True)
                         np.save(path_out, features)

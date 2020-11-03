@@ -77,7 +77,6 @@ if __name__ == "__main__":
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 60
 
-
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     # remove internal padding for feature extraction and training
@@ -87,7 +86,9 @@ if __name__ == "__main__":
     feature_extractor.eval()
 
     # Concatenate feature extractor and met converter
-    net = feature_extractor
+    if num_layer_finetune > 0:
+        custom_classifier_bottom = feature_extractor.cnn[-num_layer_finetune:]
+        feature_extractor.cnn = feature_extractor.cnn[0:-num_layer_finetune]
 
     # list the labels from the training directory
     videos_dir = os.path.join(path_in, "videos_train")
@@ -95,11 +96,10 @@ if __name__ == "__main__":
     classes = os.listdir(videos_dir)
     classes = [x for x in classes if not x.startswith('.')]
 
-
     # finetune the model
-    extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum_frames=MIN_CLIP_TIMESTEP)
+    extract_features(path_in, classes, feature_extractor, num_layer_finetune, use_gpu, minimum_frames=MIN_CLIP_TIMESTEP)
 
-    class2int = {x:e for e,x in enumerate(classes)}
+    class2int = {x: e for e, x in enumerate(classes)}
 
     # create the data loaders
     trainloader = generate_data_loader(os.path.join(path_in, "features_train_" + str(num_layer_finetune)),
@@ -110,14 +110,16 @@ if __name__ == "__main__":
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=len(classes))
     if num_layer_finetune > 0:
-        net.cnn = net.cnn[-num_layer_finetune:]
-        net = Pipe(feature_extractor, gesture_classifier)
+        net = Pipe(custom_classifier_bottom, gesture_classifier)
     else:
         net = gesture_classifier
     net.train()
+
     if use_gpu:
         net = net.cuda()
+
     valid_features_dir = os.path.join(path_in, "features_valid_" + str(num_layer_finetune))
+
     training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, valid_features_dir,
                    classes, class2int, num_timestep)
 
@@ -126,6 +128,7 @@ if __name__ == "__main__":
         state_dict = {**net.feature_extractor.state_dict(), **net.feature_converter.state_dict()}
     else:
         state_dict = net.state_dict()
+
     torch.save(state_dict, os.path.join(path_in, "classifier.checkpoint"))
     json.dump(class2int, open(os.path.join(path_in, "class2int.json"), "w"))
 
