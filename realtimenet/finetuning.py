@@ -115,7 +115,7 @@ def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=4
                     np.save(path_out, features)
 
                 else:
-                    print(f"Video too short: {video_path}")
+                    print(f"\nVideo too short: {video_path}")
         print('\n')
 
 
