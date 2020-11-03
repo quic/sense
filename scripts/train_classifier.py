@@ -102,8 +102,10 @@ if __name__ == "__main__":
     class2int = {x: e for e, x in enumerate(classes)}
 
     # create the data loaders
-    trainloader = generate_data_loader(os.path.join(path_in, "features_train_" + str(num_layer_finetune)),
-                                       classes, class2int, num_timesteps=num_timestep)
+    train_loader = generate_data_loader(os.path.join(path_in, f"features_train_{num_layer_finetune}"),
+                                        classes, class2int, num_timesteps=num_timestep)
+    valid_loader = generate_data_loader(os.path.join(path_in, f"features_valid_{num_layer_finetune}"),
+                                        classes, class2int, num_timesteps=None, batch_size=1,  shuffle=False)
 
 
     # modeify the network to generate the training network on top of the features
@@ -120,8 +122,7 @@ if __name__ == "__main__":
 
     valid_features_dir = os.path.join(path_in, "features_valid_" + str(num_layer_finetune))
 
-    training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, valid_features_dir,
-                   classes, class2int, num_timestep)
+    training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule)
 
     # save the trained model
     if num_layer_finetune > 0:

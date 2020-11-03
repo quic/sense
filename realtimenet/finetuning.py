@@ -21,7 +21,7 @@ def set_internal_padding_false(module):
 class FeaturesDataset(torch.utils.data.Dataset):
     """Features dataset."""
 
-    def __init__(self, files, labels, num_timesteps=5):
+    def __init__(self, files, labels, num_timesteps=None):
         self.files = files
         self.labels = labels
         self.num_timesteps = num_timesteps
@@ -30,12 +30,12 @@ class FeaturesDataset(torch.utils.data.Dataset):
         return len(self.files)
 
     def __getitem__(self, idx):
-        feature = np.load(self.files[idx])
-        num_preds = feature.shape[0]
-        position = 0
-        if num_preds > self.num_timesteps:
+        features = np.load(self.files[idx])
+        num_preds = features.shape[0]
+        if self.num_timesteps and num_preds > self.num_timesteps:
             position = np.random.randint(0, num_preds - self.num_timesteps)
-        return [feature[position: position + self.num_timesteps], self.labels[idx]]
+            features = features[position: position + self.num_timesteps]
+        return [features, self.labels[idx]]
 
 
 def generate_data_loader(features_dir, classes, class2int,
@@ -118,7 +118,7 @@ def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=4
                     print(f"Video too short: {video_path}")
 
 
-def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_dir, classes, class2int, num_timestep):
+def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -129,78 +129,60 @@ def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_
             for param_group in optimizer.param_groups:
                 param_group['lr'] = new_lr
 
-        running_loss = 0.0
         net.train()
-        epoch_top_predictions = []
-        epoch_labels = []
+        train_loss, train_top1 = run_epoch(train_loader, net, criterion, optimizer, use_gpu)
 
-        for i, data in enumerate(trainloader):
-            # get the inputs; data is a list of [inputs, targets]
-            inputs, targets = data
-            if use_gpu:
-                inputs = inputs.cuda()
-                targets = targets.cuda()
+        net.eval()
+        valid_loss, valid_top1 = run_epoch(valid_loader, net, criterion, None, use_gpu)
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
-
-            # forward + backward + optimize
-            outputs = []
-            for i in range(len(inputs)):
-                pred = net(inputs[i])
-                outputs.append(pred.mean(dim=0).unsqueeze(0))
-            outputs = torch.cat(outputs, dim=0)
-            loss = criterion(outputs, targets)
-            loss.backward()
-            optimizer.step()
-
-            # Store label and predictions to compute statistics later
-            epoch_labels += list(targets.cpu().numpy())
-            epoch_top_predictions += list(outputs.argmax(dim=1).cpu().numpy())
-
-            # print statistics
-            running_loss += loss.item()
-
-        epoch_labels = np.array(epoch_labels)
-        epoch_top_predictions = np.array(epoch_top_predictions)
-
-        train_top1 = np.mean(epoch_labels == epoch_top_predictions)
-        train_loss = running_loss / len(trainloader)
-
-        valid_loss, valid_top1 = evaluation_model(net, criterion, features_dir, classes, class2int, num_timestep, use_gpu)
         print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
                                                                                       valid_loss, valid_top1))
 
     print('Finished Training')
 
 
-def evaluation_model(net, criterion, features_dir, classes, class2int, num_timestep, use_gpu):
-    with torch.no_grad():
-        top_pred = []
-        predictions = []
-        y = []
-        net.eval()
-        for label in classes:
-            features = os.listdir(os.path.join(features_dir, label))
-            # used to remove .DSstore files on mac
-            features = [x for x in features if not x.startswith('.')]
-            for feature in features:
-                feature = np.load(os.path.join(features_dir, label, feature))
-                if len(feature) > num_timestep:
-                    if use_gpu:
-                        feature = torch.Tensor(feature).cuda()
+def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
+    running_loss = 0.0
+    epoch_top_predictions = []
+    epoch_labels = []
 
-                    output = net(feature)
-                    pred = output.mean(dim=0)
-                    predictions.append(pred.unsqueeze(0))
-                    top_pred.append(pred.cpu().numpy().argmax())
-                    y.append(class2int[label])
-        predictions = torch.cat(predictions, dim=0)
-        pred = np.array(top_pred)
-        y = np.array(y)
-        y_tensor = torch.Tensor(y).long()
+    for i, data in enumerate(data_loader):
+        # get the inputs; data is a list of [inputs, targets]
+        inputs, targets = data
         if use_gpu:
-            y_tensor = y_tensor.cuda()
-        loss = criterion(predictions, y_tensor).item()
-        percent = (np.sum(pred == y) / len(pred))
-        return loss, percent
+            inputs = inputs.cuda()
+            targets = targets.cuda()
+
+        # forward + backward + optimize
+        if net.training:
+            # Run on each batch element independently
+            outputs = [net(input_i) for input_i in inputs]
+            # Concatenate outputs to get a tensor of size batch_size x num_classes
+            outputs = torch.cat(outputs, dim=0)
+        else:
+            # Average predictions on the time dimension to get a tensor of size 1 x num_classes
+            # This assumes validation operates with batch_size=1 and process all available features (no cropping)
+            assert data_loader.batch_size == 1
+            outputs = net(inputs[0])
+            outputs = torch.mean(outputs, dim=0, keepdim=True)
+
+        loss = criterion(outputs, targets)
+        if optimizer is not None:
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+
+        # Store label and predictions to compute statistics later
+        epoch_labels += list(targets.cpu().numpy())
+        epoch_top_predictions += list(outputs.argmax(dim=1).cpu().numpy())
+
+        # print statistics
+        running_loss += loss.item()
+
+    epoch_labels = np.array(epoch_labels)
+    epoch_top_predictions = np.array(epoch_top_predictions)
+
+    top1 = np.mean(epoch_labels == epoch_top_predictions)
+    loss = running_loss / len(data_loader)
+
+    return loss, top1
