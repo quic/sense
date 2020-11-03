@@ -1157,7 +1157,7 @@ def custom_classifier_config(classifier_settings, path_in, backbone_name):
     if not os.path.isfile(lab2int_file):
         raise Exception(f'The "lab2int.json" was not found in {path_in}')
     try:
-        num_classes = np.max(list(json.load(open(lab2int_file)).keys())) + 1
+        num_classes = np.max(list(json.load(open(lab2int_file)).values())) + 1
     except:
         raise Exception(f'Error parsing "lab2int.json"')
 
