@@ -104,17 +104,20 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
                     else:
                         image, image_rescaled = images
                         frames.append(image_rescaled)
-                frames = uniform_frame_sample(np.array(frames), inference_engine.fps/video_fps)
-                clip = np.array([frames]).astype(np.float32)
+                frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
+                if frames.shape[0] < minimum_frames:
+                    print(f"\nVideo too short: {video_path} - first frame will be duplicated")
+                    num_missing_frames = minimum_frames - frames.shape[0]
+                    frames = np.pad(frames, ((num_missing_frames, 0), (0, 0), (0, 0), (0, 0)),
+                                    mode='edge')
                 # Inference
-                if clip.shape[1] > minimum_frames:
-                    predictions = inference_engine.infer(clip)
-                    features = np.array(predictions)
-                    os.makedirs(os.path.dirname(path_out), exist_ok=True)
-                    np.save(path_out, features)
-                else:
-                    print(f"\nVideo too short: {video_path}")
+                clip = frames[None].astype(np.float32)
+                predictions = inference_engine.infer(clip)
+                features = np.array(predictions)
+                os.makedirs(os.path.dirname(path_out), exist_ok=True)
+                np.save(path_out, features)
+
         print('\n')
 
 

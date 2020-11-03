@@ -157,7 +157,7 @@ This script expects training videos to be organized according to this structure:
 ```
 - Two top-level folders: one for the training data, one for the validation data.
 - One sub-folder for each label with as many videos as you want (but at least one!)
-- Requirements: all videos should have a duration of at least 3 seconds, and at least a framerate of 16 fps.
+- Requirement: videos should have a framerate of 16 fps or higher.
 
 #### 2. Live demo
 
