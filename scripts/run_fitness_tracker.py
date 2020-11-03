@@ -3,22 +3,22 @@
 Tracks which fitness exercises is performed and estimates total number of calories.
 
 Usage:
-  fitness_tracker.py [--weight=WEIGHT --age=AGE --height=HEIGHT --gender=GENDER]
-                     [--camera_id=CAMERA_ID]
-                     [--path_in=FILENAME]
-                     [--path_out=FILENAME]
-                     [--title=TITLE]
-                     [--use_gpu]
-  fitness_tracker.py (-h | --help)
+  run_fitness_tracker.py [--weight=WEIGHT --age=AGE --height=HEIGHT --gender=GENDER]
+                         [--camera_id=CAMERA_ID]
+                         [--path_in=FILENAME]
+                         [--path_out=FILENAME]
+                         [--title=TITLE]
+                         [--use_gpu]
+  run_fitness_tracker.py (-h | --help)
 
 Options:
-  --weight=WEIGHT                 Weight (in kilograms). Will be used to convert predicted MET value to calories [default: 70]
-  --age=AGE                       Age (in years). Will be used to convert predicted MET value to calories [default: 30]
-  --height=HEIGHT                 Height (in centimeters). Will be used to convert predicted MET value to calories [default: 170]
-  --gender=GENDER                 Gender ("male" or "female" or "other"). Will be used to convert predicted MET value to calories
-  --path_in=FILENAME              Video file to stream from
-  --path_out=FILENAME             Video file to stream to
-  --title=TITLE                   This adds a title to the window display
+  --weight=WEIGHT        Weight (in kilograms). Will be used to convert predicted MET value to calories [default: 70]
+  --age=AGE              Age (in years). Will be used to convert predicted MET value to calories [default: 30]
+  --height=HEIGHT        Height (in centimeters). Will be used to convert predicted MET value to calories [default: 170]
+  --gender=GENDER        Gender ("male" or "female" or "other"). Will be used to convert predicted MET value to calories
+  --path_in=FILENAME     Video file to stream from
+  --path_out=FILENAME    Video file to stream to
+  --title=TITLE          This adds a title to the window display
 """
 import torch
 from docopt import docopt

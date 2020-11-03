@@ -3,19 +3,18 @@
 Real time detection of 30 hand gestures.
 
 Usage:
-  gesture_recognition.py [--camera_id=CAMERA_ID]
-                         [--path_in=FILENAME]
-                         [--path_out=FILENAME]
-                         [--title=TITLE]
-                         [--use_gpu]
-  gesture_recognition.py (-h | --help)
+  run_gesture_recognition.py [--camera_id=CAMERA_ID]
+                             [--path_in=FILENAME]
+                             [--path_out=FILENAME]
+                             [--title=TITLE]
+                             [--use_gpu]
+  run_gesture_recognition.py (-h | --help)
 
 Options:
-  --path_in=FILENAME              Video file to stream from
-  --path_out=FILENAME             Video file to stream to
-  --title=TITLE                   This adds a title to the window display
+  --path_in=FILENAME         Video file to stream from
+  --path_out=FILENAME        Video file to stream to
+  --title=TITLE              This adds a title to the window display
 """
-import torch
 from docopt import docopt
 
 import realtimenet.display

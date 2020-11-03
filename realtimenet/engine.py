@@ -53,26 +53,35 @@ class InferenceEngine(Thread):
                 clip = None
 
             if clip is not None:
-                with torch.no_grad():
+                predictions = self.infer(clip)
 
-                    clip = self.net.preprocess(clip)
-
-                    if self.use_gpu:
-                        clip = clip.cuda()
-
-                    predictions = self.net(clip)
+                # Remove time dimension
+                if isinstance(predictions, list):
+                    predictions = [pred[0] for pred in predictions]
+                else:
+                    predictions = predictions[0]
 
                 if self._queue_out.full():
                     # Remove one frame
                     self._queue_out.get_nowait()
                     print("*** Unused predictions ***")
-
-                if isinstance(predictions, list):
-                    predictions = [pred.cpu().numpy()[0] for pred in predictions]
-                else:
-                    predictions = predictions.cpu().numpy()[0]
-
                 self._queue_out.put(predictions, block=False)
+
+    def infer(self, clip):
+        with torch.no_grad():
+            clip = self.net.preprocess(clip)
+
+            if self.use_gpu:
+                clip = clip.cuda()
+
+            predictions = self.net(clip)
+
+        if isinstance(predictions, list):
+            predictions = [pred.cpu().numpy() for pred in predictions]
+        else:
+            predictions = predictions.cpu().numpy()
+
+        return predictions
 
 
 def run_inference_engine(inference_engine, framegrabber, post_processors, results_display, path_out):
@@ -158,7 +167,7 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
 
 def load_weights(checkpoint_path):
     try:
-        return torch.load(checkpoint_path)
+        return torch.load(checkpoint_path, map_location='cpu')
     except:
         raise Exception('ERROR - Weights file missing: {}. To download, please go to '
                         'https://20bn.com/licensing/sdk/evaluation and follow the '
