@@ -65,6 +65,7 @@ if __name__ == "__main__":
                              f'Must be an integer between 0 and {num_layers}')
     else:
         num_timesteps = 1
+    minimum_frames = feature_extractor.num_required_frames_per_layer[0]
 
     # Concatenate feature extractor and met converter
     if num_layers_to_finetune > 0:
@@ -73,7 +74,7 @@ if __name__ == "__main__":
 
     # finetune the model
     extract_features(path_in, feature_extractor, num_layers_to_finetune, use_gpu,
-                     minimum_frames=feature_extractor.num_required_frames_per_layer[0])
+                     minimum_frames=minimum_frames)
 
     # Find label names
     label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))

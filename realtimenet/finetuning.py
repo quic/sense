@@ -70,7 +70,7 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
-def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=45):
+def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=45):
 
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
@@ -78,7 +78,7 @@ def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=4
     # extract features
     for dataset in ["train", "valid"]:
         videos_dir = os.path.join(path_in, f"videos_{dataset}")
-        features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layer_finetune}")
+        features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layers_finetune}")
         video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
         print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
@@ -113,7 +113,6 @@ def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=4
                     features = np.array(predictions)
                     os.makedirs(os.path.dirname(path_out), exist_ok=True)
                     np.save(path_out, features)
-
                 else:
                     print(f"\nVideo too short: {video_path}")
         print('\n')
