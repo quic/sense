@@ -49,6 +49,8 @@ if __name__ == "__main__":
     name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
     for key in name_finetuned_layers:
         checkpoint[key] = checkpoint_classifier.pop(key)
+    feature_extractor.load_state_dict(checkpoint)
+    feature_extractor.eval()
 
     with open(os.path.join(custom_classifier, 'label2int.json')) as file:
         class2int = json.load(file)

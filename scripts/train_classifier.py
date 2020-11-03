@@ -29,13 +29,13 @@ from realtimenet import feature_extractors
 
 
 def clean_pipe_state_dict_key(key):
-    to_remove = [
-        'feature_extractor.',
-        'feature_converter.'
+    to_replace = [
+        ('feature_extractor', 'cnn'),
+        ('feature_converter.', '')
     ]
-    for pattern in to_remove:
+    for pattern, replacement in to_replace:
         if key.startswith(pattern):
-            key = key.replace(pattern, '')
+            key = key.replace(pattern, replacement)
     return key
 
 
