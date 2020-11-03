@@ -185,7 +185,7 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
 
 def load_weights(checkpoint_path):
     try:
-        return torch.load(checkpoint_path)
+        return torch.load(checkpoint_path, map_location='cpu')
     except:
         raise Exception('ERROR - Weights file missing: {}. To download, please go to '
                         'https://20bn.com/licensing/sdk/evaluation and follow the '
