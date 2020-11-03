@@ -1,15 +1,19 @@
-from realtimenet import camera
-from realtimenet import engine
+import os
 import glob
+
 import numpy as np
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import os
+
+from realtimenet import camera
+from realtimenet import engine
+
 
 def set_internal_padding_false(module):
     if hasattr(module, "internal_padding"):
         module.internal_padding = False
+
 
 class FeaturesDataset(torch.utils.data.Dataset):
     """Features dataset."""
@@ -30,6 +34,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
             position = np.random.randint(0, num_preds - self.num_timesteps)
         return [feature[position:position+self.num_timesteps], self.labels[idx]]
 
+
 def generate_data_loader(features_dir, classes, class2int, num_timesteps=5, shuffle=True):
     features = []
     labels = []
@@ -40,6 +45,7 @@ def generate_data_loader(features_dir, classes, class2int, num_timesteps=5, shuf
     dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)
     data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=16)
     return data_loader
+
 
 def uniform_frame_sample(video, sample_rate):
     """
@@ -53,6 +59,7 @@ def uniform_frame_sample(video, sample_rate):
         sampled_frames = (indices + offset).astype(np.int32)
         return video[sampled_frames]
     return video
+
 
 def extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum_frames=45):
 
@@ -109,6 +116,7 @@ def extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum
                     else:
                         print("video too short")
 
+
 def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_dir, classes, class2int, num_timestep):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
@@ -157,6 +165,7 @@ def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_
         valid_loss, valid_top1))
 
     print('Finished Training')
+
 
 def evaluation_model(net, criterion, features_dir, classes, class2int, num_timestep, use_gpu):
     with torch.no_grad():
