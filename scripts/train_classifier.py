@@ -19,7 +19,7 @@ from docopt import docopt
 import os
 
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
-from realtimenet.finetuning import training_loops, extract_features, generate_data_loader, evaluation_model
+from realtimenet.finetuning import training_loops, extract_features, generate_data_loader
 from realtimenet.finetuning import set_internal_padding_false
 from realtimenet import feature_extractors
 import json
