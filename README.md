@@ -42,8 +42,8 @@ See all available options [here](https://pytorch.org/).
 ### 3. Download Pre-trained Weights
 
 Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation).
-Follow the link, register for your account, and you will be redirected to the download page.
-After downloading the weights, be sure to unzip, find the `backbone` folder and move it 
+After registering for an account, you will be redirected to the download page.
+Be sure to unzip the folder after the download completes, locate the `backbone` folder, and move it 
 into `20bn-realtimenet/resources`. In the end, your resources folder should look like this:
 
 ```
