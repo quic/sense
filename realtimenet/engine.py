@@ -53,14 +53,21 @@ class InferenceEngine(Thread):
                 clip = None
 
             if clip is not None:
-                predictions = self.process_clip(clip)
+                predictions = self.infer(clip)
+
+                # Remove time dimension
+                if isinstance(predictions, list):
+                    predictions = [pred[0] for pred in predictions]
+                else:
+                    predictions = predictions[0]
+
                 if self._queue_out.full():
                     # Remove one frame
                     self._queue_out.get_nowait()
                     print("*** Unused predictions ***")
                 self._queue_out.put(predictions, block=False)
 
-    def process_clip(self, clip, training=False):
+    def infer(self, clip):
         with torch.no_grad():
             clip = self.net.preprocess(clip)
 
@@ -68,37 +75,12 @@ class InferenceEngine(Thread):
                 clip = clip.cuda()
 
             predictions = self.net(clip)
-        if training:
-            if isinstance(predictions, list):
-                predictions = [pred.cpu().numpy() for pred in predictions]
-            else:
-                predictions = predictions.cpu().numpy()
-        else:
-            if isinstance(predictions, list):
-                predictions = [pred.cpu().numpy()[0] for pred in predictions]
-            else:
-                predictions = predictions.cpu().numpy()[0]
-        return predictions
 
-    def process_clip_features_map(self, clip, layer=-2):
-        """
-        extract features map of a clip at given layer
-        :param clip:
-        :param layer: layer position where to extract features map
-        :return:
-        features map
-        """
-        with torch.no_grad():
-            clip = self.net.preprocess(clip)
-
-            if self.use_gpu:
-                clip = clip.cuda()
-
-            predictions = self.net.cnn[0:layer](clip)
         if isinstance(predictions, list):
             predictions = [pred.cpu().numpy() for pred in predictions]
         else:
             predictions = predictions.cpu().numpy()
+
         return predictions
 
 
@@ -185,7 +167,7 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
 
 def load_weights(checkpoint_path):
     try:
-        return torch.load(checkpoint_path)
+        return torch.load(checkpoint_path, map_location='cpu')
     except:
         raise Exception('ERROR - Weights file missing: {}. To download, please go to '
                         'https://20bn.com/licensing/sdk/evaluation and follow the '

@@ -187,8 +187,7 @@ class StridedInflatedMobileNetV2(nn.Module):
         )
 
     def forward(self, video):
-        features = self.cnn(video)
-        return features.mean(dim=-1).mean(dim=-1)
+        return self.cnn(video)
 
     def preprocess(self, clip):
         clip = clip[:, :, :, ::-1].copy()
@@ -196,3 +195,20 @@ class StridedInflatedMobileNetV2(nn.Module):
         clip = clip.transpose(0, 1, 4, 2, 3)
         clip = torch.Tensor(clip).float()
         return clip[0]
+
+    @property
+    def num_required_frames_per_layer(self):
+        """
+        Returns a mapping which maps the layer index to the corresponding temporal dependency
+        """
+        num_required_frames_per_layer = {}
+        temporal_dependency = 1
+        for index, layer in enumerate(self.cnn[::-1]):
+            if isinstance(layer, InvertedResidual):
+                if layer.temporal_stride:
+                    temporal_dependency = 2 * temporal_dependency - 1
+                temporal_dependency = temporal_dependency + int(layer.temporal_shift * 2)
+            num_required_frames_per_layer[len(self.cnn) - 1 - index] = temporal_dependency
+            num_required_frames_per_layer[-1 - index] = temporal_dependency
+        num_required_frames_per_layer[0] = temporal_dependency
+        return num_required_frames_per_layer

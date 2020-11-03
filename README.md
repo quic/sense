@@ -45,9 +45,9 @@ Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk
 Follow the link, register for your account, and you will be redirected to the download page.
 After downloading the weights, be sure to unzip and place the contents of the directory into `20bn-realtimenet/resources`.
 
-## Available scripts
+## Available live demos
 Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,
-`gesture_recognition.py`, `fitness_tracker.py`, and `calorie_estimation.py`.
+`run_gesture_recognition.py`, `run_fitness_tracker.py`, and `run_calorie_estimation.py`.
 
 ### 1. Gesture Recognition
 
@@ -56,19 +56,12 @@ Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py)):
 
 ```shell
-PYTHONPATH=./ python scripts/gesture_recognition.py
+PYTHONPATH=./ python scripts/run_gesture_recognition.py
 ```
 
 ![](gifs/gesture_recognition.gif)
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
-
-You can apply this script to your own trained classifier by adding the option:
-
-```shell
-PYTHONPATH=./ python scripts/gesture_recognition.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
-```
-(see section "Train a custom classifier" below)
 
 
 ### 2. Fitness Activity Tracking
@@ -84,7 +77,7 @@ In total, 80 different fitness exercises are recognized (see full list
 Usage:
 
 ```shell
-PYTHONPATH=./ python scripts/fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
+PYTHONPATH=./ python scripts/run_fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
 Weight, age, height should be respectively given in kilograms, years and centimeters. If not provided, default values will be used.
@@ -119,20 +112,25 @@ detailed display (see video [here](https://drive.google.com/file/d/1VIAnFPm9JJAb
 
 Usage:
 ```shell
-PYTHONPATH=./ python scripts/calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female
+PYTHONPATH=./ python scripts/run_calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
 The estimated calorie estimates are roughly in the range produced by wearable devices, though they have not been verified in terms of accuracy. 
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
 
-### Train your own custom classifier
+
+### Transfer learning: build your own demo
+
+This repo implements scripts that can be used to finetune one of our pretrained models on your specific data and evaluate the obtained model. 
+
+#### 1. Training
 
 Run this command to train a customized classifier on top of one of our features extractor:
 ```shell
-PYTHONPATH=./ python scripts/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu]
+PYTHONPATH=./ python scripts/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu] [--num_layers_to_finetune=9]
 ```
 
-This script expects training videos to follow this structure:
+This script expects training videos to be organized according to this structure:
 
 ```
     /path/to/your/dataset/
@@ -157,8 +155,18 @@ This script expects training videos to follow this structure:
             ├── ...
         ├── ...
 ```
-- For each category you want to recognize, you should put videos in the train folder and in the valid folder.
-- All videos should have a duration of at least 3 seconds, and at least a framerate of 16 fps.
+- Two top-level folders: one for the training data, one for the validation data.
+- One sub-folder for each label with as many videos as you want (but at least one!)
+- Requirement: videos should have a framerate of 16 fps or higher.
+
+#### 2. Live demo
+
+The training script should produce a checkpoint file called `classifier.checkpoint` at the root of the dataset folder.
+You can now run it live using the following script:
+
+```shell
+PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
+```
 
 ## Running on an iOS Device and CoreML Conversion
 

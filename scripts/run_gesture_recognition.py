@@ -3,23 +3,18 @@
 Real time detection of 30 hand gestures.
 
 Usage:
-  gesture_recognition.py [--camera_id=CAMERA_ID]
-                         [--path_in=FILENAME]
-                         [--path_out=FILENAME]
-                         [--custom_classifier=PATH]
-                         [--title=TITLE]
-                         [--use_gpu]
-  gesture_recognition.py (-h | --help)
+  run_gesture_recognition.py [--camera_id=CAMERA_ID]
+                             [--path_in=FILENAME]
+                             [--path_out=FILENAME]
+                             [--title=TITLE]
+                             [--use_gpu]
+  run_gesture_recognition.py (-h | --help)
 
 Options:
-  --path_in=FILENAME              Video file to stream from
-  --path_out=FILENAME             Video file to stream to
-  --custom_classifier=PATH        Path to the custom classifier to use
-  --title=TITLE                   This adds a title to the window display
+  --path_in=FILENAME         Video file to stream from
+  --path_out=FILENAME        Video file to stream to
+  --title=TITLE              This adds a title to the window display
 """
-import torch
-import os
-import json
 from docopt import docopt
 
 import realtimenet.display
@@ -37,35 +32,20 @@ if __name__ == "__main__":
     camera_id = args['--camera_id'] or 0
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
-    custom_classifier = args['--custom_classifier'] or None
     title = args['--title'] or None
     use_gpu = args['--use_gpu']
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     checkpoint = engine.load_weights('resources/strided_inflated_efficientnet.ckpt')
-
-    # Load a logistic regression classifier
-    if custom_classifier is not None:
-        with open(os.path.join(custom_classifier, 'class2int.json')) as file:
-            class2int = json.load(file)
-            INT2LAB = {value: key for key, value in class2int.items()}
-            num_out = len(INT2LAB)
-            checkpoint_classifier = engine.load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
-            # change the keys in the checkpoints for part of the network that have been finetuned
-            overlap = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
-            for key in overlap:
-                checkpoint[key] = checkpoint_classifier.pop(key)
-
-    else:
-        num_out = 30
-        checkpoint = engine.load_weights('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
-
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
+
+    # Load a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
-                                            num_out=num_out)
-    gesture_classifier.load_state_dict(checkpoint_classifier)
+                                            num_out=30)
+    checkpoint = engine.load_weights('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
+    gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 
     # Concatenate feature extractor and met converter
