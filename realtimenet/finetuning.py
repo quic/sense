@@ -84,7 +84,7 @@ def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=4
         print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
 
         for video_index, video_path in enumerate(video_files):
-            print(f"\rExtract features from video {video_index} / {len(video_files)}",
+            print(f"\rExtract features from video {video_index + 1} / {len(video_files)}",
                   end="")
             path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
