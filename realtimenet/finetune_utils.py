@@ -85,7 +85,7 @@ def extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum
                                                       filename=file_path,
                                                       )
                     frames = []
-                    video_fps = video_source.get_sample_rate()
+                    video_fps = video_source.get_fps()
 
                     while True:
                         images = video_source.get_image()
