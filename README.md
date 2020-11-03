@@ -121,13 +121,13 @@ From our experiments, our estimates correlate well with the workout intensity (i
 
 ### Transfer learning: build your own demo
 
-This repo implements scripts that can be used to finetune and evaluate one of our pretrained models on your specific data. 
+This repo implements scripts that can be used to finetune one of our pretrained models on your specific data and evaluate the obtained model. 
 
 #### 1. Training
 
 Run this command to train a customized classifier on top of one of our features extractor:
 ```shell
-PYTHONPATH=./ python scripts/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu]
+PYTHONPATH=./ python scripts/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu] [--num_layers_to_finetune=9]
 ```
 
 This script expects training videos to be organized according to this structure:
