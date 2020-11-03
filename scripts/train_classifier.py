@@ -23,8 +23,8 @@ import os
 import torch.utils.data
 
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
-from realtimenet.finetuning import training_loops, extract_features, generate_data_loader
-from realtimenet.finetuning import set_internal_padding_false
+from realtimenet.finetune_utils import training_loops, extract_features, generate_data_loader
+from realtimenet.finetune_utils import set_internal_padding_false
 from realtimenet import feature_extractors
 
 
