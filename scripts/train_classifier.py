@@ -19,8 +19,8 @@ from docopt import docopt
 import os
 
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
-from realtimenet.finetune_utils import training_loops, extract_features, generate_data_loader, evaluation_model
-from realtimenet.finetune_utils import set_internal_padding_false
+from realtimenet.finetuning import training_loops, extract_features, generate_data_loader, evaluation_model
+from realtimenet.finetuning import set_internal_padding_false
 from realtimenet import feature_extractors
 import json
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     classes = [x for x in classes if not x.startswith('.')]
 
     # finetune the model
-    extract_features(path_in, classes, feature_extractor, num_layer_finetune, use_gpu, minimum_frames=MIN_CLIP_TIMESTEP)
+    extract_features(path_in, feature_extractor, num_layer_finetune, use_gpu, minimum_frames=MIN_CLIP_TIMESTEP)
 
     class2int = {x: e for e, x in enumerate(classes)}
 

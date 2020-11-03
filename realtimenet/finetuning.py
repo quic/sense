@@ -11,6 +11,9 @@ from realtimenet import engine
 
 
 def set_internal_padding_false(module):
+    """
+    This is used to turn off padding of steppable convolution layers.
+    """
     if hasattr(module, "internal_padding"):
         module.internal_padding = False
 
@@ -30,26 +33,32 @@ class FeaturesDataset(torch.utils.data.Dataset):
         feature = np.load(self.files[idx])
         num_preds = feature.shape[0]
         position = 0
-        if num_preds> self.num_timesteps:
+        if num_preds > self.num_timesteps:
             position = np.random.randint(0, num_preds - self.num_timesteps)
-        return [feature[position:position+self.num_timesteps], self.labels[idx]]
+        return [feature[position: position + self.num_timesteps], self.labels[idx]]
 
 
-def generate_data_loader(features_dir, classes, class2int, num_timesteps=5, shuffle=True):
+def generate_data_loader(features_dir, classes, class2int,
+                         num_timesteps=5, batch_size=16, shuffle=True):
+
+    # Find pre-computed features and derive corresponding labels
     features = []
     labels = []
     for label in classes:
         feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
         features += feature_temp
         labels += [class2int[label]] * len(feature_temp)
+
+    # Build dataloader
     dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)
-    data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=16)
+    data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
+
     return data_loader
 
 
 def uniform_frame_sample(video, sample_rate):
     """
-    Uniformly sample video frames according to the sample_rate.
+    Uniformly sample video frames according to the provided sample_rate.
     """
 
     depth = video.shape[0]
@@ -61,55 +70,52 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
-def extract_features(path_in, classes, net, num_layer_finetune, use_gpu, minimum_frames=45):
+def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=45):
 
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
     # extract features
     for dataset in ["train", "valid"]:
-        videos_dir = os.path.join(path_in, "videos_" + dataset)
-        features_dir = os.path.join(path_in, "features_" + dataset+ "_" + str(num_layer_finetune))
-        number_videos_found = len(glob.glob(os.path.join(videos_dir, "*", "*.mp4")))
-        number_videos_processed = 0
-        print(f"Found {number_videos_found} videos to process")
+        videos_dir = os.path.join(path_in, f"videos_{dataset}")
+        features_dir = os.path.join(path_in, f"features_{dataset}_{num_layer_finetune}")
+        video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
-        for label in classes:
-            videos = os.listdir(os.path.join(videos_dir, label))
-            videos = [x for x in videos if not x.startswith('.')]
-            for video in videos:
-                number_videos_processed += 1
-                print(f"extract features from video {number_videos_processed} / {number_videos_found}")
-                path_out = os.path.join(features_dir, label, video.replace(".mp4", ".npy"))
-                if os.path.isfile(path_out):
-                    print("features found for this file, skip")
-                else:
-                    file_path = os.path.join(videos_dir, label, video)
-                    path_out = os.path.join(features_dir, label, video.replace(".mp4", ".npy"))
+        print(f"\nFound {len(video_files)} videos to process")
 
-                    video_source = camera.VideoSource(camera_id=None,
-                                                      size=inference_engine.expected_frame_size,
-                                                      filename=file_path,
-                                                      )
-                    frames = []
-                    video_fps = video_source.get_fps()
+        for video_index, video_path in enumerate(video_files):
+            print(f"\rExtract features from video {video_index} / {len(video_files)}",
+                  end="")
+            path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
-                    while True:
-                        images = video_source.get_image()
-                        if images is None:
-                            break
-                        else:
-                            image, image_rescaled = images
-                            frames.append(image_rescaled)
-                    frames = uniform_frame_sample(np.array(frames), inference_engine.fps/video_fps)
-                    clip = np.array([frames]).astype(np.float32)
-                    if clip.shape[1] > minimum_frames:
-                        predictions = inference_engine.infer(clip)
-                        features = np.array(predictions)
-                        os.makedirs(os.path.dirname((path_out)), exist_ok=True)
-                        np.save(path_out, features)
+            if os.path.isfile(path_out):
+                print("\n\tSkipped - feature was already precomputed.")
+            else:
+                # Read all frames
+                video_source = camera.VideoSource(camera_id=None,
+                                                  size=inference_engine.expected_frame_size,
+                                                  filename=video_path)
+                video_fps = video_source.get_fps()
+                frames = []
+                while True:
+                    images = video_source.get_image()
+                    if images is None:
+                        break
                     else:
-                        print("video too short")
+                        image, image_rescaled = images
+                        frames.append(image_rescaled)
+                frames = uniform_frame_sample(np.array(frames), inference_engine.fps/video_fps)
+                clip = np.array([frames]).astype(np.float32)
+
+                # Inference
+                if clip.shape[1] > minimum_frames:
+                    predictions = inference_engine.infer(clip)
+                    features = np.array(predictions)
+                    os.makedirs(os.path.dirname(path_out), exist_ok=True)
+                    np.save(path_out, features)
+
+                else:
+                    print(f"Video too short: {video_path}")
 
 
 def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_dir, classes, class2int, num_timestep):
@@ -125,14 +131,15 @@ def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_
 
         running_loss = 0.0
         net.train()
-        top_pred = []
-        label = []
+        epoch_top_predictions = []
+        epoch_labels = []
+
         for i, data in enumerate(trainloader):
-            # get the inputs; data is a list of [inputs, labels]
-            inputs, labels = data
+            # get the inputs; data is a list of [inputs, targets]
+            inputs, targets = data
             if use_gpu:
                 inputs = inputs.cuda()
-                labels = labels.cuda()
+                targets = targets.cuda()
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -143,21 +150,26 @@ def training_loops(net, trainloader, use_gpu, num_epochs, lr_schedule, features_
                 pred = net(inputs[i])
                 outputs.append(pred.mean(dim=0).unsqueeze(0))
             outputs = torch.cat(outputs, dim=0)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
-            label += list(labels.cpu().numpy())
-            top_pred += list(outputs.argmax(dim=1).cpu().numpy())
+
+            # Store label and predictions to compute statistics later
+            epoch_labels += list(targets.cpu().numpy())
+            epoch_top_predictions += list(outputs.argmax(dim=1).cpu().numpy())
 
             # print statistics
             running_loss += loss.item()
-        percentage = np.sum((np.array(label) == np.array(top_pred))) / len(top_pred)
-        train_top1 = percentage
+
+        epoch_labels = np.array(epoch_labels)
+        epoch_top_predictions = np.array(epoch_top_predictions)
+
+        train_top1 = np.mean(epoch_labels == epoch_top_predictions)
         train_loss = running_loss / len(trainloader)
+
         valid_loss, valid_top1 = evaluation_model(net, criterion, features_dir, classes, class2int, num_timestep, use_gpu)
-        print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (
-        epoch + 1, train_loss, train_top1,
-        valid_loss, valid_top1))
+        print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
+                                                                                      valid_loss, valid_top1))
 
     print('Finished Training')
 
