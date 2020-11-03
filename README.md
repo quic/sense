@@ -58,7 +58,7 @@ resources
     ├── ....
 ```
 
-Note: only the `backbone` files are new, the other folders should not require any change.
+Note: The remaining folders in `/resources` will already have the necessary files -- only `/resources/backbone` needs to be downloaded separately. 
 
 
 ## Available live demos
