@@ -15,6 +15,7 @@ class SteppableConv3dAs2d(nn.Conv2d):
         self.stride_temporal = stride[0]
         self.dilation_temporal = dilation[0]
         self.internal_state = None
+        self.internal_padding = True
 
         in_channels *= self.kernel_size_temporal
 
@@ -30,9 +31,10 @@ class SteppableConv3dAs2d(nn.Conv2d):
         return effective_kernel_size - self.stride_temporal
 
     def forward(self, x):
-        if self.internal_state is None:
-            self.initialize_internal_state(x)
-        x = self.pad_internal_state(x)
+        if self.internal_padding:
+            if self.internal_state is None:
+                self.initialize_internal_state(x)
+            x = self.pad_internal_state(x)
         x = self.rearrange_frames(x)
         return super().forward(x)
 
@@ -58,7 +60,6 @@ class SteppableConv3dAs2d(nn.Conv2d):
     def train(self, mode=True):
         super().train(mode)
         return self.reset()
-
 
 class SteppableSparseConv3dAs2d(SteppableConv3dAs2d):
 
@@ -186,8 +187,7 @@ class StridedInflatedMobileNetV2(nn.Module):
         )
 
     def forward(self, video):
-        features = self.cnn(video)
-        return features.mean(dim=-1).mean(dim=-1)
+        return self.cnn(video)
 
     def preprocess(self, clip):
         clip = clip[:, :, :, ::-1].copy()
@@ -195,3 +195,20 @@ class StridedInflatedMobileNetV2(nn.Module):
         clip = clip.transpose(0, 1, 4, 2, 3)
         clip = torch.Tensor(clip).float()
         return clip[0]
+
+    @property
+    def num_required_frames_per_layer(self):
+        """
+        Returns a mapping which maps the layer index to the corresponding temporal dependency
+        """
+        num_required_frames_per_layer = {}
+        temporal_dependency = 1
+        for index, layer in enumerate(self.cnn[::-1]):
+            if isinstance(layer, InvertedResidual):
+                if layer.temporal_stride:
+                    temporal_dependency = 2 * temporal_dependency - 1
+                temporal_dependency = temporal_dependency + int(layer.temporal_shift * 2)
+            num_required_frames_per_layer[len(self.cnn) - 1 - index] = temporal_dependency
+            num_required_frames_per_layer[-1 - index] = temporal_dependency
+        num_required_frames_per_layer[0] = temporal_dependency
+        return num_required_frames_per_layer
