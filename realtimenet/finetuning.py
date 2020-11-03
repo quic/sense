@@ -38,16 +38,16 @@ class FeaturesDataset(torch.utils.data.Dataset):
         return [features, self.labels[idx]]
 
 
-def generate_data_loader(features_dir, classes, class2int,
+def generate_data_loader(features_dir, label_names, label2int,
                          num_timesteps=5, batch_size=16, shuffle=True):
 
     # Find pre-computed features and derive corresponding labels
     features = []
     labels = []
-    for label in classes:
+    for label in label_names:
         feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
         features += feature_temp
-        labels += [class2int[label]] * len(feature_temp)
+        labels += [label2int[label]] * len(feature_temp)
 
     # Build dataloader
     dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)

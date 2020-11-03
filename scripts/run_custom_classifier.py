@@ -50,7 +50,7 @@ if __name__ == "__main__":
     for key in name_finetuned_layers:
         checkpoint[key] = checkpoint_classifier.pop(key)
 
-    with open(os.path.join(custom_classifier, 'class2int.json')) as file:
+    with open(os.path.join(custom_classifier, 'label2int.json')) as file:
         class2int = json.load(file)
     INT2LAB = {value: key for key, value in class2int.items()}
 
