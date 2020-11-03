@@ -3,14 +3,14 @@
 Real time detection of 30 hand gestures.
 
 Usage:
-  train_classifier.py    --path_in=PATH
-                         [--num_layer_finetune=NUM]
-                         [--use_gpu]
-  train_classifier.py (-h | --help)
+  train_classifier.py  --path_in=PATH
+                       [--num_layer_finetune=NUM]
+                       [--use_gpu]
+  train_classifier.py  (-h | --help)
 
 Options:
-  --path_in=PATH              path to the dataset folder following the structure described in the readme
---num_layer_finetune=NUM    Number layer to finetune, must be integer between 0 and 32 [default: 9]
+  --path_in=PATH            path to the dataset folder following the structure described in the readme
+  --num_layer_finetune=NUM  Number layer to finetune, must be integer between 0 and 32 [default: 9]
 
 """
 
