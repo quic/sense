@@ -78,10 +78,10 @@ def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=4
     # extract features
     for dataset in ["train", "valid"]:
         videos_dir = os.path.join(path_in, f"videos_{dataset}")
-        features_dir = os.path.join(path_in, f"features_{dataset}_{num_layer_finetune}")
+        features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layer_finetune}")
         video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
-        print(f"\nFound {len(video_files)} videos to process")
+        print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
 
         for video_index, video_path in enumerate(video_files):
             print(f"\rExtract features from video {video_index} / {len(video_files)}",
@@ -116,11 +116,15 @@ def extract_features(path_in, net, num_layer_finetune, use_gpu, minimum_frames=4
 
                 else:
                     print(f"Video too short: {video_path}")
+        print('\n')
 
 
 def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
+
+    best_state_dict = None
+    best_top1 = 0.
 
     for epoch in range(num_epochs):  # loop over the dataset multiple times
         new_lr = lr_schedule.get(epoch)
@@ -138,7 +142,12 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
                                                                                       valid_loss, valid_top1))
 
+        if valid_top1 > best_top1:
+            best_top1 = valid_top1
+            best_state_dict = net.state_dict().copy()
+
     print('Finished Training')
+    return best_state_dict
 
 
 def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
