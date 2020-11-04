@@ -1153,13 +1153,13 @@ def custom_classifier_config(classifier_settings, path_in, backbone_name):
     if not os.path.isfile(weights_file):
         raise Exception(f'The trained classifier "classifier.checkpoint" was not found in {path_in}')
 
-    lab2int_file = os.path.join(path_in, "class2int.json")
+    lab2int_file = os.path.join(path_in, "label2int.json")
     if not os.path.isfile(lab2int_file):
-        raise Exception(f'The "lab2int.json" was not found in {path_in}')
+        raise Exception(f'The "label2int.json" was not found in {path_in}')
     try:
         num_classes = np.max(list(json.load(open(lab2int_file)).values())) + 1
     except:
-        raise Exception(f'Error parsing "lab2int.json"')
+        raise Exception(f'Error parsing "label2int.json"')
 
     classifier_settings['corresponding_backbone'] = backbone_name
     classifier_settings['weights_file'] = weights_file
