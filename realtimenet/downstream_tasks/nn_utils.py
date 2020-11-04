@@ -8,8 +8,8 @@ class Pipe(nn.Module):
         self.feature_extractor = feature_extractor
         self.feature_converter = feature_converter
 
-    def forward(self, video_tensor):
-        feature = self.feature_extractor(video_tensor)
+    def forward(self, input_tensor):
+        feature = self.feature_extractor(input_tensor)
         if isinstance(self.feature_converter, list):
             return [convert(feature) for convert in self.feature_converter]
         return self.feature_converter(feature)
@@ -32,9 +32,14 @@ class Pipe(nn.Module):
 
 class LogisticRegression(nn.Sequential):
 
-    def __init__(self, num_in, num_out):
+    def __init__(self, num_in, num_out, global_average_pooling=True):
         super(LogisticRegression, self).__init__(
             nn.Linear(num_in, num_out),
             nn.Softmax(dim=-1)
         )
+        self.global_average_pooling = global_average_pooling
 
+    def forward(self, input_tensor):
+        if self.global_average_pooling:
+            input_tensor = input_tensor.mean(dim=-1).mean(dim=-1)
+        return super().forward(input_tensor)

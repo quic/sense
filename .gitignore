@@ -3,5 +3,7 @@
 !.gitignore
 __pycache__
 *.pyc
-*.ckpt
 videos
+resources/coreml/*
+resources/backbone/*
+
