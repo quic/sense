@@ -6,6 +6,7 @@ Author: Mark Tordorovich.
 
 Usage:
   convert_to_coreml.py --backbone=NAME --classifier=NAME --output_name=NAME
+                       [--path_in=PATH]
                        [--plot_model]
                        [--float32]
   convert_to_coreml.py (-h | --help)
@@ -14,6 +15,7 @@ Options:
   --backbone=NAME     Name of the backbone model.
   --classifier=NAME   Name of the classifier model.
   --output_name=NAME  Base name of the output file.
+  --path_in=PATH      Path to the trained classifier directory if converting custom classifier. [default: None]
   --plot_model        Plot intermediate Keras model and save as image.
   --float32           Use full precision. By default, this script quantizes weights
                       to 16-bit precision.
@@ -23,6 +25,7 @@ Options:
 from docopt import docopt
 import configparser
 import io
+import json
 import os
 import copy
 from collections import defaultdict
@@ -70,6 +73,13 @@ SUPPORTED_CLASSIFIER_CONVERSIONS = {
             'placeholder_values': {'NUM_CLASSES': '30'},
             'weights_file': 'resources/gesture_detection/efficientnet_logistic_regression.ckpt',
             'corresponding_backbone': 'efficientnet',
+        },
+    'custom_classifier':
+        {
+            'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
+            'placeholder_values': {'NUM_CLASSES': None},
+            'weights_file': None,
+            'corresponding_backbone': None,
         }
 }
 
@@ -121,6 +131,10 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
                                   map_location='cpu')
     weights_classifier = torch.load(classifier_settings['weights_file'],
                                     map_location='cpu')
+    # if some deeper layer have been finetuned, change them in the backbone weights dictionary
+    name_finetuned_layers = set(weights_backbone.keys()).intersection(weights_classifier.keys())
+    for key in name_finetuned_layers:
+        weights_backbone[key] = weights_classifier.pop(key)
     weights_full = {**weights_backbone, **weights_classifier}
 
     for key in weights_full.keys():
@@ -1130,6 +1144,30 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
         print('************************* Warning!! **************************')
 
 
+def finalize_custom_classifier_config(classifier_settings, path_in, backbone_name):
+    # if custom classifier, fill the classifier settings with arguments
+    if not path_in:
+        raise Exception('You have to provide the directory used to train the custom classifier')
+
+    weights_file = os.path.join(path_in, "classifier.checkpoint")
+    if not os.path.isfile(weights_file):
+        raise Exception(f'Missing weights: "classifier.checkpoint" file was not found in {path_in}')
+
+    lab2int_file = os.path.join(path_in, "label2int.json")
+    if not os.path.isfile(lab2int_file):
+        raise Exception(f'Missing label mapping: "label2int.json" file was not found in {path_in}')
+    try:
+        with open(lab2int_file, 'r') as f:
+            num_classes = np.max(list(json.load(f).values())) + 1
+    except:
+        raise Exception(f'Error while parsing "label2int.json"')
+
+    classifier_settings['corresponding_backbone'] = backbone_name
+    classifier_settings['weights_file'] = weights_file
+    classifier_settings["placeholder_values"]['NUM_CLASSES'] = str(num_classes)
+
+    return classifier_settings
+
 if __name__ == '__main__':
     args = docopt(__doc__)
     print(args)
@@ -1138,6 +1176,7 @@ if __name__ == '__main__':
     classifier_name = args['--classifier']
     output_name = args['--output_name']
     float32 = args['--float32']
+    path_in = args['--path_in']
     plot_model = args['--plot_model']
 
     backbone_settings = SUPPORTED_BACKBONE_CONVERSIONS.get(backbone_name)
@@ -1151,6 +1190,8 @@ if __name__ == '__main__':
         raise Exception('Classifier not found: {}. Only the following backbones '
                         'can be converted: {}'.format(classifier_name,
                                                       SUPPORTED_CLASSIFIER_CONVERSIONS.keys()))
+    if classifier_name == "custom_classifier":
+        classifier_settings = finalize_custom_classifier_config(classifier_settings, path_in, backbone_name)
 
     if classifier_settings['corresponding_backbone'] != backbone_name:
         raise Exception('This classifier expects a different backbone: '
