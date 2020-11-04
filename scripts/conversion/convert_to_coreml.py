@@ -61,7 +61,7 @@ SUPPORTED_BACKBONE_CONVERSIONS = {
     'efficientnet':
         {
             'config_file': 'scripts/conversion/cfg/efficientnet.cfg',
-            'weights_file': 'resources/strided_inflated_efficientnet.ckpt',
+            'weights_file': 'resources/backbone/strided_inflated_efficientnet.ckpt',
             'conversion_parameters': {**DEFAULT_CONVERSION_PARAMETERS, 'image_scale': 255.}
         }
 }
