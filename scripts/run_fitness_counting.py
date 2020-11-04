@@ -3,12 +3,12 @@
 Real time counter for jumping jacks and floor touches.
 
 Usage:
-  fitness_counting.py [--camera_id=CAMERA_ID]
+  run_fitness_counting.py [--camera_id=CAMERA_ID]
                          [--path_in=FILENAME]
                          [--path_out=FILENAME]
                          [--title=TITLE]
                          [--use_gpu]
-  fitness_counting.py (-h | --help)
+  run_fitness_counting.py (-h | --help)
 
 Options:
   --path_in=FILENAME              Video file to stream from
@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    checkpoint = engine.load_weights('resources/strided_inflated_efficientnet.ckpt')
+    checkpoint = engine.load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
