@@ -1144,7 +1144,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
         print('************************* Warning!! **************************')
 
 
-def custom_classifier_config(classifier_settings, path_in, backbone_name):
+def finalize_custom_classifier_config(classifier_settings, path_in, backbone_name):
     # if custom classifier, fill the classifier settings with arguments
     if not path_in:
         raise Exception('You have to provide the directory used to train a custom classifier')
@@ -1190,7 +1190,7 @@ if __name__ == '__main__':
                         'can be converted: {}'.format(classifier_name,
                                                       SUPPORTED_CLASSIFIER_CONVERSIONS.keys()))
     if classifier_name == "custom_classifier":
-        classifier_settings = custom_classifier_config(classifier_settings, path_in, backbone_name)
+        classifier_settings = finalize_custom_classifier_config(classifier_settings, path_in, backbone_name)
 
     if classifier_settings['corresponding_backbone'] != backbone_name:
         raise Exception('This classifier expects a different backbone: '
