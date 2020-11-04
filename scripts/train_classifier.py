@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 60
-    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule)
+    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names)
 
     # Save best model
     if isinstance(net, Pipe):
