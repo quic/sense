@@ -1147,19 +1147,19 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
 def finalize_custom_classifier_config(classifier_settings, path_in, backbone_name):
     # if custom classifier, fill the classifier settings with arguments
     if not path_in:
-        raise Exception('You have to provide the directory used to train a custom classifier')
+        raise Exception('You have to provide the directory used to train the custom classifier')
 
     weights_file = os.path.join(path_in, "classifier.checkpoint")
     if not os.path.isfile(weights_file):
-        raise Exception(f'The trained classifier "classifier.checkpoint" was not found in {path_in}')
+        raise Exception(f'Missing weights: "classifier.checkpoint" file was not found in {path_in}')
 
     lab2int_file = os.path.join(path_in, "label2int.json")
     if not os.path.isfile(lab2int_file):
-        raise Exception(f'The "label2int.json" was not found in {path_in}')
+        raise Exception(f'Missing label mapping: "label2int.json" file was not found in {path_in}')
     try:
         num_classes = np.max(list(json.load(open(lab2int_file)).values())) + 1
     except:
-        raise Exception(f'Error parsing "label2int.json"')
+        raise Exception(f'Error while parsing "label2int.json"')
 
     classifier_settings['corresponding_backbone'] = backbone_name
     classifier_settings['weights_file'] = weights_file
