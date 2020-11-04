@@ -1157,7 +1157,8 @@ def finalize_custom_classifier_config(classifier_settings, path_in, backbone_nam
     if not os.path.isfile(lab2int_file):
         raise Exception(f'Missing label mapping: "label2int.json" file was not found in {path_in}')
     try:
-        num_classes = np.max(list(json.load(open(lab2int_file)).values())) + 1
+        with open(lab2int_file, 'r') as f:
+            num_classes = np.max(list(json.load(f).values())) + 1
     except:
         raise Exception(f'Error while parsing "label2int.json"')
 
