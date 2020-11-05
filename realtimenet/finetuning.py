@@ -212,7 +212,7 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
     top1 = np.mean(epoch_labels == epoch_top_predictions)
     loss = running_loss / len(data_loader)
 
-    cnf_matrix = confusion_matrix(epoch_top_predictions, epoch_labels)
+    cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions)
 
     return loss, top1, cnf_matrix
 
