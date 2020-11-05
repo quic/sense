@@ -16,10 +16,11 @@ Options:
                                  Important: this folder should follow the structure described in the README.
   --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
   --path_out=PATH                Where to save results.
-  --path_annotations_train=PATH  Path to the json annotations file containing paths and labels of training
-                                 examples. TODO: needs more explanations
-  --path_annotations_valid=PATH  Path to the json annotations file containing paths and labels of validation
-                                 examples.
+  --path_annotations_train=PATH  Path to an annotation file. This argument is only useful if you want
+                                 to fit a subset of the available training data. If provided, each entry
+                                 in the json file should have the following format: {'file': NAME,
+                                 'label': LABEL} where NAME is the
+  --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
 """
 
 from docopt import docopt
