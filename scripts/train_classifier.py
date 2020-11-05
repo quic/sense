@@ -6,13 +6,20 @@ Usage:
   train_classifier.py  --path_in=PATH
                        [--num_layers_to_finetune=NUM]
                        [--use_gpu]
+                       [--path_out=PATH]
+                       [--path_annotations_train=PATH]
+                       [--path_annotations_valid=PATH]
   train_classifier.py  (-h | --help)
 
 Options:
-  --path_in=PATH                Path to the dataset folder.
-                                Important: this folder should follow the structure described in the README.
-  --num_layers_to_finetune=NUM  Number of layers to finetune in addition to the final layer [default: 9]
-
+  --path_in=PATH                 Path to the dataset folder.
+                                 Important: this folder should follow the structure described in the README.
+  --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
+  --path_out=PATH                Where to save results.
+  --path_annotations_train=PATH  Path to the json annotations file containing paths and labels of training
+                                 examples. TODO: needs more explanations
+  --path_annotations_valid=PATH  Path to the json annotations file containing paths and labels of validation
+                                 examples.
 """
 
 from docopt import docopt
@@ -43,7 +50,11 @@ if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
     path_in = args['--path_in']
+    path_out = args['--path_out'] or path_in
+    os.makedirs(path_out, exist_ok=True)
     use_gpu = args['--use_gpu']
+    path_annotations_train = args['--path_annotations_train'] or None
+    path_annotations_valid = args['--path_annotations_valid'] or None
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
 
     # Load feature extractor
@@ -83,9 +94,11 @@ if __name__ == "__main__":
 
     # create the data loaders
     train_loader = generate_data_loader(os.path.join(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}"),
-                                        label_names, label2int, num_timesteps=num_timesteps)
+                                        label_names, label2int, num_timesteps=num_timesteps,
+                                        path_annotations=path_annotations_train)
     valid_loader = generate_data_loader(os.path.join(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}"),
-                                        label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False)
+                                        label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False,
+                                        path_annotations=path_annotations_valid)
 
 
     # modeify the network to generate the training network on top of the features
@@ -101,12 +114,12 @@ if __name__ == "__main__":
         net = net.cuda()
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
-    num_epochs = 60
-    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names)
+    num_epochs = 80
+    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out)
 
     # Save best model
     if isinstance(net, Pipe):
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
-    torch.save(best_model_state_dict, os.path.join(path_in, "classifier.checkpoint"))
-    json.dump(label2int, open(os.path.join(path_in, "label2int.json"), "w"))
+    torch.save(best_model_state_dict, os.path.join(path_out, "classifier.checkpoint"))
+    json.dump(label2int, open(os.path.join(path_out, "label2int.json"), "w"))

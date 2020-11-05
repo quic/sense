@@ -1,5 +1,6 @@
 import os
 import glob
+import json
 
 import torch
 import torch.optim as optim
@@ -42,16 +43,26 @@ class FeaturesDataset(torch.utils.data.Dataset):
         return [features, self.labels[idx]]
 
 
-def generate_data_loader(features_dir, label_names, label2int,
+def generate_data_loader(features_dir, label_names, label2int, path_annotations=None,
                          num_timesteps=5, batch_size=16, shuffle=True):
 
     # Find pre-computed features and derive corresponding labels
-    features = []
-    labels = []
-    for label in label_names:
-        feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
-        features += feature_temp
-        labels += [label2int[label]] * len(feature_temp)
+
+    if not path_annotations:
+        # Use all pre-computed features
+        features = []
+        labels = []
+        for label in label_names:
+            feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
+            features += feature_temp
+            labels += [label2int[label]] * len(feature_temp)
+    else:
+        with open(path_annotations, 'r') as f:
+            annotations = json.load(f)
+        features = ['{}/{}/{}.npy'.format(features_dir, entry['template'],
+                                          os.path.splitext(os.path.basename(entry['file']))[0])
+                    for entry in annotations]
+        labels = [label2int[entry['template']] for entry in annotations]
 
     # Build dataloader
     dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)
@@ -125,7 +136,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
         print('\n')
 
 
-def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names):
+def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -151,7 +162,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         if valid_top1 > best_top1:
             best_top1 = valid_top1
             best_state_dict = net.state_dict().copy()
-            plot_confusion_matrix(cnf_matrix, label_names)
+            plot_confusion_matrix(path_out, cnf_matrix, label_names)
 
     print('Finished Training')
     return best_state_dict
@@ -205,14 +216,14 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
 
     return loss, top1, cnf_matrix
 
-def plot_confusion_matrix(cm, classes,
-                          normalize=False,
-                          title='Confusion matrix',
-                          cmap=plt.cm.Blues):
+
+def plot_confusion_matrix(path_out, cm, classes,
+                          normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
+    plt.figure()
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
@@ -235,4 +246,7 @@ def plot_confusion_matrix(cm, classes,
     # plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    plt.savefig('confusion_matrix.png')
+    plt.savefig(os.path.join(path_out, 'confusion_matrix.png'), bbox_inches='tight')
+    plt.close()
+
+    np.save(os.path.join(path_out, 'confusion_matrix.npy'), cm)
