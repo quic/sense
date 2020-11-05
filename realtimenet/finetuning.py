@@ -1,16 +1,15 @@
 import os
 import glob
+import itertools
 import json
 
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import confusion_matrix
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import numpy as np
-import matplotlib.pyplot as plt
 
-import itertools
-
-from sklearn.metrics import confusion_matrix
 from realtimenet import camera
 from realtimenet import engine
 
