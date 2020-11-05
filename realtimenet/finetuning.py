@@ -59,10 +59,10 @@ def generate_data_loader(features_dir, label_names, label2int, path_annotations=
     else:
         with open(path_annotations, 'r') as f:
             annotations = json.load(f)
-        features = ['{}/{}/{}.npy'.format(features_dir, entry['template'],
+        features = ['{}/{}/{}.npy'.format(features_dir, entry['label'],
                                           os.path.splitext(os.path.basename(entry['file']))[0])
                     for entry in annotations]
-        labels = [label2int[entry['template']] for entry in annotations]
+        labels = [label2int[entry['label']] for entry in annotations]
 
     # Build dataloader
     dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)
