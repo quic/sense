@@ -67,7 +67,7 @@ Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,
 
 ### 1. Gesture Recognition
 
-`scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
+`scripts/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
 30 gestures are supported (see full list 
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py)):
 
@@ -82,7 +82,7 @@ PYTHONPATH=./ python scripts/run_gesture_recognition.py
 
 ### 2. Fitness Activity Tracking
 
-`scripts/fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
+`scripts/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/d539046fe71e43e37ad439d08e093ea1f489bd29/realtimenet/downstream_tasks/fitness_activity_recognition/__init__.py)).
 
