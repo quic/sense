@@ -6,7 +6,6 @@ from typing import Tuple
 
 import cv2
 
-
 from threading import Thread
 
 
@@ -149,5 +148,3 @@ class VideoWriter:
 
     def release(self):  # noqa: D102
         self.writer.release()
-
-
