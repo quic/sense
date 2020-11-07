@@ -26,68 +26,6 @@ def put_text(img: np.ndarray, text: str, position: Tuple[int, int]) -> np.ndarra
     return img
 
 
-class DisplayResults:
-    """
-    Display window for an image frame with prediction outputs from a neural network.
-    """
-    def __init__(self, title: str, display_ops: List[Any], border_size: int = 50):
-        """
-        :param title:
-            Title of the image frame on display.
-        :param display_ops:
-            Additional options to be displayed on top of the image frame.
-            Display options are class objects that implement the `display(self, img, display_data)` method.
-            Current supported options include:
-                - DisplayMETandCalories
-                - DisplayDetailedMETandCalories
-                - DisplayTopKClassificationOutputs
-        :param border_size:
-            Thickness of the display border.
-        """
-        self._window_title = 'realtimenet'
-        cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
-        self.title = title
-        self.display_ops = display_ops
-        self.border_size = border_size
-
-    def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
-        """
-        Show an image frame with data displayed on top.
-
-        :param img:
-            The image to be shown in the window.
-        :param display_data:
-            A dict of data that should be displayed in the image.
-
-        :return:
-            The image with displayed data.
-        """
-        # Mirror the img
-        img = img[:, ::-1].copy()
-
-        # Add black borders
-        img = cv2.copyMakeBorder(img, self.border_size, 0, 0, 0, cv2.BORDER_CONSTANT)
-
-        # Display information on top
-        for display_op in self.display_ops:
-            img = display_op.display(img, display_data)
-
-        # Add title on top
-        if self.title:
-            img = cv2.copyMakeBorder(img, 50, 0, 0, 0, cv2.BORDER_CONSTANT)
-            textsize = cv2.getTextSize(self.title, FONT, 1, 2)[0]
-            middle = int((img.shape[1] - textsize[0]) / 2)
-            put_text(img, self.title, (middle, 20))
-
-        # Show the image in a window
-        cv2.imshow(self._window_title, img)
-        return img
-
-    def clean_up(self):
-        """Close all windows that are created."""
-        cv2.destroyAllWindows()
-
-
 class BaseDisplay:
     """
     Base display for all displays. Subclasses should overwrite the `display` method.
@@ -172,3 +110,65 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
                 put_text(img, 'Proba: {:0.2f}'.format(proba), (10 + self.lateral_offset,
                                                                y_pos))
         return img
+
+
+class DisplayResults:
+    """
+    Display window for an image frame with prediction outputs from a neural network.
+    """
+    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 50):
+        """
+        :param title:
+            Title of the image frame on display.
+        :param display_ops:
+            Additional options to be displayed on top of the image frame.
+            Display options are class objects that implement the `display(self, img, display_data)` method.
+            Current supported options include:
+                - DisplayMETandCalories
+                - DisplayDetailedMETandCalories
+                - DisplayTopKClassificationOutputs
+        :param border_size:
+            Thickness of the display border.
+        """
+        self._window_title = 'realtimenet'
+        cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
+        self.title = title
+        self.display_ops = display_ops
+        self.border_size = border_size
+
+    def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
+        """
+        Show an image frame with data displayed on top.
+
+        :param img:
+            The image to be shown in the window.
+        :param display_data:
+            A dict of data that should be displayed in the image.
+
+        :return:
+            The image with displayed data.
+        """
+        # Mirror the img
+        img = img[:, ::-1].copy()
+
+        # Add black borders
+        img = cv2.copyMakeBorder(img, self.border_size, 0, 0, 0, cv2.BORDER_CONSTANT)
+
+        # Display information on top
+        for display_op in self.display_ops:
+            img = display_op.display(img, display_data)
+
+        # Add title on top
+        if self.title:
+            img = cv2.copyMakeBorder(img, 50, 0, 0, 0, cv2.BORDER_CONSTANT)
+            textsize = cv2.getTextSize(self.title, FONT, 1, 2)[0]
+            middle = int((img.shape[1] - textsize[0]) / 2)
+            put_text(img, self.title, (middle, 20))
+
+        # Show the image in a window
+        cv2.imshow(self._window_title, img)
+        return img
+
+    def clean_up(self):
+        """Close all windows that are created."""
+        cv2.destroyAllWindows()
