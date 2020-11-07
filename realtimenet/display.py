@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 from typing import Any
 from typing import List
 from typing import Tuple
@@ -7,7 +8,7 @@ from typing import Tuple
 FONT = cv2.FONT_HERSHEY_PLAIN
 
 
-def put_text(img: Any, text: str, position: Tuple[int, int]) -> Any:
+def put_text(img: np.ndarray, text: str, position: Tuple[int, int]) -> np.ndarray:
     """
     Draw a white text string on an image at a specified position and return the image.
 
@@ -39,7 +40,6 @@ class DisplayResults:
             Current supported options include:
                 - DisplayMETandCalories
                 - DisplayDetailedMETandCalories
-                - DisplayDetailedMETandCalories
                 - DisplayTopKClassificationOutputs
         :param border_size:
             Thickness of the display border.
@@ -50,7 +50,7 @@ class DisplayResults:
         self.display_ops = display_ops
         self.border_size = border_size
 
-    def show(self, img: Any, display_data: dict) -> Any:
+    def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
         Show an image frame with data displayed on top.
 
@@ -88,12 +88,35 @@ class DisplayResults:
         cv2.destroyAllWindows()
 
 
-class DisplayMETandCalories:
-
-    lateral_offset = 350
-
+class BaseDisplay:
+    """
+    Base display for all displays. Subclasses should overwrite the `display` method.
+    """
     def __init__(self, y_offset=20):
         self.y_offset = y_offset
+
+    def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
+        """
+        Method to be implemented by subclasses.
+        This method writes display data onto an image frame.
+
+        :param img:
+            Image on which the display data should be written to.
+        :param display_data:
+            Data that should be displayed on an image frame.
+
+        :return:
+            The image with the display data written.
+        """
+        raise NotImplementedError
+
+
+class DisplayMETandCalories(BaseDisplay):
+    """
+    Display Metabolic Equivalent of Task (MET) and Calories information on an image frame.
+    """
+
+    lateral_offset = 350
 
     def display(self, img, display_data):
         offset = 10
@@ -103,10 +126,10 @@ class DisplayMETandCalories:
         return img
 
 
-class DisplayDetailedMETandCalories:
-
-    def __init__(self, y_offset=20):
-        self.y_offset = y_offset
+class DisplayDetailedMETandCalories(BaseDisplay):
+    """
+    Display detailed Metabolic Equivalent of Task (MET) and Calories information on an image frame.
+    """
 
     def display(self, img, display_data):
         offset = 10
@@ -121,14 +144,23 @@ class DisplayDetailedMETandCalories:
         return img
 
 
-class DisplayTopKClassificationOutputs:
+class DisplayTopKClassificationOutputs(BaseDisplay):
+    """
+    Display Top K Classification output on an image frame.
+    """
 
     lateral_offset = DisplayMETandCalories.lateral_offset
 
-    def __init__(self, top_k=1, threshold=0.2, y_offset=20):
+    def __init__(self, top_k=1, threshold=0.2, **kwargs):
+        """
+        :param top_k:
+            Number of the top classification labels to be displayed.
+        :param threshold:
+            Threshhold for the output to be displayed.
+        """
+        super().__init__(**kwargs)
         self.top_k = top_k
         self.threshold = threshold
-        self.y_offset = y_offset
 
     def display(self, img, display_data):
         sorted_predictions = display_data['sorted_predictions']
