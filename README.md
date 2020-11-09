@@ -67,7 +67,7 @@ Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,
 
 ### 1. Gesture Recognition
 
-`scripts/gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
+`scripts/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
 30 gestures are supported (see full list 
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py)):
 
@@ -82,7 +82,7 @@ PYTHONPATH=./ python scripts/run_gesture_recognition.py
 
 ### 2. Fitness Activity Tracking
 
-`scripts/fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
+`scripts/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/d539046fe71e43e37ad439d08e093ea1f489bd29/realtimenet/downstream_tasks/fitness_activity_recognition/__init__.py)).
 
@@ -191,6 +191,11 @@ One of the steps involves converting our Pytorch models to the CoreML format, wh
 
 ```shell
 python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=realtimenet
+```
+
+If you want to convert a custom classifier, set the classifier name to "custom_classifier", and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.
+```shell
+python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=realtimenet
 ```
 
 ## Citation
