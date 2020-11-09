@@ -19,7 +19,7 @@ Options:
   --path_annotations_train=PATH  Path to an annotation file. This argument is only useful if you want
                                  to fit a subset of the available training data. If provided, each entry
                                  in the json file should have the following format: {'file': NAME,
-                                 'label': LABEL} where NAME is the
+                                 'label': LABEL}.
   --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
 """
 
