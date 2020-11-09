@@ -15,7 +15,7 @@ Options:
   --path_in=PATH                 Path to the dataset folder.
                                  Important: this folder should follow the structure described in the README.
   --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
-  --path_out=PATH                Where to save results.
+  --path_out=PATH                Where to save results. Will default to `path_in` if not provided.
   --path_annotations_train=PATH  Path to an annotation file. This argument is only useful if you want
                                  to fit a subset of the available training data. If provided, each entry
                                  in the json file should have the following format: {'file': NAME,
