@@ -161,7 +161,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         if valid_top1 > best_top1:
             best_top1 = valid_top1
             best_state_dict = net.state_dict().copy()
-            plot_confusion_matrix(path_out, cnf_matrix, label_names)
+            save_confusion_matrix(path_out, cnf_matrix, label_names)
 
     print('Finished Training')
     return best_state_dict
@@ -216,36 +216,41 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
     return loss, top1, cnf_matrix
 
 
-def plot_confusion_matrix(path_out, cm, classes,
+def save_confusion_matrix(path_out, confusion_matrix_array, classes,
                           normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     """
-    This function prints and plots the confusion matrix.
-    Normalization can be applied by setting `normalize=True`.
+    This function creates a matplotlib figure out of the provided confusion matrix and saves it
+    to a file. The provided numpy array is also saved. Normalization can be applied by setting
+    `normalize=True`.
     """
+
     plt.figure()
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
+    plt.imshow(confusion_matrix_array, interpolation='nearest', cmap=cmap)
     plt.colorbar()
     tick_marks = np.arange(len(classes))
     plt.xticks(tick_marks, classes, rotation=90)
     plt.yticks(tick_marks, classes)
 
+    accuracy = np.diag(confusion_matrix_array).sum() / confusion_matrix_array.sum()
+    title += '\nAccuracy={:.1f}'.format(100 * float(accuracy))
+
     if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        confusion_matrix_array = confusion_matrix_array.astype('float') / confusion_matrix_array.sum(axis=1)[:, np.newaxis]
         print("Normalized confusion matrix")
     else:
         print('Confusion matrix, without normalization')
 
-    thresh = cm.max() / 2.
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, cm[i, j],
+    thresh = confusion_matrix_array.max() / 2.
+    for i, j in itertools.product(range(confusion_matrix_array.shape[0]),
+                                  range(confusion_matrix_array.shape[1])):
+        plt.text(j, i, confusion_matrix_array[i, j],
                  horizontalalignment="center",
-                 color="white" if cm[i, j] > thresh else "black")
-
-    # plt.tight_layout()
+                 color="white" if confusion_matrix_array[i, j] > thresh else "black")
+    plt.title(title)
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    plt.savefig(os.path.join(path_out, 'confusion_matrix.png'), bbox_inches='tight')
+    plt.savefig(os.path.join(path_out, 'confusion_matrix.png'), bbox_inches='tight',
+                transparent=False, pad_inches=0.1, dpi=300)
     plt.close()
 
-    np.save(os.path.join(path_out, 'confusion_matrix.npy'), cm)
+    np.save(os.path.join(path_out, 'confusion_matrix.npy'), confusion_matrix_array)
