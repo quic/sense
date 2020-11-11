@@ -111,7 +111,7 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
         return img
 
 
-class DisplayCounting(BaseDisplay):
+class DisplayRepCounts(BaseDisplay):
 
     lateral_offset = DisplayMETandCalories.lateral_offset
 
@@ -124,8 +124,7 @@ class DisplayCounting(BaseDisplay):
         for activity, count in counters.items():
             y_pos = 20 * (index + 1) + self.y_offset
             put_text(img, 'Exercise: {}'.format(activity[0:50]), (10, y_pos))
-            put_text(img, 'Count: {}'.format(count), (10 + self.lateral_offset,
-                                                           y_pos))
+            put_text(img, 'Count: {}'.format(count), (10 + self.lateral_offset, y_pos))
             index += 1
         return img
 

@@ -1,30 +1,29 @@
 #!/usr/bin/env python
 """
-Real time counter for jumping jacks and floor touches.
+Real-time rep counter for jumping jacks and floor touches.
 
 Usage:
-  run_fitness_counting.py [--camera_id=CAMERA_ID]
-                         [--path_in=FILENAME]
-                         [--path_out=FILENAME]
-                         [--title=TITLE]
-                         [--use_gpu]
-  run_fitness_counting.py (-h | --help)
+  run_fitness_rep_counter.py [--camera_id=CAMERA_ID]
+                             [--path_in=FILENAME]
+                             [--path_out=FILENAME]
+                             [--title=TITLE]
+                             [--use_gpu]
+  run_fitness_rep_counter.py (-h | --help)
 
 Options:
   --path_in=FILENAME              Video file to stream from
   --path_out=FILENAME             Video file to stream to
   --title=TITLE                   This adds a title to the window display
 """
-import torch
 from docopt import docopt
 
 import realtimenet.display
 from realtimenet import camera
 from realtimenet import engine
 from realtimenet import feature_extractors
-from realtimenet.downstream_tasks.fitness_counting import INT2LAB
+from realtimenet.downstream_tasks.fitness_rep_counting import INT2LAB
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
-from realtimenet.downstream_tasks.postprocess import PostprocessClassificationCounting, PostprocessClassificationOutput
+from realtimenet.downstream_tasks.postprocess import PostprocessRepCounts, PostprocessClassificationOutput
 
 
 if __name__ == "__main__":
@@ -45,7 +44,7 @@ if __name__ == "__main__":
     # Load a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=5)
-    checkpoint = engine.load_weights('resources/fitness_counting_activity/efficientnet_logistic_regression.ckpt')
+    checkpoint = engine.load_weights('resources/fitness_rep_counting/efficientnet_logistic_regression.ckpt')
     gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 
@@ -63,15 +62,16 @@ if __name__ == "__main__":
                                       inference_engine.fps)
 
     postprocessor = [
-        PostprocessClassificationCounting(INT2LAB),
+        PostprocessRepCounts(INT2LAB),
         PostprocessClassificationOutput(INT2LAB, smoothing=1)
     ]
 
     display_ops = [
         realtimenet.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
-        realtimenet.display.DisplayCounting()
+        realtimenet.display.DisplayRepCounts()
     ]
-    display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops)
+    display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops,
+                                                         border_size=100)
 
     engine.run_inference_engine(inference_engine,
                                 framegrabber,

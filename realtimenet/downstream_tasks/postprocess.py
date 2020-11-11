@@ -53,16 +53,16 @@ class PostprocessClassificationOutput(PostProcessor):
         }
 
 
-class PostprocessClassificationCounting(PostProcessor):
+class PostprocessRepCounts(PostProcessor):
 
     def __init__(self, mapping_dict, threshold=0.4, **kwargs):
         super().__init__(**kwargs)
         self.mapping = mapping_dict
         self.threshold = threshold
-        self.jumping_jack_counter = ExerciceCount(mapping_dict, "counting - jumping_jacks_position=arms_down",
-                                                  "counting - jumping_jacks_position=arms_up", threshold)
-        self.floor_touches_counter = ExerciceCount(mapping_dict, "counting - floor_touches_position=high",
-                                                   "counting - floor_touches_position=low", threshold)
+        self.jumping_jack_counter = ExerciceSpecificRepCounter(mapping_dict, "counting - jumping_jacks_position=arms_down",
+                                                               "counting - jumping_jacks_position=arms_up", threshold)
+        self.floor_touches_counter = ExerciceSpecificRepCounter(mapping_dict, "counting - floor_touches_position=high",
+                                                                "counting - floor_touches_position=low", threshold)
 
     def postprocess(self, classif_output):
         if classif_output is not None:
@@ -75,7 +75,7 @@ class PostprocessClassificationCounting(PostProcessor):
         }
 
 
-class ExerciceCount:
+class ExerciceSpecificRepCounter:
 
     def __init__(self, mapping, position0, position1, threshold):
         self.threshold = threshold
