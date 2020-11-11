@@ -70,7 +70,7 @@ class PostprocessRepCounts(PostProcessor):
             self.floor_touches_counter.process(classif_output)
 
         return {
-            'counting': {"jumping_jack": self.jumping_jack_counter.count,
+            'counting': {"jumping_jacks": self.jumping_jack_counter.count,
                          "floor_touches": self.floor_touches_counter.count}
         }
 
