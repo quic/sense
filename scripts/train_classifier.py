@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     # Find label names
     label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))
-    label_names = [x for x in label_names if not x.startswith('.')]
+    label_names = sorted([x for x in label_names if not x.startswith('.')])
     label2int = {name: index for index, name in enumerate(label_names)}
 
     # create the data loaders
