@@ -61,8 +61,8 @@ class PostprocessRepCounts(PostProcessor):
         self.threshold = threshold
         self.jumping_jack_counter = ExerciceSpecificRepCounter(mapping_dict, "counting - jumping_jacks_position=arms_down",
                                                                "counting - jumping_jacks_position=arms_up", threshold)
-        self.floor_touches_counter = ExerciceSpecificRepCounter(mapping_dict, "counting - floor_touches_position=high",
-                                                                "counting - floor_touches_position=low", threshold)
+        self.floor_touches_counter = ExerciceSpecificRepCounter(mapping_dict, "counting - squat_position=high",
+                                                                "counting - squat_position=low", threshold)
 
     def postprocess(self, classif_output):
         if classif_output is not None:
@@ -71,7 +71,7 @@ class PostprocessRepCounts(PostProcessor):
 
         return {
             'counting': {"jumping_jacks": self.jumping_jack_counter.count,
-                         "floor_touches": self.floor_touches_counter.count}
+                         "squats": self.floor_touches_counter.count}
         }
 
 
