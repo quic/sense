@@ -1,9 +1,14 @@
 import queue
 from threading import Thread
+from typing import List
 from typing import Optional
 from typing import Tuple
+from typing import Union
 
+from realtimenet.camera import VideoStream
+from realtimenet.display import DisplayResults
 from realtimenet.downstream_tasks.nn_utils import Pipe
+from realtimenet.downstream_tasks.postprocess import PostProcessor
 
 import numpy as np
 import cv2 as cv2
@@ -11,7 +16,10 @@ import torch
 
 
 class InferenceEngine(Thread):
-    """"""
+    """
+    InferenceEngine takes in a neural network and uses it to output predictions
+    either using the local machine's CPU or GPU.
+    """
     def __init__(self, net: Pipe, use_gpu: bool = False):
         """
         :param net:
@@ -45,7 +53,7 @@ class InferenceEngine(Thread):
 
     def put_nowait(self, clip: np.ndarray):
         """
-        Remove the older clip in the input queue and adds a newer clip to the queue.
+        Add a new clip to the input queue of inference engine for prediction.
 
         :param clip:
             The video frame to be added to the inference engine's input queue.
@@ -92,9 +100,20 @@ class InferenceEngine(Thread):
                     print("*** Unused predictions ***")
                 self._queue_out.put(predictions, block=False)
 
-    def infer(self, clip: np.ndarray) -> np.ndarray:
+    def infer(self, clip: np.ndarray) -> Union[np.ndarray, List[np.ndarray]]:
         """
         Infer and return predictions given the input clip from video source.
+        Note that the output is either a numpy.ndarray type or a list consisting
+        of numpy.ndarray.
+
+        For an inference engine running 1 classifier, the output is a numpy.ndarray
+        of shape (row, col), where `col` represents the number of labels that the
+        classifier predicts.
+
+        For an inference engine running more than 1 classifier, the output is a list
+        of N numpy.ndarray, where `N` represents the number of classifiers that the
+        inference engine runs. Each of the numpy.ndarray is of shape (row, col),
+        where `col` represents the number of labels that the classifier predicts.
 
         :param clip:
             The video frame to be inferred.
@@ -118,7 +137,28 @@ class InferenceEngine(Thread):
         return predictions
 
 
-def run_inference_engine(inference_engine, framegrabber, post_processors, results_display, path_out):
+def run_inference_engine(
+    inference_engine: InferenceEngine,
+    framegrabber: VideoStream,
+    post_processors: List[PostProcessor],
+    results_display: DisplayResults,
+    path_out: Optional[str]
+):
+    """
+    Start the video stream and the inference engine, process and display
+    the prediction from the neural network.
+
+    :param inference_engine:
+        An instance of InferenceEngine for neural network inferencing.
+    :param framegrabber:
+        An instance of VideoStream to feed video frames to InferenceEngine.
+    :param post_processors:
+        A list of subclasses of PostProcessor for post-processing neural network outputs.
+    :param results_display:
+        An instance of DisplayResults to display neural network predictions on the screen.
+    :param path_out:
+        Path to store the recorded video that includes predictions from the inference engine.
+    """
 
     # Initialization of a few variables
     clip = np.random.randn(1, inference_engine.step_size, inference_engine.expected_frame_size[0],
@@ -132,7 +172,7 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
     inference_engine.start()
     framegrabber.start()
 
-    # Begin calorie estimation
+    # Begin inferencing
     while True:
         frame_index += 1
 
@@ -157,7 +197,7 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
         # Get predictions
         prediction = inference_engine.get_nowait()
 
-        # Update calories
+        # Post process predictions and display the output
         post_processed_data = {}
         for post_processor in post_processors:
              post_processed_data.update(post_processor(prediction))
