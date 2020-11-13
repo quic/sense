@@ -5,13 +5,13 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-from realtimenet.camera import VideoStream
 from realtimenet.display import DisplayResults
+from realtimenet.camera import VideoStream
 from realtimenet.downstream_tasks.nn_utils import Pipe
 from realtimenet.downstream_tasks.postprocess import PostProcessor
 
-import numpy as np
 import cv2 as cv2
+import numpy as np
 import torch
 
 
