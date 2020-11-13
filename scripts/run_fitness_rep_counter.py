@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Real-time rep counter for jumping jacks and floor touches.
+Real-time rep counter for jumping jacks and squats.
 
 Usage:
   run_fitness_rep_counter.py [--camera_id=CAMERA_ID]
