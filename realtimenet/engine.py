@@ -7,12 +7,12 @@ from typing import Union
 
 from realtimenet.display import DisplayResults
 from realtimenet.camera import VideoStream
-from realtimenet.downstream_tasks.nn_utils import Pipe
 from realtimenet.downstream_tasks.postprocess import PostProcessor
 
 import cv2 as cv2
 import numpy as np
 import torch
+import torch.nn as nn
 
 
 class InferenceEngine(Thread):
@@ -20,7 +20,7 @@ class InferenceEngine(Thread):
     InferenceEngine takes in a neural network and uses it to output predictions
     either using the local machine's CPU or GPU.
     """
-    def __init__(self, net: Pipe, use_gpu: bool = False):
+    def __init__(self, net: nn.Module, use_gpu: bool = False):
         """
         :param net:
             The neural network to be run by the inference engine.
