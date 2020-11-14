@@ -139,18 +139,17 @@ class InferenceEngine(Thread):
 
 def run_inference_engine(
     inference_engine: InferenceEngine,
-    framegrabber: VideoStream,
+    video_stream: VideoStream,
     post_processors: List[PostProcessor],
     results_display: DisplayResults,
-    path_out: Optional[str]
-):
+    path_out: Optional[str]):
     """
     Start the video stream and the inference engine, process and display
     the prediction from the neural network.
 
     :param inference_engine:
         An instance of InferenceEngine for neural network inferencing.
-    :param framegrabber:
+    :param video_stream:
         An instance of VideoStream to feed video frames to InferenceEngine.
     :param post_processors:
         A list of subclasses of PostProcessor for post-processing neural network outputs.
@@ -170,14 +169,14 @@ def run_inference_engine(
 
     # Start threads
     inference_engine.start()
-    framegrabber.start()
+    video_stream.start()
 
     # Begin inferencing
     while True:
         frame_index += 1
 
         # Grab frame if possible
-        img_tuple = framegrabber.get_image()
+        img_tuple = video_stream.get_image()
         # If not possible, stop
         if img_tuple is None:
             break
@@ -228,7 +227,7 @@ def run_inference_engine(
 
     # Clean up
     cv2.destroyAllWindows()
-    framegrabber.stop()
+    video_stream.stop()
     inference_engine.stop()
     if video_recorder is not None:
         video_recorder.release()
