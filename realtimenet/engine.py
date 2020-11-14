@@ -106,14 +106,13 @@ class InferenceEngine(Thread):
         Note that the output is either a numpy.ndarray type or a list consisting
         of numpy.ndarray.
 
-        For an inference engine running 1 classifier, the output is a numpy.ndarray
-        of shape (row, col), where `col` represents the number of labels that the
-        classifier predicts.
+        For an inference engine that runs a neural network, which producing a single output,
+        the returned object is a numpy.ndarray of shape (T, C). `T` represents
+        the number of time steps and  is dependent on the length of the provided input clip.
+        `C` represents the number of output channels while
 
-        For an inference engine running more than 1 classifier, the output is a list
-        of N numpy.ndarray, where `N` represents the number of classifiers that the
-        inference engine runs. Each of the numpy.ndarray is of shape (row, col),
-        where `col` represents the number of labels that the classifier predicts.
+        For an inference engine running a multi-output neural network, the returned object
+        is a list of numpy.ndarray, one for each output.
 
         :param clip:
             The video frame to be inferred.
