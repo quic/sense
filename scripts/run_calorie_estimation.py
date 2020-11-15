@@ -66,7 +66,7 @@ if __name__ == "__main__":
                                       size=inference_engine.expected_frame_size,
                                       filename=path_in)
 
-    framegrabber = camera.VideoStream(video_source,
+    video_stream = camera.VideoStream(video_source,
                                       inference_engine.fps)
 
     post_processors = [
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     # Run live inference
     engine.run_inference_engine(inference_engine,
-                                framegrabber,
+                                video_stream,
                                 post_processors,
                                 display_results,
                                 path_out)

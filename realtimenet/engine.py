@@ -1,14 +1,32 @@
 import queue
 from threading import Thread
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
-import numpy as np
+from realtimenet.display import DisplayResults
+from realtimenet.camera import VideoStream
+from realtimenet.downstream_tasks.postprocess import PostProcessor
+
 import cv2 as cv2
+import numpy as np
 import torch
+import torch.nn as nn
 
 
 class InferenceEngine(Thread):
-
-    def __init__(self, net, use_gpu=False):
+    """
+    InferenceEngine takes in a neural network and uses it to output predictions
+    either using the local machine's CPU or GPU.
+    """
+    def __init__(self, net: nn.Module, use_gpu: bool = False):
+        """
+        :param net:
+            The neural network to be run by the inference engine.
+        :param use_gpu:
+            Whether to leverage CUDA or not for neural network inference.
+        """
         Thread.__init__(self)
         self.net = net
         self.use_gpu = use_gpu
@@ -19,33 +37,48 @@ class InferenceEngine(Thread):
         self._shutdown = False
 
     @property
-    def expected_frame_size(self):
+    def expected_frame_size(self) -> Tuple[int, int]:
+        """Return the frame size of the video source input."""
         return self.net.expected_frame_size
 
     @property
-    def fps(self):
+    def fps(self) -> float:
+        """Frame rate of the inference engine's neural network."""
         return self.net.fps
 
     @property
-    def step_size(self):
+    def step_size(self) -> int:
+        """The step size of the inference engine's neural network."""
         return self.net.step_size
 
-    def put_nowait(self, clip):
+    def put_nowait(self, clip: np.ndarray):
+        """
+        Add a new clip to the input queue of inference engine for prediction.
+
+        :param clip:
+            The video frame to be added to the inference engine's input queue.
+        """
         if self._queue_in.full():
             # Remove one clip
             self._queue_in.get_nowait()
-            print("*** Unused frames ***")
         self._queue_in.put_nowait(clip)
 
-    def get_nowait(self):
+    def get_nowait(self) -> Optional[np.ndarray]:
+        """
+        Return a clip from the output queue of the inference engine if available.
+        """
         if self._queue_out.empty():
             return None
         return self._queue_out.get_nowait()
 
     def stop(self):
+        """Terminate the inference engine."""
         self._shutdown = True
 
     def run(self):
+        """
+        Keep the inference engine running and inferring predictions from input video frames.
+        """
         while not self._shutdown:
             try:
                 clip = self._queue_in.get(timeout=1)
@@ -67,7 +100,26 @@ class InferenceEngine(Thread):
                     print("*** Unused predictions ***")
                 self._queue_out.put(predictions, block=False)
 
-    def infer(self, clip):
+    def infer(self, clip: np.ndarray) -> Union[np.ndarray, List[np.ndarray]]:
+        """
+        Infer and return predictions given the input clip from video source.
+        Note that the output is either a numpy.ndarray type or a list consisting
+        of numpy.ndarray.
+
+        For an inference engine that runs a neural network, which producing a single output,
+        the returned object is a numpy.ndarray of shape (T, C). `T` represents
+        the number of time steps and  is dependent on the length of the provided input clip.
+        `C` represents the number of output channels while
+
+        For an inference engine running a multi-output neural network, the returned object
+        is a list of numpy.ndarray, one for each output.
+
+        :param clip:
+            The video frame to be inferred.
+
+        :return:
+            Predictions from the neural network.
+        """
         with torch.no_grad():
             clip = self.net.preprocess(clip)
 
@@ -84,7 +136,27 @@ class InferenceEngine(Thread):
         return predictions
 
 
-def run_inference_engine(inference_engine, framegrabber, post_processors, results_display, path_out):
+def run_inference_engine(
+        inference_engine: InferenceEngine,
+        video_stream: VideoStream,
+        post_processors: List[PostProcessor],
+        results_display: DisplayResults,
+        path_out: Optional[str]):
+    """
+    Start the video stream and the inference engine, process and display
+    the prediction from the neural network.
+
+    :param inference_engine:
+        An instance of InferenceEngine for neural network inferencing.
+    :param video_stream:
+        An instance of VideoStream to feed video frames to InferenceEngine.
+    :param post_processors:
+        A list of subclasses of PostProcessor for post-processing neural network outputs.
+    :param results_display:
+        An instance of DisplayResults to display neural network predictions on the screen.
+    :param path_out:
+        Path to store the recorded video that includes predictions from the inference engine.
+    """
 
     # Initialization of a few variables
     clip = np.random.randn(1, inference_engine.step_size, inference_engine.expected_frame_size[0],
@@ -96,14 +168,14 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
 
     # Start threads
     inference_engine.start()
-    framegrabber.start()
+    video_stream.start()
 
-    # Begin calorie estimation
+    # Begin inferencing
     while True:
         frame_index += 1
 
         # Grab frame if possible
-        img_tuple = framegrabber.get_image()
+        img_tuple = video_stream.get_image()
         # If not possible, stop
         if img_tuple is None:
             break
@@ -123,7 +195,7 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
         # Get predictions
         prediction = inference_engine.get_nowait()
 
-        # Update calories
+        # Post process predictions and display the output
         post_processed_data = {}
         for post_processor in post_processors:
              post_processed_data.update(post_processor(prediction))
@@ -154,7 +226,7 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
 
     # Clean up
     cv2.destroyAllWindows()
-    framegrabber.stop()
+    video_stream.stop()
     inference_engine.stop()
     if video_recorder is not None:
         video_recorder.release()
@@ -165,7 +237,13 @@ def run_inference_engine(inference_engine, framegrabber, post_processors, result
         raise display_error
 
 
-def load_weights(checkpoint_path):
+def load_weights(checkpoint_path: str):
+    """
+    Load weights from a checkpoint file.
+
+    :param checkpoint_path:
+        A string representing the absolute/relative path to the checkpoint file.
+    """
     try:
         return torch.load(checkpoint_path, map_location='cpu')
     except:

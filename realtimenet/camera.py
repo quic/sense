@@ -93,7 +93,7 @@ class VideoStream(Thread):
         """Stop the VideoStream instance."""
         self._shutdown = True
 
-    def get_image(self):
+    def get_image(self) -> Optional[Tuple[np.ndarray, np.ndarray]]:
         """Get an image frame from the FIFO queue of frames."""
         return self.frames.get()
 
