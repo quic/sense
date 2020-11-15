@@ -24,23 +24,18 @@ class Controller:
             path_out: str = None,
             use_gpu: bool = True):
 
-        # Initialize attributes
-        self.net = neural_network
-        self.postprocessors = post_processors
-        self.results_display = results_display
-        self.path_out = path_out
-        self.video_recorder = None
-        self.video_recorder_raw = None
-        self.display_error = None
-
-        self.inference_engine = InferenceEngine(self.net, use_gpu=use_gpu)
-
         video_source = VideoSource(
             camera_id=camera_id,
             size=self.inference_engine.expected_frame_size,
             filename=path_in
         )
         self.video_stream = VideoStream(video_source, self.inference_engine.fps)
+        self.inference_engine = InferenceEngine(neural_network, use_gpu=use_gpu)
+        self.postprocessors = post_processors
+        self.results_display = results_display
+        self.path_out = path_out
+        self.video_recorder = None  # created in `display_prediction`
+        self.video_recorder_raw = None  # created in `display_prediction`
 
     def run_inference(self):
         clip = np.random.randn(1, self.inference_engine.step_size, self.inference_engine.expected_frame_size[0],
