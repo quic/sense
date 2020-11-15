@@ -20,13 +20,12 @@ class Controller:
             post_processors: Union[PostProcessor, List[PostProcessor]],
             results_display: DisplayResults,
             camera_id: int,
-            use_gpu: bool = True,
-            path_out: str = None):
-        # Initialize attributes
+            path_in: str = None,
+            path_out: str = None,
+            use_gpu: bool = True):
 
+        # Initialize attributes
         self.net = neural_network
-        self.inference_engine = None
-        self.video_stream = None
         self.postprocessors = post_processors
         self.results_display = results_display
         self.path_out = path_out
@@ -38,38 +37,20 @@ class Controller:
 
         video_source = VideoSource(
             camera_id=camera_id,
-            size=self.inference_engine.expected_frame_size
+            size=self.inference_engine.expected_frame_size,
+            filename=path_in
         )
         self.video_stream = VideoStream(video_source, self.inference_engine.fps)
-
-    def display_predictions(self,
-                            img: np.ndarray,
-                            prediction: np.ndarray,
-                            post_processed_data: dict):
-        display_data = {'prediction': prediction, **post_processed_data}
-        # Live display
-        img_with_ui = self.results_display.show(img, display_data)
-
-        # Recording
-        if self.path_out:
-            self.video_recorder = cv2.VideoWriter(self.path_out, 0x7634706d,
-                                                  self.inference_engine.fps,
-                                                  (img_with_ui.shape[1], img_with_ui.shape[0]))
-            self.video_recorder_raw = cv2.VideoWriter(self.path_out.replace('.mp4', '_raw.mp4'),
-                                                      0x7634706d,
-                                                      self.inference_engine.fps,
-                                                      (img.shape[1], img.shape[0]))
-
-            self.video_recorder.write(img_with_ui)
-            self.video_recorder_raw.write(img)
 
     def run_inference(self):
         clip = np.random.randn(1, self.inference_engine.step_size, self.inference_engine.expected_frame_size[0],
                                self.inference_engine.expected_frame_size[1], 3)
 
         frame_index = 0
+        runtime_error = None
 
         self._start_inference()
+
         while True:
             try:
                 frame_index += 1
@@ -95,22 +76,39 @@ class Controller:
                 # Get predictions
                 prediction = self.inference_engine.get_nowait()
 
-                post_processed_data = {}
-                for post_processor in self.postprocessors:
-                    post_processed_data.update(post_processor(prediction))
+                prediction_postprocessed = self.postprocess_prediction(prediction)
 
-                # self._apply_commands(post_processed_data)
-                self.display_predictions(
-                    img=img,
-                    prediction=prediction,
-                    post_processed_data=post_processed_data
-                )
+                self.display_prediction(img, prediction_postprocessed)
 
-            except Exception as exception:
-                self.display_error = exception
+            except Exception as runtime_error:
+                break
+
+            # Press escape to exit
+            if cv2.waitKey(1) == 27:
                 break
 
         self._stop_inference()
+
+        if runtime_error:
+            raise runtime_error
+
+    def postprocess_prediction(self, prediction):
+        post_processed_data = {}
+        for post_processor in self.postprocessors:
+            post_processed_data.update(post_processor(prediction))
+        return {'prediction': prediction, **post_processed_data}
+
+    def display_prediction(self, img: np.ndarray, prediction_postprocessed: dict):
+        # Live display
+        img_augmented = self.results_display.show(img, prediction_postprocessed)
+
+        # Recording
+        if self.path_out:
+            if self.video_recorder is None or self.video_recorder_raw is None:
+                self._instantiate_video_recorders(img_augmented, img)
+
+            self.video_recorder.write(img_augmented)
+            self.video_recorder_raw.write(img)
 
     def _start_inference(self):
         print("Starting inference")
@@ -129,5 +127,10 @@ class Controller:
         if self.video_recorder_raw is not None:
             self.video_recorder_raw.release()
 
-        if self.display_error:
-            raise self.display_error
+    def _instantiate_video_recorders(self, img_augmented, img_raw):
+        self.video_recorder = cv2.VideoWriter(self.path_out, 0x7634706d, self.inference_engine.fps,
+                                              (img_augmented.shape[1], img_augmented.shape[0]))
+
+        path_raw = self.path_out.replace('.mp4', '_raw.mp4')
+        self.video_recorder_raw = cv2.VideoWriter(path_raw, 0x7634706d, self.inference_engine.fps,
+                                                  (img_raw.shape[1], img_raw.shape[0]))
