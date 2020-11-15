@@ -137,11 +137,11 @@ class InferenceEngine(Thread):
 
 
 def run_inference_engine(
-    inference_engine: InferenceEngine,
-    video_stream: VideoStream,
-    post_processors: List[PostProcessor],
-    results_display: DisplayResults,
-    path_out: Optional[str]):
+        inference_engine: InferenceEngine,
+        video_stream: VideoStream,
+        post_processors: List[PostProcessor],
+        results_display: DisplayResults,
+        path_out: Optional[str]):
     """
     Start the video stream and the inference engine, process and display
     the prediction from the neural network.
