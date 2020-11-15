@@ -58,7 +58,7 @@ if __name__ == "__main__":
                                       size=inference_engine.expected_frame_size,
                                       filename=path_in)
 
-    framegrabber = camera.VideoStream(video_source,
+    video_stream = camera.VideoStream(video_source,
                                       inference_engine.fps)
 
     postprocessor = [
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops)
 
     engine.run_inference_engine(inference_engine,
-                                framegrabber,
+                                video_stream,
                                 postprocessor,
                                 display_results,
                                 path_out)
