@@ -9,3 +9,4 @@ docopt                  ==0.6.2       # MIT
 tensorflow              ==1.14.0
 keras                   ==2.2.4
 coremltools             ==3.3
+h5py                    ==2.10.0
