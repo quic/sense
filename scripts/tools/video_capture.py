@@ -11,12 +11,12 @@ Usage:
   video_capture.py (-h | --help)
 
 Options:
-  --duration=DURATION                                     Recording time in seconds
-  --pre_recording_duration=PRE_RECORDING_DURATION        Duration for pre recording period
-  --number_videos =NUMBER_VIDEOS                         Number videos to record [default: 1]
-  --camera_id=CAMERA_ID                                         ID of the camera to stream from
-  --path_out=PATHOUT                                Video file to stream to [default: output/]
-  --file_name=FILENAME                              file name of the video. will be followed by {video number}.mp4 [default: output_]
+  --duration=DURATION                                   Recording time in seconds
+  --pre_recording_duration=PRE_RECORDING_DURATION       Duration for pre recording period
+  --number_videos=NUMBER_VIDEOS                         Number videos to record [default: 1]
+  --camera_id=CAMERA_ID                                 ID of the camera to stream from
+  --path_out=PATHOUT                                    Video file to stream to [default: output/]
+  --file_name=FILENAME                                  File name of the video, followed by {video_number}.mp4 [default: output]
 """
 
 import numpy as np
