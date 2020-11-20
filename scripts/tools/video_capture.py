@@ -25,6 +25,49 @@ import cv2
 import time
 from docopt import docopt
 
+
+def _capture_video(video_duration=0., record=False):
+    """
+    Helper method to create and show window with timer and message for recording videos, and automatically
+    saving them to the desired folder with the desired file-name.
+
+    :param video_duration:  float
+        Time duration for the pre-recording or recording phase prompt and timer
+    :param record:          bool
+        Flag to distinguish between pre-recording and recording phases
+    """
+    t = time.time()
+    out = None
+    while True:
+        ret, frame = cap.read()
+        if out is None:
+            out = cv2.VideoWriter(os.path.join(path_out, file), 0x7634706d, fps, (frame.shape[1],
+                                                                                  frame.shape[0]))
+        if record:
+            # Only stream to output-file when recording
+            out.write(frame)
+            message = f"recording video {str(i + 1)}"
+        else:
+            message = f"get into position {str(i + 1)}"
+
+        # Recording prompt
+        cv2.putText(frame, message, (100, 100), FONT, 3, (255, 255, 255),
+                    2, cv2.LINE_AA)
+        # Recording timer
+        cv2.putText(frame, f" {str(int(video_duration - time.time() + t))}",
+                    (200, 200), FONT, 10, (255, 255, 255),
+                    2, cv2.LINE_AA)
+        cv2.imshow('frame', frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        if time.time() - t > video_duration:
+            break
+
+    out.release()
+    cv2.destroyAllWindows()
+
+
 if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
@@ -37,64 +80,18 @@ if __name__ == "__main__":
 
 
 fps = 30.
-
+FONT = cv2.FONT_HERSHEY_PLAIN
 cap = cv2.VideoCapture(0)
 os.makedirs(path_out, exist_ok=True)
 for i in range(number_videos):
     file = f"{filename}_{str(i)}.mp4"
+    # Avoid overwriting pre-existing files
     while file in os.listdir(path_out):
         i += 1
         file = f"{filename}_{str(i)}.mp4"
-    out = None
-    t = time.time()
-    # TOManik: refactor this loop because same code as next one
-    while True:
-        ret, frame = cap.read()
-        if out is None:
-            out = cv2.VideoWriter(os.path.join(path_out, file), 0x7634706d, fps, (frame.shape[1],
-                                                                                  frame.shape[0]))
-        # TOManik: try to see if we can avoid recording here
-        out.write(frame)
-        FONT = cv2.FONT_HERSHEY_PLAIN
 
-        cv2.putText(frame, f"get into position {str(i + 1)}", (100, 100), FONT, 3, (255, 255, 255),
-                    2, cv2.LINE_AA)
+    # Show timer window before recording
+    _capture_video(video_duration=pre_recording_duration)
 
-        cv2.putText(frame, f" {str(int(pre_recording_duration - time.time() + t ))}",
-                    (200, 200), FONT, 10, (255, 255, 255),
-                    2, cv2.LINE_AA)
-        cv2.imshow('frame', frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        if time.time() - t > pre_recording_duration:
-            break
-
-    out.release()
-    cv2.destroyAllWindows()
-    out = None
-
-    t = time.time()
-    while True:
-        ret, frame = cap.read()
-        if out is None:
-            # TOManik: instead of fps, try to see if we can read the camera framerate: fps = cap.get(cv2.CAP_PROP_FPS)
-            out = cv2.VideoWriter(os.path.join(path_out, file), 0x7634706d, fps, (frame.shape[1],
-                                                                                  frame.shape[0]))
-        out.write(frame)
-        FONT = cv2.FONT_HERSHEY_PLAIN
-        cv2.putText(frame, f"recording video {str(i + 1)}", (100, 100), FONT, 3, (255, 255, 255),
-                    2, cv2.LINE_AA)
-
-        cv2.putText(frame, f" {str(int(duration - time.time() + t ))}",
-                    (200, 200), FONT, 10, (255, 255, 255),
-                    2, cv2.LINE_AA)
-        cv2.imshow('frame', frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        if time.time() - t > duration:
-            break
-
-    out.release()
-    cv2.destroyAllWindows()
+    # Show timer window for actual recording
+    _capture_video(video_duration=duration, record=True)
