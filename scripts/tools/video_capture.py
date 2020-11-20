@@ -6,9 +6,8 @@ Usage:
                [--pre_recording_duration=PRE_RECORDING_DURATION]
                [--number_videos=NUMBER_VIDEOS]
                [--camera_id=CAMERA_ID]
-               [--path_out=PATHOUT]
-               [--file_name=FILENAME]
-               [--overwrite]
+               [--path_out=PATH_OUT]
+               [--file_name=FILE_NAME]
   video_capture.py (-h | --help)
 
 Options:
@@ -16,9 +15,8 @@ Options:
   --pre_recording_duration=PRE_RECORDING_DURATION       Duration for the pre-recording period
   --number_videos=NUMBER_VIDEOS                         Number of videos to record [default: 1]
   --camera_id=CAMERA_ID                                 ID of the camera to stream from
-  --path_out=PATHOUT                                    Videos folder to stream to [default: output/]
-  --file_name=FILENAME                                  Video filename, followed by {video_number}.mp4 [default: output]
-  --overwrite                                           Ensure if files should be overwritten or not
+  --path_out=PATH_OUT                                   Videos folder to stream to [default: output/]
+  --file_name=FILE_NAME                                 Video filename, followed by {video_number}.mp4 [default: output]
 """
 
 import numpy as np
@@ -36,7 +34,6 @@ if __name__ == "__main__":
     camera_id = args['--camera_id'] or 0
     path_out = args['--path_out']
     filename = args['--file_name']
-    overwrite = args['--overwrite']
 
 
 fps = 30.
@@ -45,11 +42,9 @@ cap = cv2.VideoCapture(0)
 os.makedirs(path_out, exist_ok=True)
 for i in range(number_videos):
     file = f"{filename}_{str(i)}.mp4"
-    if not overwrite:
-        n = 0
-        while file in os.listdir(path_out):
-            n += 1
-            file = f"{filename}_{str(i)}_copy({n}).mp4"
+    while file in os.listdir(path_out):
+        i += 1
+        file = f"{filename}_{str(i)}.mp4"
     out = None
     t = time.time()
     # TOManik: refactor this loop because same code as next one
