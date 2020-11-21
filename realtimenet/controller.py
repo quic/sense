@@ -30,27 +30,28 @@ class Controller:
             filename=path_in
         )
         self.video_stream = VideoStream(video_source, self.inference_engine.fps)
+
         if isinstance(post_processors, list):
             self.postprocessors = post_processors
         else:
             self.postprocessors = [post_processors]
+
+        self.frame_index = None
+        self.clip = None
+
         self.results_display = results_display
         self.path_out = path_out
         self.video_recorder = None  # created in `display_prediction`
         self.video_recorder_raw = None  # created in `display_prediction`
 
     def run_inference(self):
-        clip = np.random.randn(1, self.inference_engine.step_size, self.inference_engine.expected_frame_size[0],
-                               self.inference_engine.expected_frame_size[1], 3)
-
-        frame_index = 0
         runtime_error = None
 
         self._start_inference()
 
         while True:
             try:
-                frame_index += 1
+                self.frame_index += 1
 
                 # Grab frame if possible
                 img_tuple = self.video_stream.get_image()
@@ -61,14 +62,14 @@ class Controller:
                 # Unpack
                 img, numpy_img = img_tuple
 
-                clip = np.roll(clip, -1, 1)
-                clip[:, -1, :, :, :] = numpy_img
+                self.clip = np.roll(self.clip, -1, 1)
+                self.clip[:, -1, :, :, :] = numpy_img
 
-                if frame_index == self.inference_engine.step_size:
+                if self.frame_index == self.inference_engine.step_size:
                     # A new clip is ready
-                    self.inference_engine.put_nowait(clip)
+                    self.inference_engine.put_nowait(self.clip)
 
-                frame_index = frame_index % self.inference_engine.step_size
+                self.frame_index = self.frame_index % self.inference_engine.step_size
 
                 # Get predictions
                 prediction = self.inference_engine.get_nowait()
@@ -109,6 +110,14 @@ class Controller:
 
     def _start_inference(self):
         print("Starting inference")
+        self.clip = np.random.randn(
+            1,
+            self.inference_engine.step_size,
+            self.inference_engine.expected_frame_size[0],
+            self.inference_engine.expected_frame_size[1],
+            3
+        )
+        self.frame_index = 0
         self.inference_engine.start()
         self.video_stream.start()
 
