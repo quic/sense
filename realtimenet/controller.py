@@ -23,15 +23,17 @@ class Controller:
             path_in: str = None,
             path_out: str = None,
             use_gpu: bool = True):
-
+        self.inference_engine = InferenceEngine(neural_network, use_gpu=use_gpu)
         video_source = VideoSource(
             camera_id=camera_id,
             size=self.inference_engine.expected_frame_size,
             filename=path_in
         )
         self.video_stream = VideoStream(video_source, self.inference_engine.fps)
-        self.inference_engine = InferenceEngine(neural_network, use_gpu=use_gpu)
-        self.postprocessors = post_processors
+        if isinstance(post_processors, list):
+            self.postprocessors = post_processors
+        else:
+            self.postprocessors = [post_processors]
         self.results_display = results_display
         self.path_out = path_out
         self.video_recorder = None  # created in `display_prediction`
