@@ -1,0 +1,79 @@
+{% extends 'up_squelette.html' %}
+
+{% block title %}Liste des images{% endblock %}
+
+{% block main %}
+<h1>Frames to annotate</h1>
+<form method="POST" action="/response">
+	 <input type="hidden" id="fps" name="fps" value="{{fps}}">
+	<input type="hidden" id="num" name="num" value="{{num}}">
+	<input type="hidden" id="n_images" name="n_images" value="{{n_images}}">
+{% if images %}
+	<ul class="fichiers">
+	{% for imgs in images %}
+           <div class="row"> 
+	<table>
+			    <tr>
+             {% for img, num, pred_class in imgs %}
+		
+		
+				<td>
+
+
+
+			  <div class="imgContainer">
+				    <div>
+					<img src="{{url_for('download_file', filename=img)}}"   width="400" height="300"></a>
+				    </div>
+				  <div class="row">
+					  {% if pred_class == '0' %}
+					<div class="input-color">
+						<input type="text" value="{{pred_class}}" />
+						<div class="color-box" ></div>
+						<!-- Replace "#FF850A" to change the color -->
+					</div>
+				  {% endif %}
+				  {% if pred_class == '1' %}
+					<div class="input-color">
+						<input type="text" value="{{pred_class}}" />
+						<div class="color-box" style="background-color: #FF850A;"></div>
+						<!-- Replace "#FF850A" to change the color -->
+					</div>
+				  {% endif %}
+				  {% if pred_class == '2' %}
+					<div class="input-color">
+						<input type="text" value="{{pred_class}}" />
+						<div class="color-box" style="background-color:navy;"></div>
+						<!-- Replace "#FF850A" to change the color -->
+					</div>
+				  {% endif %}
+				    <div class="switch-field">
+					  <input type="radio" name="{{num}}" id="{{num}}radio-one" value=0  checked> <label for="{{num}}radio-one">0</label>
+					  <input type="radio" name="{{num}}"  id="{{num}}radio-two" value=1><label for="{{num}}radio-two">1</label>
+					  <input type="radio" name="{{num}}" id="{{num}}radio-three" value=2><label for="{{num}}radio-three">2</label>
+				    </div>
+				  </div>
+
+					</div>
+				</td>
+
+            {% endfor %}
+			  <td>
+			</table>
+           </div>
+	{% endfor %}
+	</ul>
+  <input type="submit" value="Submit">
+</form>
+<form method="POST" action="/train_lr">
+	<input type="hidden" id="num2" name="num" value="{{num}}">
+	  <input type="submit" value="Retrain model">
+</form>
+<form method="POST" action="/export_annotation">
+	<input type="hidden" id="num3" name="num" value="{{num}}">
+	  <input type="submit" value="Export annotations">
+</form>
+{% endif %}
+{% endblock %}
+
+

@@ -1,0 +1,17 @@
+{% extends 'up_squelette.html' %}
+
+{% block title %}Liste des images{% endblock %}
+
+{% block main %}
+<h1>Video list</h1>
+{% if folders %}
+	<ul class="fichiers">
+	{% for  f, id in folders %}
+		<li><a href="{{ url_for('annot', nom=id) }}">{{ f }}</a></li>
+
+	{% endfor %}
+	</ul>
+{% endif %}
+{% endblock %}
+
+
