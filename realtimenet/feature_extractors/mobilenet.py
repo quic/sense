@@ -212,3 +212,19 @@ class StridedInflatedMobileNetV2(nn.Module):
             num_required_frames_per_layer[-1 - index] = temporal_dependency
         num_required_frames_per_layer[0] = temporal_dependency
         return num_required_frames_per_layer
+
+    @property
+    def num_required_frames_per_layer_padding(self):
+        """
+        Returns a mapping which maps the layer index to the minimum number of input frame
+        """
+        num_required_frames_per_layer = {}
+        temporal_dependency = 1
+        for index, layer in enumerate(self.cnn[::-1]):
+            if isinstance(layer, InvertedResidual):
+                if layer.temporal_stride:
+                    temporal_dependency = 2 * temporal_dependency
+            num_required_frames_per_layer[len(self.cnn) - 1 - index] = temporal_dependency
+            num_required_frames_per_layer[-1 - index] = temporal_dependency
+        num_required_frames_per_layer[0] = temporal_dependency
+        return num_required_frames_per_layer
