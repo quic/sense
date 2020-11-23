@@ -11,15 +11,22 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from joblib import dump, load
 
+dataset_path = '/home/amercier/code/20bn-realtimenet/fitness_tl_benchmark/'
+split = 'train'
+label = 'Spider Man Pushup'
+folder = os.path.join(dataset_path, f'videos_{split}', label)
 
-PROJ_DIR = '/home/amercier/code/20bn-realtimenet/annotation/0'
-out_folder = '/home/amercier/code/20bn-realtimenet/annotation/0'
-features_dir = join(PROJ_DIR, 'features')
-tags_dir = join(PROJ_DIR, 'tags')
+# out_folder = '/home/amercier/code/20bn-realtimenet/annotation/0/'
+features_dir = dataset_path + f"features_{split}/{label}/"
+frames_dir = dataset_path + f"frames_{split}/{label}/"
+
+tags_dir = dataset_path + f"tags_{split}/{label}/"
+lr_dir = join(dataset_path, 'lr', label)
+os.makedirs(lr_dir, exist_ok=True)
 os.makedirs(tags_dir, exist_ok=True)
 
 lr = None
-lr_path = join(out_folder, 'lr.joblib')
+lr_path = join(lr_dir, 'lr.joblib')
 if os.path.isfile(lr_path):
     lr = load(lr_path)
 
@@ -30,8 +37,8 @@ if os.path.isfile(lr_path):
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
-DOSSIER_UPS = join(out_folder, 'frames')
-videos = os.listdir(join(PROJ_DIR, 'frames'))
+DOSSIER_UPS = frames_dir
+videos = os.listdir(frames_dir)
 
 videos.sort()
 
@@ -58,7 +65,7 @@ def annot(nom):
     images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if extension_ok(img)] # la liste des images dans le dossier
     nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
-    images = [[x.replace(PROJ_DIR, ''), y] for y, x in sorted(zip(nums,images))]
+    images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums,images))]
     images = [[x[0], x[1], y] for x,y in zip(images, classes)]
     chunk_size = 5
     n_chunk = int(len(images)/chunk_size)
@@ -77,7 +84,7 @@ def response():
         fps = float(data['fps'])
         desc = {'file': videos[num] + ".mp4"}
         desc['fps'] = fps
-        out_annotation = os.path.join(out_folder, 'tags', videos[num] + ".json")
+        out_annotation = os.path.join(tags_dir, videos[num] + ".json")
         time_annotation = []
         for i in range(int(data['n_images'])):
             time_annotation.append(int(data[str(i)]))
@@ -93,9 +100,9 @@ def train_lr():
     if request.method == 'POST':
         data = request.form # a multidict containing POST data
         num = int(data['num'])
-        annotations = glob.glob(f'{tags_dir}/*.json')
-        features = [x.replace('/tags/', '/features/').replace('.json',
-                                                              '.npy') for x in annotations]
+        annotations = os.listdir(tags_dir)
+        features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+        annotations = [os.path.join(tags_dir, x) for x in annotations]
         X = []
         y = []
         for feature in features:
@@ -170,7 +177,7 @@ def add_header(r):
 
 @app.route('/uploads/<path:filename>')
 def download_file(filename):
-    return send_from_directory(PROJ_DIR, filename, as_attachment=True)
+    return send_from_directory(frames_dir, filename, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)

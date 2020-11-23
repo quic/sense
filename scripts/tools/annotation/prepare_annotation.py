@@ -24,7 +24,6 @@ split = 'train'
 label = 'Spider Man Pushup'
 folder = os.path.join(dataset_path, f'videos_{split}', label)
 
-out_folder = '/home/amercier/code/20bn-realtimenet/annotation/0/'
 features_folder = dataset_path + f"features_{split}/{label}/"
 frames_folder = dataset_path + f"frames_{split}/{label}/"
 os.makedirs(features_folder, exist_ok=True)
