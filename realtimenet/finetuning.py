@@ -8,6 +8,7 @@ import torch.nn as nn
 
 from realtimenet import camera
 from realtimenet import engine
+from PIL import Image
 
 
 def set_internal_padding_false(module):
@@ -70,6 +71,43 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
+def compute_features(video_path, path_out, inference_engine, minimum_frames=45, path_frames=None,
+                     batch_size=None):
+    video_source = camera.VideoSource(camera_id=None,
+                                      size=inference_engine.expected_frame_size,
+                                      filename=video_path)
+    video_fps = video_source.get_fps()
+    frames = []
+    while True:
+        images = video_source.get_image()
+        if images is None:
+            break
+        else:
+            image, image_rescaled = images
+            frames.append(image_rescaled)
+    frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
+
+    if frames.shape[0] < minimum_frames:
+        print(f"\nVideo too short: {video_path} - first frame will be duplicated")
+        num_missing_frames = minimum_frames - frames.shape[0]
+        frames = np.pad(frames, ((num_missing_frames, 0), (0, 0), (0, 0), (0, 0)),
+                        mode='edge')
+    # Inference
+    clip = frames[None].astype(np.float32)
+    predictions = inference_engine.infer(clip, batch_size=batch_size)
+    features = np.array(predictions)
+    os.makedirs(os.path.dirname(path_out), exist_ok=True)
+    np.save(path_out, features)
+    if path_frames is not None:
+        os.makedirs(os.path.dirname(path_frames), exist_ok=True)
+        frames_to_save = []
+        for e, frame in enumerate(frames):
+            if e % 4 == 3:
+                frames_to_save.append(frame)
+        for e, frame in enumerate(frames_to_save):
+            Image.fromarray(frame[:,:,::-1]).resize((400, 300)).save(
+                os.path.join(path_frames, str(e) + '.jpg'), quality=50)
+
 def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=45):
 
     # Create inference engine
@@ -92,31 +130,8 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
                 print("\n\tSkipped - feature was already precomputed.")
             else:
                 # Read all frames
-                video_source = camera.VideoSource(camera_id=None,
-                                                  size=inference_engine.expected_frame_size,
-                                                  filename=video_path)
-                video_fps = video_source.get_fps()
-                frames = []
-                while True:
-                    images = video_source.get_image()
-                    if images is None:
-                        break
-                    else:
-                        image, image_rescaled = images
-                        frames.append(image_rescaled)
-                frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
-
-                if frames.shape[0] < minimum_frames:
-                    print(f"\nVideo too short: {video_path} - first frame will be duplicated")
-                    num_missing_frames = minimum_frames - frames.shape[0]
-                    frames = np.pad(frames, ((num_missing_frames, 0), (0, 0), (0, 0), (0, 0)),
-                                    mode='edge')
-                # Inference
-                clip = frames[None].astype(np.float32)
-                predictions = inference_engine.infer(clip)
-                features = np.array(predictions)
-                os.makedirs(os.path.dirname(path_out), exist_ok=True)
-                np.save(path_out, features)
+                compute_features(video_path, path_out, inference_engine,
+                                 minimum_frames=minimum_frames,  path_frames=None)
 
         print('\n')
 
