@@ -1,4 +1,6 @@
+from collections import Callable
 from typing import List
+from typing import Optional
 from typing import Union
 
 from realtimenet.camera import VideoSource
@@ -13,16 +15,40 @@ import torch.nn as nn
 
 
 class Controller:
-
     def __init__(
             self,
             neural_network: nn.Module,
             post_processors: Union[PostProcessor, List[PostProcessor]],
+            callbacks: Optional[List[Callable[[dict], bool]]],
             results_display: DisplayResults,
             camera_id: int,
-            path_in: str = None,
-            path_out: str = None,
+            path_in: str = Optional[None],
+            path_out: str = Optional[None],
             use_gpu: bool = True):
+        """
+        :param neural_network:
+            The neural network that produces the predictions for the camera image
+            TODO: Be more specific here
+        :param post_processors:
+            Post processors that are applied to the generated predictions to filter or manipulate the data.
+            Refer to the PostProcessor class for more information.
+        :param callbacks:
+            A list of functions that are called in each loop iteration once the inference is started.
+            The input dict always contains the key 'prediction' under which an np.ndarray with the raw predictions is
+            stored. The presence of other keys depend on the choice of post processors.
+            The callbacks should return True if the inference should continue, False otherwise.
+        :param results_display:
+            A display window which shows the current camera image as well as the prediction with the highest
+            probability
+        :param camera_id:
+            The index of the webcam that is used
+        :param path_in:
+            If provided, use a video file located at the path as the input to the model
+        :param path_out:
+            If provided, store the captured video in a file in this location
+        :param use_gpu:
+            If True, run the model on the GPU
+        """
         self.inference_engine = InferenceEngine(neural_network, use_gpu=use_gpu)
         video_source = VideoSource(
             camera_id=camera_id,
@@ -35,6 +61,8 @@ class Controller:
             self.postprocessors = post_processors
         else:
             self.postprocessors = [post_processors]
+
+        self.callbacks = callbacks or []
 
         self.frame_index = None
         self.clip = None
@@ -77,6 +105,10 @@ class Controller:
                 prediction_postprocessed = self.postprocess_prediction(prediction)
 
                 self.display_prediction(img, prediction_postprocessed)
+
+                # Apply callbacks
+                if not all(callback(prediction_postprocessed) for callback in self.callbacks):
+                    break
 
             except Exception as runtime_error:
                 break
