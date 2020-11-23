@@ -42,6 +42,10 @@ from keras.models import Model
 from keras.regularizers import l2
 from keras.utils.vis_utils import plot_model as plot
 
+if not tf.__version__ == '2.3.1':
+    print('wrong TF version, expecting 2.3.1')
+    exit(1)
+
 DEFAULT_CONVERSION_PARAMETERS = {
     'image_scale': 1.,
     'normalize_inputs': False,
