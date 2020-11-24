@@ -91,8 +91,8 @@ if __name__ == "__main__":
     ]
 
     display_ops = [
-        realtimenet.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5, y_offset=0),
-        realtimenet.display.DisplayMETandCalories(y_offset=50),
+        realtimenet.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
+        realtimenet.display.DisplayMETandCalories(y_offset=60),
     ]
     display_results = realtimenet.display.DisplayResults(title=title,
                                                          display_ops=display_ops,

@@ -4,9 +4,11 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
+import time
 
 from realtimenet.display import DisplayResults
 from realtimenet.camera import VideoStream
+from realtimenet.camera import VideoSource
 from realtimenet.downstream_tasks.postprocess import PostProcessor
 
 import cv2 as cv2
@@ -165,6 +167,8 @@ def run_inference_engine(
     display_error = None
     video_recorder = None
     video_recorder_raw = None
+    previous_frame_time = 0
+    next_frame_time = 0
 
     # Start threads
     inference_engine.start()
@@ -200,10 +204,18 @@ def run_inference_engine(
         for post_processor in post_processors:
              post_processed_data.update(post_processor(prediction))
 
+        next_frame_time = time.time()
         try:
             display_data = {'prediction': prediction, **post_processed_data}
+
+            # Camera FPS counting
+            camera_fps = int(1/(next_frame_time - previous_frame_time))
+
+            # Inference engine frame rate
+            inference_engine_fps = frame_index + 1
+
             # Live display
-            img_with_ui = results_display.show(img, display_data)
+            img_with_ui = results_display.show(img, display_data, camera_fps, inference_engine_fps)
 
             # Recording
             if path_out:
@@ -224,6 +236,7 @@ def run_inference_engine(
         if cv2.waitKey(1) == 27:
             break
 
+        previous_frame_time = next_frame_time
     # Clean up
     cv2.destroyAllWindows()
     video_stream.stop()

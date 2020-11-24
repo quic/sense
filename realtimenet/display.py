@@ -153,7 +153,7 @@ class DisplayResults:
         self.display_ops = display_ops
         self.border_size = border_size
 
-    def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
+    def show(self, img: np.ndarray, display_data: dict, camera_fps: float, inference_engine_fps: float) -> np.ndarray:
         """
         Show an image frame with data displayed on top.
 
@@ -170,6 +170,10 @@ class DisplayResults:
 
         # Add black borders
         img = cv2.copyMakeBorder(img, self.border_size, 0, 0, 0, cv2.BORDER_CONSTANT)
+
+        # Show FPS on the video screen
+        put_text(img, "Camera FPS: {}".format(camera_fps), (10, 18))
+        put_text(img, "Inference Engine FPS: {}".format(inference_engine_fps), (360, 18))
 
         # Display information on top
         for display_op in self.display_ops:
