@@ -7,7 +7,13 @@ from typing import Tuple
 FONT = cv2.FONT_HERSHEY_PLAIN
 
 
-def put_text(img: np.ndarray, text: str, position: Tuple[int, int]) -> np.ndarray:
+def put_text(
+        img: np.ndarray,
+        text: str,
+        position: Tuple[int, int],
+        font_scale: float = 1,
+        thickness: int = 1
+) -> np.ndarray:
     """
     Draw a white text string on an image at a specified position and return the image.
 
@@ -17,11 +23,15 @@ def put_text(img: np.ndarray, text: str, position: Tuple[int, int]) -> np.ndarra
         The text to be written.
     :param position:
         A tuple of x and y coordinates of the bottom-left corner of the text in the image.
+    :param font_scale:
+        Font scale factor for modifying the font size.
+    :param thickness:
+        Thickness of the lines used to draw the text.
 
     :return:
         The image with the text string drawn.
     """
-    cv2.putText(img, text, position, FONT, 1, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(img, text, position, FONT, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
     return img
 
 
