@@ -130,15 +130,16 @@ class InferenceEngine(Thread):
             if self.use_gpu:
                 clip = clip.cuda()
             if batch_size is None:
-                batch_size = clip.shape[0]
-            for sub_clip in torch.Tensor.split(clip, batch_size):
-                if sub_clip.shape[0] >= self.net.num_required_frames_per_layer_padding[0]:
-                    predictions.append(self.net(sub_clip))
-        if isinstance(predictions[0], list):
-            predictions = list(zip(predictions))
-            predictions = [torch.cat(x, dim=0) for x in predictions]
-        else:
-            predictions = torch.cat(predictions, dim=0)
+                predictions = self.net(clip)
+            else:
+                for sub_clip in torch.Tensor.split(clip, batch_size):
+                    if sub_clip.shape[0] >= self.net.num_required_frames_per_layer_padding[0]:
+                        predictions.append(self.net(sub_clip))
+                if isinstance(predictions[0], list):
+                    predictions = list(zip(predictions))
+                    predictions = [torch.cat(x, dim=0) for x in predictions]
+                else:
+                    predictions = torch.cat(predictions, dim=0)
 
         if isinstance(predictions, list):
             predictions = [pred.cpu().numpy() for pred in predictions]
