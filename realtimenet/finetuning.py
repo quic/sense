@@ -62,14 +62,26 @@ class FeaturesDatasetCounting(torch.utils.data.Dataset):
         label = self.labels[idx]
         # remove beggining of prediction that is not padded
         label = label[int((self.minimum_frames - 1) /4):]
+        new_label = []
+        for l in label:
+            for _ in range(int(4 / self.stride)):
+                new_label.append(l)
+        label = np.array(new_label)
+
         if self.num_timesteps and num_preds > self.num_timesteps:
-            position = np.random.randint(0, num_preds - self.num_timesteps)
-            # compute label of the frame
-            position_label = int(position / (4 / self.stride))
+            label = label[0:num_preds - self.num_timesteps]
+            prob0 = 1 / (3*(np.sum(label == 0)))
+            prob1 = 1 / (3*(np.sum(label == 1)))
+            prob2 = 1 / (3*(np.sum(label == 2)))
+            probas = np.ones(len(label))
+            probas[label == 0] = prob0
+            probas[label == 1] = prob1
+            probas[label == 2] = prob2
+            probas = probas / np.sum(probas)
+            position = np.random.choice(len(label), 1, p=probas)[0]
             features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
-            label = label[position_label:position_label + 1]
-
+            label = label[position:position + 1]
         # need to compute
         return [features, label]
 
@@ -236,11 +248,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
 
 def training_loops_counting(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule):
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
-    criterion_weights = convert_class_weight({'length': 31, 'mapping': {0: 0.2}})
-    if use_gpu:
-        criterion_weights = criterion_weights.cuda()
-    criterion = nn.CrossEntropyLoss(
-                        weight=criterion_weights)
+    criterion = nn.CrossEntropyLoss()
 
     best_state_dict = None
     best_loss = 9999
