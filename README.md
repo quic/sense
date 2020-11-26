@@ -75,7 +75,7 @@ Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,
 PYTHONPATH=./ python scripts/run_gesture_recognition.py
 ```
 
-![](gifs/gesture_recognition.gif)
+![](docs/gifs/gesture_recognition.gif)
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
 
@@ -86,7 +86,7 @@ PYTHONPATH=./ python scripts/run_gesture_recognition.py
 In total, 80 different fitness exercises are recognized (see full list 
 [here](https://github.com/TwentyBN/20bn-realtimenet/blob/d539046fe71e43e37ad439d08e093ea1f489bd29/realtimenet/downstream_tasks/fitness_activity_recognition/__init__.py)).
 
-![](gifs/fitness_tracking.gif)
+![](docs/gifs/fitness_tracking.gif)
 
 *(full video can be found [here](https://drive.google.com/file/d/1f1y0wg7Y1kpSBwKSEFx1TDoD5lGA8DtQ/view?usp=sharing))*
 
