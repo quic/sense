@@ -173,7 +173,7 @@ class DisplayResults:
 
         # Show FPS on the video screen
         put_text(img, "Camera FPS: {}".format(camera_fps), (10, 18))
-        put_text(img, "Inference Engine FPS: {}".format(inference_engine_fps), (360, 18))
+        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (360, 18))
 
         # Display information on top
         for display_op in self.display_ops:
