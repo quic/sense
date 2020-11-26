@@ -214,7 +214,7 @@ def run_inference_engine(
             display_data = {'prediction': prediction, **post_processed_data}
 
             # Camera FPS counting
-            camera_fps = int(1./(next_camera_frame_time - previous_camera_frame_time))
+            camera_fps = 1./(next_camera_frame_time - previous_camera_frame_time)
 
             # Live display
             img_with_ui = results_display.show(img, display_data, camera_fps, inference_engine_fps)

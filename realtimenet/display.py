@@ -172,7 +172,7 @@ class DisplayResults:
         img = cv2.copyMakeBorder(img, self.border_size, 0, 0, 0, cv2.BORDER_CONSTANT)
 
         # Show FPS on the video screen
-        put_text(img, "Camera FPS: {}".format(camera_fps), (10, 18))
+        put_text(img, "Camera FPS: {:.2f}".format(camera_fps), (10, 18))
         put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (360, 18))
 
         # Display information on top
