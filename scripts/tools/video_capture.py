@@ -26,6 +26,28 @@ import time
 from docopt import docopt
 
 
+def _get_fps(video):
+    """
+    Helper method to calculate the rate of frames per second to be set later for recording and saving the videos.
+
+    :param video:           VideoCapture
+        Object for the connected camera source
+    :return recorded_fps:   int
+        The calculated FPS for the given camera source
+    """
+    number_frames = 60
+
+    # Calculate time taken (in seconds) to read `number_frames`
+    start_time = time.time()
+    for n in range(number_frames):
+        _, _ = video.read()
+    end_time = time.time()
+
+    calculated_fps = int(number_frames/(end_time - start_time))
+
+    return 16. if calculated_fps <= 16 else 30.
+
+
 def _capture_video(video_duration=0., record=False):
     """
     Helper method to create and show window with timer and message for recording videos, and automatically
@@ -49,6 +71,10 @@ def _capture_video(video_duration=0., record=False):
             message = f"recording video {str(i + 1)}"
         else:
             message = f"get into position {str(i + 1)}"
+
+        # Calculated FPS
+        cv2.putText(frame, f"fps : {fps}", (10, 20), FONT, 1, (255, 255, 255),
+                    1, cv2.LINE_AA)
 
         # Recording prompt
         cv2.putText(frame, message, (100, 100), FONT, 3, (255, 255, 255),
@@ -79,9 +105,9 @@ if __name__ == "__main__":
     filename = args['--file_name']
 
 
-fps = 30.
 FONT = cv2.FONT_HERSHEY_PLAIN
 cap = cv2.VideoCapture(0)
+fps = _get_fps(cap)
 os.makedirs(path_out, exist_ok=True)
 for i in range(number_videos):
     file = f"{filename}_{str(i)}.mp4"
