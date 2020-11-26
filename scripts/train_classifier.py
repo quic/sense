@@ -9,6 +9,7 @@ Usage:
                        [--path_out=PATH]
                        [--path_annotations_train=PATH]
                        [--path_annotations_valid=PATH]
+                       [--temporal_training]
   train_classifier.py  (-h | --help)
 
 Options:
@@ -57,6 +58,9 @@ if __name__ == "__main__":
     path_annotations_train = args['--path_annotations_train'] or None
     path_annotations_valid = args['--path_annotations_valid'] or None
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
+    temporal_training = args['--temporal_training']
+    if not temporal_training:
+        temporal_training = False
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
@@ -103,17 +107,21 @@ if __name__ == "__main__":
     train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}", "tags_train",
                                         label_names, label2int, label2int_temporal_annotation,  model_time_step=num_timesteps,
                                         num_timesteps=num_timesteps, minimum_frames=minimum_frames, stride=extractor_stride,
-                                        temporal_annotation_only=False)
+                                        temporal_annotation_only=temporal_training)
 
     valid_loader = generate_data_loader(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}", "tags_valid",
                                         label_names, label2int, label2int_temporal_annotation, model_time_step=num_timesteps,
                                                  num_timesteps=None, batch_size=1, shuffle=False, minimum_frames=minimum_frames, stride=extractor_stride,
-                                        temporal_annotation_only=False)
+                                        temporal_annotation_only=temporal_training)
 
 
     # modeify the network to generate the training network on top of the features
+    if temporal_training:
+        num_output = len(label_counting)
+    else:
+        num_output = len(label_names)
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
-                                            num_out=len(label_names))
+                                            num_out=num_output)
     if num_layers_to_finetune > 0:
         net = Pipe(custom_classifier_bottom, gesture_classifier)
     else:
@@ -125,11 +133,14 @@ if __name__ == "__main__":
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 80
-    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out)
+    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out, temporal_annotation_training=temporal_training)
 
     # Save best model
     if isinstance(net, Pipe):
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
     torch.save(best_model_state_dict, os.path.join(path_out, "classifier.checkpoint"))
-    json.dump(label2int, open(os.path.join(path_out, "label2int.json"), "w"))
+    if temporal_training:
+        json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "label2int.json"), "w"))
+    else:
+        json.dump(label2int, open(os.path.join(path_out, "label2int.json"), "w"))

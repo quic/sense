@@ -58,7 +58,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
         if self.num_timesteps and num_preds > self.num_timesteps:
             if temporal_annotation is not None:
                 temporal_annotation = temporal_annotation[0:num_preds - self.num_timesteps]
-                prob0 = 1 / (3*(np.sum(temporal_annotation == 0)))
+                prob0 = 1 / (2*(np.sum(temporal_annotation == 0)))
                 prob1 = 1 / (3*(np.sum(temporal_annotation == 1)))
                 prob2 = 1 / (3*(np.sum(temporal_annotation == 2)))
                 probas = np.ones(len(temporal_annotation))
@@ -213,43 +213,13 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
         print('\n')
 
 
-def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out):
+def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
+                   temporal_annotation_training=False):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
     best_state_dict = None
     best_top1 = 0.
-
-    for epoch in range(num_epochs):  # loop over the dataset multiple times
-        new_lr = lr_schedule.get(epoch)
-        if new_lr:
-            print(f"update lr to {new_lr}")
-            for param_group in optimizer.param_groups:
-                param_group['lr'] = new_lr
-
-        net.train()
-
-        train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, optimizer, use_gpu)
-        net.eval()
-        valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu)
-
-        print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
-                                                                                      valid_loss, valid_top1))
-
-        if valid_top1 > best_top1:
-            best_top1 = valid_top1
-            best_state_dict = net.state_dict().copy()
-            save_confusion_matrix(path_out, cnf_matrix, label_names)
-
-    print('Finished Training')
-    return best_state_dict
-
-
-def training_loops_counting(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule):
-    optimizer = optim.Adam(net.parameters(), lr=0.0001)
-    criterion = nn.CrossEntropyLoss()
-
-    best_state_dict = None
     best_loss = 9999
 
     for epoch in range(num_epochs):  # loop over the dataset multiple times
@@ -259,28 +229,33 @@ def training_loops_counting(net, train_loader, valid_loader, use_gpu, num_epochs
             for param_group in optimizer.param_groups:
                 param_group['lr'] = new_lr
 
-
         net.train()
-        train_loss, train_top1 = run_epoch_counting(train_loader, net, criterion, optimizer, use_gpu)
 
+        train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, optimizer,
+                                                       use_gpu, temporal_annotation_training=temporal_annotation_training)
         net.eval()
-        valid_loss, valid_top1 = run_epoch_counting(valid_loader, net, criterion, None, use_gpu)
-
-
-
+        valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
+                                                       temporal_annotation_training=temporal_annotation_training)
 
         print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
                                                                                       valid_loss, valid_top1))
 
-        if valid_loss < best_loss:
-            best_loss = valid_loss
-            best_state_dict = net.state_dict().copy()
+        if not temporal_annotation_training:
+            if valid_top1 > best_top1:
+                best_top1 = valid_top1
+                best_state_dict = net.state_dict().copy()
+                save_confusion_matrix(path_out, cnf_matrix, label_names)
+        else:
+            if valid_loss < best_loss:
+                best_loss = valid_loss
+                best_state_dict = net.state_dict().copy()
 
     print('Finished Training')
     return best_state_dict
 
 
-def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
+def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False,
+              temporal_annotation_training=False):
     running_loss = 0.0
     epoch_top_predictions = []
     epoch_labels = []
@@ -288,6 +263,8 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
     for i, data in enumerate(data_loader):
         # get the inputs; data is a list of [inputs, targets]
         inputs, targets, temporal_annotation = data
+        if temporal_annotation_training:
+            targets = temporal_annotation
         if use_gpu:
             inputs = inputs.cuda()
             targets = targets.cuda()
@@ -298,12 +275,27 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
             outputs = [net(input_i) for input_i in inputs]
             # Concatenate outputs to get a tensor of size batch_size x num_classes
             outputs = torch.cat(outputs, dim=0)
+
+            if temporal_annotation_training:
+                # take only targets one batch
+                targets = targets[:, 0]
+                # realign the number of outputs
+                min_pred_number = min(outputs.shape[0], targets.shape[0])
+                targets = targets[0:min_pred_number]
+                outputs = outputs[0:min_pred_number]
         else:
             # Average predictions on the time dimension to get a tensor of size 1 x num_classes
             # This assumes validation operates with batch_size=1 and process all available features (no cropping)
             assert data_loader.batch_size == 1
             outputs = net(inputs[0])
-            outputs = torch.mean(outputs, dim=0, keepdim=True)
+            if temporal_annotation_training:
+                targets = targets[0]
+                # realign the number of outputs
+                min_pred_number = min(outputs.shape[0], targets.shape[0])
+                targets = targets[0:min_pred_number]
+                outputs = outputs[0:min_pred_number]
+            else:
+                outputs = torch.mean(outputs, dim=0, keepdim=True)
 
         loss = criterion(outputs, targets)
         if optimizer is not None:
@@ -327,66 +319,6 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
     cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions)
 
     return loss, top1, cnf_matrix
-
-
-def run_epoch_counting(data_loader, net, criterion, optimizer=None, use_gpu=False):
-    running_loss = 0.0
-    epoch_top_predictions = []
-    epoch_labels = []
-
-    for i, data in enumerate(data_loader):
-        # get the inputs; data is a list of [inputs, targets]
-        inputs, targets, temporal_annotation = data
-        targets = temporal_annotation
-        if use_gpu:
-            inputs = inputs.cuda()
-            targets = targets.cuda()
-
-        # forward + backward + optimize
-        if net.training:
-            # Run on each batch element independently
-            outputs = [net(input_i) for input_i in inputs]
-            # Concatenate outputs to get a tensor of size batch_size x num_classes
-            outputs = torch.cat(outputs, dim=0)
-
-            # take only targets one batch
-            targets = targets[:,0]
-            # realign the number of outputs
-            min_pred_number = min(outputs.shape[0], targets.shape[0])
-            targets = targets[0:min_pred_number]
-            outputs = outputs[0:min_pred_number]
-        else:
-            # Average predictions on the time dimension to get a tensor of size 1 x num_classes
-            # This assumes validation operates with batch_size=1 and process all available features (no cropping)
-            assert data_loader.batch_size == 1
-            outputs = net(inputs[0])
-            # outputs = torch.mean(outputs, dim=0, keepdim=True)
-            targets = targets[0]
-            # realign the number of outputs
-            min_pred_number = min(outputs.shape[0], targets.shape[0])
-            targets = targets[0:min_pred_number]
-            outputs = outputs[0:min_pred_number]
-
-        loss = criterion(outputs, targets)
-        if optimizer is not None:
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
-
-        # Store label and predictions to compute statistics later
-        epoch_labels += list(targets.cpu().numpy())
-        epoch_top_predictions += list(outputs.argmax(dim=1).cpu().numpy())
-
-        # print statistics
-        running_loss += loss.item()
-
-    epoch_labels = np.array(epoch_labels)
-    epoch_top_predictions = np.array(epoch_top_predictions)
-
-    top1 = np.mean(epoch_labels == epoch_top_predictions)
-    loss = running_loss / len(data_loader)
-
-    return loss, top1
 
 
 def save_confusion_matrix(
