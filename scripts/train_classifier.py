@@ -62,7 +62,8 @@ if __name__ == "__main__":
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     # remove internal padding for feature extraction and training
     feature_extractor.apply(set_internal_padding_false)
-    checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+    checkpoint = torch.load('/data/efficientnetlite4_inflated_no_bn.ckpt')
+    checkpoint = {key.replace('features.', 'cnn.'): tensor for key, tensor in checkpoint.items()}
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
