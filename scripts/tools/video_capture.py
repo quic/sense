@@ -45,7 +45,7 @@ def _get_fps(video):
 
     calculated_fps = int(number_frames/(end_time - start_time))
 
-    return 16. if calculated_fps <= 16 else 30.
+    return 16. if calculated_fps <= 16 else calculated_fps
 
 
 def _capture_video(video_duration=0., record=False):
