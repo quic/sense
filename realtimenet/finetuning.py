@@ -27,27 +27,7 @@ def set_internal_padding_false(module):
 class FeaturesDataset(torch.utils.data.Dataset):
     """Features dataset."""
 
-    def __init__(self, files, labels, num_timesteps=None):
-        self.files = files
-        self.labels = labels
-        self.num_timesteps = num_timesteps
-
-    def __len__(self):
-        return len(self.files)
-
-    def __getitem__(self, idx):
-        features = np.load(self.files[idx])
-        num_preds = features.shape[0]
-        if self.num_timesteps and num_preds > self.num_timesteps:
-            position = np.random.randint(0, num_preds - self.num_timesteps)
-            features = features[position: position + self.num_timesteps]
-        return [features, self.labels[idx]]
-
-
-class FeaturesDatasetCounting(torch.utils.data.Dataset):
-    """Features dataset."""
-
-    def __init__(self, files, labels, model_time_step,
+    def __init__(self, files, labels, temporal_annotation, model_time_step,
                  num_timesteps=None, minimum_frames=45, stride=4):
         self.files = files
         self.labels = labels
@@ -55,6 +35,7 @@ class FeaturesDatasetCounting(torch.utils.data.Dataset):
         self.stride = stride
         self.minimum_frames = minimum_frames
         self.model_time_step = model_time_step
+        self.temporal_annotations = temporal_annotation
         # besoin de prendre la dependance temporelle qui va se faire encore bouffer
 
     def __len__(self):
@@ -63,37 +44,50 @@ class FeaturesDatasetCounting(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         features = np.load(self.files[idx])
         num_preds = features.shape[0]
-        label = self.labels[idx]
+
+        temporal_annotation = self.temporal_annotations[idx]
         # remove beggining of prediction that is not padded
-        label = label[int((self.minimum_frames - 1) /4):]
-        new_label = []
-        for l in label:
-            for _ in range(int(4 / self.stride)):
-                new_label.append(l)
-        label = np.array(new_label)
+        if temporal_annotation is not None:
+            temporal_annotation = temporal_annotation[int((self.minimum_frames - 1) /4):]
+            new_label = []
+            for l in temporal_annotation:
+                for _ in range(int(4 / self.stride)):
+                    new_label.append(l)
+            temporal_annotation = np.array(new_label)
 
         if self.num_timesteps and num_preds > self.num_timesteps:
-            label = label[0:num_preds - self.num_timesteps]
-            prob0 = 1 / (3*(np.sum(label == 0)))
-            prob1 = 1 / (3*(np.sum(label == 1)))
-            prob2 = 1 / (3*(np.sum(label == 2)))
-            probas = np.ones(len(label))
-            probas[label == 0] = prob0
-            probas[label == 1] = prob1
-            probas[label == 2] = prob2
-            probas = probas / np.sum(probas)
-            position = np.random.choice(len(label), 1, p=probas)[0]
+            if temporal_annotation is not None:
+                temporal_annotation = temporal_annotation[0:num_preds - self.num_timesteps]
+                prob0 = 1 / (3*(np.sum(temporal_annotation == 0)))
+                prob1 = 1 / (3*(np.sum(temporal_annotation == 1)))
+                prob2 = 1 / (3*(np.sum(temporal_annotation == 2)))
+                probas = np.ones(len(temporal_annotation))
+                probas[temporal_annotation == 0] = prob0
+                probas[temporal_annotation == 1] = prob1
+                probas[temporal_annotation == 2] = prob2
+                probas = probas / np.sum(probas)
+                position = np.random.choice(len(temporal_annotation), 1, p=probas)[0]
+                temporal_annotation = temporal_annotation[position:position + 1]
+            else:
+                position = np.random.randint(0, num_preds - self.num_timesteps)
             features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
-            label = label[position:position + 1]
-        # need to compute
-        return [features, label]
+        if temporal_annotation is None:
+            temporal_annotation = [-100]
+        return [features, self.labels[idx], temporal_annotation]
 
-def generate_data_loader(features_dir, label_names, label2int, path_annotations=None,
-                         num_timesteps=5, batch_size=16, shuffle=True):
+
+def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label2int,
+                         label2int_temporal_annotation,
+                         model_time_step, num_timesteps=5, batch_size=16, shuffle=True,
+                         minimum_frames=45, stride=4, path_annotations=None,
+                         temporal_annotation_only=False):
 
     # Find pre-computed features and derive corresponding labels
-
+    tags_dir = os.path.join(dataset_dir, tags_dir)
+    features_dir = os.path.join(dataset_dir, features_dir)
+    labels_string = []
+    temporal_annotation = []
     if not path_annotations:
         # Use all pre-computed features
         features = []
@@ -102,6 +96,7 @@ def generate_data_loader(features_dir, label_names, label2int, path_annotations=
             feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
             features += feature_temp
             labels += [label2int[label]] * len(feature_temp)
+            labels_string += [label] * len(feature_temp)
     else:
         with open(path_annotations, 'r') as f:
             annotations = json.load(f)
@@ -109,42 +104,31 @@ def generate_data_loader(features_dir, label_names, label2int, path_annotations=
                                           os.path.splitext(os.path.basename(entry['file']))[0])
                     for entry in annotations]
         labels = [label2int[entry['label']] for entry in annotations]
+        labels_string = [entry['label'] for entry in annotations]
 
-    # Build dataloader
-    dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)
-    data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
-
-    return data_loader
-
-
-def generate_data_loader_counting(dataset_dir, features_dir, tags_dir, label_names, label2int,
-                         model_time_step, num_timesteps=5, batch_size=16, shuffle=True,
-                                  minimum_frames=45, stride=4):
-
-    # Find pre-computed features and derive corresponding labels
-    features = []
-    labels = []
-    tags_dir = os.path.join(dataset_dir, tags_dir)
-    features_dir = os.path.join(dataset_dir, features_dir)
-
-    for label in label_names:
+    # check if annotation exist for each video
+    for label, feature in zip(labels_string, features):
         classe_mapping = {0: "counting_background",
                           1: f'{label}_position_1', 2:
                               f'{label}_position_2'}
-        feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
-        feature_temp = [x for x in feature_temp if os.path.isfile(x.replace(features_dir, tags_dir).replace(".npy", ".json"))]
-        tags_temp = [x.replace(features_dir, tags_dir).replace(".npy", ".json") for x in feature_temp]
-        tags_temp = [json.load(open(x))["time_annotation"] for x in tags_temp]
-        tags_temp = [np.array([label2int[classe_mapping[y]] for y in x]) for x in tags_temp]
+        temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
+        if os.path.isfile(temporal_annotation_file):
+            annotation = json.load(open(temporal_annotation_file))["time_annotation"]
+            annotation = np.array([label2int_temporal_annotation[classe_mapping[y]] for y in annotation])
+            temporal_annotation.append(annotation)
+        else:
+            temporal_annotation.append(None)
 
-
-        features += feature_temp
-        labels += tags_temp
+    if temporal_annotation_only:
+        features = [x for x, y in zip(features, temporal_annotation) if y is not None]
+        labels = [x for x, y in zip(labels, temporal_annotation) if y is not None]
+        temporal_annotation = [x for x in temporal_annotation if x is not None]
 
 
     # Build dataloader
-    dataset = FeaturesDatasetCounting(features, labels, model_time_step=model_time_step,
-                                      num_timesteps=num_timesteps, minimum_frames=minimum_frames, stride=stride)
+    dataset = FeaturesDataset(features, labels, temporal_annotation, model_time_step=model_time_step,
+                                      num_timesteps=num_timesteps, minimum_frames=minimum_frames,
+                                      stride=stride)
     data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
 
     return data_loader
@@ -303,7 +287,7 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
 
     for i, data in enumerate(data_loader):
         # get the inputs; data is a list of [inputs, targets]
-        inputs, targets = data
+        inputs, targets, temporal_annotation = data
         if use_gpu:
             inputs = inputs.cuda()
             targets = targets.cuda()
@@ -352,7 +336,8 @@ def run_epoch_counting(data_loader, net, criterion, optimizer=None, use_gpu=Fals
 
     for i, data in enumerate(data_loader):
         # get the inputs; data is a list of [inputs, targets]
-        inputs, targets = data
+        inputs, targets, temporal_annotation = data
+        targets = temporal_annotation
         if use_gpu:
             inputs = inputs.cuda()
             targets = targets.cuda()

@@ -24,7 +24,7 @@ import torch.utils.data
 
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
 from realtimenet.finetuning import training_loops_counting, extract_features, \
-    generate_data_loader, generate_data_loader_counting
+    generate_data_loader
 from realtimenet.finetuning import set_internal_padding_false
 from realtimenet import feature_extractors
 
@@ -85,16 +85,19 @@ if __name__ == "__main__":
     label_counting = ['counting_background']
     for label in label_names:
         label_counting += [f'{label}_position_1', f'{label}_position_2']
-    label2int = {name: index for index, name in enumerate(label_counting)}
+    label2int_temporal_annotation = {name: index for index, name in enumerate(label_counting)}
+    label2int = {name: index for index, name in enumerate(label_names)}
     extractor_stride = feature_extractor.num_required_frames_per_layer_padding[0]
     # create the data loaders
-    train_loader = generate_data_loader_counting(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}", "tags_train",
-                                        label_names, label2int, model_time_step=num_timesteps,
-                                                 num_timesteps=num_timesteps, minimum_frames=minimum_frames, stride=extractor_stride,
-                                                 )
-    valid_loader = generate_data_loader_counting(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}", "tags_valid",
-                                        label_names, label2int, model_time_step=num_timesteps,
-                                                 num_timesteps=None, batch_size=1, shuffle=False, minimum_frames=minimum_frames, stride=extractor_stride)
+    train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}", "tags_train",
+                                        label_names, label2int, label2int_temporal_annotation,  model_time_step=num_timesteps,
+                                        num_timesteps=num_timesteps, minimum_frames=minimum_frames, stride=extractor_stride,
+                                        temporal_annotation_only=True)
+
+    valid_loader = generate_data_loader(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}", "tags_valid",
+                                        label_names, label2int, label2int_temporal_annotation, model_time_step=num_timesteps,
+                                                 num_timesteps=None, batch_size=1, shuffle=False, minimum_frames=minimum_frames, stride=extractor_stride,
+                                        temporal_annotation_only=True)
 
     # modeify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,

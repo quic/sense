@@ -90,16 +90,25 @@ if __name__ == "__main__":
 
     # Find label names
     label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))
-    label_names = sorted([x for x in label_names if not x.startswith('.')])
+    label_names = [x for x in label_names if not x.startswith('.')]
+    label_counting = ['counting_background']
+    for label in label_names:
+        label_counting += [f'{label}_position_1', f'{label}_position_2']
+    label2int_temporal_annotation = {name: index for index, name in enumerate(label_counting)}
     label2int = {name: index for index, name in enumerate(label_names)}
 
+    extractor_stride = feature_extractor.num_required_frames_per_layer_padding[0]
+
     # create the data loaders
-    train_loader = generate_data_loader(os.path.join(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}"),
-                                        label_names, label2int, num_timesteps=num_timesteps,
-                                        path_annotations=path_annotations_train)
-    valid_loader = generate_data_loader(os.path.join(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}"),
-                                        label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False,
-                                        path_annotations=path_annotations_valid)
+    train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}", "tags_train",
+                                        label_names, label2int, label2int_temporal_annotation,  model_time_step=num_timesteps,
+                                        num_timesteps=num_timesteps, minimum_frames=minimum_frames, stride=extractor_stride,
+                                        temporal_annotation_only=False)
+
+    valid_loader = generate_data_loader(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}", "tags_valid",
+                                        label_names, label2int, label2int_temporal_annotation, model_time_step=num_timesteps,
+                                                 num_timesteps=None, batch_size=1, shuffle=False, minimum_frames=minimum_frames, stride=extractor_stride,
+                                        temporal_annotation_only=False)
 
 
     # modeify the network to generate the training network on top of the features
