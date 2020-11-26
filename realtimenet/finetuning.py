@@ -216,8 +216,13 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
     return loss, top1, cnf_matrix
 
 
-def save_confusion_matrix(path_out, confusion_matrix_array, classes,
-                          normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+def save_confusion_matrix(
+        path_out,
+        confusion_matrix_array,
+        classes,
+        normalize=False,
+        title='Confusion matrix',
+        cmap=plt.cm.Blues):
     """
     This function creates a matplotlib figure out of the provided confusion matrix and saves it
     to a file. The provided numpy array is also saved. Normalization can be applied by setting
@@ -233,22 +238,21 @@ def save_confusion_matrix(path_out, confusion_matrix_array, classes,
 
     accuracy = np.diag(confusion_matrix_array).sum() / confusion_matrix_array.sum()
     title += '\nAccuracy={:.1f}'.format(100 * float(accuracy))
+    plt.title(title)
 
     if normalize:
-        confusion_matrix_array = confusion_matrix_array.astype('float') / confusion_matrix_array.sum(axis=1)[:, np.newaxis]
-        print("Normalized confusion matrix")
-    else:
-        print('Confusion matrix, without normalization')
+        confusion_matrix_array = confusion_matrix_array.astype('float')
+        confusion_matrix_array /= confusion_matrix_array.sum(axis=1)[:, np.newaxis]
 
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
     thresh = confusion_matrix_array.max() / 2.
     for i, j in itertools.product(range(confusion_matrix_array.shape[0]),
                                   range(confusion_matrix_array.shape[1])):
         plt.text(j, i, confusion_matrix_array[i, j],
                  horizontalalignment="center",
                  color="white" if confusion_matrix_array[i, j] > thresh else "black")
-    plt.title(title)
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+
     plt.savefig(os.path.join(path_out, 'confusion_matrix.png'), bbox_inches='tight',
                 transparent=False, pad_inches=0.1, dpi=300)
     plt.close()
