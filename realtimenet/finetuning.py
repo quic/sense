@@ -1,8 +1,12 @@
 import os
 import glob
+
+import itertools
 import json
 
+import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.metrics import confusion_matrix
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -85,17 +89,26 @@ class FeaturesDatasetCounting(torch.utils.data.Dataset):
         # need to compute
         return [features, label]
 
-
-def generate_data_loader(features_dir, label_names, label2int,
+def generate_data_loader(features_dir, label_names, label2int, path_annotations=None,
                          num_timesteps=5, batch_size=16, shuffle=True):
 
     # Find pre-computed features and derive corresponding labels
-    features = []
-    labels = []
-    for label in label_names:
-        feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
-        features += feature_temp
-        labels += [label2int[label]] * len(feature_temp)
+
+    if not path_annotations:
+        # Use all pre-computed features
+        features = []
+        labels = []
+        for label in label_names:
+            feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
+            features += feature_temp
+            labels += [label2int[label]] * len(feature_temp)
+    else:
+        with open(path_annotations, 'r') as f:
+            annotations = json.load(f)
+        features = ['{}/{}/{}.npy'.format(features_dir, entry['label'],
+                                          os.path.splitext(os.path.basename(entry['file']))[0])
+                    for entry in annotations]
+        labels = [label2int[entry['label']] for entry in annotations]
 
     # Build dataloader
     dataset = FeaturesDataset(features, labels, num_timesteps=num_timesteps)
@@ -216,7 +229,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
         print('\n')
 
 
-def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule):
+def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -231,9 +244,10 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 param_group['lr'] = new_lr
 
         net.train()
-        train_loss, train_top1 = run_epoch(train_loader, net, criterion, optimizer, use_gpu)
+
+        train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, optimizer, use_gpu)
         net.eval()
-        valid_loss, valid_top1 = run_epoch(valid_loader, net, criterion, None, use_gpu)
+        valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu)
 
         print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
                                                                                       valid_loss, valid_top1))
@@ -241,6 +255,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         if valid_top1 > best_top1:
             best_top1 = valid_top1
             best_state_dict = net.state_dict().copy()
+            save_confusion_matrix(path_out, cnf_matrix, label_names)
 
     print('Finished Training')
     return best_state_dict
@@ -325,7 +340,9 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False):
     top1 = np.mean(epoch_labels == epoch_top_predictions)
     loss = running_loss / len(data_loader)
 
-    return loss, top1
+    cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions)
+
+    return loss, top1, cnf_matrix
 
 
 def run_epoch_counting(data_loader, net, criterion, optimizer=None, use_gpu=False):
@@ -387,13 +404,45 @@ def run_epoch_counting(data_loader, net, criterion, optimizer=None, use_gpu=Fals
     return loss, top1
 
 
-def convert_class_weight(class_weight):
-    if class_weight is None:
-        return None
+def save_confusion_matrix(
+        path_out,
+        confusion_matrix_array,
+        classes,
+        normalize=False,
+        title='Confusion matrix',
+        cmap=plt.cm.Blues):
+    """
+    This function creates a matplotlib figure out of the provided confusion matrix and saves it
+    to a file. The provided numpy array is also saved. Normalization can be applied by setting
+    `normalize=True`.
+    """
 
-    if isinstance(class_weight, dict):
-        class_weight_ = class_weight['length'] * [1.]
-        for index, weight in class_weight['mapping'].items():
-            class_weight_[index] = weight
-        class_weight = class_weight_
-    return torch.Tensor(class_weight)
+    plt.figure()
+    plt.imshow(confusion_matrix_array, interpolation='nearest', cmap=cmap)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=90)
+    plt.yticks(tick_marks, classes)
+
+    accuracy = np.diag(confusion_matrix_array).sum() / confusion_matrix_array.sum()
+    title += '\nAccuracy={:.1f}'.format(100 * float(accuracy))
+    plt.title(title)
+
+    if normalize:
+        confusion_matrix_array = confusion_matrix_array.astype('float')
+        confusion_matrix_array /= confusion_matrix_array.sum(axis=1)[:, np.newaxis]
+
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    thresh = confusion_matrix_array.max() / 2.
+    for i, j in itertools.product(range(confusion_matrix_array.shape[0]),
+                                  range(confusion_matrix_array.shape[1])):
+        plt.text(j, i, confusion_matrix_array[i, j],
+                 horizontalalignment="center",
+                 color="white" if confusion_matrix_array[i, j] > thresh else "black")
+
+    plt.savefig(os.path.join(path_out, 'confusion_matrix.png'), bbox_inches='tight',
+                transparent=False, pad_inches=0.1, dpi=300)
+    plt.close()
+
+    np.save(os.path.join(path_out, 'confusion_matrix.npy'), confusion_matrix_array)
