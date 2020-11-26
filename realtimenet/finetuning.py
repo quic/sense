@@ -84,58 +84,59 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
-def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=45):
+def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=45, overwrite=False):
 
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
     # extract features
-    for dataset in ["train", "valid"]:
+    for dataset in ['train', 'valid', 'test']:
         videos_dir = os.path.join(path_in, f"videos_{dataset}")
-        features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layers_finetune}")
-        video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
+        if os.path.exists(videos_dir):
+            features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layers_finetune}")
+            video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
-        print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
+            print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
 
-        for video_index, video_path in enumerate(video_files):
-            print(f"\rExtract features from video {video_index + 1} / {len(video_files)}",
-                  end="")
-            path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
+            for video_index, video_path in enumerate(video_files):
+                print(f"\rExtract features from video {video_index + 1} / {len(video_files)}",
+                      end="")
+                path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
-            if os.path.isfile(path_out):
-                print("\n\tSkipped - feature was already precomputed.")
-            else:
-                # Read all frames
-                video_source = camera.VideoSource(camera_id=None,
-                                                  size=inference_engine.expected_frame_size,
-                                                  filename=video_path)
-                video_fps = video_source.get_fps()
-                frames = []
-                while True:
-                    images = video_source.get_image()
-                    if images is None:
-                        break
-                    else:
-                        image, image_rescaled = images
-                        frames.append(image_rescaled)
-                frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
+                if os.path.isfile(path_out) and not overwrite:
+                    print("\n\tSkipped - feature was already precomputed.")
+                else:
+                    # Read all frames
+                    video_source = camera.VideoSource(camera_id=None,
+                                                      size=inference_engine.expected_frame_size,
+                                                      filename=video_path)
+                    video_fps = video_source.get_fps()
+                    frames = []
+                    while True:
+                        images = video_source.get_image()
+                        if images is None:
+                            break
+                        else:
+                            image, image_rescaled = images
+                            frames.append(image_rescaled)
+                    frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
-                if frames.shape[0] < minimum_frames:
-                    print(f"\nVideo too short: {video_path} - first frame will be duplicated")
-                    num_missing_frames = minimum_frames - frames.shape[0]
-                    frames = np.pad(frames, ((num_missing_frames, 0), (0, 0), (0, 0), (0, 0)),
-                                    mode='edge')
-                # Inference
-                clip = frames[None].astype(np.float32)
-                predictions = inference_engine.infer(clip)
-                features = np.array(predictions)
-                os.makedirs(os.path.dirname(path_out), exist_ok=True)
-                np.save(path_out, features)
+                    if frames.shape[0] < minimum_frames:
+                        print(f"\nVideo too short: {video_path} - first frame will be duplicated")
+                        num_missing_frames = minimum_frames - frames.shape[0]
+                        frames = np.pad(frames, ((num_missing_frames, 0), (0, 0), (0, 0), (0, 0)),
+                                        mode='edge')
+                    # Inference
+                    clip = frames[None].astype(np.float32)
+                    predictions = inference_engine.infer(clip)
+                    features = np.array(predictions)
+                    os.makedirs(os.path.dirname(path_out), exist_ok=True)
+                    np.save(path_out, features)
 
         print('\n')
 
 
-def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out):
+def training_loops(net, train_loader, valid_loader, test_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -161,7 +162,13 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         if valid_top1 > best_top1:
             best_top1 = valid_top1
             best_state_dict = net.state_dict().copy()
-            save_confusion_matrix(path_out, cnf_matrix, label_names)
+            save_confusion_matrix(os.path.join(path_out, 'confusion_matrix_valid.png'),
+                                  cnf_matrix, label_names, title='Validset Confusion Matrix')
+
+    net.eval()
+    test_loss, test_top1, cnf_matrix = run_epoch(test_loader, net, criterion, None, use_gpu)
+    save_confusion_matrix(os.path.join(path_out, 'confusion_matrix_test.png'),
+                          cnf_matrix, label_names, title='Testset Confusion Matrix')
 
     print('Finished Training')
     return best_state_dict
@@ -253,8 +260,7 @@ def save_confusion_matrix(
                  horizontalalignment="center",
                  color="white" if confusion_matrix_array[i, j] > thresh else "black")
 
-    plt.savefig(os.path.join(path_out, 'confusion_matrix.png'), bbox_inches='tight',
-                transparent=False, pad_inches=0.1, dpi=300)
+    plt.savefig(path_out, bbox_inches='tight', transparent=False, pad_inches=0.1, dpi=300)
     plt.close()
 
     np.save(os.path.join(path_out, 'confusion_matrix.npy'), confusion_matrix_array)

@@ -21,6 +21,7 @@ Options:
                                  in the json file should have the following format: {'file': NAME,
                                  'label': LABEL}.
   --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
+  --overwrite_features           If existing features should be overwritten.
 """
 
 from docopt import docopt
@@ -86,7 +87,7 @@ if __name__ == "__main__":
 
     # finetune the model
     extract_features(path_in, feature_extractor, num_layers_to_finetune, use_gpu,
-                     minimum_frames=minimum_frames)
+                     minimum_frames=minimum_frames, overwrite=args['--overwrite_features'])
 
     # Find label names
     label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))
@@ -100,6 +101,9 @@ if __name__ == "__main__":
     valid_loader = generate_data_loader(os.path.join(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}"),
                                         label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False,
                                         path_annotations=path_annotations_valid)
+    test_loader = generate_data_loader(os.path.join(path_in, f"features_test_num_layers_to_finetune={num_layers_to_finetune}"),
+                                       label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False,
+                                       path_annotations=path_annotations_valid)
 
 
     # modeify the network to generate the training network on top of the features
@@ -116,7 +120,7 @@ if __name__ == "__main__":
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 80
-    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out)
+    best_model_state_dict = training_loops(net, train_loader, valid_loader, test_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out)
 
     # Save best model
     if isinstance(net, Pipe):
