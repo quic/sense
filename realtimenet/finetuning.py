@@ -263,4 +263,4 @@ def save_confusion_matrix(
     plt.savefig(path_out, bbox_inches='tight', transparent=False, pad_inches=0.1, dpi=300)
     plt.close()
 
-    np.save(os.path.join(path_out, 'confusion_matrix.npy'), confusion_matrix_array)
+    np.save(os.path.join(path_out.replace('.png', '.npy'), confusion_matrix_array)

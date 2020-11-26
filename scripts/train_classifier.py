@@ -9,6 +9,7 @@ Usage:
                        [--path_out=PATH]
                        [--path_annotations_train=PATH]
                        [--path_annotations_valid=PATH]
+                       [--overwrite_features]
   train_classifier.py  (-h | --help)
 
 Options:
