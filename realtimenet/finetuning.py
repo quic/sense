@@ -164,7 +164,9 @@ def training_loops(net, train_loader, valid_loader, test_loader, use_gpu, num_ep
             best_state_dict = net.state_dict().copy()
             save_confusion_matrix(os.path.join(path_out, 'confusion_matrix_valid.png'),
                                   cnf_matrix, label_names, title='Validset Confusion Matrix')
+            print('\t>>> BEST MODEL SO FAR')
 
+    net.load_state_dict(best_state_dict)
     net.eval()
     test_loss, test_top1, cnf_matrix = run_epoch(test_loader, net, criterion, None, use_gpu)
     save_confusion_matrix(os.path.join(path_out, 'confusion_matrix_test.png'),
