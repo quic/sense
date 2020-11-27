@@ -1,12 +1,6 @@
 <div align="center">
 
-<!--
-<img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/beautification-phase1/docs/imgs
-/temp_realtimenet_header_1.png
-" width
-="400px">
--->
-![](docs/imgs/temp_realtimenet_header_3.png)
+<img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/beautification-phase1/docs/imgs/temp_realtimenet_header_3.png" width="600px">
 
 **State-of-the-art Real-time Action Recognition**
 
@@ -26,8 +20,7 @@
 <!-- BADGES -->
 <p align="center">
     <a href="https://20bn.com/">
-        <img alt="Documentation" src="https://img.shields.io/website/http/20bn.com?down_color=red
-        &down_message=offline&up_message=online">
+        <img alt="Documentation" src="https://img.shields.io/website/http/20bn.com.svg?down_color=red&down_message=offline&up_message=online">
     </a>
     <a href="https://github.com/TwentyBN/20bn-realtimenet/master/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/TwentyBN/20bn-realtimenet.svg?color=blue">
