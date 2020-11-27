@@ -21,28 +21,38 @@ Options:
                       to 16-bit precision.
   -h --help
 """
-
-from docopt import docopt
 import configparser
+import copy
+import coremltools
 import io
 import json
-import os
-import copy
-from collections import defaultdict
-
-import torch
 import numpy as np
+import os
+import torch
+
+from collections import defaultdict
+from docopt import docopt
 
 from keras import backend as K
-from keras.layers import (Conv2D, Input, ZeroPadding2D, Add, Dense, GlobalAveragePooling2D,
-                          UpSampling2D, MaxPooling2D, Concatenate, DepthwiseConv2D, Softmax)
-from keras.layers.advanced_activations import (LeakyReLU, ReLU, PReLU)
-from keras.layers.normalization import BatchNormalization
 from keras.initializers import RandomNormal
+from keras.layers import Add
+from keras.layers import Concatenate
+from keras.layers import Conv2D
+from keras.layers import Dense
+from keras.layers import DepthwiseConv2D
+from keras.layers import GlobalAveragePooling2D
+from keras.layers import Input
+from keras.layers import MaxPooling2D
+from keras.layers import Softmax
+from keras.layers import UpSampling2D
+from keras.layers import ZeroPadding2D
+from keras.layers.advanced_activations import LeakyReLU
+from keras.layers.advanced_activations import PReLU
+from keras.layers.advanced_activations import ReLU
+from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras.regularizers import l2
 from keras.utils.vis_utils import plot_model as plot
-import coremltools
 
 
 DEFAULT_CONVERSION_PARAMETERS = {
