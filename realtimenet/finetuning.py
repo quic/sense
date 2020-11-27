@@ -1,17 +1,16 @@
-import os
 import glob
 import itertools
 import json
-
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import confusion_matrix
+import os
 import torch
-import torch.optim as optim
 import torch.nn as nn
+import torch.optim as optim
 
 from realtimenet import camera
 from realtimenet import engine
+from sklearn.metrics import confusion_matrix
 
 
 def set_internal_padding_false(module):

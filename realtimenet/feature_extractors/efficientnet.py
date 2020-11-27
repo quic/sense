@@ -1,6 +1,8 @@
 import torch.nn as nn
 
-from .mobilenet import StridedInflatedMobileNetV2, InvertedResidual, ConvReLU
+from .mobilenet import ConvReLU
+from .mobilenet import InvertedResidual
+from .mobilenet import StridedInflatedMobileNetV2
 
 
 class StridedInflatedEfficientNet(StridedInflatedMobileNetV2):
