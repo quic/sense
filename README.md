@@ -28,11 +28,9 @@
     <a href="https://github.com/TwentyBN/20bn-realtimenet/releases">
         <img alt="GitHub release" src="https://img.shields.io/github/release/TwentyBN/20bn-realtimenet.svg">
     </a>
-    <!-- We should add this after
     <a href="https://github.com/TwentyBN/20bn-realtimenet/blob/master/CODE_OF_CONDUCT.md">
         <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg">
     </a>
-    -->
 </p>
 
 </div>
