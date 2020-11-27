@@ -76,9 +76,9 @@
 
 </div>
 
----
-
-## From the Community
+<!-- 
+## From the Community 
+-->
 <!-- Projects from the community -->
 
 ---
@@ -148,8 +148,9 @@ To get started, try out the demos we've provided. Inside the `20bn-realtimenet/s
 
 `scripts/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
 30 gestures are supported (see full list 
-[here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py)):
+[here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py)).
 
+Usage:
 ```shell
 PYTHONPATH=./ python scripts/run_gesture_recognition.py
 ```
@@ -180,12 +181,10 @@ It is also possible to save the display window to a video file using:
   --path_out=FILENAME             Video file to stream to
 ```
 
-##### Ideal Setup:
-
 For the best performance, the following is recommended: 
-- Camera on the floor 
-- Body fully visible (head-to-toe) 
-- Clean background 
+- Place your camera on the floor, angled upwards with a small portion of the floor visible
+- Ensure your body is fully visible (head-to-toe) 
+- Try to be in a simple environment (with a clean background) 
 
 
 #### Demo 3: Calorie Estimation
@@ -278,10 +277,10 @@ python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classif
 
 ---
 
+<!--
 ## Contributing
 <!-- Describe how developers can contribute --> 
-
----
+-->
 
 ## Citation
 
@@ -289,7 +288,8 @@ We now have a [blogpost](https://medium.com/twentybn/towards-situated-visual-ai-
 
 ```bibtex
 @misc{realtimenet2020blogpost,
-    author = {Guillaume Berger and Antoine Mercier and Florian Letsch and Cornelius Boehm and Sunny Panchal and Nahua Kang and Mark Todorovich and Ingo Bax and Roland Memisevic},
+    author = {Guillaume Berger and Antoine Mercier and Florian Letsch and Cornelius Boehm and 
+              Sunny Panchal and Nahua Kang and Mark Todorovich and Ingo Bax and Roland Memisevic},
     title = {Towards situated visual AI via end-to-end learning on video clips},
     howpublished = {\url{https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f}},
     note = {online; accessed 23 October 2020},
