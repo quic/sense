@@ -156,7 +156,7 @@ class DisplayResults:
         self.display_ops = display_ops
         self.border_size = border_size
 
-    def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
+    def show(self, img: np.ndarray, display_data: dict, num_expected_frames: int) -> np.ndarray:
         """
         Show an image frame with data displayed on top.
 
@@ -164,6 +164,8 @@ class DisplayResults:
             The image to be shown in the window.
         :param display_data:
             A dict of data that should be displayed in the image.
+        :param num_expected_frames:
+            Number of expected frames to be processed by inference engine.
 
         :return:
             The image with displayed data.
@@ -171,9 +173,10 @@ class DisplayResults:
         # Mirror the img
         img = img[:, ::-1].copy()
 
+        text_color = (0, 255, 0) if display_data['inference_engine_fps'] > num_expected_frames * 0.75 else (0, 0, 255)
         # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.1f}".format(display_data['camera_fps']), (10, 18), (0, 255, 0))
-        put_text(img, "Model FPS: {:.1f}".format(display_data['inference_engine_fps']), (360, 18), (0, 255, 0))
+        put_text(img, "Camera FPS: {:.1f}".format(display_data['camera_fps']), (5, 15), (0, 255, 0))
+        put_text(img, "Model FPS: {:.1f}".format(display_data['inference_engine_fps']), (5, 32), text_color)
 
         # Add black borders
         img = cv2.copyMakeBorder(img, self.border_size, 0, 0, 0, cv2.BORDER_CONSTANT)

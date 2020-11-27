@@ -211,7 +211,6 @@ def run_inference_engine(
             display_data = {'prediction': prediction, **post_processed_data}
 
             now = time.perf_counter()
-
             if prediction is not None:
                 # Inference engine frame rate
                 delta = (now - last_update_time_inference)
@@ -226,7 +225,7 @@ def run_inference_engine(
             display_data.update({'camera_fps': camera_fps, 'inference_engine_fps': inference_engine_fps})
 
             # Live display
-            img_with_ui = results_display.show(img, display_data)
+            img_with_ui = results_display.show(img, display_data, inference_engine.step_size)
 
             # Recording
             if path_out:

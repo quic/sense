@@ -87,8 +87,7 @@ if __name__ == "__main__":
     valid_loader = generate_data_loader(os.path.join(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}"),
                                         label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False)
 
-
-    # modeify the network to generate the training network on top of the features
+    # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=len(label_names))
     if num_layers_to_finetune > 0:
