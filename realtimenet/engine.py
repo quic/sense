@@ -166,9 +166,12 @@ def run_inference_engine(
     display_error = None
     video_recorder = None
     video_recorder_raw = None
-    previous_camera_frame_time = 0
-    inference_engine_fps = 0
-    model_inference_start_time = time.perf_counter()
+
+    fps_update_rate = 0.1
+    running_delta_time_inference = 1. / (inference_engine.fps / inference_engine.step_size)
+    running_delta_time_camera = 1. / inference_engine.fps
+    last_update_time_camera = time.perf_counter()
+    last_update_time_inference = time.perf_counter()
 
     # Start threads
     inference_engine.start()
@@ -199,24 +202,27 @@ def run_inference_engine(
         # Get predictions
         prediction = inference_engine.get_nowait()
 
-        if prediction is not None:
-            model_inference_end_time = time.perf_counter()
-
-            # Inference engine frame rate
-            inference_engine_fps = 1/(model_inference_end_time - model_inference_start_time)
-            model_inference_start_time = model_inference_end_time
-
         # Post process predictions and display the output
         post_processed_data = {}
         for post_processor in post_processors:
             post_processed_data.update(post_processor(prediction))
 
-        next_camera_frame_time = time.time()
         try:
             display_data = {'prediction': prediction, **post_processed_data}
 
+            now = time.perf_counter()
+
+            if prediction is not None:
+                # Inference engine frame rate
+                delta = (now - last_update_time_inference)
+                running_delta_time_inference += fps_update_rate * (delta - running_delta_time_inference)
+                last_update_time_inference = now
+            inference_engine_fps = 1. / running_delta_time_inference
             # Camera FPS counting
-            camera_fps = 1./(next_camera_frame_time - previous_camera_frame_time)
+            delta = (now - last_update_time_camera)
+            running_delta_time_camera += fps_update_rate * (delta - running_delta_time_camera)
+            camera_fps = 1. / running_delta_time_camera
+            last_update_time_camera = now
             display_data.update({'camera_fps': camera_fps, 'inference_engine_fps': inference_engine_fps})
 
             # Live display
@@ -240,8 +246,6 @@ def run_inference_engine(
         # Press escape to exit
         if cv2.waitKey(1) == 27:
             break
-
-        previous_camera_frame_time = next_camera_frame_time
 
     # Clean up
     cv2.destroyAllWindows()
