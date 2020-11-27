@@ -279,8 +279,8 @@ python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classif
 
 <!--
 ## Contributing
-<!-- Describe how developers can contribute --> 
 -->
+<!-- Describe how developers can contribute --> 
 
 ## Citation
 
