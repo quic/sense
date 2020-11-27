@@ -141,7 +141,7 @@ def training_loops(net, train_loader, valid_loader, test_loader, use_gpu, num_ep
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
     best_state_dict = None
-    best_loss = 0.
+    best_loss = np.Inf
 
     for epoch in range(num_epochs):  # loop over the dataset multiple times
         new_lr = lr_schedule.get(epoch)
