@@ -119,8 +119,8 @@ if __name__ == "__main__":
     if use_gpu:
         net = net.cuda()
 
-    lr_schedule = {0: 0.0001, 40: 0.00001}
-    num_epochs = 80
+    lr_schedule = {0: 0.0001, 50: 0.00001}
+    num_epochs = 70
     best_model_state_dict = training_loops(net, train_loader, valid_loader, test_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out)
 
     # Save best model
