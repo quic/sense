@@ -172,7 +172,7 @@ class DisplayResults:
         img = img[:, ::-1].copy()
 
         # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.2f}".format(display_data['camera_fps']), (10, 18), (0, 255, 0))
+        put_text(img, "Camera FPS: {:.1f}".format(display_data['camera_fps']), (10, 18), (0, 255, 0))
         put_text(img, "Model FPS: {:.1f}".format(display_data['inference_engine_fps']), (360, 18), (0, 255, 0))
 
         # Add black borders
