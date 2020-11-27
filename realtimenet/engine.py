@@ -167,12 +167,12 @@ def run_inference_engine(
     video_recorder = None
     video_recorder_raw = None
     previous_camera_frame_time = 0
+    inference_engine_fps = 0
+    model_inference_start_time = time.perf_counter()
 
     # Start threads
     inference_engine.start()
     video_stream.start()
-
-    model_inference_start_time = time.time()
 
     # Begin inferencing
     while True:
@@ -198,11 +198,13 @@ def run_inference_engine(
 
         # Get predictions
         prediction = inference_engine.get_nowait()
-        model_inference_end_time = time.time()
 
-        # Inference engine frame rate
-        inference_engine_fps = (1/(model_inference_end_time - model_inference_start_time))/inference_engine.step_size
-        model_inference_start_time = model_inference_end_time
+        if prediction is not None:
+            model_inference_end_time = time.perf_counter()
+
+            # Inference engine frame rate
+            inference_engine_fps = 1/(model_inference_end_time - model_inference_start_time)
+            model_inference_start_time = model_inference_end_time
 
         # Post process predictions and display the output
         post_processed_data = {}
@@ -215,9 +217,10 @@ def run_inference_engine(
 
             # Camera FPS counting
             camera_fps = 1./(next_camera_frame_time - previous_camera_frame_time)
+            display_data.update({'camera_fps': camera_fps, 'inference_engine_fps': inference_engine_fps})
 
             # Live display
-            img_with_ui = results_display.show(img, display_data, camera_fps, inference_engine_fps)
+            img_with_ui = results_display.show(img, display_data)
 
             # Recording
             if path_out:

@@ -7,7 +7,8 @@ from typing import Tuple
 FONT = cv2.FONT_HERSHEY_PLAIN
 
 
-def put_text(img: np.ndarray, text: str, position: Tuple[int, int]) -> np.ndarray:
+def put_text(img: np.ndarray, text: str, position: Tuple[int, int],
+             color: Tuple[int, int, int] = (255, 255, 255)) -> np.ndarray:
     """
     Draw a white text string on an image at a specified position and return the image.
 
@@ -17,11 +18,13 @@ def put_text(img: np.ndarray, text: str, position: Tuple[int, int]) -> np.ndarra
         The text to be written.
     :param position:
         A tuple of x and y coordinates of the bottom-left corner of the text in the image.
+    :param color:
+        A tuple for font color. For BGR, eg: (0, 255, 0) for green color.
 
     :return:
         The image with the text string drawn.
     """
-    cv2.putText(img, text, position, FONT, 1, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(img, text, position, FONT, 1, color, 1, cv2.LINE_AA)
     return img
 
 
@@ -153,7 +156,7 @@ class DisplayResults:
         self.display_ops = display_ops
         self.border_size = border_size
 
-    def show(self, img: np.ndarray, display_data: dict, camera_fps: float, inference_engine_fps: float) -> np.ndarray:
+    def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
         Show an image frame with data displayed on top.
 
@@ -168,12 +171,12 @@ class DisplayResults:
         # Mirror the img
         img = img[:, ::-1].copy()
 
+        # Show FPS on the video screen
+        put_text(img, "Camera FPS: {:.2f}".format(display_data['camera_fps']), (10, 18), (0, 255, 0))
+        put_text(img, "Model FPS: {:.1f}".format(display_data['inference_engine_fps']), (360, 18), (0, 255, 0))
+
         # Add black borders
         img = cv2.copyMakeBorder(img, self.border_size, 0, 0, 0, cv2.BORDER_CONSTANT)
-
-        # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.2f}".format(camera_fps), (10, 18))
-        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (360, 18))
 
         # Display information on top
         for display_op in self.display_ops:
