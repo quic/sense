@@ -53,8 +53,10 @@
 <!-- 2. Provides tools to build your own classifier-->
 <!-- 3. Powers a consumer fitness application-->
 
+<div align="center">
 
-###### Gesture recognition
+###### Gesture Recognition
+
 <p align="center">
     <img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/beautification-phase1/docs/gifs/gesture_recognition_1.gif" width="300px">
     <img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/beautification-phase1/docs/gifs/gesture_recognition_2.gif" width="300px">
@@ -64,12 +66,15 @@
 
 
 ###### Fitness Activity Tracker and Calorie Estimation
+
 <p align="center">
     <img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/beautification-phase1/docs/gifs/fitness_tracking_1.gif" width="300px">
     <img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/beautification-phase1/docs/gifs/fitness_tracking_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1f1y0wg7Y1kpSBwKSEFx1TDoD5lGA8DtQ/view?usp=sharing))*
+
+</div>
 
 ---
 
