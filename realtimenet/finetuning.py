@@ -141,7 +141,7 @@ def training_loops(net, train_loader, valid_loader, test_loader, use_gpu, num_ep
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
     best_state_dict = None
-    best_loss = 0.
+    best_top1 = 0.
 
     for epoch in range(num_epochs):  # loop over the dataset multiple times
         new_lr = lr_schedule.get(epoch)
@@ -159,8 +159,8 @@ def training_loops(net, train_loader, valid_loader, test_loader, use_gpu, num_ep
         print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
                                                                                       valid_loss, valid_top1))
 
-        if valid_loss < best_loss:
-            best_loss = valid_loss
+        if valid_top1 > best_top1:
+            best_top1 = valid_top1
             best_state_dict = net.state_dict().copy()
             save_confusion_matrix(os.path.join(path_out, 'confusion_matrix_valid.png'),
                                   cnf_matrix, label_names, title='Validset Confusion Matrix')
