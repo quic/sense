@@ -47,10 +47,6 @@
 - A pipeline to train your own custom classifier on top of our models with an easy-to-use script to fine
 -tune our weights. 
 
-<!-- 1. Provides the weights for two models trained on (mention datasets)-->
-<!-- 2. Provides tools to build your own classifier-->
-<!-- 3. Powers a consumer fitness application-->
-
 <div align="center">
 
 ###### Gesture Recognition
