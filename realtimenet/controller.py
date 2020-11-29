@@ -19,9 +19,9 @@ class Controller:
             self,
             neural_network: nn.Module,
             post_processors: Union[PostProcessor, List[PostProcessor]],
-            callbacks: Optional[List[Callable[[dict], bool]]],
             results_display: DisplayResults,
-            camera_id: int,
+            callbacks: Optional[List[Callable]] = None,
+            camera_id: int = 0,
             path_in: str = Optional[None],
             path_out: str = Optional[None],
             use_gpu: bool = True):
@@ -41,7 +41,7 @@ class Controller:
             A display window which shows the current camera image as well as the prediction with the highest
             probability
         :param camera_id:
-            The index of the webcam that is used
+            The index of the webcam that is used. Default id is 0.
         :param path_in:
             If provided, use a video file located at the path as the input to the model
         :param path_out:
