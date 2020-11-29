@@ -64,7 +64,8 @@ if __name__ == "__main__":
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     # remove internal padding for feature extraction and training
     feature_extractor.apply(set_internal_padding_false)
-    checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+    name = 'strided_inflated_efficientnet_free'
+    checkpoint = torch.load(f'resources/backbone/{name}.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
@@ -96,13 +97,13 @@ if __name__ == "__main__":
     label2int = {name: index for index, name in enumerate(label_names)}
 
     # create the data loaders
-    train_loader = generate_data_loader(os.path.join(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}"),
+    train_loader = generate_data_loader(os.path.join(path_in, f"{name}/features_train_num_layers_to_finetune={num_layers_to_finetune}"),
                                         label_names, label2int, num_timesteps=num_timesteps,
                                         path_annotations=path_annotations_train)
-    valid_loader = generate_data_loader(os.path.join(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}"),
+    valid_loader = generate_data_loader(os.path.join(path_in, f"{name}/features_valid_num_layers_to_finetune={num_layers_to_finetune}"),
                                         label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False,
                                         path_annotations=path_annotations_valid)
-    test_loader = generate_data_loader(os.path.join(path_in, f"features_test_num_layers_to_finetune={num_layers_to_finetune}"),
+    test_loader = generate_data_loader(os.path.join(path_in, f"{name}/features_test_num_layers_to_finetune={num_layers_to_finetune}"),
                                        label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False,
                                        path_annotations=path_annotations_valid)
 
