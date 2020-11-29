@@ -84,7 +84,7 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
-def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=45, overwrite=False):
+def extract_features(name, path_in, net, num_layers_finetune, use_gpu, minimum_frames=45, overwrite=False):
 
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
@@ -93,7 +93,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
     for dataset in ['train', 'valid', 'test']:
         videos_dir = os.path.join(path_in, f"videos_{dataset}")
         if os.path.exists(videos_dir):
-            features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layers_finetune}")
+            features_dir = os.path.join(path_in, f"{name}/features_{dataset}_num_layers_to_finetune={num_layers_finetune}")
             video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
             print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
