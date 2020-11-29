@@ -38,7 +38,7 @@ class InferenceEngine(Thread):
         return self.net.expected_frame_size
 
     @property
-    def fps(self) -> float:
+    def fps(self) -> int:
         """Frame rate of the inference engine's neural network."""
         return self.net.fps
 
