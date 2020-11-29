@@ -10,10 +10,6 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-from realtimenet.camera import VideoStream
-from realtimenet.display import DisplayResults
-from realtimenet.downstream_tasks.postprocess import PostProcessor
-
 
 class InferenceEngine(Thread):
     """
