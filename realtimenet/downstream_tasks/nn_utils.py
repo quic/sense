@@ -35,7 +35,7 @@ class LogisticRegression(nn.Sequential):
     def __init__(self, num_in, num_out, global_average_pooling=True):
         super(LogisticRegression, self).__init__(
             nn.Linear(num_in, num_out),
-            nn.Softmax(dim=-1)
+            # nn.Softmax(dim=-1)
         )
         self.global_average_pooling = global_average_pooling
 
