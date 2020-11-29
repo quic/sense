@@ -1,8 +1,8 @@
-import cv2 as cv2
 import numpy as np
 import queue
 import torch
-import torch.nn as nn
+
+from realtimenet.downstream_tasks.nn_utils import RealtimeNeuralNet
 
 from threading import Thread
 from typing import List
@@ -16,7 +16,7 @@ class InferenceEngine(Thread):
     InferenceEngine takes in a neural network and uses it to output predictions
     either using the local machine's CPU or GPU.
     """
-    def __init__(self, net: nn.Module, use_gpu: bool = False):
+    def __init__(self, net: RealtimeNeuralNet, use_gpu: bool = False):
         """
         :param net:
             The neural network to be run by the inference engine.
