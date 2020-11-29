@@ -27,6 +27,7 @@ import realtimenet.display
 from realtimenet import camera
 from realtimenet import engine
 from realtimenet import feature_extractors
+from realtimenet.controller import Controller
 from realtimenet.downstream_tasks import calorie_estimation
 from realtimenet.downstream_tasks.nn_utils import Pipe
 
@@ -59,16 +60,6 @@ if __name__ == "__main__":
     # Concatenate feature extractor and met converter
     net = Pipe(feature_extractor, met_value_converter)
 
-    # Create inference engine, video streaming and display objects
-    inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
-
-    video_source = camera.VideoSource(camera_id=camera_id,
-                                      size=inference_engine.expected_frame_size,
-                                      filename=path_in)
-
-    video_stream = camera.VideoStream(video_source,
-                                      inference_engine.fps)
-
     post_processors = [
         calorie_estimation.CalorieAccumulator(weight=weight,
                                               height=height,
@@ -83,8 +74,14 @@ if __name__ == "__main__":
     display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops)
 
     # Run live inference
-    engine.run_inference_engine(inference_engine,
-                                video_stream,
-                                post_processors,
-                                display_results,
-                                path_out)
+    controller = Controller(
+        neural_network=net,
+        post_processors=post_processors,
+        results_display=display_results,
+        callbacks=[],
+        camera_id=camera_id,
+        path_in=path_in,
+        path_out=path_out,
+        use_gpu=use_gpu
+    )
+    controller.run_inference()
