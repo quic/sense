@@ -18,9 +18,9 @@ Options:
 from docopt import docopt
 
 import realtimenet.display
-from realtimenet import camera
 from realtimenet import engine
 from realtimenet import feature_extractors
+from realtimenet.controller import Controller
 from realtimenet.downstream_tasks.gesture_recognition import INT2LAB
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
 from realtimenet.downstream_tasks.postprocess import PostprocessClassificationOutput
@@ -51,16 +51,6 @@ if __name__ == "__main__":
     # Concatenate feature extractor and met converter
     net = Pipe(feature_extractor, gesture_classifier)
 
-    # Create inference engine, video streaming and display instances
-    inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
-
-    video_source = camera.VideoSource(camera_id=camera_id,
-                                      size=inference_engine.expected_frame_size,
-                                      filename=path_in)
-
-    video_stream = camera.VideoStream(video_source,
-                                      inference_engine.fps)
-
     postprocessor = [
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
     ]
@@ -70,8 +60,15 @@ if __name__ == "__main__":
     ]
     display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops)
 
-    engine.run_inference_engine(inference_engine,
-                                video_stream,
-                                postprocessor,
-                                display_results,
-                                path_out)
+    # Run live inference
+    controller = Controller(
+        neural_network=net,
+        post_processors=postprocessor,
+        results_display=display_results,
+        callbacks=[],
+        camera_id=camera_id,
+        path_in=path_in,
+        path_out=path_out,
+        use_gpu=use_gpu
+    )
+    controller.run_inference()
