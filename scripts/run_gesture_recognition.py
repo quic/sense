@@ -18,7 +18,6 @@ Options:
 from docopt import docopt
 
 import realtimenet.display
-from realtimenet import camera
 from realtimenet import engine
 from realtimenet import feature_extractors
 from realtimenet.controller import Controller
