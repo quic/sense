@@ -1,12 +1,11 @@
+import cv2
 import numpy as np
 import queue
 import time
-from typing import Optional
-from typing import Tuple
-
-import cv2
 
 from threading import Thread
+from typing import Optional
+from typing import Tuple
 
 
 class VideoSource:
