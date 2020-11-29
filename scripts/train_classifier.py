@@ -88,7 +88,7 @@ if __name__ == "__main__":
         feature_extractor.cnn = feature_extractor.cnn[0:-num_layers_to_finetune]
 
     # finetune the model
-    extract_features(path_in, feature_extractor, num_layers_to_finetune, use_gpu,
+    extract_features(name, path_in, feature_extractor, num_layers_to_finetune, use_gpu,
                      minimum_frames=minimum_frames, overwrite=args['--overwrite_features'])
 
     # Find label names
