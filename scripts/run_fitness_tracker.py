@@ -89,5 +89,14 @@ if __name__ == "__main__":
                                                          border_size=70)
 
     # Run live inference
-    controller = Controller(net, post_processors, display_results, camera_id, path_in, path_out, use_gpu)
+    controller = Controller(
+        neural_network=net,
+        post_processors=post_processors,
+        results_display=display_results,
+        callbacks=[],
+        camera_id=camera_id,
+        path_in=path_in,
+        path_out=path_out,
+        use_gpu=use_gpu
+    )
     controller.run_inference()
