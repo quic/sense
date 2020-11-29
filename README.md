@@ -46,8 +46,7 @@
  actions in front of, and interacting with, a camera. Both neural networks are small, efficient, and run smoothly in real time on a CPU.
 - Demo applications showcasing the potential of our models: gesture recognition, fitness activity tracking, live
  calorie estimation.
-- A pipeline to train your own custom classifier on top of our models with an easy-to-use script to fine
--tune our weights. 
+- A pipeline to train your own custom classifier on top of our models with an easy-to-use script to fine-tune our weights. 
 
 <!-- 1. Provides the weights for two models trained on (mention datasets)-->
 <!-- 2. Provides tools to build your own classifier-->
@@ -241,7 +240,7 @@ Prepare the training and validation videos for each of the desired classes (labe
 - One sub-folder for each label with as many videos as you want (but at least one!)
 - Requirement: videos should have a framerate of 16 fps or higher.
 
-In a few cases, as few as 2-5 videos per class have been enough to achieve excellent performance!
+In some cases, as few as 2-5 videos per class have been enough to achieve excellent performance!
 
 #### Step 2: Training
 
