@@ -20,9 +20,9 @@ Options:
 from docopt import docopt
 
 import realtimenet.display
-from realtimenet import camera
 from realtimenet import engine
 from realtimenet import feature_extractors
+from realtimenet.controller import Controller
 from realtimenet.downstream_tasks.digit_recognition import INT2LETTERS
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
 from realtimenet.downstream_tasks.postprocess import PostprocessClassificationOutput
@@ -49,18 +49,8 @@ if __name__ == "__main__":
     digit_classifier.load_state_dict(checkpoint)
     digit_classifier.eval()
 
-    # Concatenate feature extractor and met converter
+    # Concatenate feature extractor and digit classifier
     net = Pipe(feature_extractor, digit_classifier)
-
-    # Create inference engine, video streaming and display instances
-    inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
-
-    video_source = camera.VideoSource(camera_id=camera_id,
-                                      size=inference_engine.expected_frame_size,
-                                      filename=path_in)
-
-    video_stream = camera.VideoStream(video_source,
-                                      inference_engine.fps)
 
     postprocessor = [
         PostprocessClassificationOutput(INT2LETTERS, smoothing=4)
@@ -74,8 +64,15 @@ if __name__ == "__main__":
     ]
     display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops, border_size=border_size)
 
-    engine.run_inference_engine(inference_engine,
-                                video_stream,
-                                postprocessor,
-                                display_results,
-                                path_out)
+    # Run live inference
+    controller = Controller(
+        neural_network=net,
+        post_processors=postprocessor,
+        results_display=display_results,
+        callbacks=[],
+        camera_id=camera_id,
+        path_in=path_in,
+        path_out=path_out,
+        use_gpu=use_gpu
+    )
+    controller.run_inference()
