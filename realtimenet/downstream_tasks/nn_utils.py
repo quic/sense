@@ -5,6 +5,12 @@ from typing import Tuple
 
 
 class RealtimeNeuralNet(nn.Module):
+    """
+    RealtimeNeuralNet is the abstract class for all neural networks which
+    are to be fed into an instance of the InferenceEngine.
+
+    Subclasses should overwrite the methods in RealtimeNeuralNet.
+    """
     def __init__(self):
         super().__init__()
 
