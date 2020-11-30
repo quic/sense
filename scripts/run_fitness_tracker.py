@@ -81,6 +81,7 @@ if __name__ == "__main__":
     ]
 
     display_ops = [
+        realtimenet.display.DisplayFPS(neural_network=net, y_offset=85),
         realtimenet.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
         realtimenet.display.DisplayMETandCalories(y_offset=60),
     ]

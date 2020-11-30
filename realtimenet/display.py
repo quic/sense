@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import time
 
 from typing import List
 from typing import Tuple
@@ -133,6 +134,47 @@ class DisplayRepCounts(BaseDisplay):
         return img
 
 
+class DisplayFPS(BaseDisplay):
+    """
+    Display camera fps and inference engine fps on debug window.
+    """
+
+    def __init__(self, neural_network, y_offset=20):
+        super().__init__(y_offset)
+        self.net = neural_network
+
+        self.fps_update_rate = 0.1
+        self.running_delta_time_inference = 1. / (self.net.fps / self.net.step_size)
+        self.running_delta_time_camera = 1. / self.net.fps
+        self.last_update_time_camera = time.perf_counter()
+        self.last_update_time_inference = time.perf_counter()
+
+    def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
+
+        now = time.perf_counter()
+        if display_data['prediction'] is not None:
+            # Inference engine frame rate
+            delta = (now - self.last_update_time_inference)
+            self.running_delta_time_inference += self.fps_update_rate * (delta - self.running_delta_time_inference)
+            self.last_update_time_inference = now
+        inference_engine_fps = 1. / self.running_delta_time_inference
+
+        # Camera FPS counting
+        delta = (now - self.last_update_time_camera)
+        self.running_delta_time_camera += self.fps_update_rate * (delta - self.running_delta_time_camera)
+        camera_fps = 1. / self.running_delta_time_camera
+        self.last_update_time_camera = now
+
+        # Text color change if inference engine fps go below certain range
+        text_color = (0, 255, 0) if inference_engine_fps > self.net.step_size * 0.75 else (0, 0, 255)
+
+        # Show FPS on the video screen
+        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, self.y_offset), (0, 255, 0))
+        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, self.y_offset+25), text_color)
+
+        return img
+
+
 class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
@@ -157,7 +199,7 @@ class DisplayResults:
         self.display_ops = display_ops
         self.border_size = border_size
 
-    def show(self, img: np.ndarray, display_data: dict, num_expected_frames: int) -> np.ndarray:
+    def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
         Show an image frame with data displayed on top.
 
@@ -165,19 +207,12 @@ class DisplayResults:
             The image to be shown in the window.
         :param display_data:
             A dict of data that should be displayed in the image.
-        :param num_expected_frames:
-            Number of expected frames to be processed by inference engine.
 
         :return:
             The image with displayed data.
         """
         # Mirror the img
         img = img[:, ::-1].copy()
-
-        text_color = (0, 255, 0) if display_data['inference_engine_fps'] > num_expected_frames * 0.75 else (0, 0, 255)
-        # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.1f}".format(display_data['camera_fps']), (5, 15), (0, 255, 0))
-        put_text(img, "Model FPS: {:.1f}".format(display_data['inference_engine_fps']), (5, 32), text_color)
 
         # Add black borders
         img = cv2.copyMakeBorder(img, self.border_size, 0, 0, 0, cv2.BORDER_CONSTANT)

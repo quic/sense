@@ -69,6 +69,7 @@ if __name__ == "__main__":
     ]
 
     display_ops = [
+        realtimenet.display.DisplayFPS(neural_network=net, y_offset=65),
         realtimenet.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.1),
     ]
     display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops)
