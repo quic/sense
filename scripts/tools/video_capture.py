@@ -28,6 +28,7 @@ import cv2
 from docopt import docopt
 
 FONT = cv2.FONT_HERSHEY_PLAIN
+TERMINATE = False
 
 
 def _capture_video(video_duration=0., record=False):
@@ -40,6 +41,7 @@ def _capture_video(video_duration=0., record=False):
     :param record:          (bool)
         Flag to distinguish between pre-recording and recording phases
     """
+    global TERMINATE
     if cap is not None:
         skip = False
         t = time.time()
@@ -64,20 +66,21 @@ def _capture_video(video_duration=0., record=False):
                         2, cv2.LINE_AA)
             cv2.imshow('frame', frame)
 
-            # Key press `Q` to skip the current video prompt
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            # Get key-press to skip current video or terminate script
+            key = cv2.waitKey(1)
+            if key & 0xFF == ord('s'):      # Pressing `S` will skip the current video prompt
                 cv2.destroyAllWindows()
                 skip = True
                 break
-            # Key press `Esc` to stop the whole process (not implemented yet)
-            # if cv2.waitKey(1) == 27:
-            #     cv2.destroyAllWindows()
-            #     sys.exit()
+            elif key == 27:                 # `ESC` to exit the script
+                cv2.destroyAllWindows()
+                TERMINATE = True
+                break
 
         calculated_fps = round(len(frames) / video_duration)
         fps = 16 if calculated_fps <= 16 else 30
 
-        if record and not skip:
+        if record and not skip and not TERMINATE:
             out = cv2.VideoWriter(os.path.join(path_out, file), 0x7634706d, fps, frame_size)
             for frame in frames:
                 out.write(frame)
@@ -109,7 +112,9 @@ if __name__ == "__main__":
             file = f"{filename}_{str(i)}.mp4"
 
         # Show timer window before recording
-        _capture_video(video_duration=pre_recording_duration)
+        if not TERMINATE:
+            _capture_video(video_duration=pre_recording_duration)
 
         # Show timer window for actual recording
-        _capture_video(video_duration=duration, record=True)
+        if not TERMINATE:
+            _capture_video(video_duration=duration, record=True)
