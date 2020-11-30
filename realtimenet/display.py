@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import re
 import time
+
 from typing import List
 from typing import Tuple
 
