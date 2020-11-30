@@ -194,7 +194,7 @@ class DisplayDigits(BaseDisplay):
         else:
             self._current_digit = None
             for class_name, proba in display_data['sorted_predictions']:
-                if re.match(r'\d', class_name) and proba > self.threshold:
+                if len(class_name) == 1 and proba > self.threshold:
                     # Display new digit
                     self._display_digit(img, class_name)
                     self._current_digit = class_name

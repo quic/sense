@@ -23,7 +23,7 @@ import realtimenet.display
 from realtimenet import camera
 from realtimenet import engine
 from realtimenet import feature_extractors
-from realtimenet.downstream_tasks.digit_recognition import INT2LAB
+from realtimenet.downstream_tasks.digit_recognition import INT2LETTERS
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
 from realtimenet.downstream_tasks.postprocess import PostprocessClassificationOutput
 
@@ -44,9 +44,8 @@ if __name__ == "__main__":
     feature_extractor.eval()
 
     # Load a logistic regression classifier
-    digit_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
-                                          num_out=12)
-    checkpoint = engine.load_weights('resources/digit_recognition/efficientnet_logistic_regression.ckpt')
+    digit_classifier = LogisticRegression(num_in=feature_extractor.feature_dim, num_out=len(INT2LETTERS))
+    checkpoint = engine.load_weights('resources/letter_recognition/efficientnet_logistic_regression.ckpt')
     digit_classifier.load_state_dict(checkpoint)
     digit_classifier.eval()
 
@@ -64,14 +63,16 @@ if __name__ == "__main__":
                                       inference_engine.fps)
 
     postprocessor = [
-        PostprocessClassificationOutput(INT2LAB, smoothing=4)
+        PostprocessClassificationOutput(INT2LETTERS, smoothing=4)
     ]
 
+    border_size = 50
+
     display_ops = [
-        realtimenet.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
-        realtimenet.display.DisplayDigits(threshold=0.5, duration=2, border_size=50),
+        realtimenet.display.DisplayTopKClassificationOutputs(top_k=2, threshold=0),
+        realtimenet.display.DisplayDigits(threshold=0.4, duration=1, border_size=border_size),
     ]
-    display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops, border_size=50)
+    display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops, border_size=border_size)
 
     engine.run_inference_engine(inference_engine,
                                 video_stream,
