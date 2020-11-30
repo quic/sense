@@ -28,11 +28,9 @@
     <a href="https://github.com/TwentyBN/20bn-realtimenet/releases">
         <img alt="GitHub release" src="https://img.shields.io/github/release/TwentyBN/20bn-realtimenet.svg">
     </a>
-    <!-- We should add this after
     <a href="https://github.com/TwentyBN/20bn-realtimenet/blob/master/CODE_OF_CONDUCT.md">
         <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg">
     </a>
-    -->
 </p>
 
 </div>
@@ -47,10 +45,6 @@
 - Demo applications showcasing the potential of our models: gesture recognition, fitness activity tracking, live
  calorie estimation.
 - A pipeline to train your own custom classifier on top of our models with an easy-to-use script to fine-tune our weights. 
-
-<!-- 1. Provides the weights for two models trained on (mention datasets)-->
-<!-- 2. Provides tools to build your own classifier-->
-<!-- 3. Powers a consumer fitness application-->
 
 <div align="center">
 
