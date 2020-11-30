@@ -6,26 +6,32 @@ Usage:
   train_classifier.py  --path_in=PATH
                        [--num_layers_to_finetune=NUM]
                        [--use_gpu]
+                       [--path_out=PATH]
+                       [--path_annotations_train=PATH]
+                       [--path_annotations_valid=PATH]
   train_classifier.py  (-h | --help)
 
 Options:
-  --path_in=PATH                Path to the dataset folder.
-                                Important: this folder should follow the structure described in the README.
-  --num_layers_to_finetune=NUM  Number of layers to finetune in addition to the final layer [default: 9]
-
+  --path_in=PATH                 Path to the dataset folder.
+                                 Important: this folder should follow the structure described in the README.
+  --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
+  --path_out=PATH                Where to save results. Will default to `path_in` if not provided.
+  --path_annotations_train=PATH  Path to an annotation file. This argument is only useful if you want
+                                 to fit a subset of the available training data. If provided, each entry
+                                 in the json file should have the following format: {'file': NAME,
+                                 'label': LABEL}.
+  --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
 """
+import json
+import os
+import torch.utils.data
 
 from docopt import docopt
 
-import json
-import os
-
-import torch.utils.data
-
+from realtimenet import feature_extractors
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
 from realtimenet.finetuning import training_loops, extract_features, generate_data_loader
 from realtimenet.finetuning import set_internal_padding_false
-from realtimenet import feature_extractors
 
 
 def clean_pipe_state_dict_key(key):
@@ -43,7 +49,11 @@ if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
     path_in = args['--path_in']
+    path_out = args['--path_out'] or path_in
+    os.makedirs(path_out, exist_ok=True)
     use_gpu = args['--use_gpu']
+    path_annotations_train = args['--path_annotations_train'] or None
+    path_annotations_valid = args['--path_annotations_valid'] or None
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
 
     # Load feature extractor
@@ -78,14 +88,16 @@ if __name__ == "__main__":
 
     # Find label names
     label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))
-    label_names = [x for x in label_names if not x.startswith('.')]
+    label_names = sorted([x for x in label_names if not x.startswith('.')])
     label2int = {name: index for index, name in enumerate(label_names)}
 
     # create the data loaders
     train_loader = generate_data_loader(os.path.join(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}"),
-                                        label_names, label2int, num_timesteps=num_timesteps)
+                                        label_names, label2int, num_timesteps=num_timesteps,
+                                        path_annotations=path_annotations_train)
     valid_loader = generate_data_loader(os.path.join(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}"),
-                                        label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False)
+                                        label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False,
+                                        path_annotations=path_annotations_valid)
 
     # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
@@ -100,12 +112,12 @@ if __name__ == "__main__":
         net = net.cuda()
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
-    num_epochs = 60
-    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule)
+    num_epochs = 80
+    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out)
 
     # Save best model
     if isinstance(net, Pipe):
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
-    torch.save(best_model_state_dict, os.path.join(path_in, "classifier.checkpoint"))
-    json.dump(label2int, open(os.path.join(path_in, "label2int.json"), "w"))
+    torch.save(best_model_state_dict, os.path.join(path_out, "classifier.checkpoint"))
+    json.dump(label2int, open(os.path.join(path_out, "label2int.json"), "w"))

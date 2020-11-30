@@ -1,4 +1,9 @@
+import cv2 as cv2
+import numpy as np
 import queue
+import torch
+import torch.nn as nn
+
 from threading import Thread
 from typing import List
 from typing import Optional
@@ -6,14 +11,9 @@ from typing import Tuple
 from typing import Union
 import time
 
-from realtimenet.display import DisplayResults
 from realtimenet.camera import VideoStream
+from realtimenet.display import DisplayResults
 from realtimenet.downstream_tasks.postprocess import PostProcessor
-
-import cv2 as cv2
-import numpy as np
-import torch
-import torch.nn as nn
 
 
 class InferenceEngine(Thread):
@@ -135,128 +135,6 @@ class InferenceEngine(Thread):
             predictions = predictions.cpu().numpy()
 
         return predictions
-
-
-def run_inference_engine(
-        inference_engine: InferenceEngine,
-        video_stream: VideoStream,
-        post_processors: List[PostProcessor],
-        results_display: DisplayResults,
-        path_out: Optional[str]):
-    """
-    Start the video stream and the inference engine, process and display
-    the prediction from the neural network.
-
-    :param inference_engine:
-        An instance of InferenceEngine for neural network inferencing.
-    :param video_stream:
-        An instance of VideoStream to feed video frames to InferenceEngine.
-    :param post_processors:
-        A list of subclasses of PostProcessor for post-processing neural network outputs.
-    :param results_display:
-        An instance of DisplayResults to display neural network predictions on the screen.
-    :param path_out:
-        Path to store the recorded video that includes predictions from the inference engine.
-    """
-
-    # Initialization of a few variables
-    clip = np.random.randn(1, inference_engine.step_size, inference_engine.expected_frame_size[0],
-                           inference_engine.expected_frame_size[1], 3)
-    frame_index = 0
-    display_error = None
-    video_recorder = None
-    video_recorder_raw = None
-
-    fps_update_rate = 0.1
-    running_delta_time_inference = 1. / (inference_engine.fps / inference_engine.step_size)
-    running_delta_time_camera = 1. / inference_engine.fps
-    last_update_time_camera = time.perf_counter()
-    last_update_time_inference = time.perf_counter()
-
-    # Start threads
-    inference_engine.start()
-    video_stream.start()
-
-    # Begin inferencing
-    while True:
-        frame_index += 1
-
-        # Grab frame if possible
-        img_tuple = video_stream.get_image()
-        # If not possible, stop
-        if img_tuple is None:
-            break
-
-        # Unpack
-        img, numpy_img = img_tuple
-
-        clip = np.roll(clip, -1, 1)
-        clip[:, -1, :, :, :] = numpy_img
-
-        if frame_index == inference_engine.step_size:
-            # A new clip is ready
-            inference_engine.put_nowait(clip)
-
-        frame_index = frame_index % inference_engine.step_size
-
-        # Get predictions
-        prediction = inference_engine.get_nowait()
-
-        # Post process predictions and display the output
-        post_processed_data = {}
-        for post_processor in post_processors:
-            post_processed_data.update(post_processor(prediction))
-
-        try:
-            display_data = {'prediction': prediction, **post_processed_data}
-
-            now = time.perf_counter()
-            if prediction is not None:
-                # Inference engine frame rate
-                delta = (now - last_update_time_inference)
-                running_delta_time_inference += fps_update_rate * (delta - running_delta_time_inference)
-                last_update_time_inference = now
-            inference_engine_fps = 1. / running_delta_time_inference
-            # Camera FPS counting
-            delta = (now - last_update_time_camera)
-            running_delta_time_camera += fps_update_rate * (delta - running_delta_time_camera)
-            camera_fps = 1. / running_delta_time_camera
-            last_update_time_camera = now
-            display_data.update({'camera_fps': camera_fps, 'inference_engine_fps': inference_engine_fps})
-
-            # Live display
-            img_with_ui = results_display.show(img, display_data, inference_engine.step_size)
-
-            # Recording
-            if path_out:
-                if video_recorder is None or video_recorder_raw is None:
-                    video_recorder = cv2.VideoWriter(path_out, 0x7634706d, inference_engine.fps,
-                                                     (img_with_ui.shape[1], img_with_ui.shape[0]))
-                    video_recorder_raw = cv2.VideoWriter(path_out.replace('.mp4', '_raw.mp4'), 0x7634706d,
-                                                         inference_engine.fps, (img.shape[1], img.shape[0]))
-
-                video_recorder.write(img_with_ui)
-                video_recorder_raw.write(img)
-
-        except Exception as exception:
-            display_error = exception
-            break
-
-        # Press escape to exit
-        if cv2.waitKey(1) == 27:
-            break
-
-    # Clean up
-    cv2.destroyAllWindows()
-    video_stream.stop()
-    inference_engine.stop()
-    if video_recorder is not None:
-        video_recorder.release()
-    if video_recorder_raw is not None:
-        video_recorder_raw.release()
-
-    if display_error:
-        raise display_error
 
 
 def load_weights(checkpoint_path: str):

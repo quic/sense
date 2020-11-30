@@ -24,9 +24,9 @@ import torch
 from docopt import docopt
 
 import realtimenet.display
-from realtimenet import camera
 from realtimenet import engine
 from realtimenet import feature_extractors
+from realtimenet.controller import Controller
 from realtimenet.downstream_tasks import calorie_estimation
 from realtimenet.downstream_tasks.fitness_activity_recognition import INT2LAB
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
@@ -69,16 +69,6 @@ if __name__ == "__main__":
     net = Pipe(feature_extractor, feature_converter=[gesture_classifier,
                                                      met_value_converter])
 
-    # Create inference engine, video streaming and display objects
-    inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
-
-    video_source = camera.VideoSource(camera_id=camera_id,
-                                      size=inference_engine.expected_frame_size,
-                                      filename=path_in)
-
-    video_stream = camera.VideoStream(video_source,
-                                      inference_engine.fps)
-
     post_processors = [
         PostprocessClassificationOutput(INT2LAB, smoothing=8,
                                         indices=[0]),
@@ -99,8 +89,14 @@ if __name__ == "__main__":
                                                          border_size=70)
 
     # Run live inference
-    engine.run_inference_engine(inference_engine,
-                                video_stream,
-                                post_processors,
-                                display_results,
-                                path_out)
+    controller = Controller(
+        neural_network=net,
+        post_processors=post_processors,
+        results_display=display_results,
+        callbacks=[],
+        camera_id=camera_id,
+        path_in=path_in,
+        path_out=path_out,
+        use_gpu=use_gpu
+    )
+    controller.run_inference()
