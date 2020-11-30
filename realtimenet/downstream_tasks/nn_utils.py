@@ -8,12 +8,6 @@ class RealtimeNeuralNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, input_tensor):
-        """
-        Feed forward of the input tensor to the feature extractor and converters.
-        """
-        raise NotImplementedError
-
     def preprocess(self, clip: np.ndarray):
         """
         Pre-process a clip from a video source.
@@ -64,7 +58,7 @@ class Pipe(RealtimeNeuralNet):
         return self.feature_extractor.fps
 
     @property
-    def step_size(self):
+    def step_size(self) -> int:
         return self.feature_extractor.step_size
 
     def preprocess(self, clip: np.ndarray):
