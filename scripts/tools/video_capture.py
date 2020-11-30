@@ -21,14 +21,13 @@ Options:
 """
 
 import os
-import sys
 import time
 
 import cv2
 from docopt import docopt
 
 FONT = cv2.FONT_HERSHEY_PLAIN
-TERMINATE = False
+_shutdown = False
 
 
 def _capture_video(video_duration=0., record=False):
@@ -41,7 +40,7 @@ def _capture_video(video_duration=0., record=False):
     :param record:          (bool)
         Flag to distinguish between pre-recording and recording phases
     """
-    global TERMINATE
+    global _shutdown
     if cap is not None:
         skip = False
         t = time.time()
@@ -68,19 +67,22 @@ def _capture_video(video_duration=0., record=False):
 
             # Get key-press to skip current video or terminate script
             key = cv2.waitKey(1)
-            if key & 0xFF == ord('s'):      # Pressing `S` will skip the current video prompt
+            if key & 0xFF == ord('s'):      # Press `S` to skip the current video prompt
+                if record:
+                    print(f'\t[PROMPT]\tSkipping video {index + 1} of {num_videos}.')
                 cv2.destroyAllWindows()
                 skip = True
                 break
-            elif key == 27:                 # `ESC` to exit the script
+            elif key == 27:                 # Press `ESC` to exit the script
+                print('\t[PROMPT]\tShutting down video-recording and releasing resources.')
                 cv2.destroyAllWindows()
-                TERMINATE = True
+                _shutdown = True
                 break
 
         calculated_fps = round(len(frames) / video_duration)
         fps = 16 if calculated_fps <= 16 else 30
 
-        if record and not skip and not TERMINATE:
+        if record and not skip and not _shutdown:
             out = cv2.VideoWriter(os.path.join(path_out, file), 0x7634706d, fps, frame_size)
             for frame in frames:
                 out.write(frame)
@@ -112,9 +114,15 @@ if __name__ == "__main__":
             file = f"{filename}_{str(i)}.mp4"
 
         # Show timer window before recording
-        if not TERMINATE:
+        if _shutdown:
+            break
+        else:
             _capture_video(video_duration=pre_recording_duration)
 
         # Show timer window for actual recording
-        if not TERMINATE:
+        if _shutdown:
+            break
+        else:
             _capture_video(video_duration=duration, record=True)
+
+    print('Done!')
