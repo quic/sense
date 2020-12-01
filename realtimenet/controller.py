@@ -7,7 +7,7 @@ from realtimenet.camera import VideoSource
 from realtimenet.camera import VideoStream
 from realtimenet.display import DisplayResults
 from realtimenet.engine import InferenceEngine
-from realtimenet.downstream_tasks.nn_utils import RealtimeNN
+from realtimenet.downstream_tasks.nn_utils import RealtimeNeuralNetwork
 from realtimenet.downstream_tasks.postprocess import PostProcessor
 
 import cv2
@@ -17,7 +17,7 @@ import numpy as np
 class Controller:
     def __init__(
             self,
-            neural_network: RealtimeNN,
+            neural_network: RealtimeNeuralNetwork,
             post_processors: Union[PostProcessor, List[PostProcessor]],
             results_display: DisplayResults,
             callbacks: Optional[List[Callable]] = None,

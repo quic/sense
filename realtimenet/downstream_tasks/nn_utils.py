@@ -4,11 +4,11 @@ import torch.nn as nn
 from typing import Tuple
 
 
-class RealtimeNN(nn.Module):
+class RealtimeNeuralNetwork(nn.Module):
     """
     RealtimeNeuralNet is the abstract class for all neural networks used in InferenceEngine.
 
-    Subclasses should overwrite the methods in RealtimeNN.
+    Subclasses should overwrite the methods in RealtimeNeuralNetwork.
     """
     def __init__(self):
         super().__init__()
@@ -41,7 +41,7 @@ class RealtimeNN(nn.Module):
         raise NotImplementedError
 
 
-class Pipe(RealtimeNN):
+class Pipe(RealtimeNeuralNetwork):
 
     def __init__(self, feature_extractor, feature_converter):
         super().__init__()
