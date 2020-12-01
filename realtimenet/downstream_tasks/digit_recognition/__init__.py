@@ -40,3 +40,20 @@ LETTERS2INT = {
 }
 
 INT2LETTERS = {value: key for key, value in LETTERS2INT.items()}
+
+DIGITS2INT = {
+    "Doing nothing": 0,
+    "Doing other things": 1,
+    "0": 2,
+    "1": 3,
+    "2": 4,
+    "3": 5,
+    "4": 6,
+    "5": 7,
+    "6": 8,
+    "7": 9,
+    "8": 10,
+    "9": 11
+}
+
+INT2DIGITS = {value: key for key, value in DIGITS2INT.items()}

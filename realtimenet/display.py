@@ -116,7 +116,7 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
         sorted_predictions = display_data['sorted_predictions']
         for index in range(self.top_k):
             activity, proba = sorted_predictions[index]
-            y_pos = 20 * (index + 1) + self.y_offset
+            y_pos = 20 * index + self.y_offset
             if proba >= self.threshold:
                 put_text(img, 'Activity: {}'.format(activity[0:50]), (10, y_pos))
                 put_text(img, 'Proba: {:0.2f}'.format(proba), (10 + self.lateral_offset,
