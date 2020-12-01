@@ -23,18 +23,16 @@ Options:
                                  'label': LABEL}.
   --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
 """
+import json
+import os
+import torch.utils.data
 
 from docopt import docopt
 
-import json
-import os
-
-import torch.utils.data
-
+from realtimenet import feature_extractors
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
 from realtimenet.finetuning import training_loops, extract_features, generate_data_loader
 from realtimenet.finetuning import set_internal_padding_false
-from realtimenet import feature_extractors
 
 
 def clean_pipe_state_dict_key(key):
@@ -114,14 +112,16 @@ if __name__ == "__main__":
                                                  num_timesteps=None, batch_size=1, shuffle=False, minimum_frames=minimum_frames, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
-
     # modeify the network to generate the training network on top of the features
     if temporal_training:
         num_output = len(label_counting)
     else:
         num_output = len(label_names)
+    # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
-                                            num_out=num_output)
+                                            num_out=num_output,
+                                            use_softmax=False)
+
     if num_layers_to_finetune > 0:
         net = Pipe(custom_classifier_bottom, gesture_classifier)
     else:
