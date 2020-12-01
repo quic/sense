@@ -99,10 +99,10 @@ if __name__ == "__main__":
                                         label_names, label2int, num_timesteps=None, batch_size=1, shuffle=False,
                                         path_annotations=path_annotations_valid)
 
-
-    # modeify the network to generate the training network on top of the features
+    # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
-                                            num_out=len(label_names))
+                                            num_out=len(label_names),
+                                            use_softmax=False)
     if num_layers_to_finetune > 0:
         net = Pipe(custom_classifier_bottom, gesture_classifier)
     else:
