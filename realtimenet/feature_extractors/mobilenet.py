@@ -152,6 +152,8 @@ class StridedInflatedMobileNetV2(nn.Module):
     fps = 16
     step_size = 4
     feature_dim = 1280
+    MEAN = np.array([0.485, 0.456, 0.406]).reshape((1, 1, 3, 1, 1))
+    STD = np.array([0.229, 0.224, 0.225]).reshape((1, 1, 3, 1, 1))
 
     def __init__(self):
         super().__init__()
@@ -193,6 +195,7 @@ class StridedInflatedMobileNetV2(nn.Module):
         clip = clip[:, :, :, ::-1].copy()
         clip /= 255.
         clip = clip.transpose(0, 1, 4, 2, 3)
+        clip = ((clip - self.MEAN) / self.STD).astype(np.float32)
         clip = torch.Tensor(clip).float()
         return clip[0]
 

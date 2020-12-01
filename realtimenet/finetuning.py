@@ -43,7 +43,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
 
 
 def generate_data_loader(features_dir, label_names, label2int, path_annotations=None,
-                         num_timesteps=5, batch_size=16, shuffle=True):
+                         num_timesteps=5, batch_size=4, shuffle=True):
 
     # Find pre-computed features and derive corresponding labels
 
