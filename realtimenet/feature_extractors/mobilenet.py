@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from torch.nn.modules.utils import _triple
+from realtimenet.downstream_tasks.nn_utils import RealtimeNN
 
 
 class SteppableConv3dAs2d(nn.Conv2d):
@@ -146,7 +147,7 @@ class InvertedResidual(nn.Module):  # noqa: D101
             return input_[-n_out:]
 
 
-class StridedInflatedMobileNetV2(nn.Module):
+class StridedInflatedMobileNetV2(RealtimeNN):
 
     expected_frame_size = (256, 256)
     fps = 16
