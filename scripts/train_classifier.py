@@ -101,8 +101,8 @@ if __name__ == "__main__":
 
     # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
-                                            num_out=len(label_names))
-    del gesture_classifier[-1]  # remove Softmax
+                                            num_out=len(label_names),
+                                            use_softmax=False)
     if num_layers_to_finetune > 0:
         net = Pipe(custom_classifier_bottom, gesture_classifier)
     else:

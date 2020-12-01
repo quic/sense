@@ -32,11 +32,11 @@ class Pipe(nn.Module):
 
 class LogisticRegression(nn.Sequential):
 
-    def __init__(self, num_in, num_out, global_average_pooling=True):
-        super(LogisticRegression, self).__init__(
-            nn.Linear(num_in, num_out),
-            nn.Softmax(dim=-1)
-        )
+    def __init__(self, num_in, num_out, use_softmax=True, global_average_pooling=True):
+        layers = [nn.Linear(num_in, num_out)]
+        if use_softmax:
+            layers.append(nn.Softmax(dim=-1))
+        super(LogisticRegression, self).__init__(*layers)
         self.global_average_pooling = global_average_pooling
 
     def forward(self, input_tensor):
