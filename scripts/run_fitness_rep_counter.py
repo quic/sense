@@ -58,7 +58,8 @@ if __name__ == "__main__":
     ]
 
     display_ops = [
-        realtimenet.display.DisplayFPS(neural_network=net, y_offset=115),
+        realtimenet.display.DisplayFPS(expected_camera_fps=net.fps, expected_inference_fps=net.fps/net.step_size,
+                                       y_offset=115),
         realtimenet.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
         realtimenet.display.DisplayRepCounts()
     ]

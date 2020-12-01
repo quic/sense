@@ -4,6 +4,7 @@ import time
 
 from typing import List
 from typing import Tuple
+from typing import Optional
 
 
 FONT = cv2.FONT_HERSHEY_PLAIN
@@ -139,13 +140,18 @@ class DisplayFPS(BaseDisplay):
     Display camera fps and inference engine fps on debug window.
     """
 
-    def __init__(self, neural_network, y_offset=20):
+    def __init__(self, expected_camera_fps: Optional[float] = None, expected_inference_fps: Optional[float] = None,
+                 y_offset=20):
         super().__init__(y_offset)
-        self.net = neural_network
+        self.expected_camera_fps = expected_camera_fps
+        self.expected_inference_fps = expected_inference_fps
 
-        self.fps_update_rate = 0.1
-        self.running_delta_time_inference = 1. / (self.net.fps / self.net.step_size)
-        self.running_delta_time_camera = 1. / self.net.fps
+        self.update_rate = 0.1
+        self.low_performance_rate = 0.75
+        self.text_color = (44, 176, 82)
+        self.running_delta_time_inference = 1. / self.expected_inference_fps \
+            if self.expected_inference_fps is not None else 0
+        self.running_delta_time_camera = 1. / self.expected_camera_fps if self.expected_camera_fps is not None else 0
         self.last_update_time_camera = time.perf_counter()
         self.last_update_time_inference = time.perf_counter()
 
@@ -155,22 +161,24 @@ class DisplayFPS(BaseDisplay):
         if display_data['prediction'] is not None:
             # Inference engine frame rate
             delta = (now - self.last_update_time_inference)
-            self.running_delta_time_inference += self.fps_update_rate * (delta - self.running_delta_time_inference)
+            self.running_delta_time_inference += self.update_rate * (delta - self.running_delta_time_inference)
             self.last_update_time_inference = now
         inference_engine_fps = 1. / self.running_delta_time_inference
 
         # Camera FPS counting
         delta = (now - self.last_update_time_camera)
-        self.running_delta_time_camera += self.fps_update_rate * (delta - self.running_delta_time_camera)
+        self.running_delta_time_camera += self.update_rate * (delta - self.running_delta_time_camera)
         camera_fps = 1. / self.running_delta_time_camera
         self.last_update_time_camera = now
 
         # Text color change if inference engine fps go below certain range
-        text_color = (0, 255, 0) if inference_engine_fps > self.net.step_size * 0.75 else (0, 0, 255)
+        if self.expected_inference_fps is not None:
+            self.text_color = (44, 176, 82) \
+                if inference_engine_fps > self.expected_inference_fps * self.low_performance_rate else (0, 0, 255)
 
         # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, self.y_offset), (0, 255, 0))
-        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, self.y_offset+25), text_color)
+        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, self.y_offset), self.text_color)
+        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, self.y_offset+25), self.text_color)
 
         return img
 
