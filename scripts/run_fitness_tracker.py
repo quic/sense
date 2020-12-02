@@ -81,12 +81,15 @@ if __name__ == "__main__":
     ]
 
     display_ops = [
-        realtimenet.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5, y_offset=0),
-        realtimenet.display.DisplayMETandCalories(y_offset=50),
+        realtimenet.display.DisplayFPS(expected_camera_fps=net.fps,
+                                       expected_inference_fps=net.fps / net.step_size),
+        realtimenet.display.DisplayTopKClassificationOutputs(top_k=1,
+                                                             threshold=0.5),
+        realtimenet.display.DisplayMETandCalories(y_offset=40),
     ]
     display_results = realtimenet.display.DisplayResults(title=title,
                                                          display_ops=display_ops,
-                                                         border_size=70)
+                                                         border_size=50)
 
     # Run live inference
     controller = Controller(
