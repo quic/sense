@@ -28,7 +28,6 @@ class Controller:
         """
         :param neural_network:
             The neural network that produces the predictions for the camera image.
-            TODO: Be more specific here
         :param post_processors:
             Post processors that are applied to the generated predictions to filter or manipulate the data.
             Refer to the PostProcessor class for more information.
