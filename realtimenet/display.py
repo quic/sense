@@ -109,7 +109,7 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
         sorted_predictions = display_data['sorted_predictions']
         for index in range(self.top_k):
             activity, proba = sorted_predictions[index]
-            y_pos = 20 * (index + 1) + self.y_offset
+            y_pos = 20 * index + self.y_offset
             if proba >= self.threshold:
                 put_text(img, 'Activity: {}'.format(activity[0:50]), (10, y_pos))
                 put_text(img, 'Proba: {:0.2f}'.format(proba), (10 + self.lateral_offset,
@@ -140,18 +140,20 @@ class DisplayFPS(BaseDisplay):
     Display camera fps and inference engine fps on debug window.
     """
 
-    def __init__(self, expected_camera_fps: Optional[float] = None, expected_inference_fps: Optional[float] = None,
-                 y_offset=20):
+    def __init__(
+            self,
+            expected_camera_fps: Optional[float] = None,
+            expected_inference_fps: Optional[float] = None,
+            y_offset=10):
         super().__init__(y_offset)
         self.expected_camera_fps = expected_camera_fps
         self.expected_inference_fps = expected_inference_fps
 
         self.update_rate = 0.1
         self.low_performance_rate = 0.75
-        self.text_color = (44, 176, 82)
-        self.running_delta_time_inference = 1. / self.expected_inference_fps \
-            if self.expected_inference_fps is not None else 0
-        self.running_delta_time_camera = 1. / self.expected_camera_fps if self.expected_camera_fps is not None else 0
+        self.default_text_color = (44, 176, 82)
+        self.running_delta_time_inference = 1. / expected_inference_fps if expected_inference_fps else 0
+        self.running_delta_time_camera = 1. / expected_camera_fps if expected_camera_fps else 0
         self.last_update_time_camera = time.perf_counter()
         self.last_update_time_inference = time.perf_counter()
 
@@ -172,13 +174,15 @@ class DisplayFPS(BaseDisplay):
         self.last_update_time_camera = now
 
         # Text color change if inference engine fps go below certain range
-        if self.expected_inference_fps is not None:
-            self.text_color = (44, 176, 82) \
-                if inference_engine_fps > self.expected_inference_fps * self.low_performance_rate else (0, 0, 255)
+        if (self.expected_inference_fps and
+                inference_engine_fps < self.expected_inference_fps * self.low_performance_rate):
+            text_color = (0, 0, 255)
+        else:
+            text_color = self.default_text_color
 
         # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, self.y_offset), self.text_color)
-        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, self.y_offset+25), self.text_color)
+        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, img.shape[0] - self.y_offset - 20), text_color)
+        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, img.shape[0] - self.y_offset), text_color)
 
         return img
 
@@ -187,7 +191,7 @@ class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
     """
-    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 50):
+    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30):
         """
         :param title:
             Title of the image frame on display.
