@@ -1,7 +1,47 @@
+import numpy as np
 import torch.nn as nn
 
+from typing import Tuple
 
-class Pipe(nn.Module):
+
+class RealtimeNeuralNet(nn.Module):
+    """
+    RealtimeNeuralNet is the abstract class for all neural networks used in InferenceEngine.
+
+    Subclasses should overwrite the methods in RealtimeNeuralNet.
+    """
+    def __init__(self):
+        super().__init__()
+
+    def preprocess(self, clip: np.ndarray):
+        """
+        Pre-process a clip from a video source.
+        """
+        raise NotImplementedError
+
+    @property
+    def step_size(self) -> int:
+        """
+        Return the step size of the neural network.
+        """
+        raise NotImplementedError
+
+    @property
+    def fps(self) -> int:
+        """
+        Return the frame per second rate of the neural network.
+        """
+        raise NotImplementedError
+
+    @property
+    def expected_frame_size(self) -> Tuple[int, int]:
+        """
+        Return the expected frame size of the neural network.
+        """
+        raise NotImplementedError
+
+
+class Pipe(RealtimeNeuralNet):
 
     def __init__(self, feature_extractor, feature_converter):
         super().__init__()
@@ -15,19 +55,19 @@ class Pipe(nn.Module):
         return self.feature_converter(feature)
 
     @property
-    def expected_frame_size(self):
+    def expected_frame_size(self) -> Tuple[int, int]:
         return self.feature_extractor.expected_frame_size
 
     @property
-    def fps(self):
+    def fps(self) -> int:
         return self.feature_extractor.fps
 
     @property
-    def step_size(self):
+    def step_size(self) -> int:
         return self.feature_extractor.step_size
 
-    def preprocess(self, video):
-        return self.feature_extractor.preprocess(video)
+    def preprocess(self, clip: np.ndarray):
+        return self.feature_extractor.preprocess(clip)
 
 
 class LogisticRegression(nn.Sequential):
