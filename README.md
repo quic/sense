@@ -238,7 +238,7 @@ In some cases, as few as 2-5 videos per class have been enough to achieve excell
 
 #### Step 2: Training
 
-Once your data is prepared, run this command to train a customized classifier on top of one of our features extractor:
+Once your data is prepared, run this command to train a customized classifier on top of one of our feature extractors:
 ```shell
 PYTHONPATH=./ python scripts/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu] [--num_layers_to_finetune=9]
 ```
