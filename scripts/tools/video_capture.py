@@ -28,9 +28,19 @@ from docopt import docopt
 
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
+classes = ['arm_too_close',
+           'arm_too_far',
+           'back_not_straight',
+           'feet_too_close',
+           'feet_too_wide',
+           'high_front_shoulder',
+           'pelvis_spinning',
+           'release_down',
+           'release_front',
+           'good'
+]
 
-
-def _capture_video(video_duration=0., record=False):
+def _capture_video(video_duration=0., record=False, num=None):
     """
     Helper method to create and show window with timer and message for recording videos, and automatically
     saving them to the desired folder with the desired file-name.
@@ -54,7 +64,7 @@ def _capture_video(video_duration=0., record=False):
             if record:
                 message = f"recording video {str(index + 1)}"
             else:
-                message = f"get into position {str(index + 1)}"
+                message = f"{classes[num]} {str(index + 1)}"
 
             # Recording prompt
             cv2.putText(frame, message, (100, 100), FONT, 3, (255, 255, 255),
@@ -80,7 +90,9 @@ def _capture_video(video_duration=0., record=False):
                 break
 
         calculated_fps = round(len(frames) / video_duration)
-        fps = 16 if calculated_fps <= 16 else 30
+        print(calculated_fps)
+        fps = 16 if calculated_fps < 16 else calculated_fps
+        os.makedirs(os.path.join(path_out, file.split('/')[0]), exist_ok=True)
 
         if record and not skip and not _shutdown:
             out = cv2.VideoWriter(os.path.join(path_out, file), 0x7634706d, fps, frame_size)
@@ -103,26 +115,25 @@ if __name__ == "__main__":
 
     cap = cv2.VideoCapture(camera_id)
     os.makedirs(path_out, exist_ok=True)
-    for i in range(num_videos):
+    for index in range(num_videos):
         # Video-index to be displayed in the prompt since it gets overwritten in the next steps
-        index = i
-        file = f"{filename}_{str(i)}.mp4"
-
+        i = 0
+        file = f"{classes[index]}/{filename}_{str(i)}.mp4"
         # Avoid overwriting pre-existing files
-        while file in os.listdir(path_out):
+        while os.path.isfile(os.path.join(path_out, file)):
             i += 1
-            file = f"{filename}_{str(i)}.mp4"
+            file = f"{classes[index]}/{filename}_{str(i)}.mp4"
 
         # Show timer window before recording
         if _shutdown:
             break
         else:
-            _capture_video(video_duration=pre_recording_duration)
+            _capture_video(video_duration=pre_recording_duration, num=index)
 
         # Show timer window for actual recording
         if _shutdown:
             break
         else:
-            _capture_video(video_duration=duration, record=True)
+            _capture_video(video_duration=duration, record=True,  num = index)
 
     print('Done!')
