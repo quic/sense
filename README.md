@@ -117,17 +117,17 @@ folder named `backbone` into `20bn-realtimenet/resources`. In the end, your reso
 
 ```
 resources
-    ├── backbone
-        ├── strided_inflated_efficientnet.ckpt
-        ├── strided_inflated_mobilenet.ckpt
-    ├── fitness_activity_recognition
-        ├── ...
-    ├── gesture_detection
-        ├── ...
-    ├── ....
+├── backbone
+│   ├── strided_inflated_efficientnet.ckpt
+│   └── strided_inflated_mobilenet.ckpt
+├── fitness_activity_recognition
+│   └── ...
+├── gesture_detection
+│   └── ...
+└── ...
 ```
 
-Note: The remaining folders in `/resources` will already have the necessary files -- only `/resources/backbone` 
+Note: The remaining folders in `resources/` will already have the necessary files -- only `resources/backbone` 
 needs to be downloaded separately. 
 
 --- 
@@ -208,27 +208,27 @@ This section will describe how you can build your own custom classifier on top o
 Prepare the training and validation videos for each of the desired classes (labels) and organise them in this manner:
 
 ```
-    /path/to/your/dataset/
-    ├── videos_train/
-        ├── label1/
-            ├── video1.mp4
-            ├── video2.mp4
-            ├── ...
-        ├── label2/
-            ├── video3.mp4
-            ├── video4.mp4
-            ├── ...
-        ├── ...
-    ├── videos_valid/
-        ├── label1/
-            ├── video5.mp4
-            ├── video6.mp4
-            ├── ...
-        ├── label2/
-            ├── video7.mp4
-            ├── video8.mp4
-            ├── ...
-        ├── ...
+/path/to/your/dataset/
+├── videos_train
+│   ├── label1
+│   │   ├── video1.mp4
+│   │   ├── video2.mp4
+│   │   └── ...
+│   ├── label2
+│   │   ├── video3.mp4
+│   │   ├── video4.mp4
+│   │   └── ...
+│   └── ...
+└── videos_valid
+    ├── label1
+    │   ├── video5.mp4
+    │   ├── video6.mp4
+    │   └── ...
+    ├── label2
+    │   ├── video7.mp4
+    │   ├── video8.mp4
+    │   └── ...
+    └── ...
 ```
 - Two top-level folders: one for the training data, one for the validation data.
 - One sub-folder for each label with as many videos as you want (but at least one!)
