@@ -57,13 +57,11 @@ class FeaturesDataset(torch.utils.data.Dataset):
         if self.num_timesteps and num_preds > self.num_timesteps:
             if temporal_annotation is not None:
                 temporal_annotation = temporal_annotation[0:num_preds - self.num_timesteps]
-                prob0 = 1 / (2*(np.sum(temporal_annotation == 0)))
-                prob1 = 1 / (3*(np.sum(temporal_annotation == 1)))
-                prob2 = 1 / (3*(np.sum(temporal_annotation == 2)))
+                prob0 = 1 / (3*(np.sum(temporal_annotation == 0)) + 0.01)
+                prob1 = 1 / (3*(np.sum(temporal_annotation != 0)) + 0.01)
                 probas = np.ones(len(temporal_annotation))
                 probas[temporal_annotation == 0] = prob0
-                probas[temporal_annotation == 1] = prob1
-                probas[temporal_annotation == 2] = prob2
+                probas[temporal_annotation != 0] = prob1
                 probas = probas / np.sum(probas)
                 position = np.random.choice(len(temporal_annotation), 1, p=probas)[0]
                 temporal_annotation = temporal_annotation[position:position + 1]
@@ -113,6 +111,8 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file):
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
+            annotation = np.array(annotation)
+            annotation[annotation == 2] = 0
             annotation = np.array([label2int_temporal_annotation[classe_mapping[y]] for y in annotation])
             temporal_annotation.append(annotation)
         else:
@@ -245,9 +245,10 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 best_state_dict = net.state_dict().copy()
                 save_confusion_matrix(path_out, cnf_matrix, label_names)
         else:
-            if valid_loss < best_loss:
-                best_loss = valid_loss
+            if valid_top1 > best_top1:
+                best_top1 = valid_top1
                 best_state_dict = net.state_dict().copy()
+                save_confusion_matrix(path_out, cnf_matrix, label_names)
 
     print('Finished Training')
     return best_state_dict

@@ -65,7 +65,7 @@ if __name__ == "__main__":
     net = Pipe(feature_extractor, gesture_classifier)
 
     postprocessor = [
-        PostprocessClassificationOutput(INT2LAB, smoothing=4)
+        PostprocessClassificationOutput(INT2LAB, smoothing=1)
     ]
 
     display_ops = [
