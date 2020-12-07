@@ -58,12 +58,10 @@ class FeaturesDataset(torch.utils.data.Dataset):
             if temporal_annotation is not None:
                 temporal_annotation = temporal_annotation[0:num_preds - self.num_timesteps]
                 prob0 = 1 / (2*(np.sum(temporal_annotation == 0)))
-                prob1 = 1 / (3*(np.sum(temporal_annotation == 1)))
-                prob2 = 1 / (3*(np.sum(temporal_annotation == 2)))
+                prob1 = 1 / (2*(np.sum(temporal_annotation != 0)))
                 probas = np.ones(len(temporal_annotation))
                 probas[temporal_annotation == 0] = prob0
-                probas[temporal_annotation == 1] = prob1
-                probas[temporal_annotation == 2] = prob2
+                probas[temporal_annotation != 0] = prob1
                 probas = probas / np.sum(probas)
                 position = np.random.choice(len(temporal_annotation), 1, p=probas)[0]
                 temporal_annotation = temporal_annotation[position:position + 1]
