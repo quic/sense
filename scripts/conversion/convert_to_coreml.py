@@ -84,6 +84,13 @@ SUPPORTED_CLASSIFIER_CONVERSIONS = {
             'weights_file': 'resources/gesture_detection/efficientnet_logistic_regression.ckpt',
             'corresponding_backbone': 'efficientnet',
         },
+    'efficient_net_fitness_activity_recognition':
+        {
+            'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
+            'placeholder_values': {'NUM_CLASSES': '81'},
+            'weights_file': 'resources/fitness_activity_recognition/efficientnet_logistic_regression.ckpt',
+            'corresponding_backbone': 'efficientnet',
+        },
     'custom_classifier':
         {
             'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
