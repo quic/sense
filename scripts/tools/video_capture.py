@@ -80,7 +80,7 @@ def _capture_video(video_duration=0., record=False):
                 break
 
         calculated_fps = round(len(frames) / video_duration)
-        fps = 16 if calculated_fps <= 16 else 30
+        fps = 16 if calculated_fps <= 16 else calculated_fps
 
         if record and not skip and not _shutdown:
             out = cv2.VideoWriter(os.path.join(path_out, file), 0x7634706d, fps, frame_size)
