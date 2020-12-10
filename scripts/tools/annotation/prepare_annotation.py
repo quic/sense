@@ -7,11 +7,13 @@ import glob
 from realtimenet import feature_extractors
 from realtimenet import engine
 from realtimenet.finetuning import compute_features
+from realtimenet.finetuning import set_internal_padding_false
 
 # initialise network
 # Load feature extractor
 feature_extractor = feature_extractors.StridedInflatedEfficientNet()
 # remove internal padding for feature extraction and training
+feature_extractor.apply(set_internal_padding_false)
 checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
 feature_extractor.load_state_dict(checkpoint)
 feature_extractor.eval()
@@ -36,4 +38,4 @@ for e, video_path in enumerate(videos):
     os.makedirs(path_frames, exist_ok=True)
     # Warning: if set a max batch size, you should not remove padding from model.
     compute_features(video_path, path_features, inference_engine,
-                                 minimum_frames=0,  path_frames=path_frames, batch_size=64)
+                                 minimum_frames=0,  path_frames=path_frames)

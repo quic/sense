@@ -47,16 +47,10 @@ class FeaturesDataset(torch.utils.data.Dataset):
         temporal_annotation = self.temporal_annotations[idx]
         # remove beggining of prediction that is not padded
         if temporal_annotation is not None:
-            temporal_annotation = temporal_annotation[int((self.minimum_frames - 1) /4):]
-            new_label = []
-            for l in temporal_annotation:
-                for _ in range(int(4 / self.stride)):
-                    new_label.append(l)
-            temporal_annotation = np.array(new_label)
+            temporal_annotation = np.array(temporal_annotation)
 
         if self.num_timesteps and num_preds > self.num_timesteps:
             if temporal_annotation is not None:
-                temporal_annotation = temporal_annotation[0:num_preds - self.num_timesteps]
                 prob0 = 1 / (2*(np.sum(temporal_annotation == 0)))
                 prob1 = 1 / (2*(np.sum(temporal_annotation != 0)))
                 probas = np.ones(len(temporal_annotation))
@@ -65,9 +59,11 @@ class FeaturesDataset(torch.utils.data.Dataset):
                 probas = probas / np.sum(probas)
                 position = np.random.choice(len(temporal_annotation), 1, p=probas)[0]
                 temporal_annotation = temporal_annotation[position:position + 1]
+                features = features[position * int(4 / self.stride): position * int(
+                    4 / self.stride) + self.num_timesteps]
             else:
                 position = np.random.randint(0, num_preds - self.num_timesteps)
-            features = features[position: position + self.num_timesteps]
+                features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
         if temporal_annotation is None:
             temporal_annotation = [-100]
@@ -146,7 +142,7 @@ def uniform_frame_sample(video, sample_rate):
 
 
 def compute_features(video_path, path_out, inference_engine, minimum_frames=45, path_frames=None,
-                     batch_size=None):
+                     batch_size=None, pad_frames=True):
     video_source = camera.VideoSource(camera_id=None,
                                       size=inference_engine.expected_frame_size,
                                       filename=video_path)
@@ -161,7 +157,11 @@ def compute_features(video_path, path_out, inference_engine, minimum_frames=45, 
             frames.append(image_rescaled)
     frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
-    if frames.shape[0] < minimum_frames:
+    if pad_frames:
+        # add 44 frames at the beggining, like that with the first frame we will get one output
+        frames = np.pad(frames, ((44, 0), (0, 0), (0, 0), (0, 0)),
+                        mode='edge')
+    elif frames.shape[0] < minimum_frames:
         print(f"\nVideo too short: {video_path} - first frame will be duplicated")
         num_missing_frames = minimum_frames - frames.shape[0]
         frames = np.pad(frames, ((num_missing_frames, 0), (0, 0), (0, 0), (0, 0)),
@@ -175,12 +175,13 @@ def compute_features(video_path, path_out, inference_engine, minimum_frames=45, 
     if path_frames is not None:
         os.makedirs(os.path.dirname(path_frames), exist_ok=True)
         frames_to_save = []
-        for e, frame in enumerate(frames):
-            if e % 4 == 3:
+        for e, frame in enumerate(frames[45:]):
+            if e % 4 == 0:
                 frames_to_save.append(frame)
         for e, frame in enumerate(frames_to_save):
             Image.fromarray(frame[:,:,::-1]).resize((400, 300)).save(
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)
+
 
 def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=45):
 
