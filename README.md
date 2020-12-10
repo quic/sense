@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/repo-rename/docs/imgs/temp_sense_header.png" height="70px">
+<img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/repo-rename/docs/imgs/temp_sense_header_2.png" height="70px">
 
 **State-of-the-art Real-time Action Recognition**
 
