@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/TwentyBN/Sense/master/docs/imgs/temp_sense_header.png" height="70px">
+<img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/imgs/temp_sense_header.png" height="70px">
 
 **State-of-the-art Real-time Action Recognition**
 
@@ -22,13 +22,13 @@
     <a href="https://20bn.com/">
         <img alt="Documentation" src="https://img.shields.io/website/http/20bn.com.svg?down_color=red&down_message=offline&up_message=online">
     </a>
-    <a href="https://github.com/TwentyBN/Sense/master/LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/github/license/TwentyBN/Sense.svg?color=blue">
+    <a href="https://github.com/TwentyBN/sense/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/TwentyBN/sense.svg?color=blue">
     </a>
-    <a href="https://github.com/TwentyBN/Sense/releases">
-        <img alt="GitHub release" src="https://img.shields.io/github/release/TwentyBN/Sense.svg">
+    <a href="https://github.com/TwentyBN/sense/releases">
+        <img alt="GitHub release" src="https://img.shields.io/github/release/TwentyBN/sense.svg">
     </a>
-    <a href="https://github.com/TwentyBN/Sense/blob/master/CODE_OF_CONDUCT.md">
+    <a href="https://github.com/TwentyBN/sense/blob/master/CODE_OF_CONDUCT.md">
         <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg">
     </a>
 </p>
@@ -38,7 +38,7 @@
 ---
 
 <!-- Add some bullet points for what this repo provides-->
-`Sense`is an inference engine to serve powerful neural networks for action recognition, with a low
+`sense`is an inference engine to serve powerful neural networks for action recognition, with a low
  computational footprint. In this repository, we provide: 
  - Two models out-of-the-box pre-trained on millions of videos of humans performing 
  actions in front of, and interacting with, a camera. Both neural networks are small, efficient, and run smoothly in real time on a CPU.
@@ -51,8 +51,8 @@
 ###### Gesture Recognition
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/Sense/master/docs/gifs/gesture_recognition_1.gif" width="300px">
-    <img src="https://raw.githubusercontent.com/TwentyBN/Sense/master/docs/gifs/gesture_recognition_2.gif" width="300px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/gesture_recognition_1.gif" width="300px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/gesture_recognition_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
@@ -61,8 +61,8 @@
 ###### Fitness Activity Tracker and Calorie Estimation
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/Sense/master/docs/gifs/fitness_tracking_1.gif" width="300px">
-    <img src="https://raw.githubusercontent.com/TwentyBN/Sense/master/docs/gifs/fitness_tracking_2.gif" width="300px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/fitness_tracking_1.gif" width="300px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/fitness_tracking_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1f1y0wg7Y1kpSBwKSEFx1TDoD5lGA8DtQ/view?usp=sharing))*
@@ -82,8 +82,8 @@ The following steps are confirmed to work on Linux (Ubuntu 18.04 LTS and 20.04 L
 #### Step 1: Clone the repository
 To begin, clone this repository to a local directory of your choice:
 ```
-git clone https://github.com/TwentyBN/Sense.git
-cd Sense
+git clone https://github.com/TwentyBN/sense.git
+cd sense
 ```
 
 #### Step 2: Install Dependencies
@@ -141,7 +141,7 @@ To get started, try out the demos we've provided. Inside the `sense/scripts` dir
 
 `scripts/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
 30 gestures are supported (see full list 
-[here](https://github.com/TwentyBN/Sense/blob/7651d24967de7eb12912297747de8174950eb74e/sense/downstream_tasks/gesture_recognition/__init__.py)).
+[here](https://github.com/TwentyBN/sense/blob/7651d24967de7eb12912297747de8174950eb74e/sense/downstream_tasks/gesture_recognition/__init__.py)).
 
 Usage:
 ```shell
@@ -153,7 +153,7 @@ PYTHONPATH=./ python scripts/run_gesture_recognition.py
 
 `scripts/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
-[here](https://github.com/TwentyBN/Sense/blob/d539046fe71e43e37ad439d08e093ea1f489bd29/sense/downstream_tasks/fitness_activity_recognition/__init__.py)).
+[here](https://github.com/TwentyBN/sense/blob/d539046fe71e43e37ad439d08e093ea1f489bd29/sense/downstream_tasks/fitness_activity_recognition/__init__.py)).
 
 Usage:
 
@@ -183,7 +183,7 @@ For the best performance, the following is recommended:
 #### Demo 3: Calorie Estimation
 
 In order to estimate burned calories, we trained a neural net to convert activity features to the corresponding [MET value](https://en.wikipedia.org/wiki/Metabolic_equivalent_of_task).
-We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/Sense/blob/7651d24967de7eb12912297747de8174950eb74e/sense/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
+We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/sense/blob/7651d24967de7eb12912297747de8174950eb74e/sense/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
 and convert them to calories using the user's weight.
 
 If you're only interested in the calorie estimation part, you might want to use `scripts/calorie_estimation.py` which has a slightly more
@@ -256,7 +256,7 @@ PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/
 
 ## iOS Deployment
 
-If you're interested in mobile app development and want to run our models on iOS devices, please check out [Sense-iOS](https://github.com/TwentyBN/Sense-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
+If you're interested in mobile app development and want to run our models on iOS devices, please check out [sense-iOS](https://github.com/TwentyBN/sense-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
 One of the steps involves converting our Pytorch models to the CoreML format, which can be done from this repo using the following script:
 
 ```shell
