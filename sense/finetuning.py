@@ -8,8 +8,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from realtimenet import camera
-from realtimenet import engine
+from sense import camera
+from sense import engine
 from sklearn.metrics import confusion_matrix
 
 

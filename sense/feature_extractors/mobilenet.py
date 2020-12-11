@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from torch.nn.modules.utils import _triple
-from realtimenet.downstream_tasks.nn_utils import RealtimeNeuralNet
+from sense.downstream_tasks.nn_utils import RealtimeNeuralNet
 
 
 class SteppableConv3dAs2d(nn.Conv2d):
