@@ -205,7 +205,7 @@ class DisplayResults:
         :param border_size:
             Thickness of the display border.
         """
-        self._window_title = 'realtimenet'
+        self._window_title = 'Real-time SenseNet'
         cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
         self.title = title
         self.display_ops = display_ops

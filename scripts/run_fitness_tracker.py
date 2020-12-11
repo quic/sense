@@ -23,14 +23,15 @@ Options:
 import torch
 from docopt import docopt
 
-import realtimenet.display
-from realtimenet import engine
-from realtimenet import feature_extractors
-from realtimenet.controller import Controller
-from realtimenet.downstream_tasks import calorie_estimation
-from realtimenet.downstream_tasks.fitness_activity_recognition import INT2LAB
-from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
-from realtimenet.downstream_tasks.postprocess import PostprocessClassificationOutput
+import sense.display
+from sense import engine
+from sense import feature_extractors
+from sense.controller import Controller
+from sense.downstream_tasks import calorie_estimation
+from sense.downstream_tasks.fitness_activity_recognition import INT2LAB
+from sense.downstream_tasks.nn_utils import LogisticRegression
+from sense.downstream_tasks.nn_utils import Pipe
+from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 
 
 if __name__ == "__main__":
@@ -81,15 +82,15 @@ if __name__ == "__main__":
     ]
 
     display_ops = [
-        realtimenet.display.DisplayFPS(expected_camera_fps=net.fps,
-                                       expected_inference_fps=net.fps / net.step_size),
-        realtimenet.display.DisplayTopKClassificationOutputs(top_k=1,
-                                                             threshold=0.5),
-        realtimenet.display.DisplayMETandCalories(y_offset=40),
+        sense.display.DisplayFPS(expected_camera_fps=net.fps,
+                                 expected_inference_fps=net.fps / net.step_size),
+        sense.display.DisplayTopKClassificationOutputs(top_k=1,
+                                                       threshold=0.5),
+        sense.display.DisplayMETandCalories(y_offset=40),
     ]
-    display_results = realtimenet.display.DisplayResults(title=title,
-                                                         display_ops=display_ops,
-                                                         border_size=50)
+    display_results = sense.display.DisplayResults(title=title,
+                                                   display_ops=display_ops,
+                                                   border_size=50)
 
     # Run live inference
     controller = Controller(

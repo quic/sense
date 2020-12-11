@@ -3,12 +3,12 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from realtimenet.camera import VideoSource
-from realtimenet.camera import VideoStream
-from realtimenet.display import DisplayResults
-from realtimenet.engine import InferenceEngine
-from realtimenet.downstream_tasks.nn_utils import RealtimeNeuralNet
-from realtimenet.downstream_tasks.postprocess import PostProcessor
+from sense.camera import VideoSource
+from sense.camera import VideoStream
+from sense.display import DisplayResults
+from sense.engine import InferenceEngine
+from sense.downstream_tasks.nn_utils import RealtimeNeuralNet
+from sense.downstream_tasks.postprocess import PostProcessor
 
 import cv2
 import numpy as np

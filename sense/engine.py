@@ -2,14 +2,13 @@ import numpy as np
 import queue
 import torch
 
-from realtimenet.downstream_tasks.nn_utils import RealtimeNeuralNet
-
 from threading import Thread
 from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
-import time
+
+from sense.downstream_tasks.nn_utils import RealtimeNeuralNet
 
 
 class InferenceEngine(Thread):

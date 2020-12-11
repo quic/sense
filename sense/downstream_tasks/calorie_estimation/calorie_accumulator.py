@@ -1,7 +1,7 @@
 import numpy as np
 import time
 
-from realtimenet.downstream_tasks.postprocess import PostProcessor
+from sense.downstream_tasks.postprocess import PostProcessor
 
 
 class CalorieAccumulator(PostProcessor):
