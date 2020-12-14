@@ -13,7 +13,7 @@ from joblib import dump, load
 
 dataset_path = '/home/amercier/code/20bn-realtimenet/fitness_tl_benchmark/'
 split = 'train'
-label = 'with_racket'
+label = 'Spider Man Pushup'
 folder = os.path.join(dataset_path, f'videos_{split}', label)
 
 # out_folder = '/home/amercier/code/20bn-realtimenet/annotation/0/'
