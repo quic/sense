@@ -62,7 +62,10 @@ class FeaturesDataset(torch.utils.data.Dataset):
                 features = features[position * int(4 / self.stride): position * int(
                     4 / self.stride) + self.num_timesteps]
             else:
-                position = np.random.randint(0, num_preds - self.num_timesteps)
+                # if possible, remove padded frames. otherwise, keep only awhat is needed
+                minimum_position = min(num_preds - self.num_timesteps - 1, int(44 / self.stride))
+                minimum_position = max(minimum_position, 0)
+                position = np.random.randint(minimum_position, num_preds - self.num_timesteps)
                 features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
         if temporal_annotation is None:
