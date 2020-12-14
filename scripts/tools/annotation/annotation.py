@@ -11,9 +11,9 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from joblib import dump, load
 
-dataset_path = '/home/amercier/code/20bn-realtimenet/fitness_tl_benchmark/'
+dataset_path = '/home/twentybn/Code/sense/dataset/'
 split = 'train'
-label = 'Spider Man Pushup'
+label = 'with_racket'
 folder = os.path.join(dataset_path, f'videos_{split}', label)
 
 # out_folder = '/home/amercier/code/20bn-realtimenet/annotation/0/'
@@ -90,7 +90,8 @@ def response():
             time_annotation.append(int(data[str(i)]))
         desc['time_annotation'] = time_annotation
         json.dump(desc, open(out_annotation, 'w'))
-
+    if num+1 >= len(videos):
+        return redirect(url_for('list_annot'))
     return redirect(url_for('annot', nom=num+1))
 
 

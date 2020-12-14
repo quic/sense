@@ -19,9 +19,9 @@ feature_extractor.eval()
 # Create inference engine
 inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
 
-dataset_path = '/home/amercier/code/20bn-realtimenet/fitness_tl_benchmark/'
+dataset_path = '/home/twentybn/Code/sense/dataset/'
 split = 'train'
-label = 'Spider Man Pushup'
+label = 'with_racket'
 folder = os.path.join(dataset_path, f'videos_{split}', label)
 
 features_folder = dataset_path + f"features_{split}/{label}/"
