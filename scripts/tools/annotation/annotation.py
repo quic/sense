@@ -101,39 +101,42 @@ def train_lr():
         data = request.form # a multidict containing POST data
         num = int(data['num'])
         annotations = os.listdir(tags_dir)
-        features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-        annotations = [os.path.join(tags_dir, x) for x in annotations]
-        X = []
-        y = []
-        for feature in features:
-            feature = np.load(feature)
-            for f in feature:
-                X.append(f.mean(axis=(1, 2)))
-        for annotation in annotations:
-            annotation = json.load(open(annotation, 'r'))['time_annotation']
-            pos1 = np.where(np.array(annotation ).astype(int) == 1)[0]
-            if len(pos1) > 0:
-                for p in pos1:
-                    try:
-                        annotation[p + 1] = 1
-                    except:
-                        1
-            pos1 = np.where(np.array(annotation ).astype(int) == 2)[0]
-            if len(pos1) > 0:
-                for p in pos1:
-                    try:
-                        annotation[p + 1] = 2
-                    except:
-                        1
-
-            for a in annotation:
-                y.append(a)
-        X = np.array(X)
-        print(X.shape)
-        y = np.array(y)
-        lr = LogisticRegression(C=0.1, class_weight={0:0.5, 1:2, 2: 2})
-        lr.fit(X, y)
-        dump(lr, lr_path)
+        class_weight = {0: 0.5}
+        if annotations:
+            features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+            annotations = [os.path.join(tags_dir, x) for x in annotations]
+            X = []
+            y = []
+            for feature in features:
+                feature = np.load(feature)
+                for f in feature:
+                    X.append(f.mean(axis=(1, 2)))
+            for annotation in annotations:
+                annotation = json.load(open(annotation, 'r'))['time_annotation']
+                pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
+                if len(pos1) > 0:
+                    class_weight.update({1: 2})
+                    for p in pos1:
+                        try:
+                            annotation[p + 1] = 1
+                        except:
+                            1
+                pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
+                if len(pos1) > 0:
+                    class_weight.update({2: 2})
+                    for p in pos1:
+                        try:
+                            annotation[p + 1] = 2
+                        except:
+                            1
+                for a in annotation:
+                    y.append(a)
+            X = np.array(X)
+            print(X.shape)
+            y = np.array(y)
+            lr = LogisticRegression(C=0.1, class_weight=class_weight)
+            lr.fit(X, y)
+            dump(lr, lr_path)
     return redirect(url_for('annot', nom=num))
 
 #
