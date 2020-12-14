@@ -11,7 +11,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from joblib import dump, load
 
-dataset_path = '/home/twentybn/Code/sense/dataset/'
+dataset_path = '/home/amercier/code/20bn-realtimenet/fitness_tl_benchmark/'
 split = 'train'
 label = 'with_racket'
 folder = os.path.join(dataset_path, f'videos_{split}', label)
