@@ -130,18 +130,3 @@ class InferenceEngine(Thread):
             predictions = predictions.cpu().numpy()
 
         return predictions
-
-
-def load_weights(checkpoint_path: str):
-    """
-    Load weights from a checkpoint file.
-
-    :param checkpoint_path:
-        A string representing the absolute/relative path to the checkpoint file.
-    """
-    try:
-        return torch.load(checkpoint_path, map_location='cpu')
-    except:
-        raise Exception('ERROR - Weights file missing: {}. To download, please go to '
-                        'https://20bn.com/licensing/sdk/evaluation and follow the '
-                        'instructions.'.format(checkpoint_path))
