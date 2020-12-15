@@ -22,7 +22,8 @@ import json
 from docopt import docopt
 
 import sense.display
-from sense import engine
+from sense.loading import load_weights
+from sense.loading import load_backbone_weights
 from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks.nn_utils import LogisticRegression
@@ -42,10 +43,10 @@ if __name__ == "__main__":
 
     # Load original feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    checkpoint = engine.load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
+    checkpoint = load_backbone_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
 
     # Load custom classifier
-    checkpoint_classifier = engine.load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
+    checkpoint_classifier = load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
     # Update original weights in case some intermediate layers have been finetuned
     name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
     for key in name_finetuned_layers:

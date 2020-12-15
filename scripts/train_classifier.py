@@ -31,6 +31,8 @@ from docopt import docopt
 from sense import feature_extractors
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
+from sense.loading import load_weights
+from sense.loading import load_backbone_weights
 from sense.finetuning import extract_features
 from sense.finetuning import generate_data_loader
 from sense.finetuning import set_internal_padding_false
@@ -63,7 +65,7 @@ if __name__ == "__main__":
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     # remove internal padding for feature extraction and training
     feature_extractor.apply(set_internal_padding_false)
-    checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+    checkpoint = load_backbone_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 

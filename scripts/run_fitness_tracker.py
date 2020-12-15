@@ -29,7 +29,8 @@ from docopt import docopt
 
 import sense.display
 from sense import feature_extractors
-from sense.loading import ModelConfig, get_relevant_weights
+from sense.loading import ModelConfig
+from sense.loading import get_relevant_weights
 from sense.controller import Controller
 from sense.downstream_tasks import calorie_estimation
 from sense.downstream_tasks.fitness_activity_recognition import INT2LAB
@@ -59,9 +60,9 @@ if __name__ == "__main__":
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
     title = args['--title'] or None
-    use_gpu = args['--use_gpu']
     model_name = args['--model_name'] or None
     model_version = args['--model_version'] or None
+    use_gpu = args['--use_gpu']
 
     # Load weights
     selected_config, weights = get_relevant_weights(
