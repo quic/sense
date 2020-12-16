@@ -47,4 +47,4 @@ if __name__ == '__main__':
             # Run to render and save video
             ffmpeg.run(flipped_video_output)
 
-    print("Processing done!")
+    print("Processing complete!")
