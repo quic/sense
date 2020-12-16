@@ -26,6 +26,10 @@ import time
 import cv2
 from docopt import docopt
 
+import simpleaudio as sa
+
+
+
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
 
@@ -47,6 +51,11 @@ def _capture_video(video_duration=0., record=False):
         frames = []
         frame_size = (640, 480)     # default frame size
         while time.time() - t < video_duration:
+            filename = 'divalrm.wav'
+            wave_obj = sa.WaveObject.from_wave_file(filename)
+            play_obj = wave_obj.play()
+            play_obj.wait_done()  # Wait until sound has finished playing
+
             ret, frame_norm = cap.read()
             frame = cv2.flip(frame_norm, 1)
             frames.append(frame.copy())
