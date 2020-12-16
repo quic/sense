@@ -117,7 +117,7 @@ if __name__ == "__main__":
         num_output = len(label_names)
 
     # remove internal padding for training
-    feature_extractor.apply(set_internal_padding_false)
+    custom_classifier_bottom.apply(set_internal_padding_false)
     # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_output,
