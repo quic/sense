@@ -47,9 +47,10 @@ def _capture_video(video_duration=0., record=False):
         frames = []
         frame_size = (640, 480)     # default frame size
         while time.time() - t < video_duration:
-            ret, frame_norm = cap.read()
-            frame = cv2.flip(frame_norm, 1)
+            # TODO: add audible alerts towards the end of video-prompt (last 3 seconds ?)
+            ret, frame = cap.read()
             frames.append(frame.copy())
+            frame = cv2.flip(frame, 1)      # horizontal flip for video-preview
             frame_size = (frame.shape[1], frame.shape[0])
 
             if record:
