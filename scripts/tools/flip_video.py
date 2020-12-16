@@ -14,9 +14,10 @@ Options:
 """
 
 import ffmpeg
+import os
+
 from docopt import docopt
 from pathlib import Path
-import os
 
 if __name__ == '__main__':
     args = docopt(__doc__)
