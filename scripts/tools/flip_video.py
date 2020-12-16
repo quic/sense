@@ -2,7 +2,9 @@
 """
 This script helps to flip videos horizontally for data augmentation. 
 
-Generally, it can be used to quickly double the size of your dataset, or, in the case where you've collected data for an action performed on a specific side, you can flip these videos and use them to classify the opposite side.
+Generally, it can be used to quickly double the size of your dataset, or,
+in the case where you've collected data for an action performed on a specific side,
+you can flip these videos and use them to classify the opposite side.
 
 Usage:
   flip_video.py --path_in=PATH_IN --path_out=PATH_OUT
@@ -14,7 +16,6 @@ Options:
 """
 
 import ffmpeg
-import os
 
 from docopt import docopt
 from pathlib import Path
@@ -26,26 +27,17 @@ if __name__ == '__main__':
 
     video_suffix = '.mp4'
 
-    os.makedirs(videos_path_out, exist_ok=True)
-    for directory in videos_path_in.iterdir():
-
-        print(f'Processing videos in folder: {directory.name}')
-        output_folder = videos_path_out / directory.name
-        os.makedirs(output_folder, exist_ok=True)
-
-        for video in directory.iterdir():
-            print(f'Processing video: {video.name}')
-
-            original_video_name = video.stem
-            flipped_video_name = original_video_name + '_flipped' + video_suffix
-
-            # Original video as input
-            original_video = ffmpeg.input(directory / video.name)
-            # Do horizontal flip
-            flipped_video = ffmpeg.hflip(original_video)
-            # Get flipped video output
-            flipped_video_output = ffmpeg.output(flipped_video, filename=output_folder / flipped_video_name)
-            # Run to render and save video
-            ffmpeg.run(flipped_video_output)
+    videos_path_out.mkdir(parents=True, exist_ok=True)
+    for video in videos_path_in.iterdir():
+        print(f'Processing video: {video.name}')
+        flipped_video_name = video.stem + '_flipped' + video_suffix
+        # Original video as input
+        original_video = ffmpeg.input(video)
+        # Do horizontal flip
+        flipped_video = ffmpeg.hflip(original_video)
+        # Get flipped video output
+        flipped_video_output = ffmpeg.output(flipped_video, filename=videos_path_out / flipped_video_name)
+        # Run to render and save video
+        ffmpeg.run(flipped_video_output)
 
     print("Processing complete!")
