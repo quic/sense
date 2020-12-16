@@ -27,7 +27,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
     """Features dataset."""
 
     def __init__(self, files, labels, temporal_annotation, model_time_step,
-                 num_timesteps=None, minimum_frames=45, stride=4):
+                 num_timesteps=None, minimum_frames=45, stride=4, full_network_minimum_frames=45):
         self.files = files
         self.labels = labels
         self.num_timesteps = num_timesteps
@@ -35,6 +35,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
         self.minimum_frames = minimum_frames
         self.model_time_step = model_time_step
         self.temporal_annotations = temporal_annotation
+        self.full_network_minimum_frames = full_network_minimum_frames
         # besoin de prendre la dependance temporelle qui va se faire encore bouffer
 
     def __len__(self):
@@ -63,7 +64,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
                     4 / self.stride) + self.num_timesteps]
             else:
                 # if possible, remove padded frames. otherwise, keep only awhat is needed
-                minimum_position = min(num_preds - self.num_timesteps - 1, int(44 / self.stride))
+                minimum_position = min(num_preds - self.num_timesteps - 1,
+                                       int(self.full_network_minimum_frames - 1 / self.stride))
                 minimum_position = max(minimum_position, 0)
                 position = np.random.randint(minimum_position, num_preds - self.num_timesteps)
                 features = features[position: position + self.num_timesteps]
@@ -77,7 +79,7 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
                          label2int_temporal_annotation,
                          model_time_step, num_timesteps=5, batch_size=16, shuffle=True,
                          minimum_frames=45, stride=4, path_annotations=None,
-                         temporal_annotation_only=False):
+                         temporal_annotation_only=False, full_network_minimum_frames=45):
 
     # Find pre-computed features and derive corresponding labels
     tags_dir = os.path.join(dataset_dir, tags_dir)
@@ -123,8 +125,8 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
 
     # Build dataloader
     dataset = FeaturesDataset(features, labels, temporal_annotation, model_time_step=model_time_step,
-                                      num_timesteps=num_timesteps, minimum_frames=minimum_frames,
-                                      stride=stride)
+                              num_timesteps=num_timesteps, minimum_frames=minimum_frames,
+                              stride=stride, full_network_minimum_frames=full_network_minimum_frames)
     data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
 
     return data_loader
@@ -145,7 +147,7 @@ def uniform_frame_sample(video, sample_rate):
 
 
 def compute_features(video_path, path_out, inference_engine, minimum_frames=45, path_frames=None,
-                     batch_size=None, pad_frames=True):
+                     batch_size=None, pad_frames=True, full_network_minimum_frames=45):
     video_source = camera.VideoSource(camera_id=None,
                                       size=inference_engine.expected_frame_size,
                                       filename=video_path)
@@ -162,7 +164,7 @@ def compute_features(video_path, path_out, inference_engine, minimum_frames=45, 
 
     if pad_frames:
         # add 44 frames at the beggining, like that with the first frame we will get one output
-        frames = np.pad(frames, ((44, 0), (0, 0), (0, 0), (0, 0)),
+        frames = np.pad(frames, ((full_network_minimum_frames - 1, 0), (0, 0), (0, 0), (0, 0)),
                         mode='edge')
     elif frames.shape[0] < minimum_frames:
         print(f"\nVideo too short: {video_path} - first frame will be duplicated")
