@@ -25,7 +25,7 @@ import time
 
 import cv2
 from docopt import docopt
-
+from threading import Thread
 import simpleaudio as sa
 
 
@@ -33,6 +33,18 @@ import simpleaudio as sa
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
 
+class ShutDownWatcher(Thread):
+    def __init__(self, shutdown_event, shutdown_fn=None):
+        Thread.__init__(self)
+        self.shutdown_event = shutdown_event
+        self.shutdown_fn = shutdown_fn
+
+    def run(self):
+        print("THIS IS A DEBUG PRINT TO SEE IF RUN IS BEING CALLED SUCCESSFULLY")
+        while not self.shutdown_event.is_set():
+            time.sleep(1)
+            print("ALL GOOD - processes are running!")
+        self.shutdown_fn()
 
 def _capture_video(video_duration=0., record=False):
     """
@@ -51,10 +63,14 @@ def _capture_video(video_duration=0., record=False):
         frames = []
         frame_size = (640, 480)     # default frame size
         while time.time() - t < video_duration:
-            filename = 'divalrm.wav'
-            wave_obj = sa.WaveObject.from_wave_file(filename)
-            play_obj = wave_obj.play()
-            play_obj.wait_done()  # Wait until sound has finished playing
+            diff = time.time() - t
+            flag = False
+            if diff > 1 and diff < 2 and flag is False:
+                filename = 'scripts/tools/beep-06.wav'
+                wave_obj = sa.WaveObject.from_wave_file(filename)
+                play_obj = wave_obj.play()
+                play_obj.stop()
+                flag = True
 
             ret, frame_norm = cap.read()
             frame = cv2.flip(frame_norm, 1)
