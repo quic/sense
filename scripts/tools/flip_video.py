@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
-This script helps to flip videos horizontally to create videos of opposite side.
+This script helps to flip videos horizontally for data augmentation. 
+
+Generally, it can be used to quickly double the size of your dataset, or, in the case where you've collected data for an action performed on a specific side, you can flip these videos and use them to classify the opposite side.
 
 Usage:
   flip_video.py --path_in=PATH_IN --path_out=PATH_OUT
