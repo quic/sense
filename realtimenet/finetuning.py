@@ -36,7 +36,9 @@ class FeaturesDataset(torch.utils.data.Dataset):
         self.model_time_step = model_time_step
         self.temporal_annotations = temporal_annotation
         self.full_network_minimum_frames = full_network_minimum_frames
-        # besoin de prendre la dependance temporelle qui va se faire encore bouffer
+        # Compute the number of features that come from padding:
+        self.num_frames_padded = int(
+            (self.full_network_minimum_frames / self.stride)) - (self.num_timesteps - 1)
 
     def __len__(self):
         return len(self.files)
@@ -63,9 +65,9 @@ class FeaturesDataset(torch.utils.data.Dataset):
                 features = features[position * int(4 / self.stride): position * int(
                     4 / self.stride) + self.num_timesteps]
             else:
-                # if possible, remove padded frames. otherwise, keep only awhat is needed
+                # remove padded frames
                 minimum_position = min(num_preds - self.num_timesteps - 1,
-                                       int(self.full_network_minimum_frames - 1 / self.stride))
+                                       self.num_frames_padded)
                 minimum_position = max(minimum_position, 0)
                 position = np.random.randint(minimum_position, num_preds - self.num_timesteps)
                 features = features[position: position + self.num_timesteps]
