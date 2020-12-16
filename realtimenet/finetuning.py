@@ -147,7 +147,7 @@ def uniform_frame_sample(video, sample_rate):
 
 
 def compute_features(video_path, path_out, inference_engine, minimum_frames=45, path_frames=None,
-                     batch_size=None, pad_frames=True, full_network_minimum_frames=45):
+                     batch_size=None, full_network_minimum_frames=45):
     video_source = camera.VideoSource(camera_id=None,
                                       size=inference_engine.expected_frame_size,
                                       filename=video_path)
@@ -162,25 +162,28 @@ def compute_features(video_path, path_out, inference_engine, minimum_frames=45, 
             frames.append(image_rescaled)
     frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
-    if pad_frames:
-        # add 44 frames at the beggining, like that with the first frame we will get one output
-        frames = np.pad(frames, ((full_network_minimum_frames - 1, 0), (0, 0), (0, 0), (0, 0)),
-                        mode='edge')
-    elif frames.shape[0] < minimum_frames:
-        print(f"\nVideo too short: {video_path} - first frame will be duplicated")
-        num_missing_frames = minimum_frames - frames.shape[0]
-        frames = np.pad(frames, ((num_missing_frames, 0), (0, 0), (0, 0), (0, 0)),
+
+    # add 47 frames at the beginning, in order to "warm up the model with the first image,
+    # and make sure we have enough frames in the video
+    # Possible improvement : investigate if a symetric or reflect padding could be better for
+    # temporal annotation prediction instead of the static first frame
+    frames = np.pad(frames, ((47, 0), (0, 0), (0, 0), (0, 0)),
                         mode='edge')
     # Inference
     clip = frames[None].astype(np.float32)
-    predictions = inference_engine.infer(clip, batch_size=batch_size)
+    # warm up the padding state model
+    _ = inference_engine.infer(clip[:, 0:44], batch_size=batch_size)
+    # predictions of the actual video frames
+    predictions = inference_engine.infer(clip[:, 44:], batch_size=batch_size)
     features = np.array(predictions)
     os.makedirs(os.path.dirname(path_out), exist_ok=True)
     np.save(path_out, features)
     if path_frames is not None:
         os.makedirs(os.path.dirname(path_frames), exist_ok=True)
         frames_to_save = []
-        for e, frame in enumerate(frames[45:]):
+        # remove the padded frames. extract frames starting at the first one (feature for the
+        # first frame)
+        for e, frame in enumerate(frames[47:]):
             if e % 4 == 0:
                 frames_to_save.append(frame)
         for e, frame in enumerate(frames_to_save):
@@ -211,7 +214,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
             else:
                 # Read all frames
                 compute_features(video_path, path_out, inference_engine,
-                                 minimum_frames=minimum_frames,  path_frames=None)
+                                 minimum_frames=minimum_frames,  path_frames=None, batch_size=16)
 
         print('\n')
 

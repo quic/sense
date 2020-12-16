@@ -62,8 +62,6 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    # remove internal padding for feature extraction and training
-    feature_extractor.apply(set_internal_padding_false)
     checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
@@ -117,6 +115,9 @@ if __name__ == "__main__":
         num_output = len(label_counting)
     else:
         num_output = len(label_names)
+
+    # remove internal padding for training
+    feature_extractor.apply(set_internal_padding_false)
     # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_output,
