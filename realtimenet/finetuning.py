@@ -38,7 +38,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
         self.full_network_minimum_frames = full_network_minimum_frames
         # Compute the number of features that come from padding:
         self.num_frames_padded = int(
-            (self.full_network_minimum_frames / self.stride)) - (self.num_timesteps - 1)
+            (self.full_network_minimum_frames / self.stride)) - (self.model_time_step - 1)
 
     def __len__(self):
         return len(self.files)
