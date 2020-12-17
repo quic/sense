@@ -254,6 +254,18 @@ PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/
 
 ---
 
+## Advanced options
+
+You can further improve your model's performance by training on top of temporally annotated data; 
+individually labelled frames that identify the event locally in the video versus treating every frame with the same 
+label. For instructions on how to prepare your data with temporal annotation, refer to this 
+[page](https://github.com/TwentyBN/sense/wiki/tools#temporal-annotations-tool).
+
+After preparing your dataset with our temporal annotations tool, pass `--temporal_training` as an additional
+flag to the `train_classifier.py` script.
+
+---
+
 ## iOS Deployment
 
 If you're interested in mobile app development and want to run our models on iOS devices, please check out [sense-iOS](https://github.com/TwentyBN/sense-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
