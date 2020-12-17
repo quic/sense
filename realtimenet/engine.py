@@ -31,7 +31,7 @@ class InferenceEngine(Thread):
         self.net = net
         self.use_gpu = use_gpu
         if use_gpu:
-            self.net.cuda()
+            self.net.cuda(device=1)
         self._queue_in = queue.Queue(1)
         self._queue_out = queue.Queue(1)
         self._shutdown = False
@@ -128,7 +128,7 @@ class InferenceEngine(Thread):
             clip = self.net.preprocess(clip)
 
             if self.use_gpu:
-                clip = clip.cuda()
+                clip = clip.cuda(device=1)
             if batch_size is None:
                 predictions = self.net(clip)
             else:

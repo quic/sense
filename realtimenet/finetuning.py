@@ -263,8 +263,8 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False,
         if temporal_annotation_training:
             targets = temporal_annotation
         if use_gpu:
-            inputs = inputs.cuda()
-            targets = targets.cuda()
+            inputs = inputs.cuda(device=1)
+            targets = targets.cuda(device=1)
 
         # forward + backward + optimize
         if net.training:

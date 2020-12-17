@@ -129,7 +129,7 @@ if __name__ == "__main__":
     net.train()
 
     if use_gpu:
-        net = net.cuda()
+        net = net.cuda(device=1)
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 80
