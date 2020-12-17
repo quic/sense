@@ -11,8 +11,8 @@ Usage:
   flip_video.py (-h | --help)
 
 Options:
-  --path_in=PATH_IN     Full path to the videos folder
-  --path_out=PATH_OUT   Full path to save flipped videos
+  --path_in=PATH_IN     Path to the folder containing videos to be flipped
+  --path_out=PATH_OUT   Path to the folder to save flipped videos
 """
 
 import ffmpeg
@@ -23,7 +23,7 @@ from pathlib import Path
 if __name__ == '__main__':
     args = docopt(__doc__)
     videos_path_in = Path(args['--path_in'])
-    videos_path_out = Path(args['--path_out'])
+    videos_path_out = Path(args['--path_out']) or videos_path_in
 
     video_suffix = '.mp4'
 
