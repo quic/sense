@@ -140,7 +140,8 @@ if __name__ == "__main__":
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
     torch.save(best_model_state_dict, os.path.join(path_out, "classifier.checkpoint"))
-    if temporal_training:
-        json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "label2int.json"), "w"))
-    else:
-        json.dump(label2int, open(os.path.join(path_out, "label2int.json"), "w"))
+    with open(os.path.join(path_out, "label2int.json"), "w") as f:
+        if temporal_training:
+            json.dump(label2int_temporal_annotation, f, indent=4)
+        else:
+            json.dump(label2int, f, indent=4)
