@@ -41,7 +41,7 @@ Your dataset directory should then have the following structure:
 `features_<train|valid>/` will contain a `.npy` file for each video representing the extracted 
 features (output of the frozen model layers when the video is run through the network).
 
-`frames_<train|valid>` will contain a list of images, which are the frames extracted for each video
+`frames_<train|valid>/` will contain a list of images, which are the frames extracted for each video
 and that will be later annotated.
 
 #### Step 2 : Annotating the videos
@@ -55,3 +55,5 @@ PYTHONPATH=./ python scripts/tools/annotation/annotation.py --data_path=/path/to
 This command will launch a web server which provides an interface for you to annotate each video by 
 frame. After selecting from the list of available videos, you will be taken to a page with the 
 frames presented in a grid with radio button to select the correct label.
+
+**NOTE:** Do not annotate the first 2-3 seconds (9-10 frames) as they may be removed if the videos aren't padded.
