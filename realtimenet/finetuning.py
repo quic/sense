@@ -45,7 +45,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
         num_preds = features.shape[0]
 
         temporal_annotation = self.temporal_annotations[idx]
-        # remove beggining of prediction that is not padded
+        # remove beginning of prediction that is not padded
         if temporal_annotation is not None:
             temporal_annotation = temporal_annotation[int((self.minimum_frames - 1) /4):]
             new_label = []
@@ -106,13 +106,13 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
 
     # check if annotation exist for each video
     for label, feature in zip(labels_string, features):
-        classe_mapping = {0: "counting_background",
-                          1: f'{label}_position_1', 2:
-                              f'{label}_position_2'}
+        class_mapping = {0: "counting_background",
+                         1: f'{label}_position_1',
+                         2: f'{label}_position_2'}
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
-        if os.path.isfile(temporal_annotation_file):
+        if os.path.isfile(temporal_annotation_file) and temporal_annotation_only:
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
-            annotation = np.array([label2int_temporal_annotation[classe_mapping[y]] for y in annotation])
+            annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
             temporal_annotation.append(annotation)
         else:
             temporal_annotation.append(None)
@@ -235,8 +235,11 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
 
-        print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
-                                                                                      valid_loss, valid_top1))
+        print(f'[{epoch + 1}] '
+              f'train loss: {train_loss:.3f} '
+              f'train top1: {train_top1:.3f} '
+              f'valid loss: {valid_loss:.3f} '
+              f'valid top1: {valid_top1:.3f}')
 
         if not temporal_annotation_training:
             if valid_top1 > best_top1:
