@@ -69,8 +69,9 @@ class FeaturesDataset(torch.utils.data.Dataset):
                 position = np.random.randint(0, num_preds - self.num_timesteps)
             features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
-        if temporal_annotation is None:
-            temporal_annotation = [-100]
+        if temporal_annotation is None or len(temporal_annotation) == 0:
+            temporal_annotation = np.array([-100])
+
         return [features, self.labels[idx], temporal_annotation]
 
 
