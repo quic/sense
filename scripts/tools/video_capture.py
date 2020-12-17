@@ -62,15 +62,19 @@ def _capture_video(video_duration=0., record=False):
         t = time.time()
         frames = []
         frame_size = (640, 480)     # default frame size
+        if not record:
+            starting_checkpoint_second = 3
+        else:
+            starting_checkpoint_second = 1
         while time.time() - t < video_duration:
-            diff = time.time() - t
-            flag = False
-            if diff > 1 and diff < 2 and flag is False:
+            diff = video_duration - (time.time() - t)
+            margin = 0.001
+            if (diff > starting_checkpoint_second - margin and diff < starting_checkpoint_second + margin):
                 filename = 'scripts/tools/beep-06.wav'
                 wave_obj = sa.WaveObject.from_wave_file(filename)
                 play_obj = wave_obj.play()
                 play_obj.stop()
-                flag = True
+                starting_checkpoint_second -= 1
 
             ret, frame_norm = cap.read()
             frame = cv2.flip(frame_norm, 1)
