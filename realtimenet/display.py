@@ -130,6 +130,21 @@ class DisplayRepCounts(BaseDisplay):
         return img
 
 
+class DisplayRepCounts2(BaseDisplay):
+
+    lateral_offset = DisplayMETandCalories.lateral_offset
+
+    def __init__(self, keys, y_offset=60):
+        super().__init__(y_offset)
+        self.keys = keys
+
+    def display(self, img, display_data):
+        for index, key in enumerate(self.keys):
+            y_pos = 20 * (index + 1) + self.y_offset
+            put_text(img, f'{key}: {display_data[key]}', (10 + self.lateral_offset, y_pos))
+        return img
+
+
 class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
