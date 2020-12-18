@@ -10,52 +10,46 @@
     <input type="hidden" id="num" name="num" value="{{num}}">
     <input type="hidden" id="n_images" name="n_images" value="{{n_images}}">
     {% if images %}
-        <ul class="fichiers">
-        {% for imgs in images %}
-           <div class="row">
-            <table>
-                <tr>
+        <ul class="fichiers" style="padding: 0px;" >
+            {% for imgs in images %}
+            <div class="row" style="display: flex;">
                 {% for img, num, pred_class in imgs %}
-                    <td>
+                <div class="col" style="margin:10px">
                     <div class="imgContainer">
-                        <div>
-                            <img src="{{url_for('download_file', filename=img)}}"   width="400" height="300"></a>
+                        <img src="{{url_for('download_file', filename=img)}}" width="400px" height="300px">
+                    </div>
+                    <div class="row">
+                        {% if pred_class == '0' %}
+                            <div class="input-color">
+                                <input type="text" value="{{pred_class}}" />
+                            <div class="color-box" ></div>
+                            <!-- Replace "#FF850A" to change the color -->
+                            </div>
+                        {% endif %}
+                        {% if pred_class == '1' %}
+                        <div class="input-color">
+                            <input type="text" value="{{pred_class}}" />
+                            <div class="color-box" style="background-color: #FF850A;"></div>
+                            <!-- Replace "#FF850A" to change the color -->
                         </div>
-                        <div class="row">
-                            {% if pred_class == '0' %}
-                                <div class="input-color">
-                                    <input type="text" value="{{pred_class}}" />
-                                <div class="color-box" ></div>
-                                <!-- Replace "#FF850A" to change the color -->
-                                </div>
-                            {% endif %}
-                            {% if pred_class == '1' %}
-                            <div class="input-color">
-                                <input type="text" value="{{pred_class}}" />
-                                <div class="color-box" style="background-color: #FF850A;"></div>
-                                <!-- Replace "#FF850A" to change the color -->
-                            </div>
-                            {% endif %}
-                            {% if pred_class == '2' %}
-                            <div class="input-color">
-                                <input type="text" value="{{pred_class}}" />
-                                <div class="color-box" style="background-color:navy;"></div>
-                                <!-- Replace "#FF850A" to change the color -->
-                            </div>
-                            {% endif %}
-                            <div class="switch-field">
-                              <input type="radio" name="{{num}}" id="{{num}}radio-one" value=0  checked> <label for="{{num}}radio-one">0</label>
-                              <input type="radio" name="{{num}}"  id="{{num}}radio-two" value=1><label for="{{num}}radio-two">1</label>
-                              <input type="radio" name="{{num}}" id="{{num}}radio-three" value=2><label for="{{num}}radio-three">2</label>
-                            </div>
+                        {% endif %}
+                        {% if pred_class == '2' %}
+                        <div class="input-color">
+                            <input type="text" value="{{pred_class}}" />
+                            <div class="color-box" style="background-color:navy;"></div>
+                            <!-- Replace "#FF850A" to change the color -->
+                        </div>
+                        {% endif %}
+                        <div class="switch-field">
+                          <input type="radio" name="{{num}}" id="{{num}}radio-one" value=0  checked> <label for="{{num}}radio-one">0</label>
+                          <input type="radio" name="{{num}}"  id="{{num}}radio-two" value=1><label for="{{num}}radio-two">1</label>
+                          <input type="radio" name="{{num}}" id="{{num}}radio-three" value=2><label for="{{num}}radio-three">2</label>
                         </div>
                     </div>
-                    </td>
+                </div>
                 {% endfor %}
-                </tr>
-            </table>
-           </div>
-        {% endfor %}
+            </div>
+            {% endfor %}
         </ul>
     <input type="submit" value="Submit">
     {% endif %}
