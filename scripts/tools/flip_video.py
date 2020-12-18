@@ -25,12 +25,15 @@ if __name__ == '__main__':
     videos_path_in = Path(args['--path_in'])
     videos_path_out = Path(args['--path_out']) or videos_path_in
 
-    video_suffix = '.mp4'
+    # Training script expects videos in MP4 format
+    VIDEO_EXT = '.mp4'
 
+    # Create directory to save flipped videos
     videos_path_out.mkdir(parents=True, exist_ok=True)
+
     for video in videos_path_in.iterdir():
         print(f'Processing video: {video.name}')
-        flipped_video_name = video.stem + '_flipped' + video_suffix
+        flipped_video_name = video.stem + '_flipped' + VIDEO_EXT
         # Original video as input
         original_video = ffmpeg.input(video)
         # Do horizontal flip
