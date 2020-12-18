@@ -25,13 +25,15 @@ import time
 
 import cv2
 from docopt import docopt
-from threading import Thread
+from pathlib import Path
 import simpleaudio as sa
-
-
+from threading import Thread
 
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
+countdown_sound = 'beep.wav'
+done_sound = 'done-beep.wav'
+
 
 class ShutDownWatcher(Thread):
     def __init__(self, shutdown_event, shutdown_fn=None):
@@ -45,6 +47,22 @@ class ShutDownWatcher(Thread):
             time.sleep(1)
             print("ALL GOOD - processes are running!")
         self.shutdown_fn()
+
+
+def _play_audio(audio_file):
+    """
+    Plays an audio for `countdown` and `done` timer on video prompt.
+    Pre-recording: count down the last three seconds, then DONE sound
+    Recording: only DONE sound
+
+    :param audio_file:  str
+        Name of the audio file to play.
+    """
+    audio_path = str(Path.cwd() / 'scripts' / 'tools' / audio_file)     # hard-coded path to file, can be changed
+    wave_obj = sa.WaveObject.from_wave_file(audio_path)
+    play_obj = wave_obj.play()
+    play_obj.stop()
+
 
 def _capture_video(video_duration=0., record=False):
     """
@@ -62,19 +80,14 @@ def _capture_video(video_duration=0., record=False):
         t = time.time()
         frames = []
         frame_size = (640, 480)     # default frame size
-        if not record:
-            starting_checkpoint_second = 3
-        else:
-            starting_checkpoint_second = 1
-        while time.time() - t < video_duration:
-            diff = video_duration - (time.time() - t)
-            margin = 0.001
-            if (diff > starting_checkpoint_second - margin and diff < starting_checkpoint_second + margin):
-                filename = 'scripts/tools/beep-06.wav'
-                wave_obj = sa.WaveObject.from_wave_file(filename)
-                play_obj = wave_obj.play()
-                play_obj.stop()
-                starting_checkpoint_second -= 1
+        countdown = 1 if record else 3
+        margin = 0.03       # time margin (in seconds)
+        time_left = video_duration - time.time() + t
+
+        while time_left > 0:
+            if not record and time_left > 0.5 and abs(countdown - time_left) <= margin:
+                _play_audio(countdown_sound)
+                countdown -= 1
 
             ret, frame_norm = cap.read()
             frame = cv2.flip(frame_norm, 1)
@@ -82,17 +95,17 @@ def _capture_video(video_duration=0., record=False):
             frame_size = (frame.shape[1], frame.shape[0])
 
             if record:
-                message = f"recording video {str(index + 1)}"
+                message = f"Recording Video {str(index + 1)}"
             else:
-                message = f"get into position {str(index + 1)}"
+                message = f"Get into position {str(index + 1)}"
 
             # Recording prompt
             cv2.putText(frame, message, (100, 100), FONT, 3, (255, 255, 255),
-                        2, cv2.LINE_AA)
+                        4, cv2.LINE_AA)
             # Recording timer
-            cv2.putText(frame, f" {str(int(video_duration - time.time() + t))}",
-                        (200, 200), FONT, 10, (255, 255, 255),
-                        2, cv2.LINE_AA)
+            cv2.putText(frame, f" {str(int(time_left))}",
+                        (200, 250), FONT, 10, (255, 255, 255),
+                        6, cv2.LINE_AA)
             cv2.imshow('frame', frame)
 
             # Get key-press to skip current video or terminate script
@@ -108,6 +121,10 @@ def _capture_video(video_duration=0., record=False):
                 cv2.destroyAllWindows()
                 _shutdown = True
                 break
+
+            time_left = video_duration - time.time() + t
+
+        _play_audio(done_sound)
 
         calculated_fps = round(len(frames) / video_duration)
         fps = 16 if calculated_fps <= 16 else calculated_fps
