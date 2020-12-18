@@ -29,10 +29,13 @@ import torch.utils.data
 
 from docopt import docopt
 
-from realtimenet import feature_extractors
-from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
-from realtimenet.finetuning import training_loops, extract_features, generate_data_loader
-from realtimenet.finetuning import set_internal_padding_false
+from sense import feature_extractors
+from sense.downstream_tasks.nn_utils import LogisticRegression
+from sense.downstream_tasks.nn_utils import Pipe
+from sense.finetuning import extract_features
+from sense.finetuning import generate_data_loader
+from sense.finetuning import set_internal_padding_false
+from sense.finetuning import training_loops
 
 
 def clean_pipe_state_dict_key(key):
