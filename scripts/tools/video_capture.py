@@ -80,7 +80,7 @@ def _capture_video(video_duration=0., record=False):
         t = time.time()
         frames = []
         frame_size = (640, 480)     # default frame size
-        countdown = 1 if record else 3
+        countdown = 1 if record else min(3, int(video_duration))        # number of seconds to countdown
         margin = 0.03       # time margin (in seconds)
         time_left = video_duration - time.time() + t
 
