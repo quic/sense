@@ -8,33 +8,40 @@ Usage:
   annotation.py (-h | --help)
 
 Options:
-  --data_path=DATA_PATH     Full path to the data-set folder
+  --data_path=DATA_PATH     Complete or relative path to the data-set folder
   --split=SPLIT             Type of split to collect videos from, either `train` or `valid`
   --label=LABEL             Class-label to get the videos for annotation
 """
-from docopt import docopt
-from flask import Flask, request, flash, redirect, url_for
-from flask import render_template, send_from_directory
-import os
-from os.path import join
-import json
+
 import glob
+import json
 import numpy as np
+import os
+
+from docopt import docopt
+from flask import Flask
+from flask import redirect
+from flask import render_template
+from flask import request
+from flask import send_from_directory
+from flask import url_for
+from joblib import dump
+from joblib import load
+from os.path import join
+from pathlib import Path
 from sklearn.linear_model import LogisticRegression
-from joblib import dump, load
 
 
 args = docopt(__doc__)
-dataset_path = args['--data_path']
+dataset_path = str(Path.cwd() / args['--data_path'])
 split = args['--split']
 label = args['--label']
-folder = os.path.join(dataset_path, f'videos_{split}', label)
+folder = join(dataset_path, f'videos_{split}', label)
 
-# out_folder = '/home/amercier/code/20bn-realtimenet/annotation/0/'
-features_dir = dataset_path + f"features_{split}/{label}/"
-frames_dir = dataset_path + f"frames_{split}/{label}/"
+features_dir = join(dataset_path, f'features_{split}', label)
+frames_dir = join(dataset_path, f'frames_{split}', label)
 
-tags_dir = dataset_path + f"tags_{split}/{label}/"
+tags_dir = join(dataset_path, f'tags_{split}', label)
 lr_dir = join(dataset_path, 'lr', label)
 os.makedirs(lr_dir, exist_ok=True)
 os.makedirs(tags_dir, exist_ok=True)
@@ -44,26 +51,24 @@ lr_path = join(lr_dir, 'lr.joblib')
 if os.path.isfile(lr_path):
     lr = load(lr_path)
 
-
-
-
-
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
 DOSSIER_UPS = frames_dir
 videos = os.listdir(frames_dir)
-
 videos.sort()
+
 
 def extension_ok(nomfic):
     """ Renvoie True si le fichier possède une extension d'image valide. """
     return '.' in nomfic and nomfic.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
+
 @app.route('/annot/')
 def list_annot():
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('up_folder.html', folders=folder_id)
+
 
 @app.route('/annot/<nom>')
 def annot(nom):
@@ -76,13 +81,14 @@ def annot(nom):
     else:
         classes = [0] * len(features)
     print(classes)
-    images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if extension_ok(img)] # la liste des images dans le dossier
+    images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if
+              extension_ok(img)]  # la liste des images dans le dossier
     nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
-    images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums,images))]
-    images = [[x[0], x[1], y] for x,y in zip(images, classes)]
+    images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, images))]
+    images = [[x[0], x[1], y] for x, y in zip(images, classes)]
     chunk_size = 5
-    n_chunk = int(len(images)/chunk_size)
+    n_chunk = int(len(images) / chunk_size)
     images = np.array_split(images, n_chunk)
     images = [list(x) for x in images]
     print(n_images)
@@ -90,36 +96,35 @@ def annot(nom):
     return render_template('up_liste.html', images=images, num=nom, fps=16, n_images=n_images)
 
 
-@app.route('/response', methods = ['POST'])
+@app.route('/response', methods=['POST'])
 def response():
     if request.method == 'POST':
-        data = request.form # a multidict containing POST data
+        data = request.form  # a multidict containing POST data
         num = int(data['num'])
         fps = float(data['fps'])
-        desc = {'file': videos[num] + ".mp4"}
-        desc['fps'] = fps
-        out_annotation = os.path.join(tags_dir, videos[num] + ".json")
+        desc = {'file': videos[num] + ".mp4", 'fps': fps}
+        out_annotation = join(tags_dir, videos[num] + ".json")
         time_annotation = []
         for i in range(int(data['n_images'])):
             time_annotation.append(int(data[str(i)]))
         desc['time_annotation'] = time_annotation
         json.dump(desc, open(out_annotation, 'w'))
-    if num+1 >= len(videos):
+    if num + 1 >= len(videos):
         return redirect(url_for('list_annot'))
-    return redirect(url_for('annot', nom=num+1))
+    return redirect(url_for('annot', nom=num + 1))
 
 
 @app.route('/train_lr', methods=['POST'])
 def train_lr():
     global lr
     if request.method == 'POST':
-        data = request.form # a multidict containing POST data
+        data = request.form  # a multi-dict containing POST data
         num = int(data['num'])
         annotations = os.listdir(tags_dir)
         class_weight = {0: 0.5}
         if annotations:
-            features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-            annotations = [os.path.join(tags_dir, x) for x in annotations]
+            features = [join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+            annotations = [join(tags_dir, x) for x in annotations]
             X = []
             y = []
             for feature in features:
@@ -154,14 +159,14 @@ def train_lr():
             dump(lr, lr_path)
     return redirect(url_for('annot', nom=num))
 
-#
+
 # @app.route('/export_annotation', methods = ['POST'])
 # def export_annotation():
-#     data = request.form  # a multidict containing POST data
+#     data = request.form       # a multi-dict containing POST data
 #     num = int(data['num'])
 #     new_annotations = []
 #     for label, tags in export_labels.items():
-#         annotations_taged = glob.glob(os.path.join('annotations',label, 'tags','*', 'annotation.json'))
+#         annotations_taged = glob.glob(join('annotations',label, 'tags','*', 'annotation.json'))
 #         for an in annotations_taged:
 #             an = json.load(open(an,'r'))
 #             time_annotation = np.array(an.pop('time_annotation'))
@@ -178,8 +183,9 @@ def train_lr():
 #                     count_tags[tags[1]] = list(twos)
 #                 an['counting_tag'] = count_tags
 #                 new_annotations.append(an)
-#     json.dump(new_annotations, open(os.path.join('annotations', 'export_annotations.json'), 'w'))
+#     json.dump(new_annotations, open(join('annotations', 'export_annotations.json'), 'w'))
 #     return redirect(url_for('annot', nom=num))
+
 
 @app.after_request
 def add_header(r):
@@ -193,10 +199,11 @@ def add_header(r):
     r.headers['Cache-Control'] = 'public, max-age=0'
     return r
 
+
 @app.route('/uploads/<path:filename>')
 def download_file(filename):
     return send_from_directory(frames_dir, filename, as_attachment=True)
 
+
 if __name__ == '__main__':
     app.run(debug=True)
-

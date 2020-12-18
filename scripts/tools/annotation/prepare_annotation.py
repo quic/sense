@@ -7,7 +7,7 @@ Usage:
   prepare_annotation.py (-h | --help)
 
 Options:
-  --data_path=DATA_PATH     Full path to the data-set folder
+  --data_path=DATA_PATH     Complete or relative path to the data-set folder
 """
 
 import os
@@ -15,15 +15,17 @@ import torch
 import glob
 
 from docopt import docopt
+from os.path import join
+from pathlib import Path
 
-from realtimenet import feature_extractors
-from realtimenet import engine
-from realtimenet.finetuning import compute_features
+from sense import feature_extractors
+from sense import engine
+from sense.finetuning import compute_features
 
 
 if __name__ == "__main__":
     args = docopt(__doc__)
-    dataset_path = args['--data_path']
+    dataset_path = str(Path.cwd() / args['--data_path'])
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
@@ -38,13 +40,13 @@ if __name__ == "__main__":
 
     for split in ['train', 'valid']:
         print("\n" + "-"*10 + f"Preparing videos in the {split}-set" + "-"*10)
-        for label in os.listdir(os.path.join(dataset_path, f'videos_{split}')):
+        for label in os.listdir(join(dataset_path, f'videos_{split}')):
             # Get data-set from path, given split and label
-            folder = os.path.join(dataset_path, f'videos_{split}', label)
+            folder = join(dataset_path, f'videos_{split}', label)
 
             # Create features and frames folders for the given split and label
-            features_folder = dataset_path + f"features_{split}/{label}/"
-            frames_folder = dataset_path + f"frames_{split}/{label}/"
+            features_folder = join(dataset_path, f"features_{split}/{label}/")
+            frames_folder = join(dataset_path, f"frames_{split}/{label}/")
             os.makedirs(features_folder, exist_ok=True)
             os.makedirs(frames_folder, exist_ok=True)
 
@@ -52,8 +54,8 @@ if __name__ == "__main__":
             videos = glob.glob(folder + '/*.mp4')
             for e, video_path in enumerate(videos):
                 print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
-                path_frames = frames_folder + video_path.split("/")[-1].replace(".mp4", "")
-                path_features = features_folder + video_path.split("/")[-1].replace(".mp4", ".npy")
+                path_frames = join(frames_folder, video_path.split("/")[-1].replace(".mp4", ""))
+                path_features = join(features_folder, video_path.split("/")[-1].replace(".mp4", ".npy"))
                 os.makedirs(path_frames, exist_ok=True)
 
                 # WARNING: if set a max batch size, you should not remove padding from model.
