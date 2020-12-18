@@ -56,4 +56,4 @@ This command will launch a web server which provides an interface for you to ann
 frame. After selecting from the list of available videos, you will be taken to a page with the 
 frames presented in a grid with radio button to select the correct label.
 
-**NOTE:** Do not annotate the first 2-3 seconds (9-10 frames) as they may be removed if the videos aren't padded.
+**NOTE:** Do not annotate the first 2-3 seconds (first 10 frames) in the annotation tool as it may not give the best results.

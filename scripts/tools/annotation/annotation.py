@@ -95,7 +95,7 @@ def annot(nom):
     images = [list(x) for x in images]
     print(n_images)
     print(images)
-    return render_template('up_liste.html', images=images, num=nom, fps=16, n_images=n_images)
+    return render_template('up_liste.html', images=images, num=nom, fps=16, n_images=n_images, video_name=videos[nom])
 
 
 @app.route('/response', methods=['POST'])
