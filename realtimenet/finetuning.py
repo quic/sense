@@ -24,7 +24,14 @@ def set_internal_padding_false(module):
 
 
 class FeaturesDataset(torch.utils.data.Dataset):
-    """Features dataset."""
+    """Features dataset.
+    For the training, we will sample just enough timesteps from the features to get one temporal
+    output.
+    If performing a non temporal annotation training, we try to discard the features comming from
+    the padding.
+    If performing a temporal annotation training, we sample the different annotations such as to
+    have roughly the same probability to get a background label or a non background label.
+    """
 
     def __init__(self, files, labels, temporal_annotation, model_time_step,
                  num_timesteps=None, minimum_frames=45, stride=4, full_network_minimum_frames=45):
@@ -52,14 +59,19 @@ class FeaturesDataset(torch.utils.data.Dataset):
 
         if self.num_timesteps and num_preds > self.num_timesteps:
             if temporal_annotation is not None:
+                # creating the probability distribution based on temporal annotation
                 prob0 = 1 / (2*(np.sum(temporal_annotation == 0)))
                 prob1 = 1 / (2*(np.sum(temporal_annotation != 0)))
                 probas = np.ones(len(temporal_annotation))
                 probas[temporal_annotation == 0] = prob0
                 probas[temporal_annotation != 0] = prob1
                 probas = probas / np.sum(probas)
+
+                # drawing the temporal label
                 position = np.random.choice(len(temporal_annotation), 1, p=probas)[0]
                 temporal_annotation = temporal_annotation[position:position + 1]
+
+                # selecting the corresponding features.
                 features = features[position * int(4 / self.stride): position * int(
                     4 / self.stride) + self.num_timesteps]
             else:
@@ -171,12 +183,15 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
                         mode='edge')
     # Inference
     clip = frames[None].astype(np.float32)
-    # warm up the padding state model
+    # Run the model on padded frames in order to remove the state in the current model comming
+    # from the previous video.
     pre_features = inference_engine.infer(clip[:, 0:48], batch_size=batch_size)
+    # Depending on the number of layers we finetune, we keep the number of features from padding
+    # equal to the temporal dependancy of the model.
+    temporal_dependancy_features = np.array(pre_features)[-num_timesteps:]
     # predictions of the actual video frames
-    first_features = np.array(pre_features)[-num_timesteps:]
     predictions = inference_engine.infer(clip[:, 48:], batch_size=batch_size)
-    predictions = np.concatenate([first_features, predictions], axis=0)
+    predictions = np.concatenate([temporal_dependancy_features, predictions], axis=0)
     features = np.array(predictions)
     os.makedirs(os.path.dirname(path_out), exist_ok=True)
     np.save(path_out, features)
