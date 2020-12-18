@@ -31,7 +31,6 @@ from os.path import join
 from pathlib import Path
 from sklearn.linear_model import LogisticRegression
 
-
 args = docopt(__doc__)
 dataset_path = str(Path.cwd() / args['--data_path'])
 split = args['--split']
@@ -60,18 +59,20 @@ videos.sort()
 
 
 def extension_ok(nomfic):
-    """ Renvoie True si le fichier possède une extension d'image valide. """
+    """Return `True` if the file has a valid image extension."""
     return '.' in nomfic and nomfic.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 
 @app.route('/annot/')
 def list_annot():
+    """Needs a small description"""
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('up_folder.html', folders=folder_id)
 
 
 @app.route('/annot/<nom>')
 def annot(nom):
+    """Needs a small description"""
     nom = int(nom)
     features = np.load(join(features_dir, videos[nom] + ".npy"))
     features = features.mean(axis=(2, 3))
@@ -81,8 +82,9 @@ def annot(nom):
     else:
         classes = [0] * len(features)
     print(classes)
-    images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if
-              extension_ok(img)]  # la liste des images dans le dossier
+
+    # The list of images in the folder
+    images = [img for img in glob.glob(join(DOSSIER_UPS, videos[nom] + '/*')) if extension_ok(img)]
     nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
     images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, images))]
@@ -98,8 +100,9 @@ def annot(nom):
 
 @app.route('/response', methods=['POST'])
 def response():
+    """Needs a small description"""
     if request.method == 'POST':
-        data = request.form  # a multidict containing POST data
+        data = request.form  # a multi-dict containing POST data
         num = int(data['num'])
         fps = float(data['fps'])
         desc = {'file': videos[num] + ".mp4", 'fps': fps}
@@ -116,6 +119,7 @@ def response():
 
 @app.route('/train_lr', methods=['POST'])
 def train_lr():
+    """Needs a small description"""
     global lr
     if request.method == 'POST':
         data = request.form  # a multi-dict containing POST data
@@ -160,15 +164,16 @@ def train_lr():
     return redirect(url_for('annot', nom=num))
 
 
-# @app.route('/export_annotation', methods = ['POST'])
+# @app.route('/export_annotation', methods=['POST'])
 # def export_annotation():
+#     """Needs a small description"""
 #     data = request.form       # a multi-dict containing POST data
 #     num = int(data['num'])
 #     new_annotations = []
 #     for label, tags in export_labels.items():
-#         annotations_taged = glob.glob(join('annotations',label, 'tags','*', 'annotation.json'))
-#         for an in annotations_taged:
-#             an = json.load(open(an,'r'))
+#         annotations_tagged = glob.glob(join('annotations', label, 'tags', '*', 'annotation.json'))
+#         for an in annotations_tagged:
+#             an = json.load(open(an, 'r'))
 #             time_annotation = np.array(an.pop('time_annotation'))
 #             fps = an.pop('fps')
 #             ones = np.where(time_annotation == 1)[0]
@@ -202,6 +207,7 @@ def add_header(r):
 
 @app.route('/uploads/<path:filename>')
 def download_file(filename):
+    """Needs a small description"""
     return send_from_directory(frames_dir, filename, as_attachment=True)
 
 
