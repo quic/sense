@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """
-This script helps to flip videos horizontally for data augmentation. 
+This script helps to flip videos horizontally for data augmentation.
 
 Generally, it can be used to quickly double the size of your dataset, or,
 in the case where you've collected data for an action performed on a specific side,
 you can flip these videos and use them to classify the opposite side.
 
 Usage:
-  flip_video.py --path_in=PATH_IN --path_out=PATH_OUT
+  flip_video.py --path_in=PATH_IN
+                [--path_out=PATH_OUT]
   flip_video.py (-h | --help)
 
 Options:
@@ -23,7 +24,7 @@ from pathlib import Path
 if __name__ == '__main__':
     args = docopt(__doc__)
     videos_path_in = Path(args['--path_in'])
-    videos_path_out = Path(args['--path_out']) or videos_path_in
+    videos_path_out = Path(args['--path_out']) if args.get('--path_out') else videos_path_in
 
     # Training script expects videos in MP4 format
     VIDEO_EXT = '.mp4'
