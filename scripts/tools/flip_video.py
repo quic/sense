@@ -23,9 +23,8 @@ from pathlib import Path
 
 if __name__ == '__main__':
     args = docopt(__doc__)
-    videos_path_in = Path(args['--path_in'])
-    videos_path_out = Path(args['--path_out']) if args.get('--path_out') else videos_path_in
-
+    videos_path_in = Path.cwd() / Path(args['--path_in'])
+    videos_path_out = Path.cwd() / Path(args['--path_out']) if args.get('--path_out') else videos_path_in
     # Training script expects videos in MP4 format
     VIDEO_EXT = '.mp4'
 
