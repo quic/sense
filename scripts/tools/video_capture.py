@@ -31,8 +31,8 @@ from threading import Thread
 
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
-countdown_sound = 'beep.wav'
-done_sound = 'done-beep.wav'
+countdown_sound = 'done-beep.wav'
+done_sound = 'beep.wav'
 
 
 class ShutDownWatcher(Thread):
