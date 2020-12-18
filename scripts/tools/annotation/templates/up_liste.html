@@ -4,6 +4,7 @@
 
 {% block main %}
 <h1>Frames to annotate</h1>
+<h2>Video: {{video_name}}</h2>
 <form method="POST" action="/response">
     <input type="hidden" id="fps" name="fps" value="{{fps}}">
     <input type="hidden" id="num" name="num" value="{{num}}">
