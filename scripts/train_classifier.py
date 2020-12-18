@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # finetune the model
     extract_features(path_in, feature_extractor, num_layers_to_finetune, use_gpu,
-                     minimum_frames=minimum_frames)
+                     num_timesteps=num_timesteps)
 
     # Find label names
     label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))

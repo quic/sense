@@ -58,6 +58,6 @@ if __name__ == "__main__":
 
                 # WARNING: if set a max batch size, you should not remove padding from model.
                 compute_features(video_path, path_features, inference_engine,
-                                 minimum_frames=0,  path_frames=path_frames, batch_size=64)
+                                 num_timesteps=1,  path_frames=path_frames, batch_size=64)
             print()
     print('\nDone!')

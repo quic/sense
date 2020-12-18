@@ -35,10 +35,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
         self.minimum_frames = minimum_frames
         self.model_time_step = model_time_step
         self.temporal_annotations = temporal_annotation
-        self.full_network_minimum_frames = full_network_minimum_frames
         # Compute the number of features that come from padding:
-        self.num_frames_padded = int(
-            (self.full_network_minimum_frames / self.stride)) - (self.model_time_step - 1)
+        self.num_frames_padded = int((full_network_minimum_frames - 1) / self.stride)
 
     def __len__(self):
         return len(self.files)
@@ -148,8 +146,8 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
-def compute_features(video_path, path_out, inference_engine, minimum_frames=45, path_frames=None,
-                     batch_size=None, full_network_minimum_frames=45):
+def compute_features(video_path, path_out, inference_engine, num_timesteps=1, path_frames=None,
+                     batch_size=None):
     video_source = camera.VideoSource(camera_id=None,
                                       size=inference_engine.expected_frame_size,
                                       filename=video_path)
@@ -174,9 +172,11 @@ def compute_features(video_path, path_out, inference_engine, minimum_frames=45, 
     # Inference
     clip = frames[None].astype(np.float32)
     # warm up the padding state model
-    _ = inference_engine.infer(clip[:, 0:44], batch_size=batch_size)
+    pre_features = inference_engine.infer(clip[:, 0:48], batch_size=batch_size)
     # predictions of the actual video frames
-    predictions = inference_engine.infer(clip[:, 44:], batch_size=batch_size)
+    first_features = np.array(pre_features)[-num_timesteps:]
+    predictions = inference_engine.infer(clip[:, 48:], batch_size=batch_size)
+    predictions = np.concatenate([first_features, predictions], axis=0)
     features = np.array(predictions)
     os.makedirs(os.path.dirname(path_out), exist_ok=True)
     np.save(path_out, features)
@@ -193,7 +193,7 @@ def compute_features(video_path, path_out, inference_engine, minimum_frames=45, 
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)
 
 
-def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=45):
+def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
 
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
@@ -216,7 +216,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
             else:
                 # Read all frames
                 compute_features(video_path, path_out, inference_engine,
-                                 minimum_frames=minimum_frames,  path_frames=None, batch_size=16)
+                                 num_timesteps=num_timesteps,  path_frames=None, batch_size=16)
 
         print('\n')
 
