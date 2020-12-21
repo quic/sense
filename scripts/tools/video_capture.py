@@ -30,8 +30,9 @@ import simpleaudio as sa
 
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
-COUNTDOWN_SOUND = 'counter_sound.wav'
-DONE_SOUND = 'long_done_sound.wav'
+COUNTDOWN_SOUND = 'countdown_sound.wav'
+DONE_SOUND = 'done_sound.wav'
+EXIT_SOUND = 'exit_sound.wav'
 
 
 def _play_audio(audio_file):
@@ -66,7 +67,7 @@ def _capture_video(video_duration=0., record=False):
         frames = []
         frame_size = (640, 480)     # default frame size
         countdown = 1 if record else min(3, int(video_duration))        # number of seconds to countdown
-        margin = 0.03       # time margin (in seconds)
+        margin = 0.02       # time margin (in seconds)
         time_left = video_duration - time.time() + t
 
         while time_left > 0:
@@ -103,13 +104,15 @@ def _capture_video(video_duration=0., record=False):
                 break
             elif key == 27:                 # Press `ESC` to exit the script
                 print('\t[PROMPT]\tShutting down video-recording and releasing resources.')
+                _play_audio(EXIT_SOUND)
                 cv2.destroyAllWindows()
                 _shutdown = True
                 break
 
             time_left = video_duration - time.time() + t
 
-        _play_audio(DONE_SOUND)
+        if not _shutdown:
+            _play_audio(DONE_SOUND)
 
         calculated_fps = round(len(frames) / video_duration)
         fps = 16 if calculated_fps <= 16 else calculated_fps
