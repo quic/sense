@@ -103,7 +103,8 @@ def response():
         data = request.form # a multidict containing POST data
         num = int(data['num'])
         fps = float(data['fps'])
-        desc = {'file': videos[num] + ".mp4", 'fps': fps}
+        desc = {'file': videos[num] + ".mp4"}
+        desc['fps'] = fps
         out_annotation = os.path.join(tags_dir, videos[num] + ".json")
         time_annotation = []
         for i in range(int(data['n_images'])):
