@@ -12,7 +12,7 @@
     {% if images %}
         <ul class="file">
             {% for imgs in images %}
-            <div class="imagesRow">
+            <div class="row" style="display:flex;">
                 {% for img, num, pred_class in imgs %}
                 <div class="column">
                     <div class="imgContainer">
