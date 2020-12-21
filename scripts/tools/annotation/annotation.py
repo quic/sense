@@ -78,19 +78,13 @@ def annot(nom):
     print(classes)
 
     # The list of images in folder
-    _images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if extension_ok(img)]
-    nums = [int(x.split('.')[0].split('/')[-1]) for x in _images]
+    images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if extension_ok(img)]
+    nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
-    _images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, _images))]
-    _images = [[x[0], x[1], y] for x, y in zip(_images, classes)]
+    images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, images))]
+    images = [[x[0], x[1], y] for x, y in zip(images, classes)]
     chunk_size = 5
-    n_chunk = int(len(_images) / chunk_size)
-    remaining_images = len(_images) % chunk_size
-    if remaining_images:
-        images = np.array_split(_images[:-remaining_images], n_chunk)
-        images.append(np.array(_images[-remaining_images:]))
-    else:
-        images = np.array_split(_images, n_chunk)
+    images = np.array_split(images, np.arange(chunk_size, len(images), chunk_size))
     images = [list(x) for x in images]
     print(n_images)
     print(images)
