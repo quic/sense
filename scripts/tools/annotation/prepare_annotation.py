@@ -16,9 +16,9 @@ import glob
 
 from docopt import docopt
 
-from realtimenet import feature_extractors
-from realtimenet import engine
-from realtimenet.finetuning import compute_features
+from sense import engine
+from sense import feature_extractors
+from sense.finetuning import compute_features
 
 
 if __name__ == "__main__":
