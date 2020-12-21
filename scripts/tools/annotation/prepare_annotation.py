@@ -16,10 +16,10 @@ import glob
 
 from docopt import docopt
 
-from realtimenet import feature_extractors
-from realtimenet import engine
-from realtimenet.finetuning import compute_features
-from realtimenet.finetuning import set_internal_padding_false
+from sense import engine
+from sense import feature_extractors
+from sense.finetuning import compute_features
+from sense.finetuning import set_internal_padding_false
 
 if __name__ == "__main__":
     args = docopt(__doc__)
