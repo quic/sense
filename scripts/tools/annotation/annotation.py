@@ -65,14 +65,14 @@ def extension_ok(nomfic):
 
 @app.route('/annot/')
 def list_annot():
-    """Needs a small description"""
+    """Gets the data and creates the HTML template with all videos for the given class-label."""
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('up_folder.html', folders=folder_id)
 
 
 @app.route('/annot/<nom>')
 def annot(nom):
-    """Needs a small description"""
+    """For the given class-label, this shows all the frames for annotating the selected video."""
     nom = int(nom)
     features = np.load(join(features_dir, videos[nom] + ".npy"))
     features = features.mean(axis=(2, 3))
