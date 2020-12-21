@@ -27,7 +27,6 @@ import cv2
 from docopt import docopt
 from pathlib import Path
 import simpleaudio as sa
-from threading import Thread
 
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
