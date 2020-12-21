@@ -75,9 +75,9 @@ def _capture_video(video_duration=0., record=False):
                 _play_audio(COUNTDOWN_SOUND)
                 countdown -= 1
 
-            ret, frame_norm = cap.read()
-            frame = cv2.flip(frame_norm, 1)
+            ret, frame = cap.read()
             frames.append(frame.copy())
+            frame = cv2.flip(frame, 1)      # horizontal flip for video-preview
             frame_size = (frame.shape[1], frame.shape[0])
 
             if record:
