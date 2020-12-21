@@ -44,7 +44,7 @@ def _play_audio(audio_file):
     :param audio_file:  str
         Name of the audio file to play.
     """
-    audio_path = str(Path.cwd() / 'scripts' / 'tools' / audio_file)     # hard-coded path to file, can be changed
+    audio_path = str(Path.cwd() / 'docs' / 'audio' / audio_file)     # hard-coded path to file, can be changed
     wave_obj = sa.WaveObject.from_wave_file(audio_path)
     play_obj = wave_obj.play()
     play_obj.stop()
@@ -89,7 +89,7 @@ def _capture_video(video_duration=0., record=False):
             cv2.putText(frame, message, (100, 100), FONT, 3, (255, 255, 255),
                         4, cv2.LINE_AA)
             # Recording timer
-            cv2.putText(frame, f" {str(int(time_left))}",
+            cv2.putText(frame, f" {str(int(time_left) + 1)}",
                         (200, 250), FONT, 10, (255, 255, 255),
                         6, cv2.LINE_AA)
             cv2.imshow('frame', frame)
