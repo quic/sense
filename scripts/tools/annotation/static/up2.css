@@ -44,7 +44,6 @@
     border-radius: 0 4px 4px 0;
 }
 
-
 .input-color {
     position: relative;
 }
@@ -66,5 +65,9 @@
 }
 
 .column{
-    margin:10px;
+    margin: 10px;
+}
+
+.imgRow{
+    display: flex;
 }
