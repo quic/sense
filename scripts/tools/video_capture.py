@@ -31,22 +31,8 @@ from threading import Thread
 
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
-countdown_sound = 'counter_sound.wav'
-done_sound = 'long_done_sound.wav'
-
-
-class ShutDownWatcher(Thread):
-    def __init__(self, shutdown_event, shutdown_fn=None):
-        Thread.__init__(self)
-        self.shutdown_event = shutdown_event
-        self.shutdown_fn = shutdown_fn
-
-    def run(self):
-        print("THIS IS A DEBUG PRINT TO SEE IF RUN IS BEING CALLED SUCCESSFULLY")
-        while not self.shutdown_event.is_set():
-            time.sleep(1)
-            print("ALL GOOD - processes are running!")
-        self.shutdown_fn()
+COUNTDOWN_SOUND = 'counter_sound.wav'
+DONE_SOUND = 'long_done_sound.wav'
 
 
 def _play_audio(audio_file):
@@ -86,7 +72,7 @@ def _capture_video(video_duration=0., record=False):
 
         while time_left > 0:
             if not record and time_left > 0.5 and abs(countdown - time_left) <= margin:
-                _play_audio(countdown_sound)
+                _play_audio(COUNTDOWN_SOUND)
                 countdown -= 1
 
             ret, frame_norm = cap.read()
@@ -95,7 +81,7 @@ def _capture_video(video_duration=0., record=False):
             frame_size = (frame.shape[1], frame.shape[0])
 
             if record:
-                message = f"Recording Video {str(index + 1)}"
+                message = f"Recording video {str(index + 1)}"
             else:
                 message = f"Get into position {str(index + 1)}"
 
@@ -124,7 +110,7 @@ def _capture_video(video_duration=0., record=False):
 
             time_left = video_duration - time.time() + t
 
-        _play_audio(done_sound)
+        _play_audio(DONE_SOUND)
 
         calculated_fps = round(len(frames) / video_duration)
         fps = 16 if calculated_fps <= 16 else calculated_fps
