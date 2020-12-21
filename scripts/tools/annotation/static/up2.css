@@ -60,3 +60,15 @@
     left: 40px;
     top: 0px;
 }
+
+.file{
+    padding: 0px;
+}
+
+.column{
+    margin:10px;
+}
+
+.imagesRow{
+    display: flex;
+}

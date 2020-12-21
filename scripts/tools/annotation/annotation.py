@@ -76,14 +76,21 @@ def annot(nom):
     else:
         classes = [0] * len(features)
     print(classes)
-    images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if extension_ok(img)] # la liste des images dans le dossier
-    nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
+
+    # The list of images in folder
+    _images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if extension_ok(img)]
+    nums = [int(x.split('.')[0].split('/')[-1]) for x in _images]
     n_images = len(nums)
-    images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums,images))]
-    images = [[x[0], x[1], y] for x,y in zip(images, classes)]
+    _images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, _images))]
+    _images = [[x[0], x[1], y] for x, y in zip(_images, classes)]
     chunk_size = 5
-    n_chunk = int(len(images)/chunk_size)
-    images = np.array_split(images, n_chunk)
+    n_chunk = int(len(_images) / chunk_size)
+    remaining_images = len(_images) % chunk_size
+    if remaining_images:
+        images = np.array_split(_images[:-remaining_images], n_chunk)
+        images.append(np.array(_images[-remaining_images:]))
+    else:
+        images = np.array_split(_images, n_chunk)
     images = [list(x) for x in images]
     print(n_images)
     print(images)
@@ -96,8 +103,7 @@ def response():
         data = request.form # a multidict containing POST data
         num = int(data['num'])
         fps = float(data['fps'])
-        desc = {'file': videos[num] + ".mp4"}
-        desc['fps'] = fps
+        desc = {'file': videos[num] + ".mp4", 'fps': fps}
         out_annotation = os.path.join(tags_dir, videos[num] + ".json")
         time_annotation = []
         for i in range(int(data['n_images'])):
