@@ -12,9 +12,9 @@
     {% if images %}
         <ul class="file">
             {% for imgs in images %}
-            <div class="imgRow">
+            <div class="row imgRow">
                 {% for img, num, pred_class in imgs %}
-                <div class="column">
+                <div class="col">
                     <div class="imgContainer">
                         <img src="{{url_for('download_file', filename=img)}}" width="400px" height="300px">
                     </div>
