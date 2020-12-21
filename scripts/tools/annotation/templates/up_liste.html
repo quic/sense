@@ -10,11 +10,11 @@
     <input type="hidden" id="num" name="num" value="{{num}}">
     <input type="hidden" id="n_images" name="n_images" value="{{n_images}}">
     {% if images %}
-        <ul class="file">
+        <ul class="image-file">
             {% for imgs in images %}
-            <div class="row imgRow">
+            <div class="image-row">
                 {% for img, num, pred_class in imgs %}
-                <div class="col">
+                <div class="image-col">
                     <div class="imgContainer">
                         <img src="{{url_for('download_file', filename=img)}}" width="400px" height="300px">
                     </div>

@@ -60,14 +60,14 @@
     top: 0px;
 }
 
-.file{
+.image-file{
     padding: 0px;
 }
 
-.col{
+.image-col{
     margin: 10px;
 }
 
-.imgRow{
+.image-row{
     display: flex;
 }
