@@ -28,11 +28,10 @@ from flask import url_for
 from joblib import dump
 from joblib import load
 from os.path import join
-from pathlib import Path
 from sklearn.linear_model import LogisticRegression
 
 args = docopt(__doc__)
-dataset_path = str(Path.cwd() / args['--data_path'])
+dataset_path = join(os.getcwd(), args['--data_path'])
 split = args['--split']
 label = args['--label']
 folder = join(dataset_path, f'videos_{split}', label)
@@ -59,7 +58,7 @@ videos.sort()
 
 
 def extension_ok(nomfic):
-    """Return `True` if the file has a valid image extension."""
+    """Returns `True` if the file has a valid image extension."""
     return '.' in nomfic and nomfic.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 

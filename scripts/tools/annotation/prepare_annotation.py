@@ -16,7 +16,6 @@ import glob
 
 from docopt import docopt
 from os.path import join
-from pathlib import Path
 
 from sense import engine
 from sense import feature_extractors
@@ -25,7 +24,7 @@ from sense.finetuning import compute_features
 
 if __name__ == "__main__":
     args = docopt(__doc__)
-    dataset_path = str(Path.cwd() / args['--data_path'])
+    dataset_path = join(os.getcwd(), args['--data_path'])
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
