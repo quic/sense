@@ -13,6 +13,7 @@ Options:
   --label=LABEL             Class-label to get the videos for annotation
 """
 
+
 import glob
 import json
 import numpy as np
@@ -30,35 +31,13 @@ from joblib import load
 from os.path import join
 from sklearn.linear_model import LogisticRegression
 
-args = docopt(__doc__)
-dataset_path = join(os.getcwd(), args['--data_path'])
-split = args['--split']
-label = args['--label']
-folder = join(dataset_path, f'videos_{split}', label)
-
-features_dir = join(dataset_path, f'features_{split}', label)
-frames_dir = join(dataset_path, f'frames_{split}', label)
-
-tags_dir = join(dataset_path, f'tags_{split}', label)
-lr_dir = join(dataset_path, 'lr', label)
-os.makedirs(lr_dir, exist_ok=True)
-os.makedirs(tags_dir, exist_ok=True)
-
-lr = None
-lr_path = join(lr_dir, 'lr.joblib')
-if os.path.isfile(lr_path):
-    lr = load(lr_path)
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
-DOSSIER_UPS = frames_dir
-videos = os.listdir(frames_dir)
-videos.sort()
-
 
 def extension_ok(nomfic):
-    """Returns `True` if the file has a valid image extension."""
+    """ Returns `True` if the file has a valid image extension. """
     return '.' in nomfic and nomfic.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 
@@ -83,18 +62,18 @@ def annot(nom):
     print(classes)
 
     # The list of images in the folder
-    images = [img for img in glob.glob(join(DOSSIER_UPS, videos[nom] + '/*')) if extension_ok(img)]
+    images = [img for img in glob.glob(join(frames_dir, videos[nom] + '/*')) if extension_ok(img)]
+
     nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
     images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, images))]
     images = [[x[0], x[1], y] for x, y in zip(images, classes)]
     chunk_size = 5
-    n_chunk = int(len(images) / chunk_size)
-    images = np.array_split(images, n_chunk)
+    images = np.array_split(images, np.arange(chunk_size, len(images), chunk_size))
     images = [list(x) for x in images]
-    print(n_images)
+    print(f"Number of images: {n_images}")
     print(images)
-    return render_template('up_liste.html', images=images, num=nom, fps=16, n_images=n_images, video_name=videos[nom])
+    return render_template('up_list.html', images=images, num=nom, fps=16, n_images=n_images, video_name=videos[nom])
 
 
 @app.route('/response', methods=['POST'])
@@ -103,16 +82,17 @@ def response():
         data = request.form  # a multi-dict containing POST data
         num = int(data['num'])
         fps = float(data['fps'])
-        desc = {'file': videos[num] + ".mp4", 'fps': fps}
-        out_annotation = join(tags_dir, videos[num] + ".json")
+        next_frame_num = num + 1
+        description = {'file': videos[num] + ".mp4", 'fps': fps}
+        out_annotation = os.path.join(tags_dir, videos[num] + ".json")
         time_annotation = []
         for i in range(int(data['n_images'])):
             time_annotation.append(int(data[str(i)]))
-        desc['time_annotation'] = time_annotation
-        json.dump(desc, open(out_annotation, 'w'))
-    if num + 1 >= len(videos):
-        return redirect(url_for('list_annot'))
-    return redirect(url_for('annot', nom=num + 1))
+        description['time_annotation'] = time_annotation
+        json.dump(description, open(out_annotation, 'w'))
+        if next_frame_num >= len(videos):
+            return redirect(url_for('list_annot'))
+    return redirect(url_for('annot', nom=next_frame_num))
 
 
 @app.route('/train_lr', methods=['POST'])
@@ -180,4 +160,26 @@ def download_file(filename):
 
 
 if __name__ == '__main__':
+    # Parse arguments
+    args = docopt(__doc__)
+    dataset_path = args['--data_path']
+    split = args['--split']
+    label = args['--label']
+
+    folder = os.path.join(dataset_path, f'videos_{split}', label)
+    features_dir = dataset_path + f"features_{split}/{label}/"
+    frames_dir = dataset_path + f"frames_{split}/{label}/"
+    tags_dir = dataset_path + f"tags_{split}/{label}/"
+    lr_dir = join(dataset_path, 'lr', label)
+    os.makedirs(lr_dir, exist_ok=True)
+    os.makedirs(tags_dir, exist_ok=True)
+
+    videos = os.listdir(frames_dir)
+    videos.sort()
+
+    lr = None
+    lr_path = join(lr_dir, 'lr.joblib')
+    if os.path.isfile(lr_path):
+        lr = load(lr_path)
+
     app.run(debug=True)

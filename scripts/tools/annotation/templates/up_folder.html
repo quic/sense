@@ -1,14 +1,15 @@
-{% extends 'up_squelette.html' %}
+{% extends 'up_skeleton.html' %}
 
-{% block title %}Liste des images{% endblock %}
+{% block title %} List of images {% endblock %}
 
 {% block main %}
 <h1>Video list</h1>
 {% if folders %}
-	<ul class="fichiers">
+	<ul class="video-file">
 	{% for  f, id in folders %}
-		<li><a href="{{ url_for('annot', nom=id) }}">{{ f }}</a></li>
-
+		<li>
+			<a href="{{ url_for('annot', nom=id) }}">{{ f }}</a>
+		</li>
 	{% endfor %}
 	</ul>
 {% endif %}

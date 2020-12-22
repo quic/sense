@@ -23,6 +23,7 @@ from sense.finetuning import compute_features
 from sense.finetuning import set_internal_padding_false
 
 if __name__ == "__main__":
+    # Parse argument
     args = docopt(__doc__)
     dataset_path = join(os.getcwd(), args['--data_path'])
 

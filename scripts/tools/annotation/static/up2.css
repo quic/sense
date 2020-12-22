@@ -44,7 +44,6 @@
     border-radius: 0 4px 4px 0;
 }
 
-
 .input-color {
     position: relative;
 }
@@ -59,4 +58,16 @@
     position: absolute;
     left: 40px;
     top: 0px;
+}
+
+.image-file{
+    padding: 0px;
+}
+
+.image-col{
+    margin: 10px;
+}
+
+.image-row{
+    display: flex;
 }
