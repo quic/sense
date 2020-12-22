@@ -17,29 +17,32 @@ Options:
 """
 
 import ffmpeg
+import os
 
 from docopt import docopt
-from pathlib import Path
 
 if __name__ == '__main__':
+    # Parse arguments
     args = docopt(__doc__)
-    videos_path_in = Path.cwd() / Path(args['--path_in'])
-    videos_path_out = Path.cwd() / Path(args['--path_out']) if args.get('--path_out') else videos_path_in
+    videos_path_in = os.path.join(os.getcwd(), args['--path_in'])
+    print(videos_path_in)
+    videos_path_out = os.path.join(os.getcwd(), args['--path_out']) if args.get('--path_out') else videos_path_in
+    print(videos_path_out)
     # Training script expects videos in MP4 format
     VIDEO_EXT = '.mp4'
 
     # Create directory to save flipped videos
-    videos_path_out.mkdir(parents=True, exist_ok=True)
+    os.makedirs(videos_path_out, exist_ok=True)
 
-    for video in videos_path_in.iterdir():
-        print(f'Processing video: {video.name}')
-        flipped_video_name = video.stem + '_flipped' + VIDEO_EXT
+    for video in os.listdir(videos_path_in):
+        print(f'Processing video: {video}')
+        flipped_video_name = video.split('.')[0] + '_flipped' + VIDEO_EXT
         # Original video as input
-        original_video = ffmpeg.input(video)
+        original_video = ffmpeg.input(os.path.join(videos_path_in, video))
         # Do horizontal flip
         flipped_video = ffmpeg.hflip(original_video)
         # Get flipped video output
-        flipped_video_output = ffmpeg.output(flipped_video, filename=videos_path_out / flipped_video_name)
+        flipped_video_output = ffmpeg.output(flipped_video, filename=os.path.join(videos_path_out, flipped_video_name))
         # Run to render and save video
         ffmpeg.run(flipped_video_output)
 
