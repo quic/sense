@@ -22,6 +22,8 @@ Options:
                                  in the json file should have the following format: {'file': NAME,
                                  'label': LABEL}.
   --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
+  --temporal_training            Use this flag if your dataset has been annotated with the temporal
+                                 annotations tool
 """
 import json
 import os
