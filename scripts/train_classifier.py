@@ -65,8 +65,6 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    # remove internal padding for feature extraction and training
-    feature_extractor.apply(set_internal_padding_false)
     checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
@@ -86,12 +84,12 @@ if __name__ == "__main__":
 
     # Concatenate feature extractor and met converter
     if num_layers_to_finetune > 0:
-        custom_classifier_bottom = feature_extractor.cnn[-num_layers_to_finetune:]
+        fine_tuned_layers = feature_extractor.cnn[-num_layers_to_finetune:]
         feature_extractor.cnn = feature_extractor.cnn[0:-num_layers_to_finetune]
 
     # finetune the model
     extract_features(path_in, feature_extractor, num_layers_to_finetune, use_gpu,
-                     minimum_frames=minimum_frames)
+                     num_timesteps=num_timesteps)
 
     # Find label names
     label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))
@@ -106,13 +104,13 @@ if __name__ == "__main__":
 
     # create the data loaders
     train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}", "tags_train",
-                                        label_names, label2int, label2int_temporal_annotation,  model_time_step=num_timesteps,
-                                        num_timesteps=num_timesteps, minimum_frames=minimum_frames, stride=extractor_stride,
+                                        label_names, label2int, label2int_temporal_annotation,
+                                        num_timesteps=num_timesteps, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
     valid_loader = generate_data_loader(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}", "tags_valid",
-                                        label_names, label2int, label2int_temporal_annotation, model_time_step=num_timesteps,
-                                                 num_timesteps=None, batch_size=1, shuffle=False, minimum_frames=minimum_frames, stride=extractor_stride,
+                                        label_names, label2int, label2int_temporal_annotation,
+                                        num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
     # modeify the network to generate the training network on top of the features
@@ -120,13 +118,16 @@ if __name__ == "__main__":
         num_output = len(label_counting)
     else:
         num_output = len(label_names)
+
     # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_output,
                                             use_softmax=False)
 
     if num_layers_to_finetune > 0:
-        net = Pipe(custom_classifier_bottom, gesture_classifier)
+        # remove internal padding for training
+        fine_tuned_layers.apply(set_internal_padding_false)
+        net = Pipe(fine_tuned_layers, gesture_classifier)
     else:
         net = gesture_classifier
     net.train()
