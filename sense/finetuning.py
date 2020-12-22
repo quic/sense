@@ -76,8 +76,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
                 temporal_annotation = temporal_annotation[position:position + 1]
 
                 # selecting the corresponding features.
-                features = features[position * int(4 / self.stride): position * int(
-                    4 / self.stride) + self.num_timesteps]
+                features = features[position * int(MODEL_TEMPORAL_STRIDE / self.stride): position * int(
+                    MODEL_TEMPORAL_STRIDE / self.stride) + self.num_timesteps]
             else:
                 # remove padded frames
                 minimum_position = min(num_preds - self.num_timesteps - 1,
@@ -197,7 +197,7 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
     temporal_dependancy_features = np.array(pre_features)[-num_timesteps:]
 
     # predictions of the actual video frames
-    predictions = inference_engine.infer(clip[:, 48:], batch_size=batch_size)
+    predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
     predictions = np.concatenate([temporal_dependancy_features, predictions], axis=0)
     features = np.array(predictions)
     os.makedirs(os.path.dirname(path_out), exist_ok=True)
@@ -207,8 +207,8 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
         frames_to_save = []
         # remove the padded frames. extract frames starting at the first one (feature for the
         # first frame)
-        for e, frame in enumerate(frames[47:]):
-            if e % 4 == 0:
+        for e, frame in enumerate(frames[frames_to_add:]):
+            if e % MODEL_TEMPORAL_STRIDE == 0:
                 frames_to_save.append(frame)
         for e, frame in enumerate(frames_to_save):
             Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
