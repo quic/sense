@@ -31,32 +31,9 @@ from joblib import load
 from os.path import join
 from sklearn.linear_model import LogisticRegression
 
-args = docopt(__doc__)
-dataset_path = join(os.getcwd(), args['--data_path'])
-split = args['--split']
-label = args['--label']
-folder = join(dataset_path, f'videos_{split}', label)
-
-features_dir = join(dataset_path, f'features_{split}', label)
-frames_dir = join(dataset_path, f'frames_{split}', label)
-
-tags_dir = join(dataset_path, f'tags_{split}', label)
-lr_dir = join(dataset_path, 'lr', label)
-os.makedirs(lr_dir, exist_ok=True)
-os.makedirs(tags_dir, exist_ok=True)
-
-lr = None
-lr_path = join(lr_dir, 'lr.joblib')
-if os.path.isfile(lr_path):
-    lr = load(lr_path)
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
-
-DOSSIER_UPS = frames_dir
-videos = os.listdir(frames_dir)
-videos.sort()
-
 
 
 def extension_ok(nomfic):
@@ -85,7 +62,7 @@ def annot(nom):
     print(classes)
 
     # The list of images in the folder
-    images = [img for img in glob.glob(join(DOSSIER_UPS, videos[nom] + '/*')) if extension_ok(img)]
+    images = [img for img in glob.glob(join(frames_dir, videos[nom] + '/*')) if extension_ok(img)]
     
     nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
