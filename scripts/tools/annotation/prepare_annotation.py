@@ -22,7 +22,7 @@ from sense.finetuning import compute_features
 
 
 if __name__ == "__main__":
-
+    # Parse argument
     args = docopt(__doc__)
     dataset_path = args['--data_path']
 

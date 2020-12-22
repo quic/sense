@@ -178,7 +178,7 @@ def download_file(filename):
 
 
 if __name__ == '__main__':
-
+    # Parse arguments
     args = docopt(__doc__)
     dataset_path = args['--data_path']
     split = args['--split']
