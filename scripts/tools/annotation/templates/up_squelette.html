@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="fr">
+<html class="no-js" lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -11,11 +11,11 @@
 </head>
 <body>
 
-{# on affiche les messages d'erreur puis les messages de succes #}
-{% for categorie in ['error', 'succes'] %}
-    {% with msgs = get_flashed_messages(category_filter=[categorie]) %}
+{# the error messages are displayed then the success messages #}
+{% for category in ['error', 'success'] %}
+    {% with msgs = get_flashed_messages(category_filter=[category]) %}
         {% if msgs %}
-        <ul class="flashed {{ categorie }}">
+        <ul class="flashed {{ category }}">
             {% for m in msgs %}
                 <li>{{ m|safe }}</li>
             {% endfor %}
