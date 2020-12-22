@@ -20,12 +20,13 @@ import ffmpeg
 import os
 
 from docopt import docopt
+from os.path import join
 
 if __name__ == '__main__':
     # Parse arguments
     args = docopt(__doc__)
-    videos_path_in = os.path.join(os.getcwd(), args['--path_in'])
-    videos_path_out = os.path.join(os.getcwd(), args.get('--path_out', args['--path_in']))
+    videos_path_in = join(os.getcwd(), args['--path_in'])
+    videos_path_out = join(os.getcwd(), args.get('--path_out', args['--path_in']))
     # Training script expects videos in MP4 format
     VIDEO_EXT = '.mp4'
 
@@ -36,11 +37,11 @@ if __name__ == '__main__':
         print(f'Processing video: {video}')
         flipped_video_name = video.split('.')[0] + '_flipped' + VIDEO_EXT
         # Original video as input
-        original_video = ffmpeg.input(os.path.join(videos_path_in, video))
+        original_video = ffmpeg.input(join(videos_path_in, video))
         # Do horizontal flip
         flipped_video = ffmpeg.hflip(original_video)
         # Get flipped video output
-        flipped_video_output = ffmpeg.output(flipped_video, filename=os.path.join(videos_path_out, flipped_video_name))
+        flipped_video_output = ffmpeg.output(flipped_video, filename=join(videos_path_out, flipped_video_name))
         # Run to render and save video
         ffmpeg.run(flipped_video_output)
 
