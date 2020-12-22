@@ -180,7 +180,7 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
 
     # add 47 frames at the beginning, in order to "warm up the model with the first image,
     # and make sure we have enough frames in the video
-    # Possible improvement : investigate if a symetric or reflect padding could be better for
+    # Possible improvement : investigate if a symmetric or reflect padding could be better for
     # temporal annotation prediction instead of the static first frame
     frames = np.pad(frames, ((47, 0), (0, 0), (0, 0), (0, 0)),
                         mode='edge')
