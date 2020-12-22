@@ -12,6 +12,7 @@ Options:
   --split=SPLIT             Type of split to collect videos from, either `train` or `valid`
   --label=LABEL             Class-label to get the videos for annotation
 """
+
 from docopt import docopt
 from flask import Flask, request, flash, redirect, url_for
 from flask import render_template, send_from_directory
@@ -24,46 +25,20 @@ from sklearn.linear_model import LogisticRegression
 from joblib import dump, load
 
 
-args = docopt(__doc__)
-dataset_path = args['--data_path']
-split = args['--split']
-label = args['--label']
-folder = os.path.join(dataset_path, f'videos_{split}', label)
-
-# out_folder = '/home/amercier/code/sense/annotation/0/'
-features_dir = dataset_path + f"features_{split}/{label}/"
-frames_dir = dataset_path + f"frames_{split}/{label}/"
-
-tags_dir = dataset_path + f"tags_{split}/{label}/"
-lr_dir = join(dataset_path, 'lr', label)
-os.makedirs(lr_dir, exist_ok=True)
-os.makedirs(tags_dir, exist_ok=True)
-
-lr = None
-lr_path = join(lr_dir, 'lr.joblib')
-if os.path.isfile(lr_path):
-    lr = load(lr_path)
-
-
-
-
-
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
-DOSSIER_UPS = frames_dir
-videos = os.listdir(frames_dir)
-
-videos.sort()
 
 def extension_ok(nomfic):
-    """ Renvoie True si le fichier possède une extension d'image valide. """
+    """ Returns `True` if the file has a valid image extension. """
     return '.' in nomfic and nomfic.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
+
 
 @app.route('/annot/')
 def list_annot():
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('up_folder.html', folders=folder_id)
+
 
 @app.route('/annot/<nom>')
 def annot(nom):
@@ -78,7 +53,7 @@ def annot(nom):
     print(classes)
 
     # The list of images in folder
-    images = [img for img in glob.glob(DOSSIER_UPS + '/' + videos[nom] + '/*') if extension_ok(img)]
+    images = [img for img in glob.glob(frames_dir + '/' + videos[nom] + '/*') if extension_ok(img)]
     nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
     images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, images))]
@@ -86,35 +61,35 @@ def annot(nom):
     chunk_size = 5
     images = np.array_split(images, np.arange(chunk_size, len(images), chunk_size))
     images = [list(x) for x in images]
-    print(n_images)
+    print(f"Number of images: {n_images}")
     print(images)
     return render_template('up_liste.html', images=images, num=nom, fps=16, n_images=n_images, video_name=videos[nom])
 
 
-@app.route('/response', methods = ['POST'])
+@app.route('/response', methods=['POST'])
 def response():
     if request.method == 'POST':
-        data = request.form # a multidict containing POST data
+        data = request.form                 # a multi-dict containing POST data
         num = int(data['num'])
         fps = float(data['fps'])
-        desc = {'file': videos[num] + ".mp4"}
-        desc['fps'] = fps
+        next_frame_num = num+1
+        description = {'file': videos[num] + ".mp4", 'fps': fps}
         out_annotation = os.path.join(tags_dir, videos[num] + ".json")
         time_annotation = []
         for i in range(int(data['n_images'])):
             time_annotation.append(int(data[str(i)]))
-        desc['time_annotation'] = time_annotation
-        json.dump(desc, open(out_annotation, 'w'))
-    if num+1 >= len(videos):
-        return redirect(url_for('list_annot'))
-    return redirect(url_for('annot', nom=num+1))
+        description['time_annotation'] = time_annotation
+        json.dump(description, open(out_annotation, 'w'))
+        if next_frame_num >= len(videos):
+            return redirect(url_for('list_annot'))
+    return redirect(url_for('annot', nom=next_frame_num))
 
 
 @app.route('/train_lr', methods=['POST'])
 def train_lr():
     global lr
     if request.method == 'POST':
-        data = request.form # a multidict containing POST data
+        data = request.form                 # a multi-dict containing POST data
         num = int(data['num'])
         annotations = os.listdir(tags_dir)
         class_weight = {0: 0.5}
@@ -182,6 +157,7 @@ def train_lr():
 #     json.dump(new_annotations, open(os.path.join('annotations', 'export_annotations.json'), 'w'))
 #     return redirect(url_for('annot', nom=num))
 
+
 @app.after_request
 def add_header(r):
     """
@@ -194,10 +170,34 @@ def add_header(r):
     r.headers['Cache-Control'] = 'public, max-age=0'
     return r
 
+
 @app.route('/uploads/<path:filename>')
 def download_file(filename):
     return send_from_directory(frames_dir, filename, as_attachment=True)
 
+
 if __name__ == '__main__':
+
+    args = docopt(__doc__)
+    dataset_path = args['--data_path']
+    split = args['--split']
+    label = args['--label']
+
+    folder = os.path.join(dataset_path, f'videos_{split}', label)
+    features_dir = dataset_path + f"features_{split}/{label}/"
+    frames_dir = dataset_path + f"frames_{split}/{label}/"
+    tags_dir = dataset_path + f"tags_{split}/{label}/"
+    lr_dir = join(dataset_path, 'lr', label)
+    os.makedirs(lr_dir, exist_ok=True)
+    os.makedirs(tags_dir, exist_ok=True)
+
+    videos = os.listdir(frames_dir)
+    videos.sort()
+
+    lr = None
+    lr_path = join(lr_dir, 'lr.joblib')
+    if os.path.isfile(lr_path):
+        lr = load(lr_path)
+
     app.run(debug=True)
 
