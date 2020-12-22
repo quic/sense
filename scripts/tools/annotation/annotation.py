@@ -162,33 +162,6 @@ def train_lr():
     return redirect(url_for('annot', nom=num))
 
 
-# @app.route('/export_annotation', methods=['POST'])
-# def export_annotation():
-#     data = request.form       # a multi-dict containing POST data
-#     num = int(data['num'])
-#     new_annotations = []
-#     for label, tags in export_labels.items():
-#         annotations_tagged = glob.glob(join('annotations', label, 'tags', '*', 'annotation.json'))
-#         for an in annotations_tagged:
-#             an = json.load(open(an, 'r'))
-#             time_annotation = np.array(an.pop('time_annotation'))
-#             fps = an.pop('fps')
-#             ones = np.where(time_annotation == 1)[0]
-#             twos = np.where(time_annotation == 2)[0]
-#             ones = (ones*4 + 3)/fps
-#             twos = (twos*4 + 3)/fps
-#             if len(ones) + len(twos) > 0:
-#                 count_tags = {}
-#                 if len(ones) > 0:
-#                     count_tags[tags[0]] = list(ones)
-#                 if len(twos) > 0:
-#                     count_tags[tags[1]] = list(twos)
-#                 an['counting_tag'] = count_tags
-#                 new_annotations.append(an)
-#     json.dump(new_annotations, open(join('annotations', 'export_annotations.json'), 'w'))
-#     return redirect(url_for('annot', nom=num))
-
-
 @app.after_request
 def add_header(r):
     """
