@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     # Concatenate feature extractor and met converter
     if num_layers_to_finetune > 0:
-        custom_classifier_bottom = feature_extractor.cnn[-num_layers_to_finetune:]
+        fine_tuned_layers = feature_extractor.cnn[-num_layers_to_finetune:]
         feature_extractor.cnn = feature_extractor.cnn[0:-num_layers_to_finetune]
 
     # finetune the model
@@ -120,14 +120,15 @@ if __name__ == "__main__":
         num_output = len(label_names)
 
     # remove internal padding for training
-    custom_classifier_bottom.apply(set_internal_padding_false)
+    if num_layers_to_finetune > 0:
+        fine_tuned_layers.apply(set_internal_padding_false)
     # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_output,
                                             use_softmax=False)
 
     if num_layers_to_finetune > 0:
-        net = Pipe(custom_classifier_bottom, gesture_classifier)
+        net = Pipe(fine_tuned_layers, gesture_classifier)
     else:
         net = gesture_classifier
     net.train()
