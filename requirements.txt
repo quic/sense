@@ -7,6 +7,7 @@ docopt                  ==0.6.2       # MIT
 matplotlib              ==3.3.2       # BSD
 scikit-learn            ==0.23.2      # BSD
 Flask                   ==1.1.2       # BSD
+Pillow                  ==8.0.1       # HPND
 
 # Dependencies needed for converting Pytorch models to CoreML
 tensorflow              ==1.14.0
