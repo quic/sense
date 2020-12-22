@@ -23,13 +23,17 @@ def set_internal_padding_false(module):
 
 
 class FeaturesDataset(torch.utils.data.Dataset):
-    """Features dataset.
-    For the training, we will sample just enough timesteps from the features to get one temporal
-    output.
-    If performing a non temporal annotation training, we try to discard the features comming from
-    the padding.
-    If performing a temporal annotation training, we sample the different annotations such as to
-    have roughly the same probability to get a background label or a non background label.
+    """ Features dataset.
+    
+    This object returns a list of  features from the features dataset based on the specified parameters.
+    
+    During training, only the number of timesteps required for one temporal output is sampled from the features. 
+    
+    For training with non-temporal annotations, features extracted from padded segments are discarded 
+    so long as the minimum video length is met. 
+    
+    For training with temporal annotations, samples from the background label and non-background label
+    are returned with approximately the same probability.
     """
 
     def __init__(self, files, labels, temporal_annotation, model_time_step,
