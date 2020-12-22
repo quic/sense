@@ -41,8 +41,9 @@ def extension_ok(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 
+@app.route('/')
 @app.route('/annotate/')
-def prepare_gridview():
+def show_video_list():
     """Gets the data and creates the HTML template with all videos for the given class-label."""
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('up_folder.html', folders=folder_id)
@@ -99,7 +100,7 @@ def response():
         json.dump(description, open(out_annotation, 'w'))
 
         if next_frame_idx >= len(videos):
-            return redirect(url_for('prepare_gridview'))
+            return redirect(url_for('show_video_list'))
 
     return redirect(url_for('annotate', idx=next_frame_idx))
 
