@@ -39,12 +39,11 @@ class FeaturesDataset(torch.utils.data.Dataset):
     """
 
     def __init__(self, files, labels, temporal_annotation, full_network_minimum_frames,
-                 num_timesteps=None, minimum_frames=45, stride=4):
+                 num_timesteps=None, stride=4):
         self.files = files
         self.labels = labels
         self.num_timesteps = num_timesteps
         self.stride = stride
-        self.minimum_frames = minimum_frames
         self.temporal_annotations = temporal_annotation
         # Compute the number of features that come from padding:
         self.num_frames_padded = int((full_network_minimum_frames - 1) / self.stride)
@@ -93,8 +92,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
 
 def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label2int,
                          label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
-                         minimum_frames=45, stride=4, path_annotations=None,
-                         temporal_annotation_only=False, full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
+                         stride=4, path_annotations=None, temporal_annotation_only=False,
+                         full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
     # Find pre-computed features and derive corresponding labels
     tags_dir = os.path.join(dataset_dir, tags_dir)
     features_dir = os.path.join(dataset_dir, features_dir)
@@ -138,8 +137,8 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
 
     # Build dataloader
     dataset = FeaturesDataset(features, labels, temporal_annotation,
-                              num_timesteps=num_timesteps, minimum_frames=minimum_frames,
-                              stride=stride, full_network_minimum_frames=full_network_minimum_frames)
+                              num_timesteps=num_timesteps, stride=stride,
+                              full_network_minimum_frames=full_network_minimum_frames)
     data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
 
     return data_loader
