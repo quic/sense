@@ -16,6 +16,7 @@ from sklearn.metrics import confusion_matrix
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
 
+
 def set_internal_padding_false(module):
     """
     This is used to turn off padding of steppable convolution layers.
@@ -26,14 +27,14 @@ def set_internal_padding_false(module):
 
 class FeaturesDataset(torch.utils.data.Dataset):
     """ Features dataset.
-    
+
     This object returns a list of  features from the features dataset based on the specified parameters.
-    
-    During training, only the number of timesteps required for one temporal output is sampled from the features. 
-    
-    For training with non-temporal annotations, features extracted from padded segments are discarded 
-    so long as the minimum video length is met. 
-    
+
+    During training, only the number of timesteps required for one temporal output is sampled from the features.
+
+    For training with non-temporal annotations, features extracted from padded segments are discarded
+    so long as the minimum video length is met.
+
     For training with temporal annotations, samples from the background label and non-background label
     are returned with approximately the same probability.
     """
@@ -201,6 +202,7 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
     features = np.array(predictions)
     os.makedirs(os.path.dirname(path_out), exist_ok=True)
     np.save(path_out, features)
+
     if path_frames is not None:
         os.makedirs(os.path.dirname(path_frames), exist_ok=True)
         frames_to_save = []
@@ -209,6 +211,7 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
         for e, frame in enumerate(frames[frames_to_add:]):
             if e % MODEL_TEMPORAL_STRIDE == 0:
                 frames_to_save.append(frame)
+
         for e, frame in enumerate(frames_to_save):
             Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)

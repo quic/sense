@@ -60,8 +60,6 @@ if __name__ == "__main__":
     path_annotations_valid = args['--path_annotations_valid'] or None
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
     temporal_training = args['--temporal_training']
-    if not temporal_training:
-        temporal_training = False
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
@@ -95,21 +93,23 @@ if __name__ == "__main__":
     label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))
     label_names = [x for x in label_names if not x.startswith('.')]
     label_counting = ['counting_background']
+
     for label in label_names:
         label_counting += [f'{label}_position_1', f'{label}_position_2']
+
     label2int_temporal_annotation = {name: index for index, name in enumerate(label_counting)}
     label2int = {name: index for index, name in enumerate(label_names)}
 
     extractor_stride = feature_extractor.num_required_frames_per_layer_padding[0]
 
     # create the data loaders
-    train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}", "tags_train",
-                                        label_names, label2int, label2int_temporal_annotation,
+    train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}",
+                                        "tags_train", label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=num_timesteps, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
-    valid_loader = generate_data_loader(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}", "tags_valid",
-                                        label_names, label2int, label2int_temporal_annotation,
+    valid_loader = generate_data_loader(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}",
+                                        "tags_valid", label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
@@ -137,7 +137,8 @@ if __name__ == "__main__":
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 80
-    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out, temporal_annotation_training=temporal_training)
+    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
+                                           label_names, path_out, temporal_annotation_training=temporal_training)
 
     # Save best model
     if isinstance(net, Pipe):

@@ -113,7 +113,7 @@ class InferenceEngine(Thread):
         :param clip:
             The video frame to be inferred.
         :param batch_size:
-            Batch size to perform inference. Warning ! only use if you did not remove
+            Batch size to perform inference. Warning, only use if you did not remove
             padding from model.
 
         :return:
