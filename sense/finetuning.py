@@ -36,14 +36,13 @@ class FeaturesDataset(torch.utils.data.Dataset):
     are returned with approximately the same probability.
     """
 
-    def __init__(self, files, labels, temporal_annotation, model_time_step,
+    def __init__(self, files, labels, temporal_annotation,
                  num_timesteps=None, minimum_frames=45, stride=4, full_network_minimum_frames=45):
         self.files = files
         self.labels = labels
         self.num_timesteps = num_timesteps
         self.stride = stride
         self.minimum_frames = minimum_frames
-        self.model_time_step = model_time_step
         self.temporal_annotations = temporal_annotation
         # Compute the number of features that come from padding:
         self.num_frames_padded = int((full_network_minimum_frames - 1) / self.stride)
@@ -91,8 +90,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
 
 
 def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label2int,
-                         label2int_temporal_annotation,
-                         model_time_step, num_timesteps=5, batch_size=16, shuffle=True,
+                         label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
                          minimum_frames=45, stride=4, path_annotations=None,
                          temporal_annotation_only=False, full_network_minimum_frames=45):
 
@@ -139,7 +137,7 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
 
 
     # Build dataloader
-    dataset = FeaturesDataset(features, labels, temporal_annotation, model_time_step=model_time_step,
+    dataset = FeaturesDataset(features, labels, temporal_annotation,
                               num_timesteps=num_timesteps, minimum_frames=minimum_frames,
                               stride=stride, full_network_minimum_frames=full_network_minimum_frames)
     data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
