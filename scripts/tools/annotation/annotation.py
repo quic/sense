@@ -63,7 +63,7 @@ def annot(nom):
 
     # The list of images in the folder
     images = [img for img in glob.glob(join(frames_dir, videos[nom] + '/*')) if extension_ok(img)]
-    
+
     nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
     images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, images))]
@@ -79,10 +79,10 @@ def annot(nom):
 @app.route('/response', methods=['POST'])
 def response():
     if request.method == 'POST':
-        data = request.form                 # a multi-dict containing POST data
+        data = request.form  # a multi-dict containing POST data
         num = int(data['num'])
         fps = float(data['fps'])
-        next_frame_num = num+1
+        next_frame_num = num + 1
         description = {'file': videos[num] + ".mp4", 'fps': fps}
         out_annotation = os.path.join(tags_dir, videos[num] + ".json")
         time_annotation = []
@@ -139,7 +139,6 @@ def train_lr():
             lr.fit(X, y)
             dump(lr, lr_path)
     return redirect(url_for('annot', nom=num))
-
 
 
 @app.after_request
