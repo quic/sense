@@ -13,16 +13,17 @@ Options:
   --label=LABEL             Class-label to get the videos for annotation
 """
 
-from docopt import docopt
-from flask import Flask, request, flash, redirect, url_for
-from flask import render_template, send_from_directory
-import os
-from os.path import join
 import json
 import glob
+import os
 import numpy as np
+
+from docopt import docopt
+from flask import Flask, request, redirect, url_for
+from flask import render_template, send_from_directory
 from sklearn.linear_model import LogisticRegression
 from joblib import dump, load
+from os.path import join
 
 
 app = Flask(__name__)
