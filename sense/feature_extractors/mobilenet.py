@@ -62,6 +62,7 @@ class SteppableConv3dAs2d(nn.Conv2d):
         super().train(mode)
         return self.reset()
 
+
 class SteppableSparseConv3dAs2d(SteppableConv3dAs2d):
 
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, **kwargs):
@@ -212,4 +213,24 @@ class StridedInflatedMobileNetV2(RealtimeNeuralNet):
             num_required_frames_per_layer[len(self.cnn) - 1 - index] = temporal_dependency
             num_required_frames_per_layer[-1 - index] = temporal_dependency
         num_required_frames_per_layer[0] = temporal_dependency
+        return num_required_frames_per_layer
+
+    @property
+    def num_required_frames_per_layer_padding(self):
+        """
+        Returns a mapping which maps the layer index to the minimum number of input frame
+        """
+        num_required_frames_per_layer = {}
+        temporal_dependency = 1
+
+        for index, layer in enumerate(self.cnn[::-1]):
+            if isinstance(layer, InvertedResidual):
+                if layer.temporal_stride:
+                    temporal_dependency = 2 * temporal_dependency
+
+            num_required_frames_per_layer[len(self.cnn) - 1 - index] = temporal_dependency
+            num_required_frames_per_layer[-1 - index] = temporal_dependency
+
+        num_required_frames_per_layer[0] = temporal_dependency
+
         return num_required_frames_per_layer
