@@ -183,7 +183,6 @@ if __name__ == '__main__':
     split = args['--split']
     label = args['--label']
 
-    folder = os.path.join(dataset_path, f'videos_{split}', label)
     features_dir = dataset_path + f"features_{split}/{label}/"
     frames_dir = dataset_path + f"frames_{split}/{label}/"
     tags_dir = dataset_path + f"tags_{split}/{label}/"
