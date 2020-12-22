@@ -16,8 +16,8 @@ import glob
 
 from docopt import docopt
 
-from sense import feature_extractors
 from sense import engine
+from sense import feature_extractors
 from sense.finetuning import compute_features
 
 
