@@ -119,15 +119,14 @@ if __name__ == "__main__":
     else:
         num_output = len(label_names)
 
-    # remove internal padding for training
-    if num_layers_to_finetune > 0:
-        fine_tuned_layers.apply(set_internal_padding_false)
     # modify the network to generate the training network on top of the features
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_output,
                                             use_softmax=False)
 
     if num_layers_to_finetune > 0:
+        # remove internal padding for training
+        fine_tuned_layers.apply(set_internal_padding_false)
         net = Pipe(fine_tuned_layers, gesture_classifier)
     else:
         net = gesture_classifier
