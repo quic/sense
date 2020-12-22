@@ -178,8 +178,8 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
     frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
 
-    # add 47 frames at the beginning, in order to "warm up the model with the first image,
-    # and make sure we have enough frames in the video
+    # 47 frames are padded to the left in order to "warm up" the model -- removing previous predictions from the
+    # internal states --  with the first image, and to ensure we have enough frames in the video
     # Possible improvement : investigate if a symmetric or reflect padding could be better for
     # temporal annotation prediction instead of the static first frame
     frames = np.pad(frames, ((47, 0), (0, 0), (0, 0), (0, 0)),
