@@ -105,12 +105,12 @@ if __name__ == "__main__":
     # create the data loaders
     train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}", "tags_train",
                                         label_names, label2int, label2int_temporal_annotation,
-                                        num_timesteps=num_timesteps, minimum_frames=minimum_frames, stride=extractor_stride,
+                                        num_timesteps=num_timesteps, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
     valid_loader = generate_data_loader(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}", "tags_valid",
                                         label_names, label2int, label2int_temporal_annotation,
-                                        num_timesteps=None, batch_size=1, shuffle=False, minimum_frames=minimum_frames, stride=extractor_stride,
+                                        num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
     # modeify the network to generate the training network on top of the features
