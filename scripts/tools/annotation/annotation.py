@@ -100,7 +100,6 @@ def annot(nom):
 
 @app.route('/response', methods=['POST'])
 def response():
-    """Needs a small description"""
     if request.method == 'POST':
         data = request.form  # a multi-dict containing POST data
         num = int(data['num'])
@@ -119,7 +118,6 @@ def response():
 
 @app.route('/train_lr', methods=['POST'])
 def train_lr():
-    """Needs a small description"""
     global lr
     if request.method == 'POST':
         data = request.form  # a multi-dict containing POST data
@@ -166,7 +164,6 @@ def train_lr():
 
 # @app.route('/export_annotation', methods=['POST'])
 # def export_annotation():
-#     """Needs a small description"""
 #     data = request.form       # a multi-dict containing POST data
 #     num = int(data['num'])
 #     new_annotations = []
@@ -207,7 +204,6 @@ def add_header(r):
 
 @app.route('/uploads/<path:filename>')
 def download_file(filename):
-    """Needs a small description"""
     return send_from_directory(frames_dir, filename, as_attachment=True)
 
 
