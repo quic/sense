@@ -199,7 +199,7 @@ From our experiments, our estimates correlate well with the workout intensity (i
 
 ---
 
-## Build your own classifier
+## Build Your Own Classifier
 
 This section will describe how you can build your own custom classifier on top of our models. Our models will serve
  as a powerful feature extractor that will reduce the amount of data you need to build your project. 
@@ -251,6 +251,18 @@ You can now run it live using the following script:
 ```shell
 PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
 ```
+
+---
+
+## Advanced Options
+
+You can further improve your model's performance by training on top of temporally annotated data; 
+individually labelled frames that identify the event locally in the video versus treating every frame with the same 
+label. For instructions on how to prepare your data with temporal annotation, refer to this 
+[page](https://github.com/TwentyBN/sense/wiki/tools#temporal-annotations-tool).
+
+After preparing your dataset with our temporal annotations tool, pass `--temporal_training` as an additional
+flag to the `train_classifier.py` script.
 
 ---
 
