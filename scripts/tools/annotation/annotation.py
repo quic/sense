@@ -8,26 +8,55 @@ Usage:
   annotation.py (-h | --help)
 
 Options:
-  --data_path=DATA_PATH     Full path to the data-set folder
+  --data_path=DATA_PATH     Complete or relative path to the data-set folder
   --split=SPLIT             Type of split to collect videos from, either `train` or `valid`
   --label=LABEL             Class-label to get the videos for annotation
 """
 
-import json
+
 import glob
-import os
+import json
 import numpy as np
+import os
 
 from docopt import docopt
-from flask import Flask, request, redirect, url_for
-from flask import render_template, send_from_directory
-from sklearn.linear_model import LogisticRegression
-from joblib import dump, load
+from flask import Flask
+from flask import redirect
+from flask import render_template
+from flask import request
+from flask import send_from_directory
+from flask import url_for
+from joblib import dump
+from joblib import load
 from os.path import join
+from sklearn.linear_model import LogisticRegression
 
+args = docopt(__doc__)
+dataset_path = join(os.getcwd(), args['--data_path'])
+split = args['--split']
+label = args['--label']
+folder = join(dataset_path, f'videos_{split}', label)
+
+features_dir = join(dataset_path, f'features_{split}', label)
+frames_dir = join(dataset_path, f'frames_{split}', label)
+
+tags_dir = join(dataset_path, f'tags_{split}', label)
+lr_dir = join(dataset_path, 'lr', label)
+os.makedirs(lr_dir, exist_ok=True)
+os.makedirs(tags_dir, exist_ok=True)
+
+lr = None
+lr_path = join(lr_dir, 'lr.joblib')
+if os.path.isfile(lr_path):
+    lr = load(lr_path)
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
+
+DOSSIER_UPS = frames_dir
+videos = os.listdir(frames_dir)
+videos.sort()
+
 
 
 def extension_ok(nomfic):
@@ -37,12 +66,14 @@ def extension_ok(nomfic):
 
 @app.route('/annot/')
 def list_annot():
+    """Gets the data and creates the HTML template with all videos for the given class-label."""
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('up_folder.html', folders=folder_id)
 
 
 @app.route('/annot/<nom>')
 def annot(nom):
+    """For the given class-label, this shows all the frames for annotating the selected video."""
     nom = int(nom)
     features = np.load(join(features_dir, videos[nom] + ".npy"))
     features = features.mean(axis=(2, 3))
@@ -53,8 +84,9 @@ def annot(nom):
         classes = [0] * len(features)
     print(classes)
 
-    # The list of images in folder
-    images = [img for img in glob.glob(frames_dir + '/' + videos[nom] + '/*') if extension_ok(img)]
+    # The list of images in the folder
+    images = [img for img in glob.glob(join(DOSSIER_UPS, videos[nom] + '/*')) if extension_ok(img)]
+    
     nums = [int(x.split('.')[0].split('/')[-1]) for x in images]
     n_images = len(nums)
     images = [[x.replace(frames_dir, ''), y] for y, x in sorted(zip(nums, images))]
@@ -90,13 +122,13 @@ def response():
 def train_lr():
     global lr
     if request.method == 'POST':
-        data = request.form                 # a multi-dict containing POST data
+        data = request.form  # a multi-dict containing POST data
         num = int(data['num'])
         annotations = os.listdir(tags_dir)
         class_weight = {0: 0.5}
         if annotations:
-            features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-            annotations = [os.path.join(tags_dir, x) for x in annotations]
+            features = [join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+            annotations = [join(tags_dir, x) for x in annotations]
             X = []
             y = []
             for feature in features:
@@ -131,32 +163,6 @@ def train_lr():
             dump(lr, lr_path)
     return redirect(url_for('annot', nom=num))
 
-#
-# @app.route('/export_annotation', methods = ['POST'])
-# def export_annotation():
-#     data = request.form  # a multidict containing POST data
-#     num = int(data['num'])
-#     new_annotations = []
-#     for label, tags in export_labels.items():
-#         annotations_taged = glob.glob(os.path.join('annotations',label, 'tags','*', 'annotation.json'))
-#         for an in annotations_taged:
-#             an = json.load(open(an,'r'))
-#             time_annotation = np.array(an.pop('time_annotation'))
-#             fps = an.pop('fps')
-#             ones = np.where(time_annotation == 1)[0]
-#             twos = np.where(time_annotation == 2)[0]
-#             ones = (ones*4 + 3)/fps
-#             twos = (twos*4 + 3)/fps
-#             if len(ones) + len(twos) > 0:
-#                 count_tags = {}
-#                 if len(ones) > 0:
-#                     count_tags[tags[0]] = list(ones)
-#                 if len(twos) > 0:
-#                     count_tags[tags[1]] = list(twos)
-#                 an['counting_tag'] = count_tags
-#                 new_annotations.append(an)
-#     json.dump(new_annotations, open(os.path.join('annotations', 'export_annotations.json'), 'w'))
-#     return redirect(url_for('annot', nom=num))
 
 
 @app.after_request
@@ -201,4 +207,3 @@ if __name__ == '__main__':
         lr = load(lr_path)
 
     app.run(debug=True)
-

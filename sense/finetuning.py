@@ -13,6 +13,8 @@ from sense import camera
 from sense import engine
 from sklearn.metrics import confusion_matrix
 
+MODEL_TEMPORAL_DEPENDENCY = 45
+MODEL_TEMPORAL_STRIDE = 4
 
 def set_internal_padding_false(module):
     """
@@ -23,18 +25,28 @@ def set_internal_padding_false(module):
 
 
 class FeaturesDataset(torch.utils.data.Dataset):
-    """Features dataset."""
+    """ Features dataset.
+    
+    This object returns a list of  features from the features dataset based on the specified parameters.
+    
+    During training, only the number of timesteps required for one temporal output is sampled from the features. 
+    
+    For training with non-temporal annotations, features extracted from padded segments are discarded 
+    so long as the minimum video length is met. 
+    
+    For training with temporal annotations, samples from the background label and non-background label
+    are returned with approximately the same probability.
+    """
 
-    def __init__(self, files, labels, temporal_annotation, model_time_step,
-                 num_timesteps=None, minimum_frames=45, stride=4):
+    def __init__(self, files, labels, temporal_annotation, full_network_minimum_frames,
+                 num_timesteps=None, stride=4):
         self.files = files
         self.labels = labels
         self.num_timesteps = num_timesteps
         self.stride = stride
-        self.minimum_frames = minimum_frames
-        self.model_time_step = model_time_step
         self.temporal_annotations = temporal_annotation
-        # besoin de prendre la dependance temporelle qui va se faire encore bouffer
+        # Compute the number of features that come from padding:
+        self.num_frames_padded = int((full_network_minimum_frames - 1) / self.stride)
 
     def __len__(self):
         return len(self.files)
@@ -46,27 +58,32 @@ class FeaturesDataset(torch.utils.data.Dataset):
         temporal_annotation = self.temporal_annotations[idx]
         # remove beggining of prediction that is not padded
         if temporal_annotation is not None:
-            temporal_annotation = temporal_annotation[int((self.minimum_frames - 1) /4):]
-            new_label = []
-            for l in temporal_annotation:
-                for _ in range(int(4 / self.stride)):
-                    new_label.append(l)
-            temporal_annotation = np.array(new_label)
+            temporal_annotation = np.array(temporal_annotation)
 
         if self.num_timesteps and num_preds > self.num_timesteps:
             if temporal_annotation is not None:
-                temporal_annotation = temporal_annotation[0:num_preds - self.num_timesteps]
-                prob0 = 1 / (2*(np.sum(temporal_annotation == 0)))
-                prob1 = 1 / (2*(np.sum(temporal_annotation != 0)))
+                # creating the probability distribution based on temporal annotation
+                prob0 = 1 / (2 * (np.sum(temporal_annotation == 0)))
+                prob1 = 1 / (2 * (np.sum(temporal_annotation != 0)))
                 probas = np.ones(len(temporal_annotation))
                 probas[temporal_annotation == 0] = prob0
                 probas[temporal_annotation != 0] = prob1
                 probas = probas / np.sum(probas)
+
+                # drawing the temporal label
                 position = np.random.choice(len(temporal_annotation), 1, p=probas)[0]
                 temporal_annotation = temporal_annotation[position:position + 1]
+
+                # selecting the corresponding features.
+                features = features[position * int(MODEL_TEMPORAL_STRIDE / self.stride): position * int(
+                    MODEL_TEMPORAL_STRIDE / self.stride) + self.num_timesteps]
             else:
-                position = np.random.randint(0, num_preds - self.num_timesteps)
-            features = features[position: position + self.num_timesteps]
+                # remove padded frames
+                minimum_position = min(num_preds - self.num_timesteps - 1,
+                                       self.num_frames_padded)
+                minimum_position = max(minimum_position, 0)
+                position = np.random.randint(minimum_position, num_preds - self.num_timesteps)
+                features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
         if temporal_annotation is None:
             temporal_annotation = [-100]
@@ -74,11 +91,9 @@ class FeaturesDataset(torch.utils.data.Dataset):
 
 
 def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label2int,
-                         label2int_temporal_annotation,
-                         model_time_step, num_timesteps=5, batch_size=16, shuffle=True,
-                         minimum_frames=45, stride=4, path_annotations=None,
-                         temporal_annotation_only=False):
-
+                         label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
+                         stride=4, path_annotations=None, temporal_annotation_only=False,
+                         full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
     # Find pre-computed features and derive corresponding labels
     tags_dir = os.path.join(dataset_dir, tags_dir)
     features_dir = os.path.join(dataset_dir, features_dir)
@@ -120,11 +135,10 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
         labels = [x for x, y in zip(labels, temporal_annotation) if y is not None]
         temporal_annotation = [x for x in temporal_annotation if x is not None]
 
-
     # Build dataloader
-    dataset = FeaturesDataset(features, labels, temporal_annotation, model_time_step=model_time_step,
-                                      num_timesteps=num_timesteps, minimum_frames=minimum_frames,
-                                      stride=stride)
+    dataset = FeaturesDataset(features, labels, temporal_annotation,
+                              num_timesteps=num_timesteps, stride=stride,
+                              full_network_minimum_frames=full_network_minimum_frames)
     data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
 
     return data_loader
@@ -137,14 +151,14 @@ def uniform_frame_sample(video, sample_rate):
 
     depth = video.shape[0]
     if sample_rate < 1.:
-        indices = np.arange(0, depth, 1./sample_rate)
+        indices = np.arange(0, depth, 1. / sample_rate)
         offset = int((depth - indices[-1]) / 2)
         sampled_frames = (indices + offset).astype(np.int32)
         return video[sampled_frames]
     return video
 
 
-def compute_features(video_path, path_out, inference_engine, minimum_frames=45, path_frames=None,
+def compute_features(video_path, path_out, inference_engine, num_timesteps=1, path_frames=None,
                      batch_size=None):
     video_source = camera.VideoSource(camera_id=None,
                                       size=inference_engine.expected_frame_size,
@@ -160,29 +174,47 @@ def compute_features(video_path, path_out, inference_engine, minimum_frames=45, 
             frames.append(image_rescaled)
     frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
-    if frames.shape[0] < minimum_frames:
-        print(f"\nVideo too short: {video_path} - first frame will be duplicated")
-        num_missing_frames = minimum_frames - frames.shape[0]
-        frames = np.pad(frames, ((num_missing_frames, 0), (0, 0), (0, 0), (0, 0)),
-                        mode='edge')
+    # Compute how many frames are padded to the left in order to "warm up" the model -- removing previous predictions
+    # from the internal states --  with the first image, and to ensure we have enough frames in the video.
+    # We also want the first non padding frame to output a feature
+    frames_to_add = MODEL_TEMPORAL_STRIDE * (MODEL_TEMPORAL_DEPENDENCY // MODEL_TEMPORAL_STRIDE + 1) - 1
+
+    # Possible improvement : investigate if a symmetric or reflect padding could be better for
+    # temporal annotation prediction instead of the static first frame
+    frames = np.pad(frames, ((frames_to_add, 0), (0, 0), (0, 0), (0, 0)),
+                    mode='edge')
+
     # Inference
     clip = frames[None].astype(np.float32)
-    predictions = inference_engine.infer(clip, batch_size=batch_size)
+
+    # Run the model on padded frames in order to remove the state in the current model comming
+    # from the previous video.
+    pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
+
+    # Depending on the number of layers we finetune, we keep the number of features from padding
+    # equal to the temporal dependancy of the model.
+    temporal_dependancy_features = np.array(pre_features)[-num_timesteps:]
+
+    # predictions of the actual video frames
+    predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
+    predictions = np.concatenate([temporal_dependancy_features, predictions], axis=0)
     features = np.array(predictions)
     os.makedirs(os.path.dirname(path_out), exist_ok=True)
     np.save(path_out, features)
     if path_frames is not None:
         os.makedirs(os.path.dirname(path_frames), exist_ok=True)
         frames_to_save = []
-        for e, frame in enumerate(frames):
-            if e % 4 == 3:
+        # remove the padded frames. extract frames starting at the first one (feature for the
+        # first frame)
+        for e, frame in enumerate(frames[frames_to_add:]):
+            if e % MODEL_TEMPORAL_STRIDE == 0:
                 frames_to_save.append(frame)
         for e, frame in enumerate(frames_to_save):
-            Image.fromarray(frame[:,:,::-1]).resize((400, 300)).save(
+            Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)
 
-def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=45):
 
+def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
@@ -204,7 +236,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, minimum_frames=
             else:
                 # Read all frames
                 compute_features(video_path, path_out, inference_engine,
-                                 minimum_frames=minimum_frames,  path_frames=None)
+                                 num_timesteps=num_timesteps, path_frames=None, batch_size=16)
 
         print('\n')
 
@@ -228,7 +260,8 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         net.train()
 
         train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, optimizer,
-                                                       use_gpu, temporal_annotation_training=temporal_annotation_training)
+                                                       use_gpu,
+                                                       temporal_annotation_training=temporal_annotation_training)
         net.eval()
         valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
