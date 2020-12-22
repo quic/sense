@@ -13,6 +13,8 @@ from sense import camera
 from sense import engine
 from sklearn.metrics import confusion_matrix
 
+MODEL_TEMPORAL_DEPENDENCY = 45
+MODEL_TEMPORAL_STRIDE = 4
 
 def set_internal_padding_false(module):
     """
@@ -36,8 +38,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
     are returned with approximately the same probability.
     """
 
-    def __init__(self, files, labels, temporal_annotation,
-                 num_timesteps=None, minimum_frames=45, stride=4, full_network_minimum_frames=45):
+    def __init__(self, files, labels, temporal_annotation, full_network_minimum_frames,
+                 num_timesteps=None, minimum_frames=45, stride=4):
         self.files = files
         self.labels = labels
         self.num_timesteps = num_timesteps
@@ -62,8 +64,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
         if self.num_timesteps and num_preds > self.num_timesteps:
             if temporal_annotation is not None:
                 # creating the probability distribution based on temporal annotation
-                prob0 = 1 / (2*(np.sum(temporal_annotation == 0)))
-                prob1 = 1 / (2*(np.sum(temporal_annotation != 0)))
+                prob0 = 1 / (2 * (np.sum(temporal_annotation == 0)))
+                prob1 = 1 / (2 * (np.sum(temporal_annotation != 0)))
                 probas = np.ones(len(temporal_annotation))
                 probas[temporal_annotation == 0] = prob0
                 probas[temporal_annotation != 0] = prob1
@@ -92,8 +94,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
 def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label2int,
                          label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
                          minimum_frames=45, stride=4, path_annotations=None,
-                         temporal_annotation_only=False, full_network_minimum_frames=45):
-
+                         temporal_annotation_only=False, full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
     # Find pre-computed features and derive corresponding labels
     tags_dir = os.path.join(dataset_dir, tags_dir)
     features_dir = os.path.join(dataset_dir, features_dir)
@@ -135,7 +136,6 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
         labels = [x for x, y in zip(labels, temporal_annotation) if y is not None]
         temporal_annotation = [x for x in temporal_annotation if x is not None]
 
-
     # Build dataloader
     dataset = FeaturesDataset(features, labels, temporal_annotation,
                               num_timesteps=num_timesteps, minimum_frames=minimum_frames,
@@ -152,7 +152,7 @@ def uniform_frame_sample(video, sample_rate):
 
     depth = video.shape[0]
     if sample_rate < 1.:
-        indices = np.arange(0, depth, 1./sample_rate)
+        indices = np.arange(0, depth, 1. / sample_rate)
         offset = int((depth - indices[-1]) / 2)
         sampled_frames = (indices + offset).astype(np.int32)
         return video[sampled_frames]
@@ -175,21 +175,27 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
             frames.append(image_rescaled)
     frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
+    # Compute how many frames are padded to the left in order to "warm up" the model -- removing previous predictions
+    # from the internal states --  with the first image, and to ensure we have enough frames in the video.
+    # We also want the first non padding frame to output a feature
+    frames_to_add = MODEL_TEMPORAL_STRIDE * (MODEL_TEMPORAL_DEPENDENCY // MODEL_TEMPORAL_STRIDE + 1) - 1
 
-    # 47 frames are padded to the left in order to "warm up" the model -- removing previous predictions from the
-    # internal states --  with the first image, and to ensure we have enough frames in the video
     # Possible improvement : investigate if a symmetric or reflect padding could be better for
     # temporal annotation prediction instead of the static first frame
-    frames = np.pad(frames, ((47, 0), (0, 0), (0, 0), (0, 0)),
-                        mode='edge')
+    frames = np.pad(frames, ((frames_to_add, 0), (0, 0), (0, 0), (0, 0)),
+                    mode='edge')
+
     # Inference
     clip = frames[None].astype(np.float32)
+
     # Run the model on padded frames in order to remove the state in the current model comming
     # from the previous video.
-    pre_features = inference_engine.infer(clip[:, 0:48], batch_size=batch_size)
+    pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
+
     # Depending on the number of layers we finetune, we keep the number of features from padding
     # equal to the temporal dependancy of the model.
     temporal_dependancy_features = np.array(pre_features)[-num_timesteps:]
+
     # predictions of the actual video frames
     predictions = inference_engine.infer(clip[:, 48:], batch_size=batch_size)
     predictions = np.concatenate([temporal_dependancy_features, predictions], axis=0)
@@ -205,12 +211,11 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
             if e % 4 == 0:
                 frames_to_save.append(frame)
         for e, frame in enumerate(frames_to_save):
-            Image.fromarray(frame[:,:,::-1]).resize((400, 300)).save(
+            Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)
 
 
 def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
-
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
@@ -232,7 +237,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1
             else:
                 # Read all frames
                 compute_features(video_path, path_out, inference_engine,
-                                 num_timesteps=num_timesteps,  path_frames=None, batch_size=16)
+                                 num_timesteps=num_timesteps, path_frames=None, batch_size=16)
 
         print('\n')
 
@@ -256,7 +261,8 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         net.train()
 
         train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, optimizer,
-                                                       use_gpu, temporal_annotation_training=temporal_annotation_training)
+                                                       use_gpu,
+                                                       temporal_annotation_training=temporal_annotation_training)
         net.eval()
         valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
