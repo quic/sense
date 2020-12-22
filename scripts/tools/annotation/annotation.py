@@ -134,10 +134,8 @@ def train_logreg():
                     class_weight.update({1: 2})
 
                     for p in pos1:
-                        try:
+                        if p + 1 < len(annotation):
                             annotation[p + 1] = 1
-                        except:
-                            1
 
                 pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
 
@@ -145,10 +143,8 @@ def train_logreg():
                     class_weight.update({2: 2})
 
                     for p in pos1:
-                        try:
+                        if p + 1 < len(annotation):
                             annotation[p + 1] = 2
-                        except:
-                            1
 
                 for a in annotation:
                     y.append(a)
