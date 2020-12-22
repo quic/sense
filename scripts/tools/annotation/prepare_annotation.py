@@ -45,8 +45,8 @@ if __name__ == "__main__":
             folder = join(dataset_path, f'videos_{split}', label)
 
             # Create features and frames folders for the given split and label
-            features_folder = join(dataset_path, f"features_{split}/{label}/")
-            frames_folder = join(dataset_path, f"frames_{split}/{label}/")
+            features_folder = join(dataset_path, f'features_{split}', label)
+            frames_folder = join(dataset_path, f'frames_{split}', label)
             os.makedirs(features_folder, exist_ok=True)
             os.makedirs(frames_folder, exist_ok=True)
 
