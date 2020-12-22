@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # Parse arguments
     args = docopt(__doc__)
     videos_path_in = os.path.join(os.getcwd(), args['--path_in'])
-    videos_path_out = os.path.join(os.getcwd(), args['--path_out']) if args.get('--path_out') else videos_path_in
+    videos_path_out = os.path.join(os.getcwd(), args.get('--path_out', args['--path_in']))
     # Training script expects videos in MP4 format
     VIDEO_EXT = '.mp4'
 
