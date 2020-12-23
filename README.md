@@ -141,7 +141,7 @@ To get started, try out the demos we've provided. Inside the `sense/scripts` dir
 
 `scripts/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
 30 gestures are supported (see full list 
-[here](https://github.com/TwentyBN/sense/blob/7651d24967de7eb12912297747de8174950eb74e/sense/downstream_tasks/gesture_recognition/__init__.py)).
+[here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/gesture_recognition/__init__.py)).
 
 Usage:
 ```shell
@@ -153,7 +153,7 @@ PYTHONPATH=./ python scripts/run_gesture_recognition.py
 
 `scripts/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
-[here](https://github.com/TwentyBN/sense/blob/d539046fe71e43e37ad439d08e093ea1f489bd29/sense/downstream_tasks/fitness_activity_recognition/__init__.py)).
+[here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/fitness_activity_recognition/__init__.py)).
 
 Usage:
 
@@ -183,7 +183,7 @@ For the best performance, the following is recommended:
 #### Demo 3: Calorie Estimation
 
 In order to estimate burned calories, we trained a neural net to convert activity features to the corresponding [MET value](https://en.wikipedia.org/wiki/Metabolic_equivalent_of_task).
-We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/sense/blob/7651d24967de7eb12912297747de8174950eb74e/sense/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
+We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
 and convert them to calories using the user's weight.
 
 If you're only interested in the calorie estimation part, you might want to use `scripts/calorie_estimation.py` which has a slightly more
@@ -199,7 +199,7 @@ From our experiments, our estimates correlate well with the workout intensity (i
 
 ---
 
-## Build your own classifier
+## Build Your Own Classifier
 
 This section will describe how you can build your own custom classifier on top of our models. Our models will serve
  as a powerful feature extractor that will reduce the amount of data you need to build your project. 
@@ -251,6 +251,18 @@ You can now run it live using the following script:
 ```shell
 PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
 ```
+
+---
+
+## Advanced Options
+
+You can further improve your model's performance by training on top of temporally annotated data; 
+individually labelled frames that identify the event locally in the video versus treating every frame with the same 
+label. For instructions on how to prepare your data with temporal annotation, refer to this 
+[page](https://github.com/TwentyBN/sense/wiki/tools#temporal-annotations-tool).
+
+After preparing your dataset with our temporal annotations tool, pass `--temporal_training` as an additional
+flag to the `train_classifier.py` script.
 
 ---
 
