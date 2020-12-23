@@ -191,8 +191,10 @@ class DisplayFPS(BaseDisplay):
             text_color = self.default_text_color
 
         # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, img.shape[0] - self.y_offset - 20), text_color)
-        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, img.shape[0] - self.y_offset), text_color)
+        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, img.shape[0] - self.y_offset - 20),
+                 color=text_color)
+        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, img.shape[0] - self.y_offset),
+                 color=text_color)
 
         return img
 
@@ -240,7 +242,7 @@ class DisplayDigits(BaseDisplay):
 
     def _display_digit(self, img, digit):
         pos = self._get_center_coordinates(img, digit)
-        put_text(img, digit, pos, self.font_scale, self.thickness)
+        put_text(img, digit, position=pos, font_scale=self.font_scale, thickness=self.thickness)
 
     def display(self, img, display_data):
         now = time.perf_counter()

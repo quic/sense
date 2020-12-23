@@ -19,13 +19,13 @@ Options:
 """
 from docopt import docopt
 
-import realtimenet.display
-from realtimenet import engine
-from realtimenet import feature_extractors
-from realtimenet.controller import Controller
-from realtimenet.downstream_tasks.digit_recognition import INT2LAB, LAB2THRESHOLD
-from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
-from realtimenet.downstream_tasks.postprocess import PostprocessClassificationOutput
+import sense.display
+from sense import engine
+from sense import feature_extractors
+from sense.controller import Controller
+from sense.downstream_tasks.digit_recognition import INT2LAB, LAB2THRESHOLD
+from sense.downstream_tasks.nn_utils import Pipe, LogisticRegression
+from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 
 
 if __name__ == "__main__":
@@ -56,13 +56,15 @@ if __name__ == "__main__":
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
     ]
 
+    border_size = 50  # Increase border size for showing top 2 preditions
+
     display_ops = [
-        realtimenet.display.DisplayTopKClassificationOutputs(top_k=2, threshold=0),
-        realtimenet.display.DisplayDigits(thresholds=LAB2THRESHOLD,
-                                          duration=2,
-                                          border_size=50 if not title else 100),
+        sense.display.DisplayTopKClassificationOutputs(top_k=2, threshold=0),
+        sense.display.DisplayDigits(thresholds=LAB2THRESHOLD,
+                                    duration=2,
+                                    border_size=border_size if not title else border_size + 50),
     ]
-    display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops)
+    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops, border_size=border_size)
 
     # Run live inference
     controller = Controller(
