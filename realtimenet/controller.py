@@ -110,7 +110,8 @@ class Controller:
                 if not all(callback(prediction_postprocessed) for callback in self.callbacks):
                     break
 
-            except Exception as runtime_error:
+            except Exception as e:
+                runtime_error = e
                 break
 
             # Press escape to exit
