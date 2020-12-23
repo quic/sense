@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import re
 import time
 
 from typing import List
@@ -144,15 +143,16 @@ class DisplayRepCounts(BaseDisplay):
 
 class DisplayDigits(BaseDisplay):
     """
-    Display recognized digits largely as a video overlay.
+    Display recognized digits as a large video overlay. Once the probability for a class passes the threshold,
+    the digit is shown and stays visible for a certain duration.
     """
 
-    def __init__(self, threshold=0.5, duration=2, font_scale=20, thickness=10, border_size=100, **kwargs):
+    def __init__(self, thresholds, duration=2, font_scale=20, thickness=10, border_size=100, **kwargs):
         """
-        :param threshold:
-            Threshold for the output to be displayed.
+        :param thresholds:
+            Dictionary of thresholds for all classes.
         :param duration:
-            Duration in seconds how long the digit should be displayed after it has be recognized.
+            Duration in seconds how long the digit should be displayed after it has been recognized.
         :param font_scale:
             Font scale factor for modifying the font size.
         :param thickness:
@@ -162,7 +162,7 @@ class DisplayDigits(BaseDisplay):
             video.
         """
         super().__init__(**kwargs)
-        self.threshold = threshold
+        self.thresholds = thresholds
         self.duration = duration
         self.font_scale = font_scale
         self.thickness = thickness
@@ -195,7 +195,7 @@ class DisplayDigits(BaseDisplay):
         else:
             self._current_digit = None
             for class_name, proba in display_data['sorted_predictions']:
-                if len(class_name) == 1 and proba > self.threshold:
+                if class_name in self.thresholds and proba > self.thresholds[class_name]:
                     # Display new digit
                     self._display_digit(img, class_name)
                     self._current_digit = class_name
