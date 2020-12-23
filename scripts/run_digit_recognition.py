@@ -56,7 +56,7 @@ if __name__ == "__main__":
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
     ]
 
-    border_size = 50  # Increase border size for showing top 2 preditions
+    border_size = 50  # Increase border size for showing top 2 predictions
 
     display_ops = [
         sense.display.DisplayTopKClassificationOutputs(top_k=2, threshold=0),

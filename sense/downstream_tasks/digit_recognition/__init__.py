@@ -16,14 +16,13 @@ LAB2INT = {
 
 INT2LAB = {value: key for key, value in LAB2INT.items()}
 
-# v11_mix
 LAB2THRESHOLD = {
     "0": 0.7,
     "1": 0.7,
     "2": 0.7,
-    "3": 0.3,
+    "3": 0.4,
     "4": 0.3,
-    "5": 0.5,
+    "5": 0.4,
     "6": 0.4,
     "7": 0.5,
     "8": 0.4,
