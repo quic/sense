@@ -23,8 +23,7 @@ import realtimenet.display
 from realtimenet import engine
 from realtimenet import feature_extractors
 from realtimenet.controller import Controller
-from realtimenet.downstream_tasks.digit_recognition import INT2LETTERS
-from realtimenet.downstream_tasks.digit_recognition import INT2DIGITS
+from realtimenet.downstream_tasks.digit_recognition import INT2LAB, LAB2THRESHOLD
 from realtimenet.downstream_tasks.nn_utils import Pipe, LogisticRegression
 from realtimenet.downstream_tasks.postprocess import PostprocessClassificationOutput
 
@@ -38,11 +37,6 @@ if __name__ == "__main__":
     title = args['--title'] or None
     use_gpu = args['--use_gpu']
 
-    # INT2LAB = INT2LETTERS
-    # model_dir = 'letter_recognition'
-    INT2LAB = INT2DIGITS
-    model_dir = 'digit_recognition'
-
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     checkpoint = engine.load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
@@ -51,7 +45,7 @@ if __name__ == "__main__":
 
     # Load a logistic regression classifier
     digit_classifier = LogisticRegression(num_in=feature_extractor.feature_dim, num_out=len(INT2LAB))
-    checkpoint = engine.load_weights(f'resources/{model_dir}/efficientnet_logistic_regression.ckpt')
+    checkpoint = engine.load_weights('resources/digit_recognition/efficientnet_logistic_regression.ckpt')
     digit_classifier.load_state_dict(checkpoint)
     digit_classifier.eval()
 
@@ -62,13 +56,13 @@ if __name__ == "__main__":
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
     ]
 
-    border_size = 50  # TODO: Increase if --title is given
-
     display_ops = [
         realtimenet.display.DisplayTopKClassificationOutputs(top_k=2, threshold=0),
-        realtimenet.display.DisplayDigits(threshold=0.6, duration=2, border_size=border_size),
+        realtimenet.display.DisplayDigits(thresholds=LAB2THRESHOLD,
+                                          duration=2,
+                                          border_size=50 if not title else 100),
     ]
-    display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops, border_size=border_size)
+    display_results = realtimenet.display.DisplayResults(title=title, display_ops=display_ops)
 
     # Run live inference
     controller = Controller(
