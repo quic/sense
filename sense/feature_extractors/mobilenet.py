@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from torch.nn.modules.utils import _triple
+from sense.downstream_tasks.nn_utils import RealtimeNeuralNet
 
 
 class SteppableConv3dAs2d(nn.Conv2d):
@@ -60,6 +61,7 @@ class SteppableConv3dAs2d(nn.Conv2d):
     def train(self, mode=True):
         super().train(mode)
         return self.reset()
+
 
 class SteppableSparseConv3dAs2d(SteppableConv3dAs2d):
 
@@ -146,7 +148,7 @@ class InvertedResidual(nn.Module):  # noqa: D101
             return input_[-n_out:]
 
 
-class StridedInflatedMobileNetV2(nn.Module):
+class StridedInflatedMobileNetV2(RealtimeNeuralNet):
 
     expected_frame_size = (256, 256)
     fps = 16
@@ -211,4 +213,24 @@ class StridedInflatedMobileNetV2(nn.Module):
             num_required_frames_per_layer[len(self.cnn) - 1 - index] = temporal_dependency
             num_required_frames_per_layer[-1 - index] = temporal_dependency
         num_required_frames_per_layer[0] = temporal_dependency
+        return num_required_frames_per_layer
+
+    @property
+    def num_required_frames_per_layer_padding(self):
+        """
+        Returns a mapping which maps the layer index to the minimum number of input frame
+        """
+        num_required_frames_per_layer = {}
+        temporal_dependency = 1
+
+        for index, layer in enumerate(self.cnn[::-1]):
+            if isinstance(layer, InvertedResidual):
+                if layer.temporal_stride:
+                    temporal_dependency = 2 * temporal_dependency
+
+            num_required_frames_per_layer[len(self.cnn) - 1 - index] = temporal_dependency
+            num_required_frames_per_layer[-1 - index] = temporal_dependency
+
+        num_required_frames_per_layer[0] = temporal_dependency
+
         return num_required_frames_per_layer

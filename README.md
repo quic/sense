@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/master/docs/imgs/temp_realtimenet_header_3.png" width="600px">
+<img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/imgs/temp_sense_header.png" height="70px">
 
 **State-of-the-art Real-time Action Recognition**
 
@@ -22,17 +22,15 @@
     <a href="https://20bn.com/">
         <img alt="Documentation" src="https://img.shields.io/website/http/20bn.com.svg?down_color=red&down_message=offline&up_message=online">
     </a>
-    <a href="https://github.com/TwentyBN/20bn-realtimenet/master/LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/github/license/TwentyBN/20bn-realtimenet.svg?color=blue">
+    <a href="https://github.com/TwentyBN/sense/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/TwentyBN/sense.svg?color=blue">
     </a>
-    <a href="https://github.com/TwentyBN/20bn-realtimenet/releases">
-        <img alt="GitHub release" src="https://img.shields.io/github/release/TwentyBN/20bn-realtimenet.svg">
+    <a href="https://github.com/TwentyBN/sense/releases">
+        <img alt="GitHub release" src="https://img.shields.io/github/release/TwentyBN/sense.svg">
     </a>
-    <!-- We should add this after
-    <a href="https://github.com/TwentyBN/20bn-realtimenet/blob/master/CODE_OF_CONDUCT.md">
+    <a href="https://github.com/TwentyBN/sense/blob/master/CODE_OF_CONDUCT.md">
         <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg">
     </a>
-    -->
 </p>
 
 </div>
@@ -40,7 +38,7 @@
 ---
 
 <!-- Add some bullet points for what this repo provides-->
-`20bn-realtimenet`is an inference engine to serve powerful neural networks for action recognition, with a low
+`sense`is an inference engine to serve powerful neural networks for action recognition, with a low
  computational footprint. In this repository, we provide: 
  - Two models out-of-the-box pre-trained on millions of videos of humans performing 
  actions in front of, and interacting with, a camera. Both neural networks are small, efficient, and run smoothly in real time on a CPU.
@@ -48,17 +46,13 @@
  calorie estimation.
 - A pipeline to train your own custom classifier on top of our models with an easy-to-use script to fine-tune our weights. 
 
-<!-- 1. Provides the weights for two models trained on (mention datasets)-->
-<!-- 2. Provides tools to build your own classifier-->
-<!-- 3. Powers a consumer fitness application-->
-
 <div align="center">
 
 ###### Gesture Recognition
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/master/docs/gifs/gesture_recognition_1.gif" width="300px">
-    <img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/master/docs/gifs/gesture_recognition_2.gif" width="300px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/gesture_recognition_1.gif" width="300px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/gesture_recognition_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
@@ -67,8 +61,8 @@
 ###### Fitness Activity Tracker and Calorie Estimation
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/master/docs/gifs/fitness_tracking_1.gif" width="300px">
-    <img src="https://raw.githubusercontent.com/TwentyBN/20bn-realtimenet/master/docs/gifs/fitness_tracking_2.gif" width="300px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/fitness_tracking_1.gif" width="300px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/fitness_tracking_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1f1y0wg7Y1kpSBwKSEFx1TDoD5lGA8DtQ/view?usp=sharing))*
@@ -88,8 +82,8 @@ The following steps are confirmed to work on Linux (Ubuntu 18.04 LTS and 20.04 L
 #### Step 1: Clone the repository
 To begin, clone this repository to a local directory of your choice:
 ```
-git clone https://github.com/TwentyBN/20bn-realtimenet.git
-cd 20bn-realtimenet
+git clone https://github.com/TwentyBN/sense.git
+cd sense
 ```
 
 #### Step 2: Install Dependencies
@@ -98,8 +92,8 @@ We recommended creating a new virtual environment to install our dependencies us
 ). The following instructions will help create a conda environment. 
 
 ```shell
-conda create -y -n realtimenet python=3.6
-conda activate realtimenet
+conda create -y -n sense python=3.6
+conda activate sense
 ```
 
 Install Python dependencies:
@@ -118,28 +112,28 @@ See all available options [here](https://pytorch.org/).
 #### Step 3: Download the Pre-trained Weights
 Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation). Follow the 
 instructions there to create an account and download the weights. Once downloaded, unzip the folder and move the 
-folder named `backbone` into `20bn-realtimenet/resources`. In the end, your resources folder structure should look like
+folder named `backbone` into `sense/resources`. In the end, your resources folder structure should look like
  this:
 
 ```
 resources
-    ├── backbone
-        ├── strided_inflated_efficientnet.ckpt
-        ├── strided_inflated_mobilenet.ckpt
-    ├── fitness_activity_recognition
-        ├── ...
-    ├── gesture_detection
-        ├── ...
-    ├── ....
+├── backbone
+│   ├── strided_inflated_efficientnet.ckpt
+│   └── strided_inflated_mobilenet.ckpt
+├── fitness_activity_recognition
+│   └── ...
+├── gesture_detection
+│   └── ...
+└── ...
 ```
 
-Note: The remaining folders in `/resources` will already have the necessary files -- only `/resources/backbone` 
+Note: The remaining folders in `resources/` will already have the necessary files -- only `resources/backbone` 
 needs to be downloaded separately. 
 
 --- 
 
 ## Getting Started
-To get started, try out the demos we've provided. Inside the `20bn-realtimenet/scripts` directory, you will find 3 Python scripts,
+To get started, try out the demos we've provided. Inside the `sense/scripts` directory, you will find 3 Python scripts,
 `run_gesture_recognition.py`, `run_fitness_tracker.py`, and `run_calorie_estimation.py`. Launching each demo is as
  simple as running the script in terminal as described below. 
 
@@ -147,7 +141,7 @@ To get started, try out the demos we've provided. Inside the `20bn-realtimenet/s
 
 `scripts/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
 30 gestures are supported (see full list 
-[here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/gesture_recognition/__init__.py)).
+[here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/gesture_recognition/__init__.py)).
 
 Usage:
 ```shell
@@ -159,7 +153,7 @@ PYTHONPATH=./ python scripts/run_gesture_recognition.py
 
 `scripts/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
-[here](https://github.com/TwentyBN/20bn-realtimenet/blob/d539046fe71e43e37ad439d08e093ea1f489bd29/realtimenet/downstream_tasks/fitness_activity_recognition/__init__.py)).
+[here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/fitness_activity_recognition/__init__.py)).
 
 Usage:
 
@@ -189,7 +183,7 @@ For the best performance, the following is recommended:
 #### Demo 3: Calorie Estimation
 
 In order to estimate burned calories, we trained a neural net to convert activity features to the corresponding [MET value](https://en.wikipedia.org/wiki/Metabolic_equivalent_of_task).
-We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/20bn-realtimenet/blob/7651d24967de7eb12912297747de8174950eb74e/realtimenet/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
+We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
 and convert them to calories using the user's weight.
 
 If you're only interested in the calorie estimation part, you might want to use `scripts/calorie_estimation.py` which has a slightly more
@@ -205,7 +199,7 @@ From our experiments, our estimates correlate well with the workout intensity (i
 
 ---
 
-## Build your own classifier
+## Build Your Own Classifier
 
 This section will describe how you can build your own custom classifier on top of our models. Our models will serve
  as a powerful feature extractor that will reduce the amount of data you need to build your project. 
@@ -214,27 +208,27 @@ This section will describe how you can build your own custom classifier on top o
 Prepare the training and validation videos for each of the desired classes (labels) and organise them in this manner:
 
 ```
-    /path/to/your/dataset/
-    ├── videos_train/
-        ├── label1/
-            ├── video1.mp4
-            ├── video2.mp4
-            ├── ...
-        ├── label2/
-            ├── video3.mp4
-            ├── video4.mp4
-            ├── ...
-        ├── ...
-    ├── videos_valid/
-        ├── label1/
-            ├── video5.mp4
-            ├── video6.mp4
-            ├── ...
-        ├── label2/
-            ├── video7.mp4
-            ├── video8.mp4
-            ├── ...
-        ├── ...
+/path/to/your/dataset/
+├── videos_train
+│   ├── label1
+│   │   ├── video1.mp4
+│   │   ├── video2.mp4
+│   │   └── ...
+│   ├── label2
+│   │   ├── video3.mp4
+│   │   ├── video4.mp4
+│   │   └── ...
+│   └── ...
+└── videos_valid
+    ├── label1
+    │   ├── video5.mp4
+    │   ├── video6.mp4
+    │   └── ...
+    ├── label2
+    │   ├── video7.mp4
+    │   ├── video8.mp4
+    │   └── ...
+    └── ...
 ```
 - Two top-level folders: one for the training data, one for the validation data.
 - One sub-folder for each label with as many videos as you want (but at least one!)
@@ -260,18 +254,30 @@ PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/
 
 ---
 
+## Advanced Options
+
+You can further improve your model's performance by training on top of temporally annotated data; 
+individually labelled frames that identify the event locally in the video versus treating every frame with the same 
+label. For instructions on how to prepare your data with temporal annotation, refer to this 
+[page](https://github.com/TwentyBN/sense/wiki/tools#temporal-annotations-tool).
+
+After preparing your dataset with our temporal annotations tool, pass `--temporal_training` as an additional
+flag to the `train_classifier.py` script.
+
+---
+
 ## iOS Deployment
 
-If you're interested in mobile app development and want to run our models on iOS devices, please check out [20bn-realtimenet-ios](https://github.com/TwentyBN/20bn-realtimenet-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
+If you're interested in mobile app development and want to run our models on iOS devices, please check out [sense-iOS](https://github.com/TwentyBN/sense-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
 One of the steps involves converting our Pytorch models to the CoreML format, which can be done from this repo using the following script:
 
 ```shell
-python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=realtimenet
+python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=sensenet
 ```
 
 If you want to convert a custom classifier, set the classifier name to "custom_classifier", and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.
 ```shell
-python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=realtimenet
+python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=sensenet
 ```
 
 ---
@@ -286,7 +292,7 @@ python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classif
 We now have a [blogpost](https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f) you can cite:
 
 ```bibtex
-@misc{realtimenet2020blogpost,
+@misc{sense2020blogpost,
     author = {Guillaume Berger and Antoine Mercier and Florian Letsch and Cornelius Boehm and 
               Sunny Panchal and Nahua Kang and Mark Todorovich and Ingo Bax and Roland Memisevic},
     title = {Towards situated visual AI via end-to-end learning on video clips},

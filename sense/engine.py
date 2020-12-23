@@ -1,8 +1,6 @@
-import cv2 as cv2
 import numpy as np
 import queue
 import torch
-import torch.nn as nn
 
 from threading import Thread
 from typing import List
@@ -10,9 +8,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-from realtimenet.camera import VideoStream
-from realtimenet.display import DisplayResults
-from realtimenet.downstream_tasks.postprocess import PostProcessor
+from sense.downstream_tasks.nn_utils import RealtimeNeuralNet
 
 
 class InferenceEngine(Thread):
@@ -20,7 +16,7 @@ class InferenceEngine(Thread):
     InferenceEngine takes in a neural network and uses it to output predictions
     either using the local machine's CPU or GPU.
     """
-    def __init__(self, net: nn.Module, use_gpu: bool = False):
+    def __init__(self, net: RealtimeNeuralNet, use_gpu: bool = False):
         """
         :param net:
             The neural network to be run by the inference engine.
@@ -42,7 +38,7 @@ class InferenceEngine(Thread):
         return self.net.expected_frame_size
 
     @property
-    def fps(self) -> float:
+    def fps(self) -> int:
         """Frame rate of the inference engine's neural network."""
         return self.net.fps
 
@@ -100,7 +96,7 @@ class InferenceEngine(Thread):
                     print("*** Unused predictions ***")
                 self._queue_out.put(predictions, block=False)
 
-    def infer(self, clip: np.ndarray) -> Union[np.ndarray, List[np.ndarray]]:
+    def infer(self, clip: np.ndarray, batch_size=None) -> Union[np.ndarray, List[np.ndarray]]:
         """
         Infer and return predictions given the input clip from video source.
         Note that the output is either a numpy.ndarray type or a list consisting
@@ -116,17 +112,30 @@ class InferenceEngine(Thread):
 
         :param clip:
             The video frame to be inferred.
+        :param batch_size:
+            Batch size to perform inference. Warning, only use if you did not remove
+            padding from model.
 
         :return:
             Predictions from the neural network.
         """
+        predictions = []
         with torch.no_grad():
             clip = self.net.preprocess(clip)
 
             if self.use_gpu:
                 clip = clip.cuda()
-
-            predictions = self.net(clip)
+            if batch_size is None:
+                predictions = self.net(clip)
+            else:
+                for sub_clip in torch.Tensor.split(clip, batch_size):
+                    if sub_clip.shape[0] >= self.net.num_required_frames_per_layer_padding[0]:
+                        predictions.append(self.net(sub_clip))
+                if isinstance(predictions[0], list):
+                    predictions = list(zip(predictions))
+                    predictions = [torch.cat(x, dim=0) for x in predictions]
+                else:
+                    predictions = torch.cat(predictions, dim=0)
 
         if isinstance(predictions, list):
             predictions = [pred.cpu().numpy() for pred in predictions]

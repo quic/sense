@@ -4,6 +4,7 @@ import time
 
 from typing import List
 from typing import Tuple
+from typing import Optional
 
 
 FONT = cv2.FONT_HERSHEY_PLAIN
@@ -14,6 +15,7 @@ def put_text(
         text: str,
         position: Tuple[int, int],
         font_scale: float = 1,
+        color: Tuple[int, int, int] = (255, 255, 255),
         thickness: int = 1
 ) -> np.ndarray:
     """
@@ -27,13 +29,15 @@ def put_text(
         A tuple of x and y coordinates of the bottom-left corner of the text in the image.
     :param font_scale:
         Font scale factor for modifying the font size.
+    :param color:
+        A tuple for font color. For BGR, eg: (0, 255, 0) for green color.
     :param thickness:
         Thickness of the lines used to draw the text.
 
     :return:
         The image with the text string drawn.
     """
-    cv2.putText(img, text, position, FONT, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+    cv2.putText(img, text, position, FONT, font_scale, color, thickness, cv2.LINE_AA)
     return img
 
 
@@ -141,6 +145,58 @@ class DisplayRepCounts(BaseDisplay):
         return img
 
 
+class DisplayFPS(BaseDisplay):
+    """
+    Display camera fps and inference engine fps on debug window.
+    """
+
+    def __init__(
+            self,
+            expected_camera_fps: Optional[float] = None,
+            expected_inference_fps: Optional[float] = None,
+            y_offset=10):
+        super().__init__(y_offset)
+        self.expected_camera_fps = expected_camera_fps
+        self.expected_inference_fps = expected_inference_fps
+
+        self.update_rate = 0.1
+        self.low_performance_rate = 0.75
+        self.default_text_color = (44, 176, 82)
+        self.running_delta_time_inference = 1. / expected_inference_fps if expected_inference_fps else 0
+        self.running_delta_time_camera = 1. / expected_camera_fps if expected_camera_fps else 0
+        self.last_update_time_camera = time.perf_counter()
+        self.last_update_time_inference = time.perf_counter()
+
+    def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
+
+        now = time.perf_counter()
+        if display_data['prediction'] is not None:
+            # Inference engine frame rate
+            delta = (now - self.last_update_time_inference)
+            self.running_delta_time_inference += self.update_rate * (delta - self.running_delta_time_inference)
+            self.last_update_time_inference = now
+        inference_engine_fps = 1. / self.running_delta_time_inference
+
+        # Camera FPS counting
+        delta = (now - self.last_update_time_camera)
+        self.running_delta_time_camera += self.update_rate * (delta - self.running_delta_time_camera)
+        camera_fps = 1. / self.running_delta_time_camera
+        self.last_update_time_camera = now
+
+        # Text color change if inference engine fps go below certain range
+        if (self.expected_inference_fps and
+                inference_engine_fps < self.expected_inference_fps * self.low_performance_rate):
+            text_color = (0, 0, 255)
+        else:
+            text_color = self.default_text_color
+
+        # Show FPS on the video screen
+        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, img.shape[0] - self.y_offset - 20), text_color)
+        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, img.shape[0] - self.y_offset), text_color)
+
+        return img
+
+
 class DisplayDigits(BaseDisplay):
     """
     Display recognized digits as a large video overlay. Once the probability for a class passes the threshold,
@@ -210,7 +266,7 @@ class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
     """
-    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 50):
+    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30):
         """
         :param title:
             Title of the image frame on display.
@@ -224,7 +280,7 @@ class DisplayResults:
         :param border_size:
             Thickness of the display border.
         """
-        self._window_title = 'realtimenet'
+        self._window_title = 'Real-time SenseNet'
         cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
         self.title = title
         self.display_ops = display_ops
