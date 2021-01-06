@@ -14,6 +14,7 @@ Options:
 """
 
 
+import datetime
 import glob
 import json
 import numpy as np
@@ -35,6 +36,11 @@ from sklearn.linear_model import LogisticRegression
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
+MODULE_DIR = os.path.dirname(__file__)
+PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
+
+PROJECT_CONFIG_FILE = 'project_config.json'
+
 
 def extension_ok(filename):
     """ Returns `True` if the file has a valid image extension. """
@@ -42,6 +48,77 @@ def extension_ok(filename):
 
 
 @app.route('/')
+def projects_overview():
+    """TODO"""
+    projects = []
+
+    if os.path.exists(PROJECTS_OVERVIEW_CONFIG_FILE):
+        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
+            projects = json.load(f)
+
+    return render_template('up_projects_overview.html', projects=projects)
+
+
+@app.route('/new-project')
+def new_project():
+    """TODO"""
+    return render_template('up_new_project.html')
+
+
+@app.route('/create-new-project', methods=['POST'])
+def create_new_project():
+    """TODO"""
+    data = request.form
+    name = data['name']
+    path = data['path']
+
+    classes = {}
+    class_idx = 0
+    class_key = f'class{class_idx}'
+    while class_key in data:
+        class_name = data[class_key]
+        if class_name:
+            classes[class_name] = [
+                data[f'{class_key}_label{label_idx}'] or f'{class_name}_{label_idx}'
+                for label_idx in range(3)
+            ]
+
+        class_idx += 1
+        class_key = f'class{class_idx}'
+
+    config = {
+        'name': name,
+        'date_created': datetime.date.today().isoformat(),
+        'classes': classes,
+    }
+
+    if os.path.exists(path):
+        config_file = os.path.join(path, PROJECT_CONFIG_FILE)
+        with open(config_file, 'w') as f:
+            json.dump(config, f, indent=2)
+    else:
+        # TODO: Show warning about wrong path
+        pass
+
+    return redirect(url_for('project_details', path=path))
+
+
+@app.route('/project/<path:path>')
+def project_details(path):
+    """TODO"""
+    path = f'/{path}'  # Make path absolute
+    config_file = os.path.join(path, PROJECT_CONFIG_FILE)
+
+    if os.path.exists(config_file):
+        with open(config_file) as f:
+            config = json.load(f)
+    else:
+        # TODO: Show a warning that the project has no valid config file
+        config = None
+
+    return render_template('up_project_details.html', config=config, path=path)
+
+
 @app.route('/annotate/')
 def show_video_list():
     """Gets the data and creates the HTML template with all videos for the given class-label."""

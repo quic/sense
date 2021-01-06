@@ -1,0 +1,27 @@
+{% extends 'up_skeleton.html' %}
+
+{% block title %} {{ config.name }} {% endblock %}
+
+{% block main %}
+<h1>{{ config.name }}</h1>
+<div>
+    Path: {{ path }}
+</div>
+<div>
+    <ul>
+        {% for class, labels in config.classes.items() %}
+        <li>
+            {{ class }}
+            <ul>
+                {% for label in labels %}
+                <li>
+                    {{ label }}
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}

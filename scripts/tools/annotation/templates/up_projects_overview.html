@@ -1,0 +1,17 @@
+{% extends 'up_skeleton.html' %}
+
+{% block title %} Projects Overview {% endblock %}
+
+{% block main %}
+<h1>Projects</h1>
+<ul>
+{% for project in projects %}
+    <li>
+        <a href="{{ url_for('project_details', path=project.path) }}">{{ project.name }} ({{ project.path }})</a>
+    </li>
+{% endfor %}
+</ul>
+
+<input type="button" name="load-project" id="load-project" value="Load Project">
+<a href="new-project">Start New Project</a>
+{% endblock %}
