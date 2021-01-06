@@ -1,0 +1,25 @@
+{% extends 'up_skeleton.html' %}
+
+{% block title %} New Project {% endblock %}
+
+{% block main %}
+<h1>New Project</h1>
+<form method="POST" action="/create-new-project">
+    <div>
+        Name: <input type="text" name="name">
+    </div>
+    <div>
+        Path: <input type="text" name="path">
+    </div>
+    <h3>Classes</h3>
+    <ul id="classList">
+        <li>
+            <input type="text" name="class0" onclick="addClassInput();">
+            <input type="text" name="class0_label0">
+            <input type="text" name="class0_label1">
+            <input type="text" name="class0_label2">
+        </li>
+    </ul>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}
