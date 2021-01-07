@@ -153,14 +153,21 @@ def project_details(path):
     path = f'/{path}'  # Make path absolute
     config_file = os.path.join(path, PROJECT_CONFIG_FILE)
 
-    if os.path.exists(config_file):
-        with open(config_file) as f:
-            config = json.load(f)
-    else:
-        # TODO: Show a warning that the project has no valid config file
-        config = None
+    with open(config_file) as f:
+        config = json.load(f)
 
-    return render_template('up_project_details.html', config=config, path=path)
+    stats = {}
+    for class_name, tags in config['classes'].items():
+        stats[class_name] = {}
+        for split in ['train', 'valid']:
+            videos_path = os.path.join(path, f'videos_{split}', class_name)
+            tags_path = os.path.join(path, f'tags_{split}', class_name)
+            stats[class_name][split] = {
+                'total': len(os.listdir(videos_path)),
+                'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
+            }
+
+    return render_template('up_project_details.html', config=config, path=path, stats=stats)
 
 
 @app.route('/annotate/')
