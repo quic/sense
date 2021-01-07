@@ -11,9 +11,10 @@
     <ul>
         {% for class, tags in config.classes.items() %}
         <li>
-            {{ class }}
             Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
+            <a href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">Annotate</a>
             Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
+            <a href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">Annotate</a>
             <ul>
                 {% for tag in tags %}
                 <li>
