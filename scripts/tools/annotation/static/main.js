@@ -70,25 +70,19 @@ function addClassInput(className) {
     classInput.value = className;
     classInput.setAttribute('onfocus', 'addClassInput("");');
 
-    var labelInput0 = document.createElement('input');
-    labelInput0.type = 'text';
-    labelInput0.name = 'class' + numClasses + '_label0';
+    var tagInput1 = document.createElement('input');
+    tagInput1.type = 'text';
+    tagInput1.name = 'class' + numClasses + '_tag1';
 
-    var labelInput1 = document.createElement('input');
-    labelInput1.type = 'text';
-    labelInput1.name = 'class' + numClasses + '_label1';
-
-    var labelInput2 = document.createElement('input');
-    labelInput2.type = 'text';
-    labelInput2.name = 'class' + numClasses + '_label2';
+    var tagInput2 = document.createElement('input');
+    tagInput2.type = 'text';
+    tagInput2.name = 'class' + numClasses + '_tag2';
 
     node.appendChild(classInput);
     node.appendChild(document.createTextNode(" "))
-    node.appendChild(labelInput0);
+    node.appendChild(tagInput1);
     node.appendChild(document.createTextNode(" "))
-    node.appendChild(labelInput1);
-    node.appendChild(document.createTextNode(" "))
-    node.appendChild(labelInput2);
+    node.appendChild(tagInput2);
     classList.appendChild(node);
 
     // Remove onclick handler on previous node

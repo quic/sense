@@ -9,15 +9,15 @@
 </div>
 <div>
     <ul>
-        {% for class, labels in config.classes.items() %}
+        {% for class, tags in config.classes.items() %}
         <li>
             {{ class }}
             Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
             Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
             <ul>
-                {% for label in labels %}
+                {% for tag in tags %}
                 <li>
-                    {{ label }}
+                    {{ tag }}
                 </li>
                 {% endfor %}
             </ul>

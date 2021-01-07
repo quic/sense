@@ -100,8 +100,8 @@ def create_new_project():
         class_name = data[class_key]
         if class_name:
             classes[class_name] = [
-                data[f'{class_key}_label{label_idx}'] or f'{class_name}_{label_idx}'
-                for label_idx in range(3)
+                data[f'{class_key}_tag{tag_idx}'] or f'{class_name}_{tag_idx}'
+                for tag_idx in range(1, 3)
             ]
 
         class_idx += 1
