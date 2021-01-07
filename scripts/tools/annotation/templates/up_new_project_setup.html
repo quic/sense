@@ -1,0 +1,26 @@
+{% extends 'up_skeleton.html' %}
+
+{% block title %} New Project {% endblock %}
+
+{% block main %}
+<h1>New Project</h1>
+<form method="POST" action="/create-new-project">
+    <div>
+        Name: <input type="text" name="name">
+    </div>
+    <div>
+        Path:
+        <input type="search" list="pathSuggestions" id="path" name="path" oninput="prefillClasses();" autocomplete="off" />
+        <datalist id="pathSuggestions">
+            <!-- Filled automatically -->
+        </datalist>
+        <input type="checkbox" name="shouldCreateDirectory" id="shouldCreateDirectory" onclick="prefillClasses();">
+        <label for="shouldCreateDirectory">Create Directory</label>
+    </div>
+    <h3>Classes</h3>
+    <ul id="classList">
+        <!-- Filled automatically -->
+    </ul>
+    <input type="submit" id="createProject" value="Create Project" disabled />
+</form>
+{% endblock %}

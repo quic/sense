@@ -12,6 +12,7 @@
 {% endfor %}
 </ul>
 
+<!-- TODO: "Import Project" instead? -->
 <input type="button" name="load-project" id="load-project" value="Load Project">
-<a href="new-project">Start New Project</a>
+<a href="{{ url_for('new_project_setup') }}">Start New Project</a>
 {% endblock %}
