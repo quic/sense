@@ -22,6 +22,7 @@ import os
 
 from docopt import docopt
 from flask import Flask
+from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
@@ -42,27 +43,47 @@ PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 PROJECT_CONFIG_FILE = 'project_config.json'
 
 
-def extension_ok(filename):
+def _extension_ok(filename):
     """ Returns `True` if the file has a valid image extension. """
     return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
+
+
+def _load_project_config():
+    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
+        projects = json.load(f)
+    return projects
 
 
 @app.route('/')
 def projects_overview():
     """TODO"""
-    projects = []
-
-    if os.path.exists(PROJECTS_OVERVIEW_CONFIG_FILE):
-        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
-            projects = json.load(f)
-
-    return render_template('up_projects_overview.html', projects=projects)
+    # TODO: Check if listed projects are still valid
+    return render_template('up_projects_overview.html', projects=_load_project_config())
 
 
-@app.route('/new-project')
-def new_project():
+@app.route('/new-project-setup')
+def new_project_setup():
     """TODO"""
-    return render_template('up_new_project.html')
+    return render_template('up_new_project_setup.html')
+
+
+@app.route('/check-existing-project', methods=['POST'])
+def check_existing_project():
+    """TODO"""
+    data = request.json
+    path = data['path']
+
+    subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)]
+
+    if not os.path.exists(path):
+        return jsonify(path_exists=False, classes=[], subdirs=subdirs)
+
+    train_dir = os.path.join(path, 'videos_train')
+    classes = []
+    if os.path.exists(train_dir):
+        classes = os.listdir(train_dir)
+
+    return jsonify(path_exists=True, classes=classes, subdirs=subdirs)
 
 
 @app.route('/create-new-project', methods=['POST'])
@@ -92,13 +113,36 @@ def create_new_project():
         'classes': classes,
     }
 
-    if os.path.exists(path):
-        config_file = os.path.join(path, PROJECT_CONFIG_FILE)
-        with open(config_file, 'w') as f:
-            json.dump(config, f, indent=2)
-    else:
-        # TODO: Show warning about wrong path
-        pass
+    # Initialize config file in project directory
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    config_file = os.path.join(path, PROJECT_CONFIG_FILE)
+    with open(config_file, 'w') as f:
+        json.dump(config, f, indent=2)
+
+    # Setup directory structure
+    for split in ['train', 'valid']:
+        videos_dir = os.path.join(path, f'videos_{split}')
+        if not os.path.exists(videos_dir):
+            print(f'Creating {videos_dir}')
+            os.mkdir(videos_dir)
+
+        for class_name in classes:
+            class_dir = os.path.join(videos_dir, class_name)
+
+            if not os.path.exists(class_dir):
+                print(f'Creating {class_dir}')
+                os.mkdir(class_dir)
+
+    # Update overall projects config file
+    projects = _load_project_config()
+    projects.append({
+        'name': name,
+        'path': path,
+    })
+    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
+        json.dump(projects, f, indent=2)
 
     return redirect(url_for('project_details', path=path))
 
@@ -140,7 +184,7 @@ def annotate(idx):
 
     # The list of images in the folder
     images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
-              if extension_ok(image)]
+              if _extension_ok(image)]
 
     indexes = [int(image.split('.')[0].split('/')[-1]) for image in images]
     n_images = len(indexes)
