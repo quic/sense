@@ -6,8 +6,12 @@
 <h1>Frames to annotate</h1>
 <h2>Video: {{video_name}}</h2>
 <form method="POST" action="/response">
-    <input type="hidden" id="fps" name="fps" value="{{fps}}">
-    <input type="hidden" id="idx" name="idx" value="{{idx}}">
+    <input type="hidden" name="fps" value="{{fps}}">
+    <input type="hidden" name="idx" value="{{idx}}">
+    <input type="hidden" name="path" value="{{path}}">
+    <input type="hidden" name="split" value="{{split}}">
+    <input type="hidden" name="label" value="{{label}}">
+    <input type="hidden" name="video" value="{{video_name}}">
     <input type="hidden" id="n_images" name="n_images" value="{{n_images}}">
     {% if images %}
         <ul class="image-file">
@@ -16,7 +20,7 @@
                 {% for img, idx, pred_class in imgs %}
                 <div class="image-col">
                     <div class="imgContainer">
-                        <img src="{{url_for('download_file', filename=img)}}" width="400px" height="300px">
+                        <img src="{{url_for('download_file', img_path=img)}}" width="400px" height="300px">
                     </div>
                     <div class="row">
                         {% if pred_class == '0' %}
@@ -54,9 +58,12 @@
     <input type="submit" value="Submit">
     {% endif %}
 </form>
-<form method="POST" action="/train_logreg">
-    <input type="hidden" id="idx2" name="idx" value="{{idx}}">
-      <input type="submit" value="Retrain model">
+<form method="POST" action="{{ url_for('train_logreg') }}">
+    <input type="hidden" name="idx" value="{{idx}}">
+    <input type="hidden" name="path" value="{{path}}">
+    <input type="hidden" name="split" value="{{split}}">
+    <input type="hidden" name="label" value="{{label}}">
+    <input type="submit" value="Retrain model">
 </form>
 {% endblock %}
 
