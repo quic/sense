@@ -123,3 +123,7 @@ function createInputWithLabel(icon, labelText, name, prefill, addOnFocus) {
     inputGroup.appendChild(input);
     return inputGroup
 }
+
+function spinner() {
+    document.getElementsByClassName("loader")[0].style.display = "block";
+}
