@@ -1,9 +1,11 @@
-import os
-
-import torch
 import json
-import yaml  # TODO: check dependency
+import os
+import torch
+import yaml
 
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 with open(os.path.join(os.path.dirname(__file__), 'models.yml')) as f:  # TODO: check if this is the best way of doing this
     MODELS = yaml.load(f)
@@ -11,12 +13,19 @@ with open(os.path.join(os.path.dirname(__file__), 'models.yml')) as f:  # TODO: 
 
 class ModelConfig:
     """
-    TODO
+    Object containing the model specifications for downstream tasks.
+
+    The full list of available models can be found in `sense/models.yml`
     """
 
-    def __init__(self, model_name, version, feature_converters):
+    def __init__(self, model_name: str, version: str, feature_converters: List[str]):
         """
-        TODO
+        :param model_name:
+            Name of the model to use (StridedInflatedEfficientNet or StridedInflatedMobileNetV2)
+        :param version:
+            Model version to use (pro or lite)
+        :param feature_converters:
+            List of classifier heads on top of the feature extractor
         """
 
         all_model_names = sorted(MODELS.keys())
@@ -45,12 +54,20 @@ class ModelConfig:
         return {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
 
 
-def get_relevant_weights(
-        model_config_list: list,
-        requested_model_name=None,  # TODO: type hints
-        requested_version=None):  # TODO: type hints
+def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_name=None,
+                         requested_version=None) -> Optional[Tuple[ModelConfig, dict]]:
     """
-    TODO
+    Returns the model weights for the appropriate backbone and classifier head based on
+    a list of compatible model configs. The first available config is returned.
+
+    :param model_config_list:
+        List of compatible model configurations
+    :param requested_model_name:
+        Name of a specific model to use (i.e. StridedInflatedEfficientNet or StridedInflatedMobileNetV2)
+    :param requested_version:
+        Version of the model to use (i.e. pro or lite)
+    :return:
+        First available model config and dictionary of model weights
     """
 
     # Filter out model configurations that don't match requested name and version
@@ -102,7 +119,7 @@ def load_backbone_weights(checkpoint_path: str):
     """
     try:
         return load_weights(checkpoint_path)
-    except:
+    finally:
         raise Exception(f'ERROR - Weights file missing {checkpoint_path}. To download, please go to '
                         f'https://20bn.com/licensing/sdk/evaluation and follow the '
                         f'instructions.')
