@@ -42,7 +42,7 @@
                         {% endif %}
                         <div class="switch-field">
                           <input type="radio" name="{{idx}}" id="{{idx}}radio-one" value=0  checked> <label for="{{idx}}radio-one">0</label>
-                          <input type="radio" name="{{idx}}"  id="{idxm}}radio-two" value=1><label for="{{idx}}radio-two">1</label>
+                          <input type="radio" name="{{idx}}" id="{{idx}}radio-two" value=1><label for="{{idx}}radio-two">1</label>
                           <input type="radio" name="{{idx}}" id="{{idx}}radio-three" value=2><label for="{{idx}}radio-three">2</label>
                         </div>
                     </div>
@@ -54,13 +54,9 @@
     <input type="submit" value="Submit">
     {% endif %}
 </form>
-<form method="POST" action="/train_log_reg">
+<form method="POST" action="/train_logreg">
     <input type="hidden" id="idx2" name="idx" value="{{idx}}">
       <input type="submit" value="Retrain model">
-</form>
-<form method="POST" action="/export_annotation">
-    <input type="hidden" id="idx3" name="idx" value="{{idx}}">
-      <input type="submit" value="Export annotations">
 </form>
 {% endblock %}
 
