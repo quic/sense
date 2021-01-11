@@ -197,6 +197,19 @@ PYTHONPATH=./ python scripts/run_calorie_estimation.py --weight=65 --age=30 --he
 The estimated calorie estimates are roughly in the range produced by wearable devices, though they have not been verified in terms of accuracy. 
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
 
+### Changing the model version
+
+A list of compatible model configurations can be found near the top of each demo's 
+python script under `SUPPORTED_MODEL_CONFIGURATIONS`; the first available
+model will be selected when running a demo. To run the demonstration on a specific model and version, you can 
+additionally pass in the following flags:
+
+```shell
+--model_name=NAME --model_version=VERSION
+```
+
+The full list of available models and versions can be found in `sense/models.yml`.
+
 ---
 
 ## Build Your Own Classifier
@@ -252,9 +265,7 @@ You can now run it live using the following script:
 PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
 ```
 
----
-
-## Advanced Options
+### Advanced Options
 
 You can further improve your model's performance by training on top of temporally annotated data; 
 individually labelled frames that identify the event locally in the video versus treating every frame with the same 
