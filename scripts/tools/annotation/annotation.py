@@ -215,6 +215,20 @@ def show_video_list(split, label, path):
     return render_template('up_folder.html', folders=folder_id, split=split, label=label, path=path)
 
 
+@app.route('/prepare_annotation/<path:path>')
+def prepare_annotation(path):
+    """Gets the data and creates the HTML template with all videos for the given class-label."""
+    dataset_path = f'/{path}'  # Make path absolute
+
+    # load feature extractor if needed
+    _load_feature_extractor()
+    for split in ['train', 'valid']:
+        print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
+        for label in os.listdir(join(dataset_path, f'videos_{split}')):
+            compute_frames_features(inference_engine, split, label, dataset_path)
+    return redirect(url_for("project_details", path=path))
+
+
 @app.route('/annotate/<split>/<label>/<path:path>/<int:idx>')
 def annotate(split, label, path, idx):
     """For the given class-label, this shows all the frames for annotating the selected video."""
