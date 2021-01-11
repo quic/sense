@@ -7,28 +7,72 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Merienda One">
 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Port Lligat Slab">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='up2.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
 </head>
 <body>
 
-{# the error messages are displayed then the success messages #}
-{% for category in ['error', 'success'] %}
-    {% with msgs = get_flashed_messages(category_filter=[category]) %}
-        {% if msgs %}
-        <ul class="flashed {{ category }}">
-            {% for m in msgs %}
-                <li>{{ m|safe }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-    {% endwith %}
-{% endfor %}
+    <div class="ui fixed menu">
+        <div class="ui container">
+            <a href="#" class="header item">
+                <img class="logo" src="{{ url_for('static', filename='sense_kit_logo.png') }}">
+            </a>
+            <a href="#" class="item">Home</a>
+            <div class="ui simple dropdown item">
+                Dropdown <i class="dropdown icon"></i>
+                <div class="menu">
+                    <a class="item" href="#">Link Item</a>
+                    <a class="item" href="#">Link Item</a>
+                    <div class="divider"></div>
+                    <div class="header">Header Item</div>
+                    <div class="item">
+                        <i class="dropdown icon"></i>
+                        Sub Menu
+                        <div class="menu">
+                        <a class="item" href="#">Link Item</a>
+                        <a class="item" href="#">Link Item</a>
+                        </div>
+                    </div>
+                    <a class="item" href="#">Link Item</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div id="main">
-    {% block main %}{% endblock %}
-</div>
+    {# the error messages are displayed then the success messages #}
+    {% for category in ['error', 'success'] %}
+        {% with msgs = get_flashed_messages(category_filter=[category]) %}
+            {% if msgs %}
+            <ul class="flashed {{ category }}">
+                {% for m in msgs %}
+                    <li>{{ m|safe }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
+    {% endfor %}
 
-<script src="{{ url_for('static', filename='main.js') }}"></script>
+    <div id="main" class="ui main container">
+        {% block main %}{% endblock %}
+    </div>
+
+    <div class="ui vertical footer segment">
+        <div class="ui center aligned container">
+            <img src="{{ url_for('static', filename='sense_kit_logo.png') }}" class="ui centered small image">
+            <div class="ui horizontal small divided link list">
+                <a class="item" href="https://github.com/TwentyBN/sense">
+                    <i class="github icon"></i>
+                    Github
+                </a>
+                <a class="item" href="https://20bn.com/">TwentyBN</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 
 </body>
 </html>
