@@ -23,15 +23,16 @@ Options:
 from docopt import docopt
 
 import sense.display
+
 from sense import feature_extractors
-from sense.loading import ModelConfig
-from sense.loading import get_relevant_weights
 from sense.controller import Controller
 from sense.downstream_tasks.fitness_rep_counting import INT2LAB
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.downstream_tasks.postprocess import PostprocessRepCounts
+from sense.loading import get_relevant_weights
+from sense.loading import ModelConfig
 
 
 SUPPORTED_MODEL_CONFIGURATIONS = [

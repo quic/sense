@@ -19,16 +19,18 @@ Options:
 """
 import os
 import json
+
 from docopt import docopt
 
 import sense.display
-from sense.loading import load_weights
-from sense.loading import load_backbone_weights
+
 from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
+from sense.loading import load_backbone_weights
+from sense.loading import load_weights
 
 
 if __name__ == "__main__":

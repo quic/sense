@@ -28,15 +28,16 @@ Options:
 from docopt import docopt
 
 import sense.display
+
 from sense import feature_extractors
-from sense.loading import ModelConfig
-from sense.loading import get_relevant_weights
 from sense.controller import Controller
 from sense.downstream_tasks import calorie_estimation
 from sense.downstream_tasks.fitness_activity_recognition import INT2LAB
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
+from sense.loading import get_relevant_weights
+from sense.loading import ModelConfig
 
 
 REQUIRED_FEATURE_CONVERTERS = ['fitness_activity_recognition', 'met_converter']
