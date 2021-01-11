@@ -21,7 +21,11 @@
                     <div class="ui basic label">
                         Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
                     </div>
-                    <a class="ui icon button" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
+                    <a class="ui icon button" onclick="spinner()" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
+                        <div class="loader">
+                          <div class="loading">
+                          </div>
+                        </div>
                         <i class="edit icon"></i>
                         Annotate
                     </a>
@@ -30,7 +34,11 @@
                     <div class="ui basic label">
                         Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
                     </div>
-                    <a class="ui icon button" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
+                    <a class="ui icon button" onclick="spinner()" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
+                        <div class="loader">
+                          <div class="loading">
+                          </div>
+                        </div>
                         <i class="edit icon"></i>
                         Annotate
                     </a>
