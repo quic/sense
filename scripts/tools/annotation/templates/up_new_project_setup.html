@@ -3,24 +3,35 @@
 {% block title %} New Project {% endblock %}
 
 {% block main %}
-<h1>New Project</h1>
+<h1 class="ui header">New Project</h1>
 <form method="POST" action="/create-new-project">
-    <div>
-        Name: <input type="text" name="name">
+    <div class="ui labeled input">
+        <div class="ui label">
+            <i class="id card outline icon"></i>
+            Name
+        </div>
+        <input type="text" name="name" placeholder="Project Name">
     </div>
-    <div>
-        Path:
-        <input type="search" list="pathSuggestions" id="path" name="path" oninput="prefillClasses();" autocomplete="off" />
-        <datalist id="pathSuggestions">
-            <!-- Filled automatically -->
-        </datalist>
-        <input type="checkbox" name="shouldCreateDirectory" id="shouldCreateDirectory" onclick="prefillClasses();">
-        <label for="shouldCreateDirectory">Create Directory</label>
+    <div class="ui labeled input">
+        <div class="ui label">
+            <i class="folder open icon"></i>
+            Path
+        </div>
+        <div class="ui search" id="pathSearch">
+            <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" />
+            <div id="pathSuggestions" class="results">
+                <!-- Filled automatically -->
+            </div>
+        </div>
+    </div>
+    <div class="ui checkbox" id="shouldCreateDirectory">
+        <input type="checkbox" name="shouldCreateDirectory">
+        <label>Create Directory</label>
     </div>
     <h3>Classes</h3>
-    <ul id="classList">
+    <div id="classList">
         <!-- Filled automatically -->
-    </ul>
-    <input type="submit" id="createProject" value="Create Project" disabled />
+    </div>
+    <button class="ui button" type="submit" id="createProject" disabled>Create Project</button>
 </form>
 {% endblock %}

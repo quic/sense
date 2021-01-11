@@ -3,16 +3,22 @@
 {% block title %} Projects Overview {% endblock %}
 
 {% block main %}
-<h1>Projects</h1>
+<h1 class="ui header">Projects</h1>
 <ul>
 {% for project in projects %}
-    <li>
-        <a href="{{ url_for('project_details', path=project.path) }}">{{ project.name }} ({{ project.path }})</a>
-    </li>
+    <a class="ui card" href="{{ url_for('project_details', path=project.path) }}">
+        <div class="content">
+            <div class="header">{{ project.name }}</div>
+        </div>
+        <div class="content">
+            <p>
+                {{ project.path }}
+            </p>
+        </div>
+    </a>
 {% endfor %}
 </ul>
 
-<!-- TODO: "Import Project" instead? -->
-<input type="button" name="load-project" id="load-project" value="Load Project">
-<a href="{{ url_for('new_project_setup') }}">Start New Project</a>
+<button class="ui button">Import Project</button>
+<a class="ui button" href="{{ url_for('new_project_setup') }}">Start New Project</a>
 {% endblock %}

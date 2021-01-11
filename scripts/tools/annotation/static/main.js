@@ -1,93 +1,125 @@
 
-function prefillClasses() {
-    var path = document.getElementById('path').value;
-    var xhttp = new XMLHttpRequest();
+$(document).ready(function () {
+    $('#pathSearch').search({
+        apiSettings: {
+            response: function (e) {
+                var path = document.getElementById('path').value;
+                var xhttp = new XMLHttpRequest();
 
-    let json = JSON.stringify({path: path});
+                xhttp.open("POST", "/check-existing-project", false);
+                xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 
-    xhttp.open("POST", "/check-existing-project");
-    xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-    xhttp.responseType = 'json';
+                xhttp.send(JSON.stringify({path: path}));
 
-    xhttp.send(json);
+                let response = JSON.parse(xhttp.responseText);
+                pathExists = response.path_exists;
+                classes = response.classes;
+                subdirs = response.subdirs;
 
-    xhttp.onload = function() {
-        let response = xhttp.response;
-        pathExists = response.path_exists;
-        classes = response.classes;
-        subdirs = response.subdirs;
+                var shouldCreateDirectory = $('#shouldCreateDirectory');
+                var classList = document.getElementById('classList');
+                var createProject = document.getElementById('createProject');
 
-        console.log(pathExists, classes, subdirs);
+                results = [];
+                for (const subdir of subdirs) {
+                    results.push({title: subdir})
+                }
 
-        var shouldCreateDirectory = document.getElementById('shouldCreateDirectory')
-        var pathSuggestions = document.getElementById('pathSuggestions');
-        var classList = document.getElementById('classList');
-        var createProject = document.getElementById('createProject');
+                while (classList.firstChild) {
+                    classList.removeChild(classList.lastChild);
+                }
 
-        while (pathSuggestions.firstChild) {
-           pathSuggestions.removeChild(pathSuggestions.lastChild);
-        }
+                for (const className of classes){
+                    addClassInput(className);
+                }
+                addClassInput("");
 
-        for (const subdir of subdirs) {
-            var option = document.createElement('option');
-            option.value = subdir;
-            pathSuggestions.appendChild(option);
-        }
+                if (path && (pathExists || shouldCreateDirectory.checkbox('is checked'))) {
+                    createProject.disabled = false;
+                } else {
+                    createProject.disabled = true;
+                }
 
-        while (classList.firstChild) {
-            classList.removeChild(classList.lastChild);
-        }
+                if (pathExists) {
+                    shouldCreateDirectory.checkbox('disable');
+                } else {
+                    shouldCreateDirectory.checkbox('enable');
+                }
 
-        if (path && (pathExists || shouldCreateDirectory.checked)) {
-            for (const className of classes){
-                addClassInput(className);
+                return {results: results}
             }
-            addClassInput("");
+        },
+        showNoResults: false,
+        cache: false
+    });
+
+    $('#shouldCreateDirectory').checkbox({
+        onChecked: function () {
+            var createProject = document.getElementById('createProject');
             createProject.disabled = false;
-        } else {
+        },
+
+        onUnchecked: function () {
+            var createProject = document.getElementById('createProject');
             createProject.disabled = true;
         }
-
-        if (pathExists) {
-            shouldCreateDirectory.disabled = true;
-        } else {
-            shouldCreateDirectory.disabled = false;
-        }
-    };
-}
+    });
+});
 
 
 function addClassInput(className) {
     var classList = document.getElementById('classList');
     var numClasses = classList.children.length;
 
-    // Create new list item
-    var node = document.createElement('LI');
+    // Create new row
+    var row = document.createElement('div');
+    row.className = 'row';
 
-    var classInput = document.createElement('input');
-    classInput.type = 'text';
-    classInput.name = 'class' + numClasses;
-    classInput.value = className;
-    classInput.setAttribute('onfocus', 'addClassInput("");');
+    classInputGroup = createInputWithLabel('eye', 'Class', 'class' + numClasses, className, true)
+    row.appendChild(classInputGroup);
+    row.appendChild(document.createTextNode(' '));
 
-    var tagInput1 = document.createElement('input');
-    tagInput1.type = 'text';
-    tagInput1.name = 'class' + numClasses + '_tag1';
+    tag1InputGroup = createInputWithLabel('tag', 'Tag 1', 'class' + numClasses + '_tag1', '', false)
+    row.appendChild(tag1InputGroup);
+    row.appendChild(document.createTextNode(' '));
 
-    var tagInput2 = document.createElement('input');
-    tagInput2.type = 'text';
-    tagInput2.name = 'class' + numClasses + '_tag2';
+    tag2InputGroup = createInputWithLabel('tag', 'Tag 2', 'class' + numClasses + '_tag2', '', false)
+    row.appendChild(tag2InputGroup);
 
-    node.appendChild(classInput);
-    node.appendChild(document.createTextNode(" "))
-    node.appendChild(tagInput1);
-    node.appendChild(document.createTextNode(" "))
-    node.appendChild(tagInput2);
-    classList.appendChild(node);
+    classList.appendChild(row);
 
     // Remove onclick handler on previous node
     if (numClasses > 0) {
-        var previousNode = classList.children[numClasses - 1].children[0];
-        previousNode.removeAttribute('onfocus');
+        let previousLabeledInput = classList.children[numClasses - 1].children[0];
+        let previousInput = previousLabeledInput.children[previousLabeledInput.children.length - 1];
+        previousInput.removeAttribute('onfocus');
     }
+}
+
+function createInputWithLabel(icon, labelText, name, prefill, addOnFocus) {
+    var inputGroup = document.createElement('div');
+    inputGroup.className = 'ui labeled input';
+
+    var label = document.createElement('div');
+    label.className = 'ui label';
+
+    var icon = document.createElement('i');
+    icon.className = 'eye ' + icon;
+
+    label.appendChild(icon);
+    label.appendChild(document.createTextNode(labelText));
+    inputGroup.appendChild(label);
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.name = name;
+    input.value = prefill;
+    input.placeholder = name;
+
+    if (addOnFocus) {
+        input.setAttribute('onfocus', 'addClassInput("");');
+    }
+
+    inputGroup.appendChild(input);
+    return inputGroup
 }
