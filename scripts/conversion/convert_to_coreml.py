@@ -54,6 +54,7 @@ from keras.models import Model
 from keras.regularizers import l2
 from keras.utils.vis_utils import plot_model as plot
 
+from sense.loading import MODELS
 
 DEFAULT_CONVERSION_PARAMETERS = {
     'image_scale': 1.,
@@ -67,11 +68,13 @@ DEFAULT_CONVERSION_PARAMETERS = {
     'use_prelu': False
 }
 
+EFFICIENTNET = 'StridedInflatedEfficientNet'
+
 SUPPORTED_BACKBONE_CONVERSIONS = {
-    'efficientnet':
+    EFFICIENTNET:
         {
             'config_file': 'scripts/conversion/cfg/efficientnet.cfg',
-            'weights_file': 'resources/backbone/strided_inflated_efficientnet.ckpt',
+            'weights_file': MODELS[EFFICIENTNET]['pro']['backbone'],
             'conversion_parameters': {**DEFAULT_CONVERSION_PARAMETERS, 'image_scale': 255.}
         }
 }
@@ -81,15 +84,15 @@ SUPPORTED_CLASSIFIER_CONVERSIONS = {
         {
             'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
             'placeholder_values': {'NUM_CLASSES': '30'},
-            'weights_file': 'resources/gesture_detection/strided_inflated_efficientnet_logistic_regression.ckpt',  # TODO: read from sense.MODELS?
-            'corresponding_backbone': 'efficientnet',
+            'weights_file': MODELS[EFFICIENTNET]['pro']['gesture_detection'],
+            'corresponding_backbone': EFFICIENTNET,
         },
     'efficient_net_fitness_activity_recognition':
         {
             'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
             'placeholder_values': {'NUM_CLASSES': '81'},
-            'weights_file': 'resources/fitness_activity_recognition/strided_inflated_efficientnet_logistic_regression.ckpt',   # TODO: read from sense.MODELS?
-            'corresponding_backbone': 'efficientnet',
+            'weights_file': MODELS[EFFICIENTNET]['pro']['fitness_activity_recognition'],
+            'corresponding_backbone': EFFICIENTNET,
         },
     'custom_classifier':
         {
