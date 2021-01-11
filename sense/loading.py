@@ -7,7 +7,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-with open(os.path.join(os.path.dirname(__file__), 'models.yml')) as f:  # TODO: check if this is the best way of doing this
+with open(os.path.join(os.getcwd(), os.path.dirname(__file__), 'models.yml')) as f:
     MODELS = yaml.load(f, Loader=yaml.FullLoader)
 
 
