@@ -35,10 +35,10 @@ from sense.loading import ModelConfig
 
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
-    ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_detection']),
-    ModelConfig('StridedInflatedMobileNetV2', 'pro', ['gesture_detection']),
-    ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_detection']),
-    ModelConfig('StridedInflatedMobileNetV2', 'lite', ['gesture_detection']),
+    ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_recognition']),
+    ModelConfig('StridedInflatedMobileNetV2', 'pro', ['gesture_recognition']),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_recognition']),
+    ModelConfig('StridedInflatedMobileNetV2', 'lite', ['gesture_recognition']),
 ]
 
 if __name__ == "__main__":
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     # Create a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=30)
-    gesture_classifier.load_state_dict(weights['gesture_detection'])
+    gesture_classifier.load_state_dict(weights['gesture_recognition'])
     gesture_classifier.eval()
 
     # Concatenate feature extractor and met converter

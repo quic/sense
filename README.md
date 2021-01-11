@@ -122,7 +122,7 @@ resources
 │   └── strided_inflated_mobilenet.ckpt
 ├── fitness_activity_recognition
 │   └── ...
-├── gesture_detection
+├── gesture_recognition
 │   └── ...
 └── ...
 ```
@@ -283,7 +283,7 @@ If you're interested in mobile app development and want to run our models on iOS
 One of the steps involves converting our Pytorch models to the CoreML format, which can be done from this repo using the following script:
 
 ```shell
-python scripts/conversion/convert_to_coreml.py --backbone=StridedInflatedEfficientNet --classifier=efficient_net_gesture_control --output_name=sensenet
+python scripts/conversion/convert_to_coreml.py --backbone=StridedInflatedEfficientNet --classifier=efficient_net_gesture_recognition --output_name=sensenet
 ```
 
 If you want to convert a custom classifier, set the classifier name to "custom_classifier", and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.

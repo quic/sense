@@ -80,11 +80,11 @@ SUPPORTED_BACKBONE_CONVERSIONS = {
 }
 
 SUPPORTED_CLASSIFIER_CONVERSIONS = {
-    'efficient_net_gesture_control':
+    'efficient_net_gesture_recognition':
         {
             'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
             'placeholder_values': {'NUM_CLASSES': '30'},
-            'weights_file': MODELS[EFFICIENTNET]['pro']['gesture_detection'],
+            'weights_file': MODELS[EFFICIENTNET]['pro']['gesture_recognition'],
             'corresponding_backbone': EFFICIENTNET,
         },
     'efficient_net_fitness_activity_recognition':

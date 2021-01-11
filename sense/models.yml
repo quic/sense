@@ -3,13 +3,13 @@ StridedInflatedEfficientNet:
   lite:
     backbone: resources/backbone/strided_inflated_efficientnet_lite.ckpt
     fitness_activity_recognition: resources/fitness_activity_recognition/strided_inflated_efficientnet_lite_logistic_regression.ckpt
-    gesture_detection: resources/gesture_detection/strided_inflated_efficientnet_lite_logistic_regression.ckpt
+    gesture_recognition: resources/gesture_recognition/strided_inflated_efficientnet_lite_logistic_regression.ckpt
     met_converter: resources/calorie_estimation/strided_inflated_efficientnet_lite_met_converter.ckpt
 
   pro:
     backbone: resources/backbone/strided_inflated_efficientnet.ckpt
     fitness_activity_recognition: resources/fitness_activity_recognition/strided_inflated_efficientnet_logistic_regression.ckpt
-    gesture_detection: resources/gesture_detection/strided_inflated_efficientnet_logistic_regression.ckpt
+    gesture_recognition: resources/gesture_recognition/strided_inflated_efficientnet_logistic_regression.ckpt
     met_converter: resources/calorie_estimation/strided_inflated_efficientnet_met_converter.ckpt
     rep_counter: resources/fitness_rep_counting/strided_inflated_efficientnet_logistic_regression.ckpt
 
@@ -19,11 +19,11 @@ StridedInflatedMobileNetV2:
   lite:
     backbone: resources/backbone/strided_inflated_mobilenet_lite.ckpt
     fitness_activity_recognition: resources/fitness_activity_recognition/strided_inflated_mobilenet_lite_logistic_regression.ckpt
-    gesture_detection: resources/gesture_detection/strided_inflated_mobilenet_lite_logistic_regression.ckpt
+    gesture_recognition: resources/gesture_recognition/strided_inflated_mobilenet_lite_logistic_regression.ckpt
     met_converter: resources/calorie_estimation/strided_inflated_mobilenet_lite_met_converter.ckpt
 
   pro:
     backbone: resources/backbone/strided_inflated_mobilenet.ckpt
     fitness_activity_recognition: resources/fitness_activity_recognition/strided_inflated_mobilenet_logistic_regression.ckpt
-    gesture_detection: resources/gesture_detection/strided_inflated_mobilenet_logistic_regression.ckpt
+    gesture_recognition: resources/gesture_recognition/strided_inflated_mobilenet_logistic_regression.ckpt
     met_converter: resources/calorie_estimation/strided_inflated_mobilenet_met_converter.ckpt
