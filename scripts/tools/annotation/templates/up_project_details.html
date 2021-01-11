@@ -7,6 +7,14 @@
 <h3 class="ui header">
     Path: {{ path }}
 </h3>
+<a class="ui icon button" onclick="spinner()" href="{{ url_for('prepare_annotation', path=path) }}">
+    <div class="loader">
+        <div class="loading">
+        </div>
+    </div>
+    <i class="edit icon"></i>
+    prepare annotations
+</a>
 <h3 class="ui header">Classes</h3>
 <div class="ui list">
     {% for class, tags in config.classes.items() %}
@@ -60,14 +68,6 @@
         </div>
     </div>
     {% endfor %}
-    <a class="ui icon button" onclick="spinner()" href="{{ url_for('prepare_annotation', path=path) }}">
-        <div class="loader">
-            <div class="loading">
-            </div>
-        </div>
-        <i class="edit icon"></i>
-        prepare annotations
-    </a>
 </div>
 
 {% endblock %}
