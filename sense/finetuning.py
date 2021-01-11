@@ -12,6 +12,7 @@ from PIL import Image
 from sense import camera
 from sense import engine
 from sklearn.metrics import confusion_matrix
+from os.path import join
 
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
@@ -226,6 +227,28 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
         for e, frame in enumerate(frames_to_save):
             Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)
+
+
+def compute_frames_features(inference_engine, split, label, dataset_path):
+    # Get data-set from path, given split and label
+    folder = join(dataset_path, f'videos_{split}', label)
+
+    # Create features and frames folders for the given split and label
+    features_folder = join(dataset_path, f'features_{split}', label)
+    frames_folder = join(dataset_path, f'frames_{split}', label)
+    os.makedirs(features_folder, exist_ok=True)
+    os.makedirs(frames_folder, exist_ok=True)
+
+    # Loop through all videos for the given class-label
+    videos = glob.glob(folder + '/*.mp4')
+    for e, video_path in enumerate(videos):
+        print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
+        path_frames = join(frames_folder, video_path.split("/")[-1].replace(".mp4", ""))
+        path_features = join(features_folder, video_path.split("/")[-1].replace(".mp4", ".npy"))
+        if not os.path.isfile(path_features):
+            os.makedirs(path_frames, exist_ok=True)
+            compute_features(video_path, path_features, inference_engine,
+                             num_timesteps=1, path_frames=path_frames, batch_size=64)
 
 
 def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
