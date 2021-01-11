@@ -39,9 +39,16 @@ def _extension_ok(filename):
 
 
 def _load_project_config():
-    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
-        projects = json.load(f)
-    return projects
+    if os.path.isfile(PROJECTS_OVERVIEW_CONFIG_FILE):
+        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
+            projects = json.load(f)
+        return projects
+    else:
+        projects = []
+        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
+            json.dump(projects, f, indent=2)
+        return projects
+
 
 
 @app.route('/')
