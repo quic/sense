@@ -243,8 +243,8 @@ def compute_frames_features(inference_engine, split, label, dataset_path):
     videos = glob.glob(folder + '/*.mp4')
     for e, video_path in enumerate(videos):
         print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
-        path_frames = join(frames_folder, video_path.split("/")[-1].replace(".mp4", ""))
-        path_features = join(features_folder, video_path.split("/")[-1].replace(".mp4", ".npy"))
+        path_frames = join(frames_folder, os.path.basename(video_path).replace(".mp4", ""))
+        path_features = join(features_folder, os.path.basename(video_path).replace(".mp4", ".npy"))
         if not os.path.isfile(path_features):
             os.makedirs(path_frames, exist_ok=True)
             compute_features(video_path, path_features, inference_engine,
