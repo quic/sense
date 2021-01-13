@@ -33,7 +33,6 @@ MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
-inference_engine = None
 
 
 def _load_feature_extractor():
@@ -68,7 +67,6 @@ def _load_project_config():
         with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
             json.dump(projects, f, indent=2)
         return projects
-
 
 
 @app.route('/')
@@ -293,7 +291,7 @@ def response():
         json.dump(description, open(out_annotation, 'w'))
 
         if next_frame_idx >= len(os.listdir(frames_dir)):
-            return redirect(url_for('show_video_list'))
+            return redirect(url_for('project_details', path=path))
 
     return redirect(url_for('annotate', split=split, label=label, path=path, idx=next_frame_idx))
 
@@ -383,4 +381,6 @@ def download_file(img_path):
 
 if __name__ == '__main__':
     logreg = None
+    inference_engine = None
+
     app.run(debug=True)
