@@ -3,59 +3,60 @@
 {% block title %} {{ config.name }} {% endblock %}
 
 {% block main %}
-<h1 class="ui header">{{ config.name }}</h1>
-<h3 class="ui header">
-    Path: {{ path }}
-</h3>
-<a class="ui icon button" onclick="loading(this);" href="{{ url_for('prepare_annotation', path=path) }}">
-    <i class="file video outline icon"></i>
-    Prepare Annotations
-</a>
-<h3 class="ui header">Classes</h3>
-<div class="ui list">
-    {% for class, tags in config.classes.items() %}
-    <div class="item">
-        <i class="eye icon"></i>
-        <div class="content">
-            <div class="header">
-                {{ class }}
-            </div>
-            <div class="description">
-                <div class="ui left labeled button" tabindex="0">
-                    <div class="ui basic label">
-                        Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
-                    </div>
-                    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
-                        <i class="edit icon"></i>
-                        Annotate
-                    </a>
+<div id="main" class="ui main text container">
+    <h1 class="ui header">{{ config.name }}</h1>
+    <h3 class="ui header">
+        Path: {{ path }}
+    </h3>
+    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('prepare_annotation', path=path) }}">
+        <i class="file video outline icon"></i>
+        Prepare Annotations
+    </a>
+    <h3 class="ui header">Classes</h3>
+    <div class="ui list">
+        {% for class, tags in config.classes.items() %}
+        <div class="item">
+            <i class="eye icon"></i>
+            <div class="content">
+                <div class="header">
+                    {{ class }}
                 </div>
-                <div class="ui left labeled button" tabindex="0">
-                    <div class="ui basic label">
-                        Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
+                <div class="description">
+                    <div class="ui left labeled button" tabindex="0">
+                        <div class="ui basic label">
+                            Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
+                        </div>
+                        <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
+                            <i class="edit icon"></i>
+                            Annotate
+                        </a>
                     </div>
-                    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
-                        <i class="edit icon"></i>
-                        Annotate
-                    </a>
-                </div>
+                    <div class="ui left labeled button" tabindex="0">
+                        <div class="ui basic label">
+                            Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
+                        </div>
+                        <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
+                            <i class="edit icon"></i>
+                            Annotate
+                        </a>
+                    </div>
 
-                <div class="list">
-                    {% for tag in tags %}
-                    <div class="item">
-                        <i class="tag icon"></i>
-                        <div class="content">
-                            <div class="header">
-                                {{ tag }}
+                    <div class="list">
+                        {% for tag in tags %}
+                        <div class="item">
+                            <i class="tag icon"></i>
+                            <div class="content">
+                                <div class="header">
+                                    {{ tag }}
+                                </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
             </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
-
 {% endblock %}
