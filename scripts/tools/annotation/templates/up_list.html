@@ -55,7 +55,7 @@
             </div>
             {% endfor %}
         </ul>
-    <input type="submit" value="Submit">
+    <button class="ui button" type="submit">Submit</button>
     {% endif %}
 </form>
 <form method="POST" action="{{ url_for('train_logreg') }}">
@@ -63,8 +63,6 @@
     <input type="hidden" name="path" value="{{path}}">
     <input type="hidden" name="split" value="{{split}}">
     <input type="hidden" name="label" value="{{label}}">
-    <input type="submit" value="Retrain model">
+    <button class="ui button" type="submit">Retrain Model</button>
 </form>
 {% endblock %}
-
-
