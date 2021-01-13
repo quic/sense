@@ -23,6 +23,8 @@ from joblib import load
 from os.path import join
 from sklearn.linear_model import LogisticRegression
 
+from sense.finetuning import compute_frames_features
+
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
@@ -31,6 +33,24 @@ MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
+inference_engine = None
+
+
+def _load_feature_extractor():
+    global inference_engine
+    import torch
+    from sense import engine
+    from sense import feature_extractors
+    if inference_engine is None:
+        feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+
+        # Remove internal padding for feature extraction and training
+        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+        feature_extractor.load_state_dict(checkpoint)
+        feature_extractor.eval()
+
+        # Create Inference Engine
+        inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
 
 
 def _extension_ok(filename):
@@ -178,7 +198,10 @@ def show_video_list(split, label, path):
     os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
 
-    # TODO: Prepare annotation if necessary
+    # load feature extractor if needed
+    _load_feature_extractor()
+    # compute the features and frames missing.
+    compute_frames_features(inference_engine, split, label, path)
 
     videos = os.listdir(frames_dir)
     videos.sort()
@@ -190,6 +213,20 @@ def show_video_list(split, label, path):
 
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('up_folder.html', folders=folder_id, split=split, label=label, path=path)
+
+
+@app.route('/prepare_annotation/<path:path>')
+def prepare_annotation(path):
+    """Gets the data and creates the HTML template with all videos for the given class-label."""
+    dataset_path = f'/{path}'  # Make path absolute
+
+    # load feature extractor if needed
+    _load_feature_extractor()
+    for split in ['train', 'valid']:
+        print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
+        for label in os.listdir(join(dataset_path, f'videos_{split}')):
+            compute_frames_features(inference_engine, split, label, dataset_path)
+    return redirect(url_for("project_details", path=path))
 
 
 @app.route('/annotate/<split>/<label>/<path:path>/<int:idx>')
