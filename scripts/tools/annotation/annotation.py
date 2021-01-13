@@ -69,7 +69,6 @@ def _load_project_config():
         return projects
 
 
-
 @app.route('/')
 def projects_overview():
     """TODO"""
@@ -292,7 +291,7 @@ def response():
         json.dump(description, open(out_annotation, 'w'))
 
         if next_frame_idx >= len(os.listdir(frames_dir)):
-            return redirect(url_for('show_video_list'))
+            return redirect(url_for('project_details', path=path))
 
     return redirect(url_for('annotate', split=split, label=label, path=path, idx=next_frame_idx))
 
