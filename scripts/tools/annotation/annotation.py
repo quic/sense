@@ -33,7 +33,6 @@ MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
-inference_engine = None
 
 
 def _load_feature_extractor():
@@ -383,4 +382,6 @@ def download_file(img_path):
 
 if __name__ == '__main__':
     logreg = None
+    inference_engine = None
+
     app.run(debug=True)

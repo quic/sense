@@ -7,13 +7,9 @@
 <h3 class="ui header">
     Path: {{ path }}
 </h3>
-<a class="ui icon button" onclick="spinner()" href="{{ url_for('prepare_annotation', path=path) }}">
-    <div class="loader">
-        <div class="loading">
-        </div>
-    </div>
-    <i class="edit icon"></i>
-    prepare annotations
+<a class="ui icon button" onclick="loading(this);" href="{{ url_for('prepare_annotation', path=path) }}">
+    <i class="file video outline icon"></i>
+    Prepare Annotations
 </a>
 <h3 class="ui header">Classes</h3>
 <div class="ui list">
@@ -29,11 +25,7 @@
                     <div class="ui basic label">
                         Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
                     </div>
-                    <a class="ui icon button" onclick="spinner()" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
-                        <div class="loader">
-                          <div class="loading">
-                          </div>
-                        </div>
+                    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
                         <i class="edit icon"></i>
                         Annotate
                     </a>
@@ -42,11 +34,7 @@
                     <div class="ui basic label">
                         Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
                     </div>
-                    <a class="ui icon button" onclick="spinner()" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
-                        <div class="loader">
-                          <div class="loading">
-                          </div>
-                        </div>
+                    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
                         <i class="edit icon"></i>
                         Annotate
                     </a>

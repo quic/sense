@@ -124,6 +124,7 @@ function createInputWithLabel(icon, labelText, name, prefill, addOnFocus) {
     return inputGroup
 }
 
-function spinner() {
-    document.getElementsByClassName("loader")[0].style.display = "block";
+function loading(element) {
+    element.classList.add('loading');
+    element.classList.add('disabled');
 }
