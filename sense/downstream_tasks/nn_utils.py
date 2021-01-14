@@ -72,10 +72,8 @@ class Pipe(RealtimeNeuralNet):
 
 class LogisticRegression(nn.Sequential):
 
-    def __init__(self, num_in, num_out, use_sigmoid=False, use_softmax=True, global_average_pooling=True):
+    def __init__(self, num_in, num_out, use_softmax=True, global_average_pooling=True):
         layers = [nn.Linear(num_in, num_out)]
-        if use_sigmoid:
-            layers.append(nn.Sigmoid())
         if use_softmax:
             layers.append(nn.Softmax(dim=-1))
         super(LogisticRegression, self).__init__(*layers)
@@ -85,3 +83,10 @@ class LogisticRegression(nn.Sequential):
         if self.global_average_pooling:
             input_tensor = input_tensor.mean(dim=-1).mean(dim=-1)
         return super().forward(input_tensor)
+
+
+class LogisticRegressionSigmoid(LogisticRegression):
+
+    def __init__(self, **kwargs):
+        super().__init__(use_softmax=False, **kwargs)
+        self.add_module(str(len(self)), nn.Sigmoid())
