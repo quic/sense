@@ -19,3 +19,4 @@ h5py                    ==2.10.0
 
 # unit tests
 pytest            ==5.4.3          # MIT
+pycodestyle       ==2.5.0          # MIT
