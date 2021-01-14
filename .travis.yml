@@ -1,0 +1,12 @@
+language: python
+
+python:
+  - "3.6"
+
+jobs:
+  include:
+    - name: test
+      install:
+        - pip install -qr requirements.txt
+      script:
+        - pycodestyle
