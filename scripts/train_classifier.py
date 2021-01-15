@@ -74,8 +74,8 @@ if __name__ == "__main__":
     if num_layers_to_finetune > 0:
         num_timesteps = feature_extractor.num_required_frames_per_layer.get(-num_layers_to_finetune)
         if not num_timesteps:
-            num_layers = len(feature_extractor.num_required_frames_per_layer) - 1  # remove 1 because we
-                                                                           # added 0 to temporal_dependencies
+            # Remove 1 because we added 0 to temporal_dependencies
+            num_layers = len(feature_extractor.num_required_frames_per_layer) - 1
             raise IndexError(f'Num of layers to finetune not compatible. '
                              f'Must be an integer between 0 and {num_layers}')
     else:

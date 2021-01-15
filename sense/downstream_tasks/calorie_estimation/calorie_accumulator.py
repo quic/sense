@@ -14,7 +14,7 @@ class CalorieAccumulator(PostProcessor):
     accumulated (see `accumulate`).
     """
 
-    def __init__(self, weight=70,  height=170, age=30, gender='unknown', smoothing=20,
+    def __init__(self, weight=70, height=170, age=30, gender='unknown', smoothing=20,
                  recovery_factor=60, **kwargs):
         """
         :param weight:           User's weight (in kg).
@@ -37,7 +37,7 @@ class CalorieAccumulator(PostProcessor):
         self.recovery_factor = recovery_factor
         self.met_value_running = 0.
         self.calorie_count = 0
-        self.buffer = [(5, 0)] # initialize with 5 seconds of MET=0
+        self.buffer = [(5, 0)]  # initialize with 5 seconds of MET=0
         self.time_last_update = None
         self.met_value_live = 0.
 
@@ -75,7 +75,7 @@ class CalorieAccumulator(PostProcessor):
         """
         Returns the average met value over the last `self.smoothing` seconds.
         """
-        met_value_avg= 0
+        met_value_avg = 0
         time_window = 0
 
         # Get last N seconds of MET values
@@ -84,7 +84,7 @@ class CalorieAccumulator(PostProcessor):
             met_value_avg = (time_window * met_value_avg + met_value * duration) / (time_window + duration)
             time_window += duration
             if time_window >= self.smoothing:
-                self.buffer = self.buffer[0:idx + 1] # remove outdated data
+                self.buffer = self.buffer[0:idx + 1]    # remove outdated data
                 break
 
         return met_value_avg
