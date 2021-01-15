@@ -12,10 +12,13 @@ Usage:
   run_calorie_estimation.py (-h | --help)
 
 Options:
-  --weight=WEIGHT                 Weight (in kilograms). Will be used to convert predicted MET value to calories [default: 70]
+  --weight=WEIGHT                 Weight (in kilograms). Will be used to convert predicted MET value to calories
+                                  [default: 70]
   --age=AGE                       Age (in years). Will be used to convert predicted MET value to calories [default: 30]
-  --height=HEIGHT                 Height (in centimeters). Will be used to convert predicted MET value to calories [default: 170]
-  --gender=GENDER                 Gender ("male" or "female" or "other"). Will be used to convert predicted MET value to calories
+  --height=HEIGHT                 Height (in centimeters). Will be used to convert predicted MET value to calories
+                                  [default: 170]
+  --gender=GENDER                 Gender ("male" or "female" or "other"). Will be used to convert predicted MET value to
+                                  calories
   --camera_id=CAMERA_ID           ID of the camera to stream from
   --path_in=FILENAME              Video file to stream from
   --path_out=FILENAME             Video file to stream to

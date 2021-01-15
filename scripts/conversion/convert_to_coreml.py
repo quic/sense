@@ -54,7 +54,6 @@ from keras.models import Model
 from keras.regularizers import l2
 from keras.utils.vis_utils import plot_model as plot
 
-
 DEFAULT_CONVERSION_PARAMETERS = {
     'image_scale': 1.,
     'normalize_inputs': False,
@@ -158,8 +157,8 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
         print(key, weights_full[key].shape)
 
     print('Parsing CFG file.')
-    placeholder_values= {**backbone_settings.get('placeholder_values', {}),
-                         **classifier_settings.get('placeholder_values', {})}
+    placeholder_values = {**backbone_settings.get('placeholder_values', {}),
+                          **classifier_settings.get('placeholder_values', {})}
     unique_config_file = merge_backbone_and_classifier_cfg_files(backbone_settings['config_file'],
                                                                  classifier_settings['config_file'],
                                                                  placeholder_values=placeholder_values)
@@ -245,12 +244,12 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             outputs = []
 
             for f in range(inputs_needed):
-                #                print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
-                #                      all_layers[len(all_layers) - inputs_needed + f].shape)
+                # print('input index: ', len(all_layers) - inputs_needed + f,
+                #     ' shape: ', all_layers[len(all_layers) - inputs_needed + f].shape)
                 inputs.append(all_layers[len(all_layers) - inputs_needed + f])
                 if merge_in > 0:
-                    #                    print('merge input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
-                    #                          all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
+                    # print('merge input index: ', len(all_layers) - inputs_needed + f,
+                    #       ' shape: ', all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
                     inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
 
             for f in range(int(frames / tstride)):
@@ -598,10 +597,12 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             outputs = []
 
             for f in range(inputs_needed):
-                #                print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ', all_layers[len(all_layers) - inputs_needed + f].shape)
+                # print('input index: ', len(all_layers) - inputs_needed + f,
+                # ' shape: ', all_layers[len(all_layers) - inputs_needed + f].shape)
                 inputs.append(all_layers[len(all_layers) - inputs_needed + f])
                 if merge_in > 0:
-                    #                    print('merge input index: ', len(all_layers) - inputs_needed + f, ' shape: ', all_layers[len(all_layers) - (2*inputs_needed) + f].shape)
+                    # print('merge input index: ', len(all_layers) - inputs_needed + f,
+                    # ' shape: ', all_layers[len(all_layers) - (2*inputs_needed) + f].shape)
                     inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
 
             # Create Conv3d from Conv2D layers
@@ -691,7 +692,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             frames, fake_weights = invResidual(module_name, layer_name, frames,
                                                out_channels, xratio, size, stride, shift, tstride,
                                                fake_weights)
-
 
         elif section.startswith('Linear'):
             module_name = 'module_name' in cfg_parser[section]
@@ -935,7 +935,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             image_size = prev_layer_shape[-2]
             print('softmax: ', image_size)
 
-
         elif section.startswith('yolo'):
             if 'layer_name' in cfg_parser[section]:
                 layer_name = cfg_parser[section]['layer_name']
@@ -1057,7 +1056,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     #    if remaining_weights > 0:
     #        print('Warning: {} unused weights'.format(remaining_weights))
 
-    if fake_weights == True:
+    if fake_weights:
         print('************************* Warning!! **************************')
         print('************************* Warning!! **************************')
         print('************************* Warning!! **************************')
@@ -1128,7 +1127,8 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
 
             params = scale_layer.scale
             params.scale.floatValue.extend(
-                [conversion_parameters['red_scale'], conversion_parameters['green_scale'], conversion_parameters['blue_scale']])  # scale values for RGB
+                [conversion_parameters['red_scale'], conversion_parameters['green_scale'],
+                 conversion_parameters['blue_scale']])  # scale values for RGB
             params.shapeScale.extend([3, 1, 1])  # shape of the scale vector
 
         # now add back the rest of the layers (which happens to be just one in this case: the crop layer)
@@ -1150,7 +1150,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
         print('\nsaving ', coreml_file)
         coreml_model.save(coreml_file)
 
-    if fake_weights == True:
+    if fake_weights:
         print('************************* Warning!! **************************')
         print('************************* Warning!! **************************')
         print('************************* Warning!! **************************')
@@ -1184,6 +1184,7 @@ def finalize_custom_classifier_config(classifier_settings, path_in, backbone_nam
     classifier_settings["placeholder_values"]['NUM_CLASSES'] = str(num_classes)
 
     return classifier_settings
+
 
 if __name__ == '__main__':
     args = docopt(__doc__)

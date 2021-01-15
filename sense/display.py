@@ -174,8 +174,8 @@ class DisplayFPS(BaseDisplay):
         self.last_update_time_camera = now
 
         # Text color change if inference engine fps go below certain range
-        if (self.expected_inference_fps and
-                inference_engine_fps < self.expected_inference_fps * self.low_performance_rate):
+        if self.expected_inference_fps \
+                and inference_engine_fps < self.expected_inference_fps * self.low_performance_rate:
             text_color = (0, 0, 255)
         else:
             text_color = self.default_text_color
