@@ -308,3 +308,7 @@ We now have a [blogpost](https://medium.com/twentybn/towards-situated-visual-ai-
 
 The code is copyright (c) 2020 Twenty Billion Neurons GmbH under an MIT Licence. See the file LICENSE for details. Note that this license 
 only covers the source code of this repo. Pretrained weights come with a separate license available [here](https://20bn.com/licensing/sdk/evaluation).
+
+The code makes use of these sounds from [freesound](https://freesound.org/):
+- "[countdown_sound.wav](https://freesound.org/s/244437/)" from "[milton.](https://freesound.org/people/milton./)" licensed under CC0 1.0
+- "[done_sound.wav](https://freesound.org/s/388046/)" and "[exit_sound.wav](https://freesound.org/s/388047/)" from "[paep3nguin](https://freesound.org/people/paep3nguin/)" licensed under CC0 1.0
