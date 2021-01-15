@@ -244,12 +244,12 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             outputs = []
 
             for f in range(inputs_needed):
-                #                print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
-                #                      all_layers[len(all_layers) - inputs_needed + f].shape)
+                # print('input index: ', len(all_layers) - inputs_needed + f,
+                #     ' shape: ', all_layers[len(all_layers) - inputs_needed + f].shape)
                 inputs.append(all_layers[len(all_layers) - inputs_needed + f])
                 if merge_in > 0:
-                    #                    print('merge input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
-                    #                          all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
+                    # print('merge input index: ', len(all_layers) - inputs_needed + f,
+                    #       ' shape: ', all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
                     inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
 
             for f in range(int(frames / tstride)):
