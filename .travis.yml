@@ -11,9 +11,6 @@ jobs:
         # requirement for simpleaudio to work
         - sudo apt-get install libasound2-dev
         - pip install -qr requirements.txt
-      before_script:
-        # set up environment variables
-        - export PYTHONPATH=.
       script:
         - pycodestyle
         - PYTHONPATH=./ python scripts/run_calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female --path_in=tests/resources/test_video.mp4
