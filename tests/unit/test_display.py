@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 import sense.display as base_display
 
+
 class TestDisplayMETandCalories(unittest.TestCase):
 
     def setUp(self) -> None:
