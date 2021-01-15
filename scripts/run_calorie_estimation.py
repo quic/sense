@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedMobileNetV2()
-    if skip_loading_weights:
+    if not skip_loading_weights:
         checkpoint = engine.load_weights('resources/backbone/strided_inflated_mobilenet.ckpt')
         feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
