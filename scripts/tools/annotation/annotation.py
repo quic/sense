@@ -57,23 +57,51 @@ def _extension_ok(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 
-def _load_project_config():
+def _load_project_overview_config():
     if os.path.isfile(PROJECTS_OVERVIEW_CONFIG_FILE):
         with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
             projects = json.load(f)
         return projects
     else:
-        projects = []
-        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
-            json.dump(projects, f, indent=2)
-        return projects
+        _write_project_overview_config([])
+        return []
+
+
+def _write_project_overview_config(projects):
+    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
+        json.dump(projects, f, indent=2)
 
 
 @app.route('/')
 def projects_overview():
     """TODO"""
-    # TODO: Check if listed projects are still valid
-    return render_template('up_projects_overview.html', projects=_load_project_config())
+    projects = _load_project_overview_config()
+
+    # Check if project paths still exist
+    for project in projects:
+        project['exists'] = os.path.exists(project['path'])
+
+    return render_template('up_projects_overview.html', projects=projects)
+
+
+@app.route('/remove-project/<path:path>')
+def remove_project(path):
+    """TODO"""
+    path = f'/{path}'  # Make path absolute
+
+    projects = _load_project_overview_config()
+
+    deleted = False
+    for idx, project in enumerate(projects):
+        if project['path'] == path:
+            del projects[idx]
+            deleted = True
+            break
+
+    if deleted:
+        _write_project_overview_config(projects)
+
+    return redirect(url_for('projects_overview'))
 
 
 @app.route('/new-project-setup')
@@ -151,13 +179,12 @@ def create_new_project():
                 os.mkdir(class_dir)
 
     # Update overall projects config file
-    projects = _load_project_config()
+    projects = _load_project_overview_config()
     projects.append({
         'name': name,
         'path': path,
     })
-    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
-        json.dump(projects, f, indent=2)
+    _write_project_overview_config(projects)
 
     return redirect(url_for('project_details', path=path))
 

@@ -64,6 +64,12 @@ $(document).ready(function () {
             createProject.disabled = true;
         }
     });
+
+    $('.haspopup').popup({
+        inline: true,
+        on: 'click',
+        position: 'bottom right',
+    });
 });
 
 

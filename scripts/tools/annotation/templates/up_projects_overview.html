@@ -3,24 +3,66 @@
 {% block title %} Projects Overview {% endblock %}
 
 {% block main %}
-<div id="main" class="ui main text container">
+<div id="main" class="ui main text container grid">
     <h1 class="ui header">Projects</h1>
-    <ul>
-    {% for project in projects %}
-        <a class="ui card" href="{{ url_for('project_details', path=project.path) }}">
-            <div class="content">
-                <div class="header">{{ project.name }}</div>
+    <div class=" row">
+        <div class="ui cards">
+        {% for project in projects %}
+            <div class="ui card">
+                <div class="content">
+                    <div class="header">
+                        {{ project.name }}
+                        <div class="right floated ui icon button haspopup">
+                             <i class="trash alternate outline icon"></i>
+                        </div>
+                        <div class="ui popup transition hidden">
+                            <p>
+                                Remove project from the local config.
+                                No data will be deleted.
+                            </p>
+                            <a class="ui red icon button" href="{{ url_for('remove_project', path=project.path) }}">
+                                <i class="trash alternate outline icon"></i>
+                                Remove Project
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="content">
+                    <div class="description">
+                        {% if project.exists %}
+                            <i class="folder open icon"></i>
+                            {{ project.path }}
+                        {% else %}
+                            <i class="exclamation triangle icon"></i>
+                            {{ project.path }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% if project.exists %}
+                    <a class="ui bottom attached icon button" href="{{ url_for('project_details', path=project.path) }}">
+                        <i class="hand point right outline icon"></i>
+                        Open
+                    </a>
+                {% else %}
+                    <a class="ui bottom attached icon button">
+                        <i class="sign-in icon"></i>
+                        Re-Import
+                    </a>
+                {% endif %}
             </div>
-            <div class="content">
-                <p>
-                    {{ project.path }}
-                </p>
-            </div>
-        </a>
-    {% endfor %}
-    </ul>
+        {% endfor %}
+        </div>
+    </div>
 
-    <button class="ui button">Import Project</button>
-    <a class="ui button" href="{{ url_for('new_project_setup') }}">Start New Project</a>
+    <div class="centered row">
+        <button class="ui icon button">
+            <i class="sign-in icon"></i>
+            Import Project
+        </button>
+        <a class="ui icon button" href="{{ url_for('new_project_setup') }}">
+            <i class="file outline icon"></i>
+            Start New Project
+        </a>
+    </div>
 </div>
 {% endblock %}
