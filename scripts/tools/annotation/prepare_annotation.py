@@ -39,7 +39,7 @@ if __name__ == "__main__":
     inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
 
     for split in ['train', 'valid']:
-        print("\n" + "-"*10 + f"Preparing videos in the {split}-set" + "-"*10)
+        print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(dataset_path, f'videos_{split}')):
             # Get data-set from path, given split and label
             folder = join(dataset_path, f'videos_{split}', label)
@@ -60,6 +60,6 @@ if __name__ == "__main__":
 
                 # WARNING: if set a max batch size, you should not remove padding from model.
                 compute_features(video_path, path_features, inference_engine,
-                                 num_timesteps=1,  path_frames=path_frames, batch_size=64)
+                                 num_timesteps=1, path_frames=path_frames, batch_size=64)
             print()
     print('\nDone!')
