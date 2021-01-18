@@ -83,3 +83,10 @@ class LogisticRegression(nn.Sequential):
         if self.global_average_pooling:
             input_tensor = input_tensor.mean(dim=-1).mean(dim=-1)
         return super().forward(input_tensor)
+
+
+class LogisticRegressionSigmoid(LogisticRegression):
+
+    def __init__(self, **kwargs):
+        super().__init__(use_softmax=False, **kwargs)
+        self.add_module(str(len(self)), nn.Sigmoid())

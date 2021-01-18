@@ -78,7 +78,7 @@ class PostprocessRepCounts(PostProcessor):
         return {
             'counting': {
                 "jumping_jacks": self.jumping_jack_counter.count,
-                 "squats": self.squats_counter.count
+                "squats": self.squats_counter.count
             }
         }
 
@@ -88,7 +88,7 @@ class ExerciceSpecificRepCounter:
     def __init__(self, mapping, position0, position1, threshold):
         self.threshold = threshold
         self.mapping = mapping
-        self.inverse_mapping = {v: k for k,v in mapping.items()}
+        self.inverse_mapping = {v: k for k, v in mapping.items()}
         self.position0 = position0
         self.position1 = position1
         self.count = 0
