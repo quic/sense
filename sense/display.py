@@ -14,7 +14,7 @@ def put_text(
         img: np.ndarray,
         text: str,
         position: Tuple[int, int],
-        font_scale: float = 1,
+        font_scale: float = 1.,
         color: Tuple[int, int, int] = (255, 255, 255),
         thickness: int = 1
 ) -> np.ndarray:
@@ -199,25 +199,25 @@ class DisplayFPS(BaseDisplay):
         return img
 
 
-class DisplayDigits(BaseDisplay):
+class DisplayClassnameOverlay(BaseDisplay):
     """
-    Display recognized digits as a large video overlay. Once the probability for a class passes the threshold,
-    the digit is shown and stays visible for a certain duration.
+    Display recognized class name as a large video overlay. Once the probability for a class passes the threshold,
+    the name is shown and stays visible for a certain duration.
     """
 
-    def __init__(self, thresholds, duration=2, font_scale=20, thickness=10, border_size=100, **kwargs):
+    def __init__(self, thresholds, duration=2, font_scale=3, thickness=2, border_size=50, **kwargs):
         """
         :param thresholds:
             Dictionary of thresholds for all classes.
         :param duration:
-            Duration in seconds how long the digit should be displayed after it has been recognized.
+            Duration in seconds how long the class name should be displayed after it has been recognized.
         :param font_scale:
             Font scale factor for modifying the font size.
         :param thickness:
             Thickness of the lines used to draw the text.
         :param border_size:
-            Height of the border on top of the video display. Used for correctly centering the displayed digit on the
-            video.
+            Height of the border on top of the video display. Used for correctly centering the displayed class name
+            on the video.
         """
         super().__init__(**kwargs)
         self.thresholds = thresholds
@@ -226,7 +226,7 @@ class DisplayDigits(BaseDisplay):
         self.thickness = thickness
         self.border_size = border_size
 
-        self._current_digit = None
+        self._current_class_name = None
         self._start_time = None
 
     def _get_center_coordinates(self, img, text):
@@ -240,23 +240,23 @@ class DisplayDigits(BaseDisplay):
 
         return x, y
 
-    def _display_digit(self, img, digit):
-        pos = self._get_center_coordinates(img, digit)
-        put_text(img, digit, position=pos, font_scale=self.font_scale, thickness=self.thickness)
+    def _display_class_name(self, img, class_name):
+        pos = self._get_center_coordinates(img, class_name)
+        put_text(img, class_name, position=pos, font_scale=self.font_scale, thickness=self.thickness)
 
     def display(self, img, display_data):
         now = time.perf_counter()
 
-        if self._current_digit and now - self._start_time < self.duration:
-            # Keep displaying the same digit
-            self._display_digit(img, self._current_digit)
+        if self._current_class_name and now - self._start_time < self.duration:
+            # Keep displaying the same class name
+            self._display_class_name(img, self._current_class_name)
         else:
-            self._current_digit = None
+            self._current_class_name = None
             for class_name, proba in display_data['sorted_predictions']:
                 if class_name in self.thresholds and proba > self.thresholds[class_name]:
-                    # Display new digit
-                    self._display_digit(img, class_name)
-                    self._current_digit = class_name
+                    # Display new class name
+                    self._display_class_name(img, class_name)
+                    self._current_class_name = class_name
                     self._start_time = now
 
                     break
