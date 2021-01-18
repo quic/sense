@@ -41,7 +41,7 @@ if __name__ == "__main__":
     height = float(args['--height'])
     age = float(args['--age'])
     gender = args['--gender'] or None
-    camera_id = args['--camera_id'] or 0
+    camera_id = int(args['--camera_id'] or 0)
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
     title = args['--title'] or None
