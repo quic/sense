@@ -30,8 +30,30 @@
             <label>Create Directory</label>
         </div>
         <h3>Classes</h3>
-        <div id="classList">
-            <!-- Filled automatically -->
+        <div id="classList" class="ui">
+            <div class="row">
+                <div class="ui labeled input">
+                    <div class="ui label">
+                        <i class="eye icon"></i>
+                        Class
+                    </div>
+                    <input type="text" name="class0" placeholder="class0" onfocus="addClassInput('')" />
+                </div>
+                <div class="ui labeled input">
+                    <div class="ui label">
+                        <i class="tag icon"></i>
+                        Tag 1
+                    </div>
+                    <input type="text" name="class0_tag1" placeholder="class0_tag1" />
+                </div>
+                <div class="ui labeled input">
+                    <div class="ui label">
+                        <i class="tag icon"></i>
+                        Tag 2
+                    </div>
+                    <input type="text" name="class0_tag2" placeholder="class0_tag2" />
+                </div>
+            </div>
         </div>
         <button class="ui button" type="submit" id="createProject" disabled>Create Project</button>
     </form>

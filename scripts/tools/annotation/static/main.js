@@ -109,11 +109,12 @@ function createInputWithLabel(icon, labelText, name, prefill, addOnFocus) {
     var label = document.createElement('div');
     label.className = 'ui label';
 
-    var icon = document.createElement('i');
-    icon.className = 'eye ' + icon;
+    var iconElement = document.createElement('i');
+    iconElement.className = icon + ' icon';
+    console.log(iconElement.className);
 
-    label.appendChild(icon);
-    label.appendChild(document.createTextNode(labelText));
+    label.appendChild(iconElement);
+    label.appendChild(document.createTextNode(' ' + labelText + ' '));
     inputGroup.appendChild(label);
 
     var input = document.createElement('input');
