@@ -51,15 +51,17 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedMobileNetV2()
-    if not skip_loading_weights:
-        checkpoint = engine.load_weights('resources/backbone/strided_inflated_mobilenet.ckpt')
+    # if not skip_loading_weights:
+    checkpoint = engine.load_weights('resources/backbone/strided_inflated_mobilenet.ckpt')
+    if checkpoint:
         feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
     # Load MET value converter
     met_value_converter = calorie_estimation.METValueMLPConverter()
     checkpoint = engine.load_weights('resources/calorie_estimation/mobilenet_features_met_converter.ckpt')
-    met_value_converter.load_state_dict(checkpoint)
+    if checkpoint:
+        met_value_converter.load_state_dict(checkpoint)
     met_value_converter.eval()
 
     # Concatenate feature extractor and met converter

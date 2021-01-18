@@ -11,14 +11,15 @@ jobs:
         - xvfb
       before_script:
         - "export DISPLAY=:99.0"
+#        - export TRAVIS='True'
       install:
         # requirement for simpleaudio to work
         - sudo apt-get install libasound2-dev
         - pip install -qr requirements.txt
       script:
-#        - pycodestyle
+        - pycodestyle
         - python -m pytest
-        - PYTHONPATH=./ python scripts/run_calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female --path_in=tests/resources/test_video.mp4 --skip_loading_weights
+        - PYTHONPATH=./ python scripts/run_calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female --path_in=tests/resources/test_video.mp4
 #        - PYTHONPATH=./ python scripts/run_fitness_rep_counter.py --path_in=tests/resources/test_video.mp4
 #        - PYTHONPATH=./ python scripts/run_fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female --path_in=tests/resources/test_video.mp4
 #        - PYTHONPATH=./ python scripts/run_gesture_recognition.py --path_in=tests/resources/test_video.mp4
