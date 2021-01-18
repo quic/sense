@@ -10,8 +10,14 @@ from typing import Optional
 FONT = cv2.FONT_HERSHEY_PLAIN
 
 
-def put_text(img: np.ndarray, text: str, position: Tuple[int, int],
-             color: Tuple[int, int, int] = (255, 255, 255)) -> np.ndarray:
+def put_text(
+        img: np.ndarray,
+        text: str,
+        position: Tuple[int, int],
+        font_scale: float = 1.,
+        color: Tuple[int, int, int] = (255, 255, 255),
+        thickness: int = 1
+) -> np.ndarray:
     """
     Draw a white text string on an image at a specified position and return the image.
 
@@ -21,13 +27,16 @@ def put_text(img: np.ndarray, text: str, position: Tuple[int, int],
         The text to be written.
     :param position:
         A tuple of x and y coordinates of the bottom-left corner of the text in the image.
+    :param font_scale:
+        Font scale factor for modifying the font size.
     :param color:
         A tuple for font color. For BGR, eg: (0, 255, 0) for green color.
-
+    :param thickness:
+        Thickness of the lines used to draw the text.
     :return:
         The image with the text string drawn.
     """
-    cv2.putText(img, text, position, FONT, 1, color, 1, cv2.LINE_AA)
+    cv2.putText(img, text, position, FONT, font_scale, color, thickness, cv2.LINE_AA)
     return img
 
 
@@ -99,7 +108,7 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
         :param top_k:
             Number of the top classification labels to be displayed.
         :param threshold:
-            Threshhold for the output to be displayed.
+            Threshold for the output to be displayed.
         """
         super().__init__(**kwargs)
         self.top_k = top_k
@@ -181,8 +190,10 @@ class DisplayFPS(BaseDisplay):
             text_color = self.default_text_color
 
         # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, img.shape[0] - self.y_offset - 20), text_color)
-        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, img.shape[0] - self.y_offset), text_color)
+        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, img.shape[0] - self.y_offset - 20),
+                 color=text_color)
+        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, img.shape[0] - self.y_offset),
+                 color=text_color)
 
         return img
 
