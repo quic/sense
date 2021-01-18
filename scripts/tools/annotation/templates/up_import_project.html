@@ -1,0 +1,35 @@
+{% extends 'up_skeleton.html' %}
+
+{% block title %} New Project {% endblock %}
+
+{% block main %}
+<div id="main" class="ui main container">
+    <h1 class="ui header">Import Project</h1>
+    <form method="POST" action="/create-new-project">
+        <div class="ui labeled input">
+            <div class="ui label">
+                <i class="id card outline icon"></i>
+                Name
+            </div>
+            <input type="text" name="name" placeholder="Project Name">
+        </div>
+        <div class="ui labeled input">
+            <div class="ui label">
+                <i class="folder open icon"></i>
+                Path
+            </div>
+            <div class="ui search" id="pathSearch">
+                <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" />
+                <div id="pathSuggestions" class="results">
+                    <!-- Filled automatically -->
+                </div>
+            </div>
+        </div>
+        <h3>Classes</h3>
+        <div id="classList">
+            <!-- Filled automatically -->
+        </div>
+        <button class="ui button" type="submit" id="importProject" disabled>Import Project</button>
+    </form>
+</div>
+{% endblock %}

@@ -44,7 +44,7 @@
                         Open
                     </a>
                 {% else %}
-                    <a class="ui bottom attached icon button">
+                    <a class="ui bottom attached icon button" href="{{ url_for('import_project', name=project.name, path=project.path) }}">
                         <i class="sign-in icon"></i>
                         Re-Import
                     </a>
@@ -55,10 +55,10 @@
     </div>
 
     <div class="centered row">
-        <button class="ui icon button">
+        <a class="ui icon button" href="{{ url_for('import_project') }}">
             <i class="sign-in icon"></i>
             Import Project
-        </button>
+        </a>
         <a class="ui icon button" href="{{ url_for('new_project_setup') }}">
             <i class="file outline icon"></i>
             Start New Project

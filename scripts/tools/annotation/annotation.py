@@ -110,6 +110,14 @@ def new_project_setup():
     return render_template('up_new_project_setup.html')
 
 
+@app.route('/import-project/', defaults={'name': None, 'path': None})
+@app.route('/import-project/<string:name>/<path:path>')
+def import_project(name, path):
+    """TODO"""
+    print(name, path)
+    return render_template('up_import_project.html')
+
+
 @app.route('/check-existing-project', methods=['POST'])
 def check_existing_project():
     """TODO"""
