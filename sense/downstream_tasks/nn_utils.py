@@ -43,7 +43,7 @@ class RealtimeNeuralNet(nn.Module):
         """
         raise NotImplementedError
 
-    def load_weights(self, checkpoint_path: str, strict: bool=True):
+    def load_weights(self, checkpoint_path: str, strict: bool = True):
         """
         Load weights from provided checkpoint file, unless the TRAVIS environment
         variable is defined.

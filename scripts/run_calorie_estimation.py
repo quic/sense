@@ -9,7 +9,6 @@ Usage:
                             [--path_out=FILENAME]
                             [--title=TITLE]
                             [--use_gpu]
-                            [--skip_loading_weights]
   run_calorie_estimation.py (-h | --help)
 
 Options:
@@ -47,7 +46,6 @@ if __name__ == "__main__":
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
     title = args['--title'] or None
-    skip_loading_weights = args['--skip_loading_weights']
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedMobileNetV2()
