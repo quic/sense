@@ -144,4 +144,3 @@ class InferenceEngine(Thread):
             predictions = predictions.cpu().numpy()
 
         return predictions
-
