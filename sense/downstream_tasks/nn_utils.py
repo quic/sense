@@ -1,7 +1,10 @@
+import os
+
 import numpy as np
 import torch.nn as nn
-
 from typing import Tuple
+
+from sense.engine import load_weights
 
 
 class RealtimeNeuralNet(nn.Module):
@@ -39,6 +42,17 @@ class RealtimeNeuralNet(nn.Module):
         Return the expected frame size of the neural network.
         """
         raise NotImplementedError
+
+    def load_weights(self, checkpoint_path: str, strict: bool=True):
+        """
+        Load weights from provided checkpoint file, unless the TRAVIS environment
+        variable is defined.
+        """
+        if not os.getenv('TRAVIS', False) == 'true':
+            checkpoint = load_weights(checkpoint_path)
+            self.load_state_dict(checkpoint, strict=strict)
+        else:
+            print('Weights are not loaded on Travis.')
 
 
 class Pipe(RealtimeNeuralNet):
