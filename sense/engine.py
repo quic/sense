@@ -157,6 +157,7 @@ def load_weights(checkpoint_path: str):
     # travis = True if os.getenv('TRAVIS', None) == 'true' else False
     try:
         if os.getenv('TRAVIS', False) == 'true':
+            print("ON TRAVIS-----------------------------")
             return None
         return torch.load(checkpoint_path, map_location='cpu')
     except:
