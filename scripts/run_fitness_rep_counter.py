@@ -39,8 +39,7 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    checkpoint = engine.load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
-    feature_extractor.load_state_dict(checkpoint)
+    feature_extractor.load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
     feature_extractor.eval()
 
     # Load a logistic regression classifier

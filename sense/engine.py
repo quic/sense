@@ -155,8 +155,6 @@ def load_weights(checkpoint_path: str):
         A string representing the absolute/relative path to the checkpoint file.
     """
     try:
-        if os.getenv('TRAVIS', False) == 'true':
-            return {}
         return torch.load(checkpoint_path, map_location='cpu')
     except:
         raise Exception('ERROR - Weights file missing: {}. To download, please go to '
