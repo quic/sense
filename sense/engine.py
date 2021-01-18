@@ -154,11 +154,9 @@ def load_weights(checkpoint_path: str):
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
-    # travis = True if os.getenv('TRAVIS', None) == 'true' else False
     try:
         if os.getenv('TRAVIS', False) == 'true':
-            print("ON TRAVIS-----------------------------")
-            return None
+            return {}
         return torch.load(checkpoint_path, map_location='cpu')
     except:
         raise Exception('ERROR - Weights file missing: {}. To download, please go to '

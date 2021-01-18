@@ -11,7 +11,6 @@ jobs:
         - xvfb
       before_script:
         - "export DISPLAY=:99.0"
-#        - export TRAVIS='True'
       install:
         # requirement for simpleaudio to work
         - sudo apt-get install libasound2-dev
