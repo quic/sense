@@ -27,11 +27,11 @@ Options:
 from docopt import docopt
 
 import sense.display
-from sense import engine
 from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks import calorie_estimation
 from sense.downstream_tasks.nn_utils import Pipe
+from sense.downstream_tasks.nn_utils import load_weights
 
 if __name__ == "__main__":
     # Parse arguments
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     # Load MET value converter
     met_value_converter = calorie_estimation.METValueMLPConverter()
-    checkpoint = engine.load_weights('resources/calorie_estimation/mobilenet_features_met_converter.ckpt')
+    checkpoint = load_weights('resources/calorie_estimation/mobilenet_features_met_converter.ckpt')
     met_value_converter.load_state_dict(checkpoint)
     met_value_converter.eval()
 

@@ -1,10 +1,9 @@
 import os
+import torch
 
 import numpy as np
 import torch.nn as nn
 from typing import Tuple
-
-from sense.engine import load_weights
 
 
 class RealtimeNeuralNet(nn.Module):
@@ -104,3 +103,18 @@ class LogisticRegressionSigmoid(LogisticRegression):
     def __init__(self, **kwargs):
         super().__init__(use_softmax=False, **kwargs)
         self.add_module(str(len(self)), nn.Sigmoid())
+
+
+def load_weights(checkpoint_path: str):
+    """
+    Load weights from a checkpoint file.
+
+    :param checkpoint_path:
+        A string representing the absolute/relative path to the checkpoint file.
+    """
+    try:
+        return torch.load(checkpoint_path, map_location='cpu')
+    except:
+        raise Exception('ERROR - Weights file missing: {}. To download, please go to '
+                        'https://20bn.com/licensing/sdk/evaluation and follow the '
+                        'instructions.'.format(checkpoint_path))
