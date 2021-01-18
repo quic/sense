@@ -8,9 +8,9 @@ jobs:
   include:
     - name: test
       services:
-        - xvfb
+        - xvfb    # (X Virtual Framebuffer) to imitate a display, to run tests requiring GUI on Travis.
       before_script:
-        - "export DISPLAY=:99.0"
+        - "export DISPLAY=:99.0"    # Display port to run xvfb on (VARIABLE=:PORT)
       install:
         # requirement for simpleaudio to work
         - sudo apt-get install libasound2-dev
