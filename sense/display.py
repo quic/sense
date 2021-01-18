@@ -198,6 +198,71 @@ class DisplayFPS(BaseDisplay):
         return img
 
 
+class DisplayClassnameOverlay(BaseDisplay):
+    """
+    Display recognized class name as a large video overlay. Once the probability for a class passes the threshold,
+    the name is shown and stays visible for a certain duration.
+    """
+
+    def __init__(self, thresholds, duration=2, font_scale=3, thickness=2, border_size=50, **kwargs):
+        """
+        :param thresholds:
+            Dictionary of thresholds for all classes.
+        :param duration:
+            Duration in seconds how long the class name should be displayed after it has been recognized.
+        :param font_scale:
+            Font scale factor for modifying the font size.
+        :param thickness:
+            Thickness of the lines used to draw the text.
+        :param border_size:
+            Height of the border on top of the video display. Used for correctly centering the displayed class name
+            on the video.
+        """
+        super().__init__(**kwargs)
+        self.thresholds = thresholds
+        self.duration = duration
+        self.font_scale = font_scale
+        self.thickness = thickness
+        self.border_size = border_size
+
+        self._current_class_name = None
+        self._start_time = None
+
+    def _get_center_coordinates(self, img, text):
+        textsize = cv2.getTextSize(text, FONT, self.font_scale, self.thickness)[0]
+
+        height, width, _ = img.shape
+        height -= self.border_size
+
+        x = int((width - textsize[0]) / 2)
+        y = int((height + textsize[1]) / 2) + self.border_size
+
+        return x, y
+
+    def _display_class_name(self, img, class_name):
+        pos = self._get_center_coordinates(img, class_name)
+        put_text(img, class_name, position=pos, font_scale=self.font_scale, thickness=self.thickness)
+
+    def display(self, img, display_data):
+        now = time.perf_counter()
+
+        if self._current_class_name and now - self._start_time < self.duration:
+            # Keep displaying the same class name
+            self._display_class_name(img, self._current_class_name)
+        else:
+            self._current_class_name = None
+            for class_name, proba in display_data['sorted_predictions']:
+                if class_name in self.thresholds and proba > self.thresholds[class_name]:
+                    # Display new class name
+                    self._display_class_name(img, class_name)
+                    self._current_class_name = class_name
+                    self._start_time = now
+
+                    break
+
+        return img
+
+
 class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
