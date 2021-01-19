@@ -32,5 +32,6 @@ test_demos() {
     demo_gesture_recognition
 }
 
+# Run the created function
 test_demos
 echo "All tests passed!"
