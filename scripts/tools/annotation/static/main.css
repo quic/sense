@@ -21,6 +21,14 @@ body {
     padding: 2em 0em;
 }
 
+.class-row {
+    margin-bottom: 0.5em;
+}
+
+.ui.button.create-project {
+    margin-top: 1em;
+}
+
 #path {
     border-radius: .28571429rem;
     border-top-left-radius: 0;

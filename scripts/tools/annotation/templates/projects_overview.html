@@ -7,11 +7,11 @@
     <h1 class="ui header">Projects</h1>
     <div class="row">
         <div class="centered ui cards">
-        {% for project in projects %}
+        {% for name, project in projects.items() %}
             <div class="ui card">
                 <div class="content">
                     <div class="header">
-                        {{ project.name }}
+                        {{ name }}
                         <div class="right floated ui icon button haspopup">
                              <i class="trash alternate outline icon"></i>
                         </div>
@@ -20,7 +20,7 @@
                                 Remove project from the local config.
                                 No data will be deleted.
                             </p>
-                            <a class="ui red icon button" href="{{ url_for('remove_project', path=project.path) }}">
+                            <a class="ui red icon button" href="{{ url_for('remove_project', name=name) }}">
                                 <i class="trash alternate outline icon"></i>
                                 Remove Project
                             </a>
@@ -44,9 +44,9 @@
                         Open
                     </a>
                 {% else %}
-                    <a class="ui bottom attached icon button" href="{{ url_for('import_project', name=project.name, path=project.path) }}">
-                        <i class="sign-in icon"></i>
-                        Re-Import
+                    <a class="ui bottom attached icon button" href="{{ url_for('import_project', name=name, path=project.path) }}">
+                        <i class="crosshairs icon"></i>
+                        Update Location
                     </a>
                 {% endif %}
             </div>
