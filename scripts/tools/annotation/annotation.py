@@ -81,7 +81,7 @@ def projects_overview():
     for project in projects:
         project['exists'] = os.path.exists(project['path'])
 
-    return render_template('up_projects_overview.html', projects=projects)
+    return render_template('projects_overview.html', projects=projects)
 
 
 @app.route('/remove-project/<path:path>')
@@ -107,7 +107,7 @@ def remove_project(path):
 @app.route('/new-project-setup')
 def new_project_setup():
     """TODO"""
-    return render_template('up_new_project_setup.html')
+    return render_template('new_project_setup.html')
 
 
 @app.route('/import-project/', defaults={'name': None, 'path': None})
@@ -115,7 +115,7 @@ def new_project_setup():
 def import_project(name, path):
     """TODO"""
     print(name, path)
-    return render_template('up_import_project.html')
+    return render_template('import_project.html')
 
 
 @app.route('/check-existing-project', methods=['POST'])
@@ -217,7 +217,7 @@ def project_details(path):
                 'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
             }
 
-    return render_template('up_project_details.html', config=config, path=path, stats=stats)
+    return render_template('project_details.html', config=config, path=path, stats=stats)
 
 
 @app.route('/annotate/<split>/<label>/<path:path>')
@@ -245,7 +245,7 @@ def show_video_list(split, label, path):
         logreg = load(logreg_path)
 
     folder_id = zip(videos, list(range(len(videos))))
-    return render_template('up_folder.html', folders=folder_id, split=split, label=label, path=path)
+    return render_template('folder.html', folders=folder_id, split=split, label=label, path=path)
 
 
 @app.route('/prepare_annotation/<path:path>')
@@ -294,7 +294,7 @@ def annotate(split, label, path, idx):
     images = np.array_split(images, np.arange(chunk_size, len(images), chunk_size))
     images = [list(image) for image in images]
 
-    return render_template('up_list.html', images=images, idx=idx, fps=16,
+    return render_template('list.html', images=images, idx=idx, fps=16,
                            n_images=n_images, video_name=videos[idx],
                            split=split, label=label, path=path)
 
