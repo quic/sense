@@ -4,16 +4,17 @@
 
 {% block main %}
 <div id="main" class="ui main text container">
-	<h1>Video list</h1>
-	{% if folders %}
-		<ul class="video-file">
-		{% for  f, id in folders %}
-			<li>
+	<h1>Video List</h1>
+	<div class="ui list">
+	{% for  f, id in folders %}
+		<div class="item">
+			<i class="film icon"></i>
+			<div class="content">
 				<a href="{{ url_for('annotate', split=split, label=label, path=path, idx=id) }}">{{ f }}</a>
-			</li>
-		{% endfor %}
-		</ul>
-	{% endif %}
+			</div>
+		</div>
+	{% endfor %}
+	</div>
 </div>
 {% endblock %}
 
