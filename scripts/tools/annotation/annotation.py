@@ -240,7 +240,7 @@ def show_video_list(split, label, path):
         logreg = load(logreg_path)
 
     folder_id = zip(videos, list(range(len(videos))))
-    return render_template('folder.html', folders=folder_id, split=split, label=label, path=path)
+    return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
 
 
 @app.route('/prepare_annotation/<path:path>')
