@@ -273,118 +273,109 @@ def annotate(split, label, path, idx):
     if logreg is not None:
         classes = list(logreg.predict(features))
     else:
-        classes = [0] * len(features)
+        classes = [-1] * len(features)
 
     # The list of images in the folder
     images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
               if _extension_ok(image)]
 
-    indexes = [int(image.split('.')[0].split('/')[-1]) for image in images]
-    n_images = len(indexes)
+    # Add indexes
+    images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
+    images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
 
-    images = [[image, idx] for idx, image in sorted(zip(indexes, images))]
-    images = [[image, idx, _class] for (image, idx), _class in zip(images, classes)]
-
-    chunk_size = 5
-    images = np.array_split(images, np.arange(chunk_size, len(images), chunk_size))
-    images = [list(image) for image in images]
-
-    return render_template('list.html', images=images, idx=idx, fps=16,
-                           n_images=n_images, video_name=videos[idx],
+    return render_template('frame_annotation.html', images=images, idx=idx, fps=16,
+                           n_images=len(images), video_name=videos[idx],
                            split=split, label=label, path=path)
 
 
-@app.route('/response', methods=['POST'])
-def response():
-    if request.method == 'POST':
-        data = request.form  # a multi-dict containing POST data
-        print(data)
-        idx = int(data['idx'])
-        fps = float(data['fps'])
-        path = data['path']
-        split = data['split']
-        label = data['label']
-        video = data['video']
-        next_frame_idx = idx + 1
+@app.route('/submit-annotation', methods=['POST'])
+def submit_annotation():
+    data = request.form  # a multi-dict containing POST data
+    idx = int(data['idx'])
+    fps = float(data['fps'])
+    path = data['path']
+    split = data['split']
+    label = data['label']
+    video = data['video']
+    next_frame_idx = idx + 1
 
-        tags_dir = join(path, f"tags_{split}", label)
-        frames_dir = join(path, f"frames_{split}", label)
-        description = {'file': video + ".mp4", 'fps': fps}
+    tags_dir = join(path, f"tags_{split}", label)
+    frames_dir = join(path, f"frames_{split}", label)
+    description = {'file': video + ".mp4", 'fps': fps}
 
-        out_annotation = os.path.join(tags_dir, video + ".json")
-        time_annotation = []
+    out_annotation = os.path.join(tags_dir, video + ".json")
+    time_annotation = []
 
-        for i in range(int(data['n_images'])):
-            time_annotation.append(int(data[str(i)]))
+    for frame_idx in range(int(data['n_images'])):
+        time_annotation.append(int(data[f'{frame_idx}_tag']))
 
-        description['time_annotation'] = time_annotation
-        json.dump(description, open(out_annotation, 'w'))
+    description['time_annotation'] = time_annotation
+    json.dump(description, open(out_annotation, 'w'))
 
-        if next_frame_idx >= len(os.listdir(frames_dir)):
-            return redirect(url_for('project_details', path=path))
+    if next_frame_idx >= len(os.listdir(frames_dir)):
+        return redirect(url_for('project_details', path=path))
 
     return redirect(url_for('annotate', split=split, label=label, path=path, idx=next_frame_idx))
 
 
-@app.route('/train_logreg', methods=['POST'])
+@app.route('/train-logreg', methods=['POST'])
 def train_logreg():
     global logreg
 
-    if request.method == 'POST':
-        data = request.form  # a multi-dict containing POST data
-        idx = int(data['idx'])
-        path = data['path']
-        split = data['split']
-        label = data['label']
+    data = request.form  # a multi-dict containing POST data
+    idx = int(data['idx'])
+    path = data['path']
+    split = data['split']
+    label = data['label']
 
-        tags_dir = join(path, f"tags_{split}", label)
-        features_dir = join(path, f"features_{split}", label)
-        logreg_dir = join(path, 'logreg', label)
-        logreg_path = join(logreg_dir, 'logreg.joblib')
+    tags_dir = join(path, f"tags_{split}", label)
+    features_dir = join(path, f"features_{split}", label)
+    logreg_dir = join(path, 'logreg', label)
+    logreg_path = join(logreg_dir, 'logreg.joblib')
 
-        annotations = os.listdir(tags_dir)
-        class_weight = {0: 0.5}
+    annotations = os.listdir(tags_dir)
+    class_weight = {0: 0.5}
 
-        if annotations:
-            features = [join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-            annotations = [join(tags_dir, x) for x in annotations]
-            X = []
-            y = []
+    if annotations:
+        features = [join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+        annotations = [join(tags_dir, x) for x in annotations]
+        X = []
+        y = []
 
-            for feature in features:
-                feature = np.load(feature)
+        for feature in features:
+            feature = np.load(feature)
 
-                for f in feature:
-                    X.append(f.mean(axis=(1, 2)))
+            for f in feature:
+                X.append(f.mean(axis=(1, 2)))
 
-            for annotation in annotations:
-                annotation = json.load(open(annotation, 'r'))['time_annotation']
-                pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
+        for annotation in annotations:
+            annotation = json.load(open(annotation, 'r'))['time_annotation']
+            pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
 
-                if len(pos1) > 0:
-                    class_weight.update({1: 2})
+            if len(pos1) > 0:
+                class_weight.update({1: 2})
 
-                    for p in pos1:
-                        if p + 1 < len(annotation):
-                            annotation[p + 1] = 1
+                for p in pos1:
+                    if p + 1 < len(annotation):
+                        annotation[p + 1] = 1
 
-                pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
+            pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
 
-                if len(pos1) > 0:
-                    class_weight.update({2: 2})
+            if len(pos1) > 0:
+                class_weight.update({2: 2})
 
-                    for p in pos1:
-                        if p + 1 < len(annotation):
-                            annotation[p + 1] = 2
+                for p in pos1:
+                    if p + 1 < len(annotation):
+                        annotation[p + 1] = 2
 
-                for a in annotation:
-                    y.append(a)
+            for a in annotation:
+                y.append(a)
 
-            X = np.array(X)
-            y = np.array(y)
-            logreg = LogisticRegression(C=0.1, class_weight=class_weight)
-            logreg.fit(X, y)
-            dump(logreg, logreg_path)
+        X = np.array(X)
+        y = np.array(y)
+        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
+        logreg.fit(X, y)
+        dump(logreg, logreg_path)
 
     return redirect(url_for('annotate', split=split, label=label, path=path, idx=idx))
 

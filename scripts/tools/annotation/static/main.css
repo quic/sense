@@ -25,8 +25,12 @@ body {
     margin-bottom: 0.5em;
 }
 
-.ui.button.create-project {
+.ui.button.mt {
     margin-top: 1em;
+}
+
+.ui.prediction-label {
+    margin-bottom: 0.5em;
 }
 
 #path {
