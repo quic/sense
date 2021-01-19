@@ -3,51 +3,64 @@ $(document).ready(function () {
     $('#pathSearch').search({
         apiSettings: {
             response: function (e) {
-                var path = document.getElementById('path').value;
-                var xhttp = new XMLHttpRequest();
+                let path = document.getElementById('path').value;
+                let response = checkProjectDirectory(path);
 
-                xhttp.open("POST", "/check-existing-project", false);
-                xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-
-                xhttp.send(JSON.stringify({path: path}));
-
-                let response = JSON.parse(xhttp.responseText);
-                pathExists = response.path_exists;
-                classes = response.classes;
-                subdirs = response.subdirs;
-
-                var shouldCreateDirectory = $('#shouldCreateDirectory');
-                var classList = document.getElementById('classList');
-                var createProject = document.getElementById('createProject');
-
-                results = [];
-                for (const subdir of subdirs) {
+                let results = [];
+                for (const subdir of response.subdirs) {
                     results.push({title: subdir})
                 }
 
-                while (classList.firstChild) {
-                    classList.removeChild(classList.lastChild);
-                }
-
-                for (const className of classes){
-                    addClassInput(className);
-                }
-                addClassInput("");
-
-                if (path && (pathExists || shouldCreateDirectory.checkbox('is checked'))) {
+                let createProject = document.getElementById('createProject');
+                if (path && !response.path_exists) {
                     createProject.disabled = false;
+                    // TODO: Check if project name is provided and unique
                 } else {
                     createProject.disabled = true;
-                }
-
-                if (pathExists) {
-                    shouldCreateDirectory.checkbox('disable');
-                } else {
-                    shouldCreateDirectory.checkbox('enable');
+                    // TODO: Show explanatory message
                 }
 
                 return {results: results}
             }
+        },
+        onSelect: function (selectedResult, resultList) {
+            let createProject = document.getElementById('createProject');
+            createProject.disabled = true;
+        },
+        showNoResults: false,
+        cache: false
+    });
+
+    $('#pathSearchImport').search({
+        apiSettings: {
+            response: function (e) {
+                let path = document.getElementById('path').value;
+                let response = checkProjectDirectory(path);
+
+                results = [];
+                for (const subdir of response.subdirs) {
+                    results.push({title: subdir})
+                }
+
+                updateClassList(response.classes);
+                // TODO: Disable editing
+
+                let importProject = document.getElementById('importProject');
+                if (path && response.path_exists) {
+                    importProject.disabled = false;
+                } else {
+                    importProject.disabled = true;
+                }
+
+                return {results: results}
+            }
+        },
+        onSelect: function (selectedResult, resultList) {
+            let importProject = document.getElementById('importProject');
+            let classes = checkProjectDirectory(selectedResult.title).classes;
+
+            importProject.disabled = false;
+            updateClassList(classes);
         },
         showNoResults: false,
         cache: false
@@ -73,13 +86,39 @@ $(document).ready(function () {
 });
 
 
+function checkProjectDirectory(path) {
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.open("POST", "/check-existing-project", false);
+    xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+    xhttp.send(JSON.stringify({path: path}));
+
+    console.log(xhttp.responseText);
+    return JSON.parse(xhttp.responseText);
+}
+
+
+function updateClassList(classes) {
+    let classList = document.getElementById('classList');
+
+    while (classList.firstChild) {
+        classList.removeChild(classList.lastChild);
+    }
+
+    for (const className of classes){
+        addClassInput(className);
+    }
+}
+
+
 function addClassInput(className) {
-    var classList = document.getElementById('classList');
-    var numClasses = classList.children.length;
+    let classList = document.getElementById('classList');
+    let numClasses = classList.children.length;
 
     // Create new row
-    var row = document.createElement('div');
-    row.className = 'row';
+    let row = document.createElement('div');
+    row.className = 'class-row';
 
     classInputGroup = createInputWithLabel('eye', 'Class', 'class' + numClasses, className, true)
     row.appendChild(classInputGroup);
@@ -94,7 +133,7 @@ function addClassInput(className) {
 
     classList.appendChild(row);
 
-    // Remove onclick handler on previous node
+    // Remove onfocus handler on previous node
     if (numClasses > 0) {
         let previousLabeledInput = classList.children[numClasses - 1].children[0];
         let previousInput = previousLabeledInput.children[previousLabeledInput.children.length - 1];
@@ -103,21 +142,20 @@ function addClassInput(className) {
 }
 
 function createInputWithLabel(icon, labelText, name, prefill, addOnFocus) {
-    var inputGroup = document.createElement('div');
+    let inputGroup = document.createElement('div');
     inputGroup.className = 'ui labeled input';
 
-    var label = document.createElement('div');
+    let label = document.createElement('div');
     label.className = 'ui label';
 
-    var iconElement = document.createElement('i');
+    let iconElement = document.createElement('i');
     iconElement.className = icon + ' icon';
-    console.log(iconElement.className);
 
     label.appendChild(iconElement);
     label.appendChild(document.createTextNode(' ' + labelText + ' '));
     inputGroup.appendChild(label);
 
-    var input = document.createElement('input');
+    let input = document.createElement('input');
     input.type = 'text';
     input.name = name;
     input.value = prefill;

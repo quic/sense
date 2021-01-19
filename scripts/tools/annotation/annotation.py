@@ -10,6 +10,7 @@ import glob
 import json
 import numpy as np
 import os
+import urllib
 
 from flask import Flask
 from flask import jsonify
@@ -63,7 +64,7 @@ def _load_project_overview_config():
             projects = json.load(f)
         return projects
     else:
-        _write_project_overview_config([])
+        _write_project_overview_config({})
         return []
 
 
@@ -78,28 +79,21 @@ def projects_overview():
     projects = _load_project_overview_config()
 
     # Check if project paths still exist
-    for project in projects:
+    for name, project in projects.items():
         project['exists'] = os.path.exists(project['path'])
 
     return render_template('projects_overview.html', projects=projects)
 
 
-@app.route('/remove-project/<path:path>')
-def remove_project(path):
+@app.route('/remove-project/<string:name>')
+def remove_project(name):
     """TODO"""
-    path = f'/{path}'  # Make path absolute
-
+    name = urllib.parse.unquote(name)
     projects = _load_project_overview_config()
 
-    deleted = False
-    for idx, project in enumerate(projects):
-        if project['path'] == path:
-            del projects[idx]
-            deleted = True
-            break
+    del projects[name]
 
-    if deleted:
-        _write_project_overview_config(projects)
+    _write_project_overview_config(projects)
 
     return redirect(url_for('projects_overview'))
 
@@ -114,8 +108,10 @@ def new_project_setup():
 @app.route('/import-project/<string:name>/<path:path>')
 def import_project(name, path):
     """TODO"""
-    print(name, path)
-    return render_template('import_project.html')
+    name = urllib.parse.unquote(name) if name else ''
+    path = f'/{path}' if path else ''  # Make path absolute
+
+    return render_template('import_project.html', name=name, path=path)
 
 
 @app.route('/check-existing-project', methods=['POST'])
@@ -188,10 +184,9 @@ def create_new_project():
 
     # Update overall projects config file
     projects = _load_project_overview_config()
-    projects.append({
-        'name': name,
+    projects[name] = {
         'path': path,
-    })
+    }
     _write_project_overview_config(projects)
 
     return redirect(url_for('project_details', path=path))
