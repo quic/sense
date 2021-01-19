@@ -19,16 +19,16 @@ alias demo_gesture_recognition='PYTHONPATH=./ python scripts/run_gesture_recogni
 
 # Run all demo files at once
 test_demos() {
-    echo "Test calorie estimation demo ::"
+    echo "Test Calorie Estimation demo ::"
     demo_calorie_estimation
 
     echo "Test Fitness Rep Counter demo ::"
     demo_fitness_rep_counter
 
-    echo "Test fitness tracker demo ::"
+    echo "Test Fitness Tracker demo ::"
     demo_fitness_tracker
 
-    echo "Test gesture recognition demo ::"
+    echo "Test Gesture Recognition demo ::"
     demo_gesture_recognition
 }
 
