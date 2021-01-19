@@ -1,0 +1,66 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} List of images {% endblock %}
+
+{% block main %}
+<div id="main" class="ui main container">
+    <h1 class="ui header">Annotate Frames</h1>
+    <h2 class="ui header">Video: {{video_name}}</h2>
+    <form method="POST" action="{{ url_for('submit_annotation') }}">
+        <input type="hidden" name="fps" value="{{ fps }}">
+        <input type="hidden" name="idx" value="{{ idx }}">
+        <input type="hidden" name="path" value="{{ path }}">
+        <input type="hidden" name="split" value="{{ split }}">
+        <input type="hidden" name="label" value="{{ label }}">
+        <input type="hidden" name="video" value="{{ video_name }}">
+        <input type="hidden" name="n_images" value="{{ n_images }}">
+        <div class="centered ui cards">
+            {% for img, idx, pred_class in images %}
+                <input type="hidden" id="{{ idx }}_tag" name="{{ idx }}_tag" value="0">
+                <div class="card">
+                    <div class="image">
+                        <img src="{{ url_for('download_file', img_path=img) }}">
+                    </div>
+                    <div class="content">
+                        {% if pred_class == 0 %}
+                            <div class="ui large grey label prediction-label">
+                                Prediction
+                                <div class="detail">
+                                    0
+                                </div>
+                            </div>
+                        {% elif pred_class == 1 %}
+                            <div class="ui large blue label prediction-label">
+                                Prediction
+                                <div class="detail">
+                                    1
+                                </div>
+                            </div>
+                        {% elif pred_class == 2 %}
+                            <div class="ui large green label prediction-label">
+                                Prediction
+                                <div class="detail">
+                                    2
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="ui buttons">
+                            <button type="button" class="ui grey button" id="{{ idx }}_tag0" onclick="assignTag({{ idx }}, 0);">0</button>
+                            <button type="button" class="ui button" id="{{ idx }}_tag1" onclick="assignTag({{ idx }}, 1);">1</button>
+                            <button type="button" class="ui button" id="{{ idx }}_tag2" onclick="assignTag({{ idx }}, 2);">2</button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <button class="ui button mt" type="submit">Submit</button>
+    </form>
+    <form method="POST" action="{{ url_for('train_logreg') }}">
+        <input type="hidden" name="idx" value="{{idx}}">
+        <input type="hidden" name="path" value="{{path}}">
+        <input type="hidden" name="split" value="{{split}}">
+        <input type="hidden" name="label" value="{{label}}">
+        <button class="ui button mt" type="submit">Retrain Model</button>
+    </form>
+</div>
+{% endblock %}

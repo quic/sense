@@ -173,3 +173,25 @@ function loading(element) {
     element.classList.add('loading');
     element.classList.add('disabled');
 }
+
+
+let tagColors = [
+    'grey',
+    'blue',
+    'green'
+]
+
+function assignTag(frameIdx, selectedTagIdx) {
+    let tagInput = document.getElementById(frameIdx + '_tag');
+    tagInput.value = selectedTagIdx;
+
+    for (const tagIdx of [0, 1, 2]) {
+        let button = document.getElementById(frameIdx + '_tag' + tagIdx);
+
+        if (tagIdx == selectedTagIdx) {
+            button.classList.add(tagColors[tagIdx]);
+        } else {
+            button.classList.remove(tagColors[tagIdx]);
+        }
+    }
+}
