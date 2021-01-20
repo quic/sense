@@ -12,7 +12,7 @@
                 <div class="content">
                     <div class="header">
                         {{ name }}
-                        <div class="right floated ui icon button haspopup">
+                        <div class="right floated ui icon button hasclickpopup">
                              <i class="trash alternate outline icon"></i>
                         </div>
                         <div class="ui popup transition hidden">
@@ -55,11 +55,11 @@
     </div>
 
     <div class="centered row">
-        <a class="ui icon button" href="{{ url_for('import_project') }}">
+        <a class="ui icon button hashoverpopup" href="{{ url_for('import_project') }}" data-content="Import an existing project folder">
             <i class="sign-in icon"></i>
             Import Project
         </a>
-        <a class="ui icon button" href="{{ url_for('new_project_setup') }}">
+        <a class="ui icon button hashoverpopup" href="{{ url_for('new_project_setup') }}"  data-content="Setup a new project folder from scratch">
             <i class="file outline icon"></i>
             Start New Project
         </a>

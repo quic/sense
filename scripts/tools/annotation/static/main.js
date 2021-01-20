@@ -78,11 +78,13 @@ $(document).ready(function () {
         }
     });
 
-    $('.haspopup').popup({
+    $('.hasclickpopup').popup({
         inline: true,
         on: 'click',
         position: 'bottom right',
     });
+
+    $('.hashoverpopup').popup();
 });
 
 
