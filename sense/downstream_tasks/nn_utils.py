@@ -121,7 +121,7 @@ def load_weights(checkpoint_path: str):
 
         if exec_dir != root_dir:
             raise Exception(f'ERROR - You are executing the script in {exec_dir}. '
-                            f'Make sure to execute the script from your project root directory: {root_dir}'.)
+                            f'Make sure to execute the script from your project root directory: {root_dir}.')
         else:
             raise Exception('ERROR - Weights file missing: {}. '
                             'To download, please go to '
