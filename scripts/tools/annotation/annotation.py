@@ -65,12 +65,25 @@ def _load_project_overview_config():
         return projects
     else:
         _write_project_overview_config({})
-        return []
+        return {}
 
 
 def _write_project_overview_config(projects):
     with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
         json.dump(projects, f, indent=2)
+
+
+def _load_project_config(path):
+    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+    return config
+
+
+def _write_project_config(path, config):
+    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
+    with open(config_path, 'w') as f:
+        json.dump(config, f, indent=2)
 
 
 @app.route('/')
@@ -164,9 +177,7 @@ def create_new_project():
     if not os.path.exists(path):
         os.mkdir(path)
 
-    config_file = os.path.join(path, PROJECT_CONFIG_FILE)
-    with open(config_file, 'w') as f:
-        json.dump(config, f, indent=2)
+    _write_project_config(path, config)
 
     # Setup directory structure
     for split in ['train', 'valid']:
@@ -196,10 +207,7 @@ def create_new_project():
 def project_details(path):
     """TODO"""
     path = f'/{path}'  # Make path absolute
-    config_file = os.path.join(path, PROJECT_CONFIG_FILE)
-
-    with open(config_file) as f:
-        config = json.load(f)
+    config = _load_project_config(path)
 
     stats = {}
     for class_name, tags in config['classes'].items():
@@ -283,9 +291,13 @@ def annotate(split, label, path, idx):
     images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
     images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
 
+    # Read tags from config
+    config = _load_project_config(path)
+    tags = config['classes'][label]
+
     return render_template('frame_annotation.html', images=images, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx],
-                           split=split, label=label, path=path)
+                           split=split, label=label, path=path, tags=tags)
 
 
 @app.route('/submit-annotation', methods=['POST'])
