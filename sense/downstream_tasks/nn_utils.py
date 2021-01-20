@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -114,7 +115,15 @@ def load_weights(checkpoint_path: str):
     """
     try:
         return torch.load(checkpoint_path, map_location='cpu')
-    except:
-        raise Exception('ERROR - Weights file missing: {}. To download, please go to '
-                        'https://20bn.com/licensing/sdk/evaluation and follow the '
-                        'instructions.'.format(checkpoint_path))
+    except FileNotFoundError:
+        root_dir = Path(__file__).parent.parent.parent
+        exec_dir = Path(os.path.dirname(os.path.realpath("__main__")))
+
+        if exec_dir != root_dir:
+            raise Exception(f'ERROR - You are executing the script in {exec_dir}. '
+                            f'Make sure to execute the script from your project root directory: {root_dir}'.)
+        else:
+            raise Exception('ERROR - Weights file missing: {}. '
+                            'To download, please go to '
+                            'https://20bn.com/licensing/sdk/evaluation and follow the '
+                            'instructions.'.format(root_dir / Path(checkpoint_path)))
