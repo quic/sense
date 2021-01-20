@@ -10,7 +10,8 @@
             {{ path }}
         </div>
     </h1>
-    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('prepare_annotation', path=path) }}">
+    <a class="ui icon button hashoverpopup" onclick="loading(this);" href="{{ url_for('prepare_annotation', path=path) }}"
+       data-content="Prepare required files for all classes">
         <i class="file video outline icon"></i>
         Prepare Annotations
     </a>
