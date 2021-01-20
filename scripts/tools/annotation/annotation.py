@@ -122,7 +122,7 @@ def new_project_setup():
 def import_project(name, path):
     """TODO"""
     name = urllib.parse.unquote(name) if name else ''
-    path = f'/{path}' if path else ''  # Make path absolute
+    path = f'/{urllib.parse.unquote(path)}' if path else ''  # Make path absolute
 
     return render_template('import_project.html', name=name, path=path)
 
@@ -206,7 +206,7 @@ def create_new_project():
 @app.route('/project/<path:path>')
 def project_details(path):
     """TODO"""
-    path = f'/{path}'  # Make path absolute
+    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     config = _load_project_config(path)
 
     stats = {}
@@ -226,7 +226,9 @@ def project_details(path):
 @app.route('/annotate/<split>/<label>/<path:path>')
 def show_video_list(split, label, path):
     """Gets the data and creates the HTML template with all videos for the given class-label."""
-    path = f'/{path}'  # Make path absolute
+    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    split = urllib.parse.unquote((split))
+    label = urllib.parse.unquote(label)
     frames_dir = join(path, f"frames_{split}", label)
     tags_dir = join(path, f"tags_{split}", label)
     logreg_dir = join(path, 'logreg', label)
@@ -254,21 +256,23 @@ def show_video_list(split, label, path):
 @app.route('/prepare_annotation/<path:path>')
 def prepare_annotation(path):
     """Gets the data and creates the HTML template with all videos for the given class-label."""
-    dataset_path = f'/{path}'  # Make path absolute
+    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
 
     # load feature extractor if needed
     _load_feature_extractor()
     for split in ['train', 'valid']:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
-        for label in os.listdir(join(dataset_path, f'videos_{split}')):
-            compute_frames_features(inference_engine, split, label, dataset_path)
+        for label in os.listdir(join(path, f'videos_{split}')):
+            compute_frames_features(inference_engine, split, label, path)
     return redirect(url_for("project_details", path=path))
 
 
 @app.route('/annotate/<split>/<label>/<path:path>/<int:idx>')
 def annotate(split, label, path, idx):
     """For the given class-label, this shows all the frames for annotating the selected video."""
-    path = f'/{path}'  # Make path absolute
+    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    label = urllib.parse.unquote(label)
+    split = urllib.parse.unquote(split)
     frames_dir = join(path, f"frames_{split}", label)
     features_dir = join(path, f"features_{split}", label)
 
@@ -407,7 +411,7 @@ def add_header(r):
 
 @app.route('/uploads/<path:img_path>')
 def download_file(img_path):
-    img_path = f'/{img_path}'  # Make path absolute
+    img_path = f'/{urllib.parse.unquote(img_path)}'  # Make path absolute
     img_dir, img = os.path.split(img_path)
     return send_from_directory(img_dir, img, as_attachment=True)
 
