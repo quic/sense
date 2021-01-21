@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 
+from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Optional
@@ -204,7 +205,15 @@ class DisplayClassnameOverlay(BaseDisplay):
     the name is shown and stays visible for a certain duration.
     """
 
-    def __init__(self, thresholds, duration=2, font_scale=3, thickness=2, border_size=50, **kwargs):
+    def __init__(
+            self,
+            thresholds: Dict[str, float],
+            duration: float = 2.,
+            font_scale: float = 3.,
+            thickness: int = 2,
+            border_size: int = 50,
+            **kwargs
+    ):
         """
         :param thresholds:
             Dictionary of thresholds for all classes.
@@ -228,7 +237,7 @@ class DisplayClassnameOverlay(BaseDisplay):
         self._current_class_name = None
         self._start_time = None
 
-    def _get_center_coordinates(self, img, text):
+    def _get_center_coordinates(self, img: np.ndarray, text: str):
         textsize = cv2.getTextSize(text, FONT, self.font_scale, self.thickness)[0]
 
         height, width, _ = img.shape
@@ -239,11 +248,11 @@ class DisplayClassnameOverlay(BaseDisplay):
 
         return x, y
 
-    def _display_class_name(self, img, class_name):
+    def _display_class_name(self, img: np.ndarray, class_name: str):
         pos = self._get_center_coordinates(img, class_name)
         put_text(img, class_name, position=pos, font_scale=self.font_scale, thickness=self.thickness)
 
-    def display(self, img, display_data):
+    def display(self, img: np.ndarray, display_data: dict):
         now = time.perf_counter()
 
         if self._current_class_name and now - self._start_time < self.duration:
