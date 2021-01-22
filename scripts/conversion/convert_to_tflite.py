@@ -1094,11 +1094,16 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     # because GPU delegate gives wrong output without the add 0
     #
     # ** ReLU may not be needed, depending on TF version.
+
+    # rename output layers to order them in alphabetical order
     outputlen = len(model.outputs)
+    outputs_names = "abcdefghijklmnopqrstuvw"
+    outputs_names = ["aa" + x for x in outputs_names]
     for i in range(0, outputlen):
         relu = ReLU(name='relu' + str(i), negative_slope=.999)(model.outputs[i])
         adder = tf.keras.layers.Lambda(lambda x: x + tf.constant(1.))(relu)
-        subtracter = tf.keras.layers.Lambda(lambda x: x + tf.constant(-1.))(adder)
+        subtracter = tf.keras.layers.Lambda(lambda x: x + tf.constant(-1.), name=outputs_names[i])(
+            adder)
         model.outputs.append(subtracter)
     m = Model(model.inputs, model.outputs)
     converter = tf.lite.TFLiteConverter.from_keras_model(m)
