@@ -11,24 +11,24 @@ $(document).ready(function () {
                     results.push({title: subdir})
                 }
 
-                let createProject = document.getElementById('createProject');
-                if (path && !response.path_exists) {
-                    createProject.disabled = false;
-                    // TODO: Check if project name is provided and unique
-                } else {
-                    createProject.disabled = true;
-                    // TODO: Show explanatory message
-                }
-
                 return {results: results}
             }
         },
-        onSelect: function (selectedResult, resultList) {
-            let createProject = document.getElementById('createProject');
-            createProject.disabled = true;
-        },
         showNoResults: false,
         cache: false
+    });
+
+    $('#newProjectForm').form({
+        fields: {
+            name: {
+                rules: [
+                    {
+                        type: 'uniqueProjectName',
+                        prompt: 'The chosen project name already exists'
+                    }
+                ]
+            }
+        }
     });
 
     $('#pathSearchImport').search({
@@ -66,18 +66,6 @@ $(document).ready(function () {
         cache: false
     });
 
-    $('#shouldCreateDirectory').checkbox({
-        onChecked: function () {
-            var createProject = document.getElementById('createProject');
-            createProject.disabled = false;
-        },
-
-        onUnchecked: function () {
-            var createProject = document.getElementById('createProject');
-            createProject.disabled = true;
-        }
-    });
-
     $('.hasclickpopup').popup({
         inline: true,
         on: 'click',
@@ -88,16 +76,37 @@ $(document).ready(function () {
 });
 
 
-function checkProjectDirectory(path) {
+$.fn.form.settings.rules.uniqueProjectName = function (projectName) {
+    let projects = getProjects();
+    let projectNames = Object.keys(projects);
+
+    return !projectNames.includes(projectName);
+}
+
+
+function syncRequest(url, data) {
     let xhttp = new XMLHttpRequest();
 
-    xhttp.open("POST", "/check-existing-project", false);
+    xhttp.open('POST', url, false);
     xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 
-    xhttp.send(JSON.stringify({path: path}));
+    if (data) {
+        xhttp.send(JSON.stringify(data));
+    } else {
+        xhttp.send();
+    }
 
-    console.log(xhttp.responseText);
     return JSON.parse(xhttp.responseText);
+}
+
+
+function getProjects() {
+    return syncRequest('/projects-list', null);
+}
+
+
+function checkProjectDirectory(path) {
+    return syncRequest('/check-existing-project', {path: path});
 }
 
 
@@ -120,24 +129,31 @@ function addClassInput(className) {
 
     // Create new row
     let row = document.createElement('div');
-    row.className = 'class-row';
+    row.className = 'three fields';
 
+    classField = document.createElement('div');
+    classField.className = 'field';
     classInputGroup = createInputWithLabel('eye', 'Class', 'class' + numClasses, className, true)
-    row.appendChild(classInputGroup);
-    row.appendChild(document.createTextNode(' '));
+    classField.appendChild(classInputGroup);
+    row.appendChild(classField);
 
+    tag1Field = document.createElement('div');
+    tag1Field.className = 'field';
     tag1InputGroup = createInputWithLabel('tag', 'Tag 1', 'class' + numClasses + '_tag1', '', false)
-    row.appendChild(tag1InputGroup);
-    row.appendChild(document.createTextNode(' '));
+    tag1Field.appendChild(tag1InputGroup);
+    row.appendChild(tag1Field);
 
+    tag2Field = document.createElement('div');
+    tag2Field.className = 'field';
     tag2InputGroup = createInputWithLabel('tag', 'Tag 2', 'class' + numClasses + '_tag2', '', false)
-    row.appendChild(tag2InputGroup);
+    tag2Field.appendChild(tag2InputGroup);
+    row.appendChild(tag2Field);
 
     classList.appendChild(row);
 
     // Remove onfocus handler on previous node
     if (numClasses > 0) {
-        let previousLabeledInput = classList.children[numClasses - 1].children[0];
+        let previousLabeledInput = classList.children[numClasses - 1].children[0].children[0];
         let previousInput = previousLabeledInput.children[previousLabeledInput.children.length - 1];
         previousInput.removeAttribute('onfocus');
     }

@@ -5,23 +5,29 @@
 {% block main %}
 <div id="main" class="ui main container">
     <h1 class="ui header">New Project</h1>
-    <form method="POST" action="/create-new-project">
-        <div class="ui labeled input">
-            <div class="ui label">
-                <i class="id card outline icon"></i>
-                Name
+    <form class="ui form" id="newProjectForm" method="POST" action="/create-new-project">
+        <div class="two fields">
+            <div class="required field">
+                <div class="ui labeled input">
+                    <div class="ui label">
+                        <i class="id card outline icon"></i>
+                        Name
+                    </div>
+                    <input type="text" name="name" placeholder="Project Name">
+                </div>
             </div>
-            <input type="text" name="name" placeholder="Project Name">
-        </div>
-        <div class="ui labeled input">
-            <div class="ui label">
-                <i class="folder open icon"></i>
-                Path
-            </div>
-            <div class="ui search" id="pathSearch">
-                <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" />
-                <div id="pathSuggestions" class="results">
-                    <!-- Filled automatically -->
+            <div class="field">
+                <div class="ui labeled input">
+                    <div class="ui label">
+                        <i class="folder open icon"></i>
+                        Path
+                    </div>
+                    <div class="ui search" id="pathSearch">
+                        <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" />
+                        <div id="pathSuggestions" class="results">
+                            <!-- Filled automatically -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -34,8 +40,8 @@
                 </div>
                 <p>
                     Each video will have exactly one class label.
-                    Tags can be used for annotating single frames out of a video with more specific labels, which later
-                    enable you to perform tasks such as counting certain actions.
+                    Tags can be used for temporally annotating single frames out of a video with more specific labels,
+                    which later enable you to perform tasks such as counting certain actions.
                 </p>
                 <p>
                     You can always edit this information later.
@@ -43,31 +49,38 @@
             </div>
         </div>
         <div id="classList" class="ui">
-            <div class="class-row">
-                <div class="ui labeled input">
-                    <div class="ui label">
-                        <i class="eye icon"></i>
-                        Class
+            <div class="three fields">
+                <div class="field">
+                    <div class="ui labeled input">
+                        <div class="ui label">
+                            <i class="eye icon"></i>
+                            Class
+                        </div>
+                        <input type="text" name="class0" placeholder="class0" onfocus="addClassInput('')" />
                     </div>
-                    <input type="text" name="class0" placeholder="class0" onfocus="addClassInput('')" />
                 </div>
-                <div class="ui labeled input">
-                    <div class="ui label">
-                        <i class="tag icon"></i>
-                        Tag 1
+                <div class="field">
+                    <div class="ui labeled input">
+                        <div class="ui label">
+                            <i class="tag icon"></i>
+                            Tag 1
+                        </div>
+                        <input type="text" name="class0_tag1" placeholder="class0_tag1" />
                     </div>
-                    <input type="text" name="class0_tag1" placeholder="class0_tag1" />
                 </div>
-                <div class="ui labeled input">
-                    <div class="ui label">
-                        <i class="tag icon"></i>
-                        Tag 2
+                <div class="field">
+                    <div class="ui labeled input">
+                        <div class="ui label">
+                            <i class="tag icon"></i>
+                            Tag 2
+                        </div>
+                        <input type="text" name="class0_tag2" placeholder="class0_tag2" />
                     </div>
-                    <input type="text" name="class0_tag2" placeholder="class0_tag2" />
                 </div>
             </div>
         </div>
-        <button class="ui button mt" type="submit" id="createProject" disabled>Create Project</button>
+        <div class="ui error message"></div>
+        <button class="ui button mt" type="submit">Create Project</button>
     </form>
 </div>
 {% endblock %}
