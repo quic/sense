@@ -5,23 +5,34 @@
 {% block main %}
 <div id="main" class="ui main container">
     <h1 class="ui header">Import Project</h1>
-    <form method="POST" action="/create-new-project">
-        <div class="ui labeled input">
-            <div class="ui label">
-                <i class="id card outline icon"></i>
-                Name
+    <form class="ui form" id="importProjectForm" method="POST" action="/create-new-project">
+        <div class="two fields">
+            <div class="field">
+                {% if name %}
+                <div class="ui labeled disabled input">
+                {% else %}
+                <div class="ui labeled input">
+                {% endif %}
+                    <div class="ui label">
+                        <i class="id card outline icon"></i>
+                        Name
+                    </div>
+
+                    <input type="text" name="name" id="name" class="disabled" placeholder="Project Name" value="{{ name }}">
+                </div>
             </div>
-            <input type="text" name="name" placeholder="Project Name" value="{{ name }}">
-        </div>
-        <div class="ui labeled input">
-            <div class="ui label">
-                <i class="folder open icon"></i>
-                Path
-            </div>
-            <div class="ui search" id="pathSearchImport">
-                <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" value="{{ path }}" />
-                <div id="pathSuggestions" class="results">
-                    <!-- Filled automatically -->
+            <div class="field">
+                <div class="ui labeled input">
+                    <div class="ui label">
+                        <i class="folder open icon"></i>
+                        Path
+                    </div>
+                    <div class="ui search" id="pathSearchImport">
+                        <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" value="{{ path }}" />
+                        <div id="pathSuggestions" class="results">
+                            <!-- Filled automatically -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -29,7 +40,8 @@
         <div id="classList">
             <!-- Filled automatically -->
         </div>
-        <button class="ui button mt" type="submit" id="importProject" disabled>Import Project</button>
+        <div class="ui error message"></div>
+        <button class="ui button" type="submit">Import Project</button>
     </form>
 </div>
 {% endblock %}

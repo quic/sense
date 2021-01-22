@@ -23,8 +23,24 @@ $(document).ready(function () {
             name: {
                 rules: [
                     {
-                        type: 'uniqueProjectName',
+                        type   : 'empty',
+                        prompt : 'Please enter a project name'
+                    },
+                    {
+                        type: 'uniqueProjectName[]',
                         prompt: 'The chosen project name already exists'
+                    }
+                ]
+            },
+            path: {
+                rules: [
+                    {
+                        type   : 'empty',
+                        prompt : 'Please enter a path'
+                    },
+                    {
+                        type: 'existingPath',
+                        prompt: 'The chosen directory already exists'
                     }
                 ]
             }
@@ -45,25 +61,59 @@ $(document).ready(function () {
                 updateClassList(response.classes);
                 // TODO: Disable editing
 
-                let importProject = document.getElementById('importProject');
-                if (path && response.path_exists) {
-                    importProject.disabled = false;
-                } else {
-                    importProject.disabled = true;
-                }
-
                 return {results: results}
             }
         },
         onSelect: function (selectedResult, resultList) {
-            let importProject = document.getElementById('importProject');
             let classes = checkProjectDirectory(selectedResult.title).classes;
-
-            importProject.disabled = false;
             updateClassList(classes);
         },
         showNoResults: false,
         cache: false
+    });
+
+    let relocateProjectName = '';
+    let nameInput = $('#name');
+    if (nameInput) {
+        relocateProjectName = nameInput.val();
+    }
+    let relocateProjectPath = '';
+    let pathInput = $('#path');
+    if (pathInput) {
+        relocateProjectPath = pathInput.val();
+    }
+
+    $('#importProjectForm').form({
+        fields: {
+            name: {
+                rules: [
+                    {
+                        type   : 'empty',
+                        prompt : 'Please enter a project name'
+                    },
+                    {
+                        type: 'uniqueProjectName[' + relocateProjectName + ']',
+                        prompt: 'The chosen project name already exists'
+                    }
+                ]
+            },
+            path: {
+                rules: [
+                    {
+                        type   : 'empty',
+                        prompt : 'Please enter a path'
+                    },
+                    {
+                        type: 'notExistingPath',
+                        prompt: 'The chosen directory doesn\'t exists'
+                    },
+                    {
+                        type: 'uniquePath[' + relocateProjectPath + ']',
+                        prompt: 'Another project is already initialized in this location'
+                    }
+                ]
+            }
+        }
     });
 
     $('.hasclickpopup').popup({
@@ -76,11 +126,41 @@ $(document).ready(function () {
 });
 
 
-$.fn.form.settings.rules.uniqueProjectName = function (projectName) {
+$.fn.form.settings.rules.uniqueProjectName = function (projectName, relocatedName) {
+    if (relocatedName && projectName === relocatedName) {
+        return true;
+    }
+
     let projects = getProjects();
     let projectNames = Object.keys(projects);
-
     return !projectNames.includes(projectName);
+}
+
+
+$.fn.form.settings.rules.existingPath = function (projectPath) {
+    let response = checkProjectDirectory(projectPath);
+    return !response.path_exists;
+}
+
+
+$.fn.form.settings.rules.notExistingPath = function (projectPath) {
+    let response = checkProjectDirectory(projectPath);
+    return response.path_exists;
+}
+
+
+$.fn.form.settings.rules.uniquePath = function (projectPath, relocatedPath) {
+    if (relocatedPath && projectPath === relocatedPath) {
+        return true;
+    }
+
+    let projects = getProjects();
+    for (project of Object.values(projects)) {
+        if (project.path === projectPath) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
