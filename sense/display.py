@@ -276,7 +276,7 @@ class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
     """
-    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 100):
+    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30):
         """
         :param title:
             Title of the image frame on display.
