@@ -8,15 +8,15 @@ your project.
 Training a classifier can be improved using temporal annotations; adding tags to time-stamped 
 video frames prior to training the neural network.
 
-The dataset manager tool provides support for adding temporal annotations to your own dataset.
+SenseStudio provides support for adding temporal annotations to your own dataset.
 
 #### Step 0: Set up your project
 
-If you haven't done so yet, run the `dataset_manager.py` script, open http://127.0.0.1:5000/ in
+If you haven't done so yet, run the `sense_studio.py` script, open http://127.0.0.1:5000/ in
 your browser and create a new project.
 
 ```commandline
-PYTHONPATH=./ python tools/dataset_manager/dataset_manager.py
+PYTHONPATH=./ python tools/sense_studio/sense_studio.py
 ```
 
 On the setup page you can also assign custom names to the temporal tags that will later be used
@@ -26,7 +26,7 @@ Once the project is created, fill the automatically created folders with your vi
 
 #### Step 1: Prepare the videos for annotation
 
-Run the dataset manager tool as described above and navigate into your project.
+Run SenseStudio as described above and navigate into your project.
 There you will find a button to "Prepare Annotations", which will run the following preprocessing
 steps:
 1. Extract single frames from your videos 
