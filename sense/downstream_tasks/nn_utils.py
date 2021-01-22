@@ -115,7 +115,7 @@ def load_weights_from_resources(checkpoint_path: str):
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
-    checkpoint_path = os.path.join(RESOURCES_DIR, checkpoint_path.split('resources')[-1])
+    checkpoint_path = os.path.join(RESOURCES_DIR, checkpoint_path.split(f'resources{os.sep}')[-1])
     try:
         return torch.load(checkpoint_path, map_location='cpu')
 
