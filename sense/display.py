@@ -314,7 +314,7 @@ class DisplayResults:
         img = img[:, ::-1].copy()
 
         # Add black borders
-        side_border_size = 0 if img.shape[1] > 640 else (640-img.shape[1]) // 2
+        side_border_size = 0 if img.shape[1] > 640 else (640 - img.shape[1]) // 2
         img = cv2.copyMakeBorder(img, self.border_size, 0, side_border_size, side_border_size,
                                  cv2.BORDER_CONSTANT)
 
