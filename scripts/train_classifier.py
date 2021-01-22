@@ -10,6 +10,9 @@ Usage:
                        [--path_annotations_train=PATH]
                        [--path_annotations_valid=PATH]
                        [--temporal_training]
+                       [--save_checkpoints]
+                       [--weights=PATH]
+                       [--resume]
   train_classifier.py  (-h | --help)
 
 Options:
@@ -24,6 +27,9 @@ Options:
   --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
   --temporal_training            Use this flag if your dataset has been annotated with the temporal
                                  annotations tool
+  --save_checkpoints             save all checkpoints to the "weights" folder            
+  --weights=PATH                 initialize weight from a specific checkpoint file
+  --resume                       initialize weight from the last saved checkpoint file
 """
 import json
 import os
@@ -34,6 +40,7 @@ from docopt import docopt
 from sense import feature_extractors
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
+from sense.downstream_tasks.nn_utils import load_weights
 from sense.finetuning import extract_features
 from sense.finetuning import generate_data_loader
 from sense.finetuning import set_internal_padding_false
@@ -62,9 +69,19 @@ if __name__ == "__main__":
     path_annotations_valid = args['--path_annotations_valid'] or None
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
     temporal_training = args['--temporal_training']
+    save_checkpoints = args['--save_checkpoints']
+    weights = args['--weights']
+    resume = args['--resume']
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+    if weights:
+        checkpoint = load_weights(weights)
+    if resume:
+        checkpoint = load_weights(os.path.join(path_out, 'weights/', 'last_classifier.checkpoint'))
+    else:
+        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+
     checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
@@ -140,13 +157,13 @@ if __name__ == "__main__":
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 80
     best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
-                                           label_names, path_out, temporal_annotation_training=temporal_training)
+                                           label_names, path_out, temporal_annotation_training=temporal_training, save_checkpoints=save_checkpoints)
 
     # Save best model
     if isinstance(net, Pipe):
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
-    torch.save(best_model_state_dict, os.path.join(path_out, "classifier.checkpoint"))
+    torch.save(best_model_state_dict, os.path.join(path_out, "weights/", "best_classifier.checkpoint"))
     if temporal_training:
         json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "label2int.json"), "w"))
     else:
