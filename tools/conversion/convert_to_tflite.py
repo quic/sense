@@ -123,12 +123,12 @@ def merge_backbone_and_classifier_cfg_files(backbone_config_file, classifier_con
 
 
 def convert(backbone_settings, classifier_settings, output_name, float32, plot_model):
-    output_dir = 'resources/coreml/'
+    output_dir = 'resources/model_conversion/'
     os.makedirs(output_dir, exist_ok=True)
 
     conversion_parameters = backbone_settings['conversion_parameters']
     keras_file = os.path.join(output_dir, output_name + '.h5')
-    coreml_file = os.path.join(output_dir, output_name + '.mlmodel')
+    tflite_file = os.path.join(output_dir, output_name + '.tflite')
 
     if plot_model:
         plot_file = os.path.join(output_dir, output_name + '.png')
@@ -1115,7 +1115,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     m = Model(model.inputs, model.outputs)
     converter = tf.lite.TFLiteConverter.from_keras_model(m)
     tflite_model = converter.convert()
-    open(output_name + ".tflite", "wb").write(tflite_model)
+    open(tflite_file, "wb").write(tflite_model)
 
     if fake_weights == True:
         print('************************* Warning!! **************************')
