@@ -120,7 +120,7 @@ def load_weights_from_resources(checkpoint_path: str):
         return torch.load(checkpoint_path, map_location='cpu')
 
     except FileNotFoundError:
-        raise Exception('ERROR - Weights file missing: {}. '
-                        'To download, please go to '
-                        'https://20bn.com/licensing/sdk/evaluation and follow the '
-                        'instructions.'.format(checkpoint_path))
+        raise FileNotFoundError('Weights file missing: {}. '
+                                'To download, please go to '
+                                'https://20bn.com/licensing/sdk/evaluation and follow the '
+                                'instructions.'.format(checkpoint_path))
