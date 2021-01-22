@@ -206,7 +206,7 @@ This section will describe how you can build your own custom classifier on top o
 
 #### Step 1: Data preparation
 
-First, run the `tools/dataset_manager/dataset_manager.py` script and open http://127.0.0.1:5000/ in your browser.
+First, run the `tools/sense_studio/sense_studio.py` script and open http://127.0.0.1:5000/ in your browser.
 There you can set up a new project in a location of your choice and specify the classes that you want to collect.
 
 The tool will prepare the following file structure for your project, so you can insert the recorded videos into the
