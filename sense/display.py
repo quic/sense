@@ -291,7 +291,8 @@ class DisplayResults:
             Thickness of the display border.
         """
         self._window_title = 'Real-time SenseNet'
-        cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_FREERATIO)
+        cv2.resizeWindow(self._window_title, 640, 480)
         self.title = title
         self.display_ops = display_ops
         self.border_size = border_size
@@ -308,6 +309,7 @@ class DisplayResults:
         :return:
             The image with displayed data.
         """
+
         # Mirror the img
         img = img[:, ::-1].copy()
 
