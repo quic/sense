@@ -1,6 +1,8 @@
-import numpy as np
-import torch.nn as nn
+import os
 
+import numpy as np
+import torch
+import torch.nn as nn
 from typing import Tuple
 
 
@@ -39,6 +41,17 @@ class RealtimeNeuralNet(nn.Module):
         Return the expected frame size of the neural network.
         """
         raise NotImplementedError
+
+    def load_weights(self, checkpoint_path: str, strict: bool = True):
+        """
+        Load weights from provided checkpoint file, unless the TRAVIS environment
+        variable is defined.
+        """
+        if not os.getenv('TRAVIS', False) == 'true':
+            checkpoint = load_weights(checkpoint_path)
+            self.load_state_dict(checkpoint, strict=strict)
+        else:
+            print('Weights are not loaded on Travis.')
 
 
 class Pipe(RealtimeNeuralNet):
@@ -83,3 +96,25 @@ class LogisticRegression(nn.Sequential):
         if self.global_average_pooling:
             input_tensor = input_tensor.mean(dim=-1).mean(dim=-1)
         return super().forward(input_tensor)
+
+
+class LogisticRegressionSigmoid(LogisticRegression):
+
+    def __init__(self, **kwargs):
+        super().__init__(use_softmax=False, **kwargs)
+        self.add_module(str(len(self)), nn.Sigmoid())
+
+
+def load_weights(checkpoint_path: str):
+    """
+    Load weights from a checkpoint file.
+
+    :param checkpoint_path:
+        A string representing the absolute/relative path to the checkpoint file.
+    """
+    try:
+        return torch.load(checkpoint_path, map_location='cpu')
+    except:
+        raise Exception('ERROR - Weights file missing: {}. To download, please go to '
+                        'https://20bn.com/licensing/sdk/evaluation and follow the '
+                        'instructions.'.format(checkpoint_path))

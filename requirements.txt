@@ -16,3 +16,7 @@ tensorflow              ==1.14.0
 keras                   ==2.2.4
 coremltools             ==3.3
 h5py                    ==2.10.0
+
+# unit tests
+pycodestyle             ==2.5.0          # MIT
+pytest                  ==5.4.3          # MIT
