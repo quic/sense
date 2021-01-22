@@ -27,20 +27,21 @@ $(document).ready(function () {
                         prompt : 'Please enter a project name'
                     },
                     {
-                        type: 'uniqueProjectName[]',
-                        prompt: 'The chosen project name already exists'
+                        type   : 'uniqueProjectName',
+                        prompt : 'The chosen project name already exists'
                     }
                 ]
             },
             path: {
                 rules: [
                     {
-                        type   : 'empty',
-                        prompt : 'Please enter a path'
+                        type   : 'regExp',
+                        value  : /\/.*/,
+                        prompt : 'Please enter an absolute path (starting with a "/")'
                     },
                     {
-                        type: 'existingPath',
-                        prompt: 'The chosen directory already exists'
+                        type   : 'existingPath',
+                        prompt : 'The chosen directory already exists'
                     }
                 ]
             }
@@ -91,24 +92,27 @@ $(document).ready(function () {
                         prompt : 'Please enter a project name'
                     },
                     {
-                        type: 'uniqueProjectName[' + relocateProjectName + ']',
-                        prompt: 'The chosen project name already exists'
+                        type   : 'uniqueProjectName',
+                        value  : relocateProjectName,
+                        prompt : 'The chosen project name already exists'
                     }
                 ]
             },
             path: {
                 rules: [
                     {
-                        type   : 'empty',
-                        prompt : 'Please enter a path'
+                        type   : 'regExp',
+                        value  : /\/.*/,
+                        prompt : 'Please enter an absolute path (starting with a "/")'
                     },
                     {
-                        type: 'notExistingPath',
-                        prompt: 'The chosen directory doesn\'t exists'
+                        type   : 'notExistingPath',
+                        prompt : 'The chosen directory doesn\'t exist'
                     },
                     {
-                        type: 'uniquePath[' + relocateProjectPath + ']',
-                        prompt: 'Another project is already initialized in this location'
+                        type   : 'uniquePath',
+                        value  : relocateProjectPath,
+                        prompt : 'Another project is already initialized in this location'
                     }
                 ]
             }
@@ -143,8 +147,12 @@ $.fn.form.settings.rules.existingPath = function (projectPath) {
 
 
 $.fn.form.settings.rules.notExistingPath = function (projectPath) {
-    let response = checkProjectDirectory(projectPath);
-    return response.path_exists;
+    if (projectPath) {
+        let response = checkProjectDirectory(projectPath);
+        return response.path_exists;
+    } else {
+        return true;
+    }
 }
 
 
