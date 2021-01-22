@@ -116,7 +116,13 @@ def load_weights(checkpoint_path: str):
     try:
         return torch.load(checkpoint_path, map_location='cpu')
     except FileNotFoundError:
-        root_dir = Path(__file__).parent.parent.parent
+        root_dir = None
+        for p in Path(__file__).parents:
+            resources_dir = p / 'resources'
+            if resources_dir.is_dir():
+                root_dir = p
+                break
+
         exec_dir = Path(os.path.dirname(os.path.realpath("__main__")))
 
         if exec_dir != root_dir:
