@@ -45,7 +45,7 @@ if __name__ == "__main__":
     checkpoint = load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
 
     # Load custom classifier
-    checkpoint_classifier = load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
+    checkpoint_classifier = load_weights(os.path.join(custom_classifier, 'weights/', 'best_classifier.checkpoint'))
     # Update original weights in case some intermediate layers have been finetuned
     name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
     for key in name_finetuned_layers:

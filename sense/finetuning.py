@@ -17,6 +17,17 @@ MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
 
 
+def clean_pipe_state_dict_key(key):
+    to_replace = [
+        ('feature_extractor', 'cnn'),
+        ('feature_converter.', '')
+    ]
+    for pattern, replacement in to_replace:
+        if key.startswith(pattern):
+            key = key.replace(pattern, replacement)
+    return key
+
+
 def set_internal_padding_false(module):
     """
     This is used to turn off padding of steppable convolution layers.
@@ -245,7 +256,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1
 
 
 def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False):
+                   temporal_annotation_training=False, save_checkpoints=False):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -281,6 +292,16 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
             if valid_loss < best_loss:
                 best_loss = valid_loss
                 best_state_dict = net.state_dict().copy()
+
+        # save all checkpoints 
+        if save_checkpoints:
+            model_state_dict = net.state_dict().copy()
+            model_state_dict = {clean_pipe_state_dict_key(key): value
+                                    for key, value in model_state_dict.items()}
+            if epoch == num_epochs-1:
+                torch.save(model_state_dict, os.path.join(path_out, "weights/", "last_classifier.checkpoint"))
+            else:
+                torch.save(model_state_dict, os.path.join(path_out, "weights/", "classifier%g.checkpoint" % epoch))
 
     print('Finished Training')
     return best_state_dict
