@@ -33,7 +33,12 @@ body {
     margin-bottom: 0.5em;
 }
 
+.ui.search {
+    width: 100%;
+}
+
 #path {
+    width: 100%;
     border-radius: .28571429rem;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;

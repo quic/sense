@@ -97,6 +97,13 @@ def projects_overview():
     return render_template('projects_overview.html', projects=projects)
 
 
+@app.route('/projects-list', methods=['POST'])
+def projects_list():
+    """TODO"""
+    projects = _load_project_overview_config()
+    return jsonify(projects)
+
+
 @app.route('/remove-project/<string:name>')
 def remove_project(name):
     """TODO"""
