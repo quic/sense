@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 """
-TODO
+Web app for maintaining all of your video datasets:
+- Setup new datasets with custom labels and temporal tags
+- Record new videos (coming soon)
+- Temporally annotate your videos with custom tags
+- Train custom models using strong backbone networks (coming soon)
 """
 
 
@@ -87,7 +91,10 @@ def _write_project_config(path, config):
 
 @app.route('/')
 def projects_overview():
-    """TODO"""
+    """
+    Home page of SenseStudio. Show the overview of all registered projects and check if their
+    locations are still valid.
+    """
     projects = _load_project_overview_config()
 
     # Check if project paths still exist
@@ -99,14 +106,18 @@ def projects_overview():
 
 @app.route('/projects-list', methods=['POST'])
 def projects_list():
-    """TODO"""
+    """
+    Provide the current list of projects to external callers.
+    """
     projects = _load_project_overview_config()
     return jsonify(projects)
 
 
 @app.route('/remove-project/<string:name>')
 def remove_project(name):
-    """TODO"""
+    """
+    Remove a given project from the config file and reload the overview page.
+    """
     name = urllib.parse.unquote(name)
     projects = _load_project_overview_config()
 
@@ -119,14 +130,20 @@ def remove_project(name):
 
 @app.route('/new-project-setup')
 def new_project_setup():
-    """TODO"""
+    """
+    Show the page for setting up a new project including name, path and class definitions.
+    """
     return render_template('new_project_setup.html')
 
 
 @app.route('/import-project/', defaults={'name': None, 'path': None})
 @app.route('/import-project/<string:name>/<path:path>')
 def import_project(name, path):
-    """TODO"""
+    """
+    Show the page for importing an existing project. If name and path are given, this is used to
+    update an existing project config, otherwise any existing directory can be selected from the
+    local file system.
+    """
     name = urllib.parse.unquote(name) if name else ''
     path = f'/{urllib.parse.unquote(path)}' if path else ''  # Make path absolute
 
@@ -135,7 +152,12 @@ def import_project(name, path):
 
 @app.route('/check-existing-project', methods=['POST'])
 def check_existing_project():
-    """TODO"""
+    """
+    Browse the local file system starting at the given path and provide the following information:
+    - path_exsists: If the given path exists
+    - classes: The list existing classes discovered in the videos_train directory
+    - subdirs: The list of sub-directories at the given path
+    """
     data = request.json
     path = data['path']
 
@@ -154,7 +176,9 @@ def check_existing_project():
 
 @app.route('/create-new-project', methods=['POST'])
 def create_new_project():
-    """TODO"""
+    """
+    Add a new project to the config file. Can also be used for updating an existing project.
+    """
     data = request.form
     name = data['name']
     path = data['path']
@@ -211,7 +235,9 @@ def create_new_project():
 
 @app.route('/project/<path:path>')
 def project_details(path):
-    """TODO"""
+    """
+    Show the details for the selected project.
+    """
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     config = _load_project_config(path)
 
@@ -231,7 +257,10 @@ def project_details(path):
 
 @app.route('/annotate/<split>/<label>/<path:path>')
 def show_video_list(split, label, path):
-    """Gets the data and creates the HTML template with all videos for the given class-label."""
+    """
+    Show the list of videos for the given split, class label and project.
+    If the necessary files for annotation haven't been prepared yet, this is done now.
+    """
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     split = urllib.parse.unquote((split))
     label = urllib.parse.unquote(label)
@@ -261,7 +290,9 @@ def show_video_list(split, label, path):
 
 @app.route('/prepare_annotation/<path:path>')
 def prepare_annotation(path):
-    """Gets the data and creates the HTML template with all videos for the given class-label."""
+    """
+    Prepare all files needed for annotating the videos in the given project.
+    """
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
 
     # load feature extractor if needed
@@ -275,7 +306,9 @@ def prepare_annotation(path):
 
 @app.route('/annotate/<split>/<label>/<path:path>/<int:idx>')
 def annotate(split, label, path, idx):
-    """For the given class-label, this shows all the frames for annotating the selected video."""
+    """
+    For the given class label, show all frames for annotating the selected video.
+    """
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
@@ -312,6 +345,9 @@ def annotate(split, label, path, idx):
 
 @app.route('/submit-annotation', methods=['POST'])
 def submit_annotation():
+    """
+    Submit annotated tags for all frames and save them to a json file.
+    """
     data = request.form  # a multi-dict containing POST data
     idx = int(data['idx'])
     fps = float(data['fps'])
@@ -342,6 +378,9 @@ def submit_annotation():
 
 @app.route('/train-logreg', methods=['POST'])
 def train_logreg():
+    """
+    (Re-)Train a logistic regression model on all annotations that have been submitted so far.
+    """
     global logreg
 
     data = request.form  # a multi-dict containing POST data
@@ -417,6 +456,9 @@ def add_header(r):
 
 @app.route('/uploads/<path:img_path>')
 def download_file(img_path):
+    """
+    Load an image from the given path.
+    """
     img_path = f'/{urllib.parse.unquote(img_path)}'  # Make path absolute
     img_dir, img = os.path.split(img_path)
     return send_from_directory(img_dir, img, as_attachment=True)
