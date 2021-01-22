@@ -59,7 +59,6 @@ $(document).ready(function () {
                 }
 
                 updateClassList(response.classes);
-                // TODO: Disable editing
 
                 return {results: results}
             }
@@ -206,6 +205,7 @@ function updateClassList(classes) {
 function addClassInput(className) {
     let classList = document.getElementById('classList');
     let numClasses = classList.children.length;
+    let disabled = className !== '';
 
     // Create new row
     let row = document.createElement('div');
@@ -213,19 +213,19 @@ function addClassInput(className) {
 
     classField = document.createElement('div');
     classField.className = 'field';
-    classInputGroup = createInputWithLabel('eye', 'Class', 'class' + numClasses, className, true)
+    classInputGroup = createInputWithLabel('eye', 'Class', 'class' + numClasses, className, true, disabled)
     classField.appendChild(classInputGroup);
     row.appendChild(classField);
 
     tag1Field = document.createElement('div');
     tag1Field.className = 'field';
-    tag1InputGroup = createInputWithLabel('tag', 'Tag 1', 'class' + numClasses + '_tag1', '', false)
+    tag1InputGroup = createInputWithLabel('tag', 'Tag 1', 'class' + numClasses + '_tag1', '', false, disabled)
     tag1Field.appendChild(tag1InputGroup);
     row.appendChild(tag1Field);
 
     tag2Field = document.createElement('div');
     tag2Field.className = 'field';
-    tag2InputGroup = createInputWithLabel('tag', 'Tag 2', 'class' + numClasses + '_tag2', '', false)
+    tag2InputGroup = createInputWithLabel('tag', 'Tag 2', 'class' + numClasses + '_tag2', '', false, disabled)
     tag2Field.appendChild(tag2InputGroup);
     row.appendChild(tag2Field);
 
@@ -239,9 +239,13 @@ function addClassInput(className) {
     }
 }
 
-function createInputWithLabel(icon, labelText, name, prefill, addOnFocus) {
+function createInputWithLabel(icon, labelText, name, prefill, addOnFocus, disabled) {
     let inputGroup = document.createElement('div');
     inputGroup.className = 'ui labeled input';
+
+    if (disabled) {
+        inputGroup.classList.add('disabled');
+    }
 
     let label = document.createElement('div');
     label.className = 'ui label';
