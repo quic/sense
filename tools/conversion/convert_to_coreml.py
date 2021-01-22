@@ -69,7 +69,7 @@ DEFAULT_CONVERSION_PARAMETERS = {
 SUPPORTED_BACKBONE_CONVERSIONS = {
     'efficientnet':
         {
-            'config_file': 'scripts/conversion/cfg/efficientnet.cfg',
+            'config_file': 'tools/conversion/cfg/efficientnet.cfg',
             'weights_file': 'resources/backbone/strided_inflated_efficientnet.ckpt',
             'conversion_parameters': {**DEFAULT_CONVERSION_PARAMETERS, 'image_scale': 255.}
         }
@@ -78,21 +78,21 @@ SUPPORTED_BACKBONE_CONVERSIONS = {
 SUPPORTED_CLASSIFIER_CONVERSIONS = {
     'efficient_net_gesture_control':
         {
-            'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
+            'config_file': 'tools/conversion/cfg/logistic_regression.cfg',
             'placeholder_values': {'NUM_CLASSES': '30'},
             'weights_file': 'resources/gesture_detection/efficientnet_logistic_regression.ckpt',
             'corresponding_backbone': 'efficientnet',
         },
     'efficient_net_fitness_activity_recognition':
         {
-            'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
+            'config_file': 'tools/conversion/cfg/logistic_regression.cfg',
             'placeholder_values': {'NUM_CLASSES': '81'},
             'weights_file': 'resources/fitness_activity_recognition/efficientnet_logistic_regression.ckpt',
             'corresponding_backbone': 'efficientnet',
         },
     'custom_classifier':
         {
-            'config_file': 'scripts/conversion/cfg/logistic_regression.cfg',
+            'config_file': 'tools/conversion/cfg/logistic_regression.cfg',
             'placeholder_values': {'NUM_CLASSES': None},
             'weights_file': None,
             'corresponding_backbone': None,

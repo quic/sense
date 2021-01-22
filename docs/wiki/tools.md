@@ -19,7 +19,7 @@ to correctly structure your dataset.
 After the dataset folder is ready, run the `prepare_annotation.py` script:
 
 ```commandline
-PYTHONPATH=./ python scripts/tools/annotation/prepare_annotation.py --data_path=/path/to/your/dataset/
+PYTHONPATH=./ python tools/annotation/prepare_annotation.py --data_path=/path/to/your/dataset/
 ```
 
 This step will divide the videos inside each class-folder for both videos_train and videos_valid and  
@@ -47,7 +47,7 @@ and that will be later annotated.
 Next, run the `annotation.py` script:
 
 ```commandline
-PYTHONPATH=./ python scripts/tools/annotation/annotation.py --data_path=/path/to/your/dataset/ --split=[train or valid] --label=[Label_of_videos_to_annotate]
+PYTHONPATH=./ python tools/annotation/annotation.py --data_path=/path/to/your/dataset/ --split=[train or valid] --label=[Label_of_videos_to_annotate]
 ```
 
 This command will launch a web server which provides an interface for you to annotate each video by 
