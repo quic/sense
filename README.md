@@ -44,7 +44,7 @@
  actions in front of, and interacting with, a camera. Both neural networks are small, efficient, and run smoothly in real time on a CPU.
 - Demo applications showcasing the potential of our models: gesture recognition, fitness activity tracking, live
  calorie estimation.
-- A pipeline to train your own custom classifier on top of our models with an easy-to-use script to fine-tune our weights. 
+- A pipeline to record and annotate your own video dataset and train a custom classifier on top of our models with an easy-to-use script to fine-tune our weights.
 
 <div align="center">
 
@@ -205,33 +205,39 @@ This section will describe how you can build your own custom classifier on top o
  as a powerful feature extractor that will reduce the amount of data you need to build your project. 
 
 #### Step 1: Data preparation
-Prepare the training and validation videos for each of the desired classes (labels) and organise them in this manner:
+
+First, run the `tools/dataset_manager/dataset_manager.py` script and open http://127.0.0.1:5000/ in your browser.
+There you can set up a new project in a location of your choice and specify the classes that you want to collect.
+
+The tool will prepare the following file structure for your project, so you can insert the recorded videos into the
+corresponding folders:
 
 ```
 /path/to/your/dataset/
 ├── videos_train
-│   ├── label1
+│   ├── class1
 │   │   ├── video1.mp4
 │   │   ├── video2.mp4
 │   │   └── ...
-│   ├── label2
+│   ├── class2
 │   │   ├── video3.mp4
 │   │   ├── video4.mp4
 │   │   └── ...
 │   └── ...
-└── videos_valid
-    ├── label1
-    │   ├── video5.mp4
-    │   ├── video6.mp4
-    │   └── ...
-    ├── label2
-    │   ├── video7.mp4
-    │   ├── video8.mp4
-    │   └── ...
-    └── ...
+├── videos_valid
+│   ├── class1
+│   │   ├── video5.mp4
+│   │   ├── video6.mp4
+│   │   └── ...
+│   ├── class2
+│   │   ├── video7.mp4
+│   │   ├── video8.mp4
+│   │   └── ...
+│   └── ...
+└── project_config.json
 ```
 - Two top-level folders: one for the training data, one for the validation data.
-- One sub-folder for each label with as many videos as you want (but at least one!)
+- One sub-folder for each class with as many videos as you want (but at least one!)
 - Requirement: videos should have a framerate of 16 fps or higher.
 
 In some cases, as few as 2-5 videos per class have been enough to achieve excellent performance!
@@ -257,8 +263,8 @@ PYTHONPATH=./ python tools/run_custom_classifier.py --custom_classifier=/path/to
 ## Advanced Options
 
 You can further improve your model's performance by training on top of temporally annotated data; 
-individually labelled frames that identify the event locally in the video versus treating every frame with the same 
-label. For instructions on how to prepare your data with temporal annotation, refer to this 
+individually tagged frames that identify the event locally in the video versus treating every frame with the same 
+label. For instructions on how to prepare your data with temporal annotations, refer to this 
 [page](https://github.com/TwentyBN/sense/wiki/tools#temporal-annotations-tool).
 
 After preparing your dataset with our temporal annotations tool, pass `--temporal_training` as an additional
