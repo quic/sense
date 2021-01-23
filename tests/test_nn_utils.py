@@ -1,8 +1,8 @@
 import unittest
-from unittest.mock import patch
 
 import sense.downstream_tasks.nn_utils as nn_utils
 from sense import RESOURCES_DIR
+
 
 class TestLoadWeightsFromResources(unittest.TestCase):
 
