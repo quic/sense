@@ -18,10 +18,3 @@ Keras                   ==2.4.3      # Apache 2.0
 # unit tests
 pycodestyle             ==2.5.0          # MIT
 pytest                  ==5.4.3          # MIT
-
-# Dependencies needed for converting Pytorch models to CoreML.
-# replace the dependencies for tf lite to these ones if you want to run the coreml conversion script
-#tensorflow              ==1.14.0
-#keras                   ==2.2.4
-#coremltools             ==3.3
-#h5py                    ==2.10.0

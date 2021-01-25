@@ -286,6 +286,13 @@ If you want to convert a custom classifier, set the classifier name to "custom_c
 python tools/conversion/convert_to_tflite.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=model
 ```
 
+## Conversion to coreml
+
+If you want to convert a classifier to coreml, you need to install the coreml requirements.
+```shell
+pip install -r requirements-coreml.txt
+```
+You will then be able to run the convert_to_coreml.py script instead of convert_to_tflite.py
 ---
 
 <!--
