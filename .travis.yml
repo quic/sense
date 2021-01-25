@@ -18,4 +18,4 @@ jobs:
       script:
         - pycodestyle
         - python -m pytest
-        - ./tests/test_demo_scripts.sh
+        - ./tests/test_examples.sh
