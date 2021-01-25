@@ -274,25 +274,34 @@ flag to the `train_classifier.py` script.
 
 ## iOS Deployment
 
-If you're interested in mobile app development and want to run our models on iOS devices, please check out [sense-iOS](https://github.com/TwentyBN/sense-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
-One of the steps involves converting our Pytorch models to the Tensorflow-Lite format, which can be done from this repo using the following script:
+If you're interested in mobile app development and want to run our models on iOS devices, please 
+check out [sense-iOS](https://github.com/TwentyBN/sense-iOS) for step by step instructions on how 
+to get our gesture demo to run on an iOS device. One of the steps involves converting our Pytorch 
+models to the TensorFlow Lite format.
+
+### Conversion to TensorFlow Lite
+
+Our models can be converted to TensorFlow Lite using the following script:
 
 ```shell
 python tools/conversion/convert_to_tflite.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=model
 ```
 
-If you want to convert a custom classifier, set the classifier name to "custom_classifier", and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.
+If you want to convert a custom classifier, set the classifier name to "custom_classifier", 
+and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.
 ```shell
 python tools/conversion/convert_to_tflite.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=model
 ```
 
-## Conversion to coreml
+### Conversion to CoreML
 
-If you want to convert a classifier to coreml, you need to install the coreml requirements.
+To convert models to CoreML, a few specific dependencies are required:
 ```shell
 pip install -r requirements-coreml.txt
 ```
-You will then be able to run the convert_to_coreml.py script instead of convert_to_tflite.py
+You will then be able to run the `convert_to_coreml.py` script, which works similarly to the 
+`convert_to_tflite.py` script mentioned above.
+
 ---
 
 <!--
