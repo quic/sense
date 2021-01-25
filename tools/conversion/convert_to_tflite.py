@@ -589,10 +589,12 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             outputs = []
 
             for f in range(inputs_needed):
-                #                print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ', all_layers[len(all_layers) - inputs_needed + f].shape)
+                #  print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ', all_layers[len(all_layers) -
+                #  inputs_needed + f].shape)
                 inputs.append(all_layers[len(all_layers) - inputs_needed + f])
                 if merge_in > 0:
-                    #                    print('merge input index: ', len(all_layers) - inputs_needed + f, ' shape: ', all_layers[len(all_layers) - (2*inputs_needed) + f].shape)
+                    # print('merge input index: ', len(all_layers) - inputs_needed + f,
+                    # ' shape: ', all_layers[len(all_layers) - (2*inputs_needed) + f].shape)
                     inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
 
             # Create Conv3d from Conv2D layers
@@ -682,7 +684,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             frames, fake_weights = invResidual(module_name, layer_name, frames,
                                                out_channels, xratio, size, stride, shift, tstride,
                                                fake_weights)
-
 
         elif section.startswith('Linear'):
             module_name = 'module_name' in cfg_parser[section]
@@ -926,7 +927,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             image_size = prev_layer_shape[-2]
             print('softmax: ', image_size)
 
-
         elif section.startswith('yolo'):
             if 'layer_name' in cfg_parser[section]:
                 layer_name = cfg_parser[section]['layer_name']
@@ -1048,7 +1048,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     #    if remaining_weights > 0:
     #        print('Warning: {} unused weights'.format(remaining_weights))
 
-    if fake_weights == True:
+    if fake_weights:
         print('************************* Warning!! **************************')
         print('************************* Warning!! **************************')
         print('************************* Warning!! **************************')
@@ -1092,7 +1092,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     elif conversion_parameters['image_scale']:
         build_args['image_scale'] = 1.0 / conversion_parameters['image_scale']
 
-
     print(type(keras_file))
     model = tf.keras.models.load_model(str('{}'.format(keras_file)))
 
@@ -1117,7 +1116,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     tflite_model = converter.convert()
     open(tflite_file, "wb").write(tflite_model)
 
-    if fake_weights == True:
+    if fake_weights:
         print('************************* Warning!! **************************')
         print('************************* Warning!! **************************')
         print('************************* Warning!! **************************')
