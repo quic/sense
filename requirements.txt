@@ -11,11 +11,9 @@ Pillow                  ==8.0.1       # HPND
 ffmpeg-python           ==0.2.0       # GNU-GPL
 simpleaudio             ==1.0.4       # MIT
 
-# Dependencies needed for converting Pytorch models to CoreML
-tensorflow              ==1.14.0
-keras                   ==2.2.4
-coremltools             ==3.3
-h5py                    ==2.10.0
+# Dependencies needed for converting Pytorch models to tensorflow Lite
+tensorflow              ==2.3.1      # Apache 2.0
+Keras                   ==2.4.3      # Apache 2.0
 
 # unit tests
 pycodestyle             ==2.5.0          # MIT
