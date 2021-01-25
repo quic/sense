@@ -113,6 +113,23 @@ def projects_list():
     return jsonify(projects)
 
 
+@app.route('/project-config', methods=['POST'])
+def project_config():
+    """
+    Provide the config for a given project.
+    """
+    data = request.json
+    name = data['name']
+
+    # Lookup project path
+    projects = _load_project_overview_config()
+    path = projects[name]['path']
+
+    # Get config
+    config = _load_project_config(path)
+    return jsonify(config)
+
+
 @app.route('/remove-project/<string:name>')
 def remove_project(name):
     """
@@ -253,6 +270,38 @@ def project_details(path):
             }
 
     return render_template('project_details.html', config=config, path=path, stats=stats)
+
+
+@app.route('/add-class/<string:project>', methods=['POST'])
+def add_class(project):
+    """
+    Add a new class to the given project.
+    """
+    # Lookup project path
+    projects = _load_project_overview_config()
+    path = projects[project]['path']
+
+    # Get class name and tags
+    data = request.form
+    class_name = data['class']
+    tag1 = data['tag1'] or f'{class_name}_tag1'
+    tag2 = data['tag2'] or f'{class_name}_tag2'
+
+    if tag2 == tag1:
+        tag2 = f'{tag2}_2'
+
+    # Update project config
+    config = _load_project_config(path)
+    config['classes'][class_name] = [tag1, tag2]
+    _write_project_config(path, config)
+
+    # Setup directory structure
+    for split in ['train', 'valid']:
+        videos_dir = os.path.join(path, f'videos_{split}')
+        class_dir = os.path.join(videos_dir, class_name)
+        os.mkdir(class_dir)
+
+    return redirect(url_for("project_details", path=path))
 
 
 @app.route('/annotate/<split>/<label>/<path:path>')
