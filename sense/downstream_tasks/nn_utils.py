@@ -6,6 +6,8 @@ import torch
 import torch.nn as nn
 from typing import Tuple
 
+from sense import RESOURCES_DIR
+
 
 class RealtimeNeuralNet(nn.Module):
     """
@@ -43,13 +45,13 @@ class RealtimeNeuralNet(nn.Module):
         """
         raise NotImplementedError
 
-    def load_weights(self, checkpoint_path: str, strict: bool = True):
+    def load_weights_from_resources(self, checkpoint_path: str, strict: bool = True):
         """
         Load weights from provided checkpoint file, unless the TRAVIS environment
         variable is defined.
         """
         if not os.getenv('TRAVIS', False) == 'true':
-            checkpoint = load_weights(checkpoint_path)
+            checkpoint = load_weights_from_resources(checkpoint_path)
             self.load_state_dict(checkpoint, strict=strict)
         else:
             print('Weights are not loaded on Travis.')
@@ -106,30 +108,19 @@ class LogisticRegressionSigmoid(LogisticRegression):
         self.add_module(str(len(self)), nn.Sigmoid())
 
 
-def load_weights(checkpoint_path: str):
+def load_weights_from_resources(checkpoint_path: str):
     """
-    Load weights from a checkpoint file.
+    Load weights from a checkpoint file located in the resources folder.
 
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
+    checkpoint_path = os.path.join(RESOURCES_DIR, checkpoint_path.split(f'resources{os.sep}')[-1])
     try:
         return torch.load(checkpoint_path, map_location='cpu')
+
     except FileNotFoundError:
-        root_dir = None
-        for p in Path(__file__).parents:
-            resources_dir = p / 'resources'
-            if resources_dir.is_dir():
-                root_dir = p
-                break
-
-        exec_dir = Path(os.path.dirname(os.path.realpath("__main__")))
-
-        if exec_dir != root_dir:
-            raise Exception(f'ERROR - You are executing the script in {exec_dir}. '
-                            f'Make sure to execute the script from your project root directory: {root_dir}.')
-        else:
-            raise Exception('ERROR - Weights file missing: {}. '
-                            'To download, please go to '
-                            'https://20bn.com/licensing/sdk/evaluation and follow the '
-                            'instructions.'.format(root_dir / Path(checkpoint_path)))
+        raise FileNotFoundError('Weights file missing: {}. '
+                                'To download, please go to '
+                                'https://20bn.com/licensing/sdk/evaluation and follow the '
+                                'instructions.'.format(checkpoint_path))
