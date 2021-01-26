@@ -1027,11 +1027,8 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             else:
                 layer_name = str(len(all_layers) - 1)
             if "name" in cfg_parser[section]:
-                index = (
-                    layer_names[cfg_parser[section]["name"].strip()]
-                    - len(all_layers)
-                    - 1
-                )
+                layer = cfg_parser[section]["name"].strip()
+                index = layer_names[layer] - len(all_layers) - 1
             if "from" in cfg_parser[section]:
                 index = frames * int(cfg_parser[section]["from"])
                 if index < 0:
