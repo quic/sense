@@ -19,3 +19,4 @@ jobs:
         - pycodestyle
         - python -m pytest
         - ./tests/test_examples.sh
+        - ./tests/test_run_custom_classifier.sh
