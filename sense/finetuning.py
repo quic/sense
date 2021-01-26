@@ -14,19 +14,12 @@ from sense import engine
 from sklearn.metrics import confusion_matrix
 from os.path import join
 
+from sense.utils import clean_pipe_state_dict_key
+
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
 
 
-def clean_pipe_state_dict_key(key):
-    to_replace = [
-        ('feature_extractor', 'cnn'),
-        ('feature_converter.', '')
-    ]
-    for pattern, replacement in to_replace:
-        if key.startswith(pattern):
-            key = key.replace(pattern, replacement)
-    return key
 
 
 def set_internal_padding_false(module):
@@ -279,7 +272,7 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1
 
 
 def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False, save_checkpoints=False):
+                   temporal_annotation_training=False, save_checkpoints=False, frequency=5, resume_epoch=-1):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -287,12 +280,18 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
     best_top1 = 0.
     best_loss = 9999
 
-    for epoch in range(num_epochs):  # loop over the dataset multiple times
+    # if no resume from the last checkpoint file, epoch will start at 0, otherwise, it will start at the resumed epoch+1
+    for epoch in range(resume_epoch+1, num_epochs+resume_epoch+1):  # loop over the dataset multiple times
         new_lr = lr_schedule.get(epoch)
         if new_lr:
             print(f"update lr to {new_lr}")
             for param_group in optimizer.param_groups:
                 param_group['lr'] = new_lr
+
+        # rename the last saved checkpoint
+        if epoch % frequency == 1 and os.path.exists(os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch-1))):
+            os.rename(os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch-1)),
+                      os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint"))
 
         net.train()
 
@@ -321,10 +320,15 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
             model_state_dict = net.state_dict().copy()
             model_state_dict = {clean_pipe_state_dict_key(key): value
                                     for key, value in model_state_dict.items()}
-            if epoch == num_epochs-1:
-                torch.save(model_state_dict, os.path.join(path_out, "weights/", "last_classifier.checkpoint"))
-            else:
-                torch.save(model_state_dict, os.path.join(path_out, "weights/", "classifier%g.checkpoint" % epoch))
+            if epoch >= 0 and epoch % frequency == 0:
+                torch.save({
+                            'epoch': epoch,
+                            'model_state_dict': model_state_dict,
+                            }, os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % epoch))
+                # rename the previous checkpoint back to the original name
+                if os.path.exists(os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint")):
+                    os.rename(os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint"),
+                              os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch - frequency)))
 
     print('Finished Training')
     return best_state_dict
