@@ -11,6 +11,7 @@ Usage:
                        [--path_annotations_valid=PATH]
                        [--temporal_training]
                        [--save_checkpoints]
+                       [--frequency=NUM]
                        [--weights=PATH]
                        [--resume]
   train_classifier.py  (-h | --help)
@@ -27,7 +28,8 @@ Options:
   --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
   --temporal_training            Use this flag if your dataset has been annotated with the temporal
                                  annotations tool
-  --save_checkpoints             save all checkpoints to the "weights" folder            
+  --save_checkpoints             save all checkpoints to the "weights" folder
+  --frequency=NUM                frequency of the amount of checkpoints saved (default: 5)
   --weights=PATH                 initialize weight from a specific checkpoint file
   --resume                       initialize weight from the last saved checkpoint file
 """
@@ -45,17 +47,9 @@ from sense.finetuning import extract_features
 from sense.finetuning import generate_data_loader
 from sense.finetuning import set_internal_padding_false
 from sense.finetuning import training_loops
+from sense.utils import clean_pipe_state_dict_key
 
 
-def clean_pipe_state_dict_key(key):
-    to_replace = [
-        ('feature_extractor', 'cnn'),
-        ('feature_converter.', '')
-    ]
-    for pattern, replacement in to_replace:
-        if key.startswith(pattern):
-            key = key.replace(pattern, replacement)
-    return key
 
 
 if __name__ == "__main__":
@@ -70,20 +64,30 @@ if __name__ == "__main__":
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
     temporal_training = args['--temporal_training']
     save_checkpoints = args['--save_checkpoints']
+    frequency = int(args['--frequency'] or 5)
     weights = args['--weights']
     resume = args['--resume']
 
+    # Create a folder "checkpoints" to save model training weights
+    if save_checkpoints:
+        path = os.path.join(path_in, "checkpoints")
+        os.makedirs(path, exist_ok=True)
+
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+    # explanation of resume_epoch is in training_loops function
+    resume_epoch = -1
     if weights:
         checkpoint = load_weights(weights)
-    if resume:
-        checkpoint = load_weights(os.path.join(path_out, 'weights/', 'last_classifier.checkpoint'))
+        feature_extractor.load_state_dict(checkpoint['model_state_dict'])
+    elif resume:
+        checkpoint = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
+        resume_epoch = checkpoint['epoch']
+        feature_extractor.load_state_dict(checkpoint['model_state_dict'])
     else:
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
-
-    checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
-    feature_extractor.load_state_dict(checkpoint)
+        feature_extractor.load_state_dict(checkpoint)
+        
     feature_extractor.eval()
 
     # Get the require temporal dimension of feature tensors in order to
@@ -157,13 +161,14 @@ if __name__ == "__main__":
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 80
     best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
-                                           label_names, path_out, temporal_annotation_training=temporal_training, save_checkpoints=save_checkpoints)
+                                           label_names, path_out, temporal_annotation_training=temporal_training,
+                                           save_checkpoints=save_checkpoints, frequency=frequency, resume_epoch=resume_epoch)
 
     # Save best model
     if isinstance(net, Pipe):
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
-    torch.save(best_model_state_dict, os.path.join(path_out, "weights/", "best_classifier.checkpoint"))
+    torch.save(best_model_state_dict, os.path.join(path_out, "checkpoints/", "best_classifier.checkpoint"))
     if temporal_training:
         json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "label2int.json"), "w"))
     else:
