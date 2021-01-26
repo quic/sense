@@ -92,8 +92,10 @@ SUPPORTED_CLASSIFIER_CONVERSIONS = {
 }
 
 
-def merge_backbone_and_classifier_cfg_files(backbone_config_file, classifier_config_file,
-                                            placeholder_values=None):
+def merge_backbone_and_classifier_cfg_files(
+        backbone_config_file,
+        classifier_config_file,
+        placeholder_values=None):
     """
     Concatenate backbone and classifier config files and make sure all config sections
     have unique names (adding unique suffixes) for compatibility with configparser.
@@ -120,6 +122,292 @@ def merge_backbone_and_classifier_cfg_files(backbone_config_file, classifier_con
 
     output_stream.seek(0)
     return output_stream
+
+
+def invResidual(
+    module_name,
+    frames,
+    out_channels,
+    xratio,
+    size,
+    stride,
+    shift,
+    tstride,
+    fake_weights,
+    prev_layer,
+    all_layers,
+    out_index,
+    in_index,
+    in_names,
+    out_names,
+    weights_full,
+    merge_in,
+    batch_normalize,
+    activation,
+    conversion_parameters,
+    pad
+):
+
+    s = 0
+    if shift:
+        print('3D conv block')
+        tsize = 3
+    else:
+        print('2D conv block')
+        tsize = 1
+
+    prev_layer_shape = K.int_shape(prev_layer)
+    input_channels = prev_layer_shape[-1]
+    x_channels = input_channels * xratio
+    image_size = prev_layer_shape[-3], prev_layer_shape[-2]
+    print('input image size: ', image_size)
+    num_convs = int(frames / tstride)
+    inputs_needed = (tstride * (num_convs - 1)) + tsize
+    #            inputs_needed = frames + tsize - 1
+    if inputs_needed > 1:
+        print('inputs_needed: ', inputs_needed)
+    old_frames_to_read = inputs_needed - frames
+    new_frames_to_save = min(frames, old_frames_to_read)
+    print('num_convs: ', num_convs,
+          'inputs_needed: ', inputs_needed,
+          'history frames needed: ', old_frames_to_read,
+          'frames to save: ', new_frames_to_save,
+          'tstride: ', tstride)
+    # create (optional) expansion pointwise convolution layer
+
+    input_indexes = []
+    for i in range(num_convs):
+        input_indexes.append(len(all_layers) - frames + (i * tstride))
+
+    if xratio != 1:
+        print('---------- Insert channel multiplier pointwise conv -------------')
+        # attach output ports to inputs we will need next pass if tsize>1
+        for f in range(new_frames_to_save):
+            out_index.append(len(all_layers) - frames + f)
+            out_names.append(module_name + '_save_' + str(f))
+
+        # create input ports for required old frames if tsize>1
+        for f in range(old_frames_to_read):
+            h_name = module_name + '_history_' + str(f)
+            all_layers.append(
+                Input(shape=(image_size[0], image_size[1], input_channels), name=h_name))
+            in_names.append(h_name)
+            in_index.append(len(all_layers) - 1)
+
+        # get weights
+        n = module_name + '.conv.' + str(s) + '.0.'
+        if n + 'weight' in weights_full:
+            weights_pt = weights_full[n + 'weight']
+            print('checkpoint: ', weights_pt.shape, )
+            weights_k = np.transpose(weights_pt, [2, 3, 1, 0])
+            bias = weights_full[n + 'bias']
+        else:
+            print('missing weight ', n + 'weight')
+            weights_k = np.random.rand(1, 1, tsize * input_channels, x_channels)
+            bias = np.zeros(x_channels)
+            fake_weights = True
+
+        expected_weights_shape = (1, 1, tsize * input_channels, x_channels)
+        print('weight shape, expected : ', expected_weights_shape,
+              'transposed: ', weights_k.shape)
+
+        if (weights_k.shape != expected_weights_shape):
+            print('weight matrix shape is wrong, making a fake one')
+            weights_k = np.random.rand(1, 1, tsize * input_channels, x_channels)
+            bias = np.zeros(x_channels)
+            fake_weights = True
+
+        weights = [weights_k, bias]
+
+        inputs = []
+        outputs = []
+
+        for f in range(inputs_needed):
+            #                print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
+            #                      all_layers[len(all_layers) - inputs_needed + f].shape)
+            inputs.append(all_layers[len(all_layers) - inputs_needed + f])
+            if merge_in > 0:
+                #                    print('merge input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
+                #                          all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
+                inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
+
+        for f in range(int(frames / tstride)):
+            layers = []
+            if tsize > 1:
+                #                    print('concatenate layers:')
+                for t in range(tsize):
+                    # offset is constant with f, except if tstride,
+                    # then steps by extra step every time through
+                    #                        layers.append(inputs[t + (f * (tstride))])
+                    layers.append(inputs[(tsize - t - 1) + (f * (tstride))])
+                cat_layer = Concatenate()(layers)
+            else:
+                cat_layer = inputs[f * (tstride)]
+
+            outputs.append((Conv2D(
+                x_channels, (1, 1),
+                use_bias=not batch_normalize,
+                weights=weights,
+                activation=None,
+                padding='same'))(cat_layer))
+
+        print('parallel convs: ', int(frames / tstride), ' : ', K.int_shape(cat_layer))
+
+        if activation == 'leaky':
+            for f in range(int(frames / tstride)):
+                if not conversion_parameters['use_prelu']:
+                    outputs[f] = LeakyReLU(alpha=0.1)(outputs[f])
+                else:
+                    outputs[f] = PReLU(
+                        alpha_initializer=RandomNormal(mean=0.1, stddev=0.0, seed=None),
+                        shared_axes=[1, 2])(outputs[f])
+        elif activation == 'relu6':
+            for f in range(int(frames / tstride)):
+                outputs[f] = ReLU(max_value=6)(outputs[f])
+
+        for f in range(int(frames / tstride)):
+            all_layers.append(outputs[f])
+        s += 1
+        frames = int(frames / tstride)
+
+    else:
+        print('Skipping channel multiplier pointwise conv, no expansion')
+
+    # create groupwise convolution
+    # get weights
+    print('---------- Depthwise conv -------------')
+    n = module_name + '.conv.' + str(s) + '.0.'
+    print('module name base: ', n)
+    if n + 'weight' in weights_full:
+        weights_pt = weights_full[n + 'weight']
+        print('checkpoint: ', weights_pt.shape, )
+        weights_k = np.transpose(weights_pt, [2, 3, 0, 1])
+        bias = weights_full[n + 'bias']
+    else:
+        print('missing weight ', n + 'weight')
+        weights_k = np.random.rand(size, size, x_channels, 1)
+        bias = np.zeros(x_channels)
+        fake_weights = True
+
+    expected_weights_shape = (size, size, x_channels, 1)
+    print('weight shape, expected : ', expected_weights_shape,
+          'transposed: ', weights_k.shape)
+
+    if (weights_k.shape != expected_weights_shape):
+        print('weight matrix shape is wrong, making a fake one')
+        fake_weights = True
+        weights_k = np.random.rand(size, size, x_channels, 1)
+        bias = np.zeros(x_channels)
+
+    weights = [weights_k, bias]
+
+    inputs = []
+    outputs = []
+
+    padding = 'same' if pad == 1 and stride == 1 else 'valid'
+
+    for f in range(frames):
+        #            print('input index: ', len(all_layers) - frames + f, ' shape: ',
+        #                  all_layers[len(all_layers) - frames + f].shape)
+        inputs.append(all_layers[len(all_layers) - frames + f])
+
+    if stride > 1:
+        for f in range(len(inputs)):
+            if size == 3:  # originally for all sizes
+                inputs[f] = ZeroPadding2D(((size - stride, 0), (size - stride, 0)))(inputs[f])
+            elif size == 5:  # I found this works...
+                inputs[f] = ZeroPadding2D(((2, 2), (2, 2)))(inputs[f])
+            else:
+                print('I have no idea what to do for size ', size)
+                exit()
+
+    print('parallel convs: ', f, ' : ', K.int_shape(inputs[0]), 'padding: ', padding)
+    for f in range(frames):
+        outputs.append((DepthwiseConv2D(
+            (size, size),
+            strides=(stride, stride),
+            use_bias=not batch_normalize,
+            weights=weights,
+            activation=None,
+            padding=padding))(inputs[f]))
+
+    if activation == 'leaky':
+        for f in range(int(frames)):
+            if not conversion_parameters['use_prelu']:
+                outputs[f] = LeakyReLU(alpha=0.1)(outputs[f])
+            else:
+                outputs[f] = PReLU(
+                    alpha_initializer=RandomNormal(mean=0.1, stddev=0.0, seed=None),
+                    shared_axes=[1, 2])(outputs[f])
+    elif activation == 'relu6':
+        for f in range(int(frames)):
+            outputs[f] = ReLU(max_value=6)(outputs[f])
+
+    for f in range(int(frames)):
+        all_layers.append(outputs[f])
+    s += 1
+
+    # create pointwise convolution
+    # get weights
+    print('---------- Pointwise conv -------------')
+    n = module_name + '.conv.' + str(s) + '.'
+    print('module name base: ', n)
+    if n + 'weight' in weights_full:
+        weights_pt = weights_full[n + 'weight']
+        print('checkpoint: ', weights_pt.shape, )
+        weights_k = np.transpose(weights_pt, [2, 3, 1, 0])
+        bias = weights_full[n + 'bias']
+    else:
+        print('missing weight ', n + 'weight')
+        fake_weights = True
+        weights_k = np.random.rand(1, 1, x_channels, out_channels)
+        bias = np.zeros(out_channels)
+
+    expected_weights_shape = (1, 1, x_channels, out_channels)
+    print('weight shape, expected : ', expected_weights_shape,
+          'transposed: ', weights_k.shape)
+
+    if weights_k.shape != expected_weights_shape:
+        print('weight matrix shape is wrong, making a fake one')
+        fake_weights = True
+        weights_k = np.random.rand(1, 1, x_channels, out_channels)
+        bias = np.zeros(out_channels)
+
+    weights = [weights_k, bias]
+    print("combined shape: ", weights[0].shape, weights[1].shape)
+
+    inputs = []
+    outputs = []
+
+    for f in range(frames):
+        #            print('input index: ', len(all_layers) - frames + f, ' shape: ',
+        #                  all_layers[len(all_layers) - frames + f].shape)
+        inputs.append(all_layers[len(all_layers) - frames + f])
+
+    print('parallel convs: ', f, ' : ', K.int_shape(all_layers[len(all_layers) - frames]))
+    for f in range(frames):
+        conv_input = all_layers[len(all_layers) - frames + f]
+
+        outputs.append((Conv2D(
+            out_channels, (1, 1),
+            use_bias=not batch_normalize,
+            weights=weights,
+            activation=None,
+            padding='same'))(conv_input))
+
+    if stride == 1 and input_channels == out_channels:
+        for f in range(int(frames)):
+            #                if tstride==2:
+            #                    out_index.append(input_indexes[f])
+            #                    out_names.append('outputx_' + str(f) + layer_name)
+
+            all_layers.append(Add()([all_layers[input_indexes[f]], outputs[f]]))
+    else:
+        for f in range(int(frames)):
+            all_layers.append(outputs[f])
+    s += 1
+
+    return frames, fake_weights
 
 
 def convert(backbone_settings, classifier_settings, output_name, float32, plot_model):
@@ -158,269 +446,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     cfg_parser.read_file(unique_config_file)
 
     weight_decay = 5e-4
-
-    def invResidual(module_name, layer_name, frames, out_channels, xratio, size, stride, shift,
-                    tstride, fake_weights):
-
-        s = 0
-        if shift:
-            print('3D conv block')
-            tsize = 3
-        else:
-            print('2D conv block')
-            tsize = 1
-        prev_layer_shape = K.int_shape(all_layers[-1])
-        input_channels = prev_layer_shape[-1]
-        x_channels = input_channels * xratio
-        image_size = prev_layer_shape[-3], prev_layer_shape[-2]
-        print('input image size: ', image_size)
-        num_convs = int(frames / tstride)
-        inputs_needed = (tstride * (num_convs - 1)) + tsize
-        #            inputs_needed = frames + tsize - 1
-        if inputs_needed > 1:
-            print('inputs_needed: ', inputs_needed)
-        old_frames_to_read = inputs_needed - frames
-        new_frames_to_save = min(frames, old_frames_to_read)
-        print('num_convs: ', num_convs,
-              'inputs_needed: ', inputs_needed,
-              'history frames needed: ', old_frames_to_read,
-              'frames to save: ', new_frames_to_save,
-              'tstride: ', tstride)
-        # create (optional) expansion pointwise convolution layer
-
-        input_indexes = []
-        for i in range(num_convs):
-            input_indexes.append(len(all_layers) - frames + (i * tstride))
-
-        if xratio != 1:
-            print('---------- Insert channel multiplier pointwise conv -------------')
-            # attach output ports to inputs we will need next pass if tsize>1
-            for f in range(new_frames_to_save):
-                out_index.append(len(all_layers) - frames + f)
-                out_names.append(module_name + '_save_' + str(f))
-
-            # create input ports for required old frames if tsize>1
-            for f in range(old_frames_to_read):
-                h_name = module_name + '_history_' + str(f)
-                all_layers.append(
-                    Input(shape=(image_size[0], image_size[1], input_channels), name=h_name))
-                in_names.append(h_name)
-                in_index.append(len(all_layers) - 1)
-
-            # get weights
-            n = module_name + '.conv.' + str(s) + '.0.'
-            if n + 'weight' in weights_full:
-                weights_pt = weights_full[n + 'weight']
-                print('checkpoint: ', weights_pt.shape, )
-                weights_k = np.transpose(weights_pt, [2, 3, 1, 0])
-                bias = weights_full[n + 'bias']
-            else:
-                print('missing weight ', n + 'weight')
-                weights_k = np.random.rand(1, 1, tsize * input_channels, x_channels)
-                bias = np.zeros(x_channels)
-                fake_weights = True
-
-            expected_weights_shape = (1, 1, tsize * input_channels, x_channels)
-            print('weight shape, expected : ', expected_weights_shape,
-                  'transposed: ', weights_k.shape)
-
-            if (weights_k.shape != expected_weights_shape):
-                print('weight matrix shape is wrong, making a fake one')
-                weights_k = np.random.rand(1, 1, tsize * input_channels, x_channels)
-                bias = np.zeros(x_channels)
-                fake_weights = True
-
-            weights = [weights_k, bias]
-
-            inputs = []
-            outputs = []
-
-            for f in range(inputs_needed):
-                #                print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
-                #                      all_layers[len(all_layers) - inputs_needed + f].shape)
-                inputs.append(all_layers[len(all_layers) - inputs_needed + f])
-                if merge_in > 0:
-                    #                    print('merge input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
-                    #                          all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
-                    inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
-
-            for f in range(int(frames / tstride)):
-                layers = []
-                if tsize > 1:
-                    #                    print('concatenate layers:')
-                    for t in range(tsize):
-                        # offset is constant with f, except if tstride,
-                        # then steps by extra step every time through
-                        #                        layers.append(inputs[t + (f * (tstride))])
-                        layers.append(inputs[(tsize - t - 1) + (f * (tstride))])
-                    cat_layer = Concatenate()(layers)
-                else:
-                    cat_layer = inputs[f * (tstride)]
-
-                outputs.append((Conv2D(
-                    x_channels, (1, 1),
-                    use_bias=not batch_normalize,
-                    weights=weights,
-                    activation=None,
-                    padding='same'))(cat_layer))
-
-            print('parallel convs: ', int(frames / tstride), ' : ', K.int_shape(cat_layer))
-
-            if activation == 'leaky':
-                for f in range(int(frames / tstride)):
-                    if not conversion_parameters['use_prelu']:
-                        outputs[f] = LeakyReLU(alpha=0.1)(outputs[f])
-                    else:
-                        outputs[f] = PReLU(
-                            alpha_initializer=RandomNormal(mean=0.1, stddev=0.0, seed=None),
-                            shared_axes=[1, 2])(outputs[f])
-            elif activation == 'relu6':
-                for f in range(int(frames / tstride)):
-                    outputs[f] = ReLU(max_value=6)(outputs[f])
-
-            for f in range(int(frames / tstride)):
-                all_layers.append(outputs[f])
-            s += 1
-            frames = int(frames / tstride)
-
-        else:
-            print('Skipping channel multiplier pointwise conv, no expansion')
-
-        # create groupwise convolution
-        # get weights
-        print('---------- Depthwise conv -------------')
-        n = module_name + '.conv.' + str(s) + '.0.'
-        print('module name base: ', n)
-        if n + 'weight' in weights_full:
-            weights_pt = weights_full[n + 'weight']
-            print('checkpoint: ', weights_pt.shape, )
-            weights_k = np.transpose(weights_pt, [2, 3, 0, 1])
-            bias = weights_full[n + 'bias']
-        else:
-            print('missing weight ', n + 'weight')
-            weights_k = np.random.rand(size, size, x_channels, 1)
-            bias = np.zeros(x_channels)
-            fake_weights = True
-
-        expected_weights_shape = (size, size, x_channels, 1)
-        print('weight shape, expected : ', expected_weights_shape,
-              'transposed: ', weights_k.shape)
-
-        if (weights_k.shape != expected_weights_shape):
-            print('weight matrix shape is wrong, making a fake one')
-            fake_weights = True
-            weights_k = np.random.rand(size, size, x_channels, 1)
-            bias = np.zeros(x_channels)
-
-        weights = [weights_k, bias]
-
-        inputs = []
-        outputs = []
-
-        padding = 'same' if pad == 1 and stride == 1 else 'valid'
-
-        for f in range(frames):
-            #            print('input index: ', len(all_layers) - frames + f, ' shape: ',
-            #                  all_layers[len(all_layers) - frames + f].shape)
-            inputs.append(all_layers[len(all_layers) - frames + f])
-
-        if stride > 1:
-            for f in range(len(inputs)):
-                if size == 3:  # originally for all sizes
-                    inputs[f] = ZeroPadding2D(((size - stride, 0), (size - stride, 0)))(inputs[f])
-                elif size == 5:  # I found this works...
-                    inputs[f] = ZeroPadding2D(((2, 2), (2, 2)))(inputs[f])
-                else:
-                    print('I have no idea what to do for size ', size)
-                    exit()
-
-        print('parallel convs: ', f, ' : ', K.int_shape(inputs[0]), 'padding: ', padding)
-        for f in range(frames):
-            outputs.append((DepthwiseConv2D(
-                (size, size),
-                strides=(stride, stride),
-                use_bias=not batch_normalize,
-                weights=weights,
-                activation=None,
-                padding=padding))(inputs[f]))
-
-        if activation == 'leaky':
-            for f in range(int(frames)):
-                if not conversion_parameters['use_prelu']:
-                    outputs[f] = LeakyReLU(alpha=0.1)(outputs[f])
-                else:
-                    outputs[f] = PReLU(
-                        alpha_initializer=RandomNormal(mean=0.1, stddev=0.0, seed=None),
-                        shared_axes=[1, 2])(outputs[f])
-        elif activation == 'relu6':
-            for f in range(int(frames)):
-                outputs[f] = ReLU(max_value=6)(outputs[f])
-
-        for f in range(int(frames)):
-            all_layers.append(outputs[f])
-        s += 1
-
-        # create pointwise convolution
-        # get weights
-        print('---------- Pointwise conv -------------')
-        n = module_name + '.conv.' + str(s) + '.'
-        print('module name base: ', n)
-        if n + 'weight' in weights_full:
-            weights_pt = weights_full[n + 'weight']
-            print('checkpoint: ', weights_pt.shape, )
-            weights_k = np.transpose(weights_pt, [2, 3, 1, 0])
-            bias = weights_full[n + 'bias']
-        else:
-            print('missing weight ', n + 'weight')
-            fake_weights = True
-            weights_k = np.random.rand(1, 1, x_channels, out_channels)
-            bias = np.zeros(out_channels)
-
-        expected_weights_shape = (1, 1, x_channels, out_channels)
-        print('weight shape, expected : ', expected_weights_shape,
-              'transposed: ', weights_k.shape)
-
-        if (weights_k.shape != expected_weights_shape):
-            print('weight matrix shape is wrong, making a fake one')
-            fake_weights = True
-            weights_k = np.random.rand(1, 1, x_channels, out_channels)
-            bias = np.zeros(out_channels)
-
-        weights = [weights_k, bias]
-        print("combined shape: ", weights[0].shape, weights[1].shape)
-
-        inputs = []
-        outputs = []
-
-        for f in range(frames):
-            #            print('input index: ', len(all_layers) - frames + f, ' shape: ',
-            #                  all_layers[len(all_layers) - frames + f].shape)
-            inputs.append(all_layers[len(all_layers) - frames + f])
-
-        print('parallel convs: ', f, ' : ', K.int_shape(all_layers[len(all_layers) - frames]))
-        for f in range(frames):
-            conv_input = all_layers[len(all_layers) - frames + f]
-
-            outputs.append((Conv2D(
-                out_channels, (1, 1),
-                use_bias=not batch_normalize,
-                weights=weights,
-                activation=None,
-                padding='same'))(conv_input))
-
-        if stride == 1 and input_channels == out_channels:
-            for f in range(int(frames)):
-                #                if tstride==2:
-                #                    out_index.append(input_indexes[f])
-                #                    out_names.append('outputx_' + str(f) + layer_name)
-
-                all_layers.append(Add()([all_layers[input_indexes[f]], outputs[f]]))
-        else:
-            for f in range(int(frames)):
-                all_layers.append(outputs[f])
-        s += 1
-
-        return frames, fake_weights
 
     print('Creating Keras model.')
     all_layers = []
@@ -681,9 +706,28 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             tstride = int(cfg_parser[section]['tstride'])
             print('frames: ', frames)
 
-            frames, fake_weights = invResidual(module_name, layer_name, frames,
-                                               out_channels, xratio, size, stride, shift, tstride,
-                                               fake_weights)
+            frames, fake_weights = invResidual(
+                module_name,
+                frames,
+                out_channels,
+                xratio,
+                size,
+                stride,
+                shift,
+                tstride,
+                fake_weights,
+                prev_layer=all_layers[-1],
+                all_layers=all_layers,
+                out_index=out_index,
+                in_index=in_index,
+                in_names=in_names,
+                out_names=out_names,
+                weights_full=weights_full,
+                merge_in=merge_in,
+                batch_normalize=batch_normalize,
+                activation=activation,
+                conversion_parameters=conversion_parameters,
+                pad=pad)
 
         elif section.startswith('Linear'):
             module_name = 'module_name' in cfg_parser[section]
