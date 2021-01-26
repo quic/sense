@@ -78,10 +78,20 @@ if __name__ == "__main__":
     # explanation of resume_epoch is in training_loops function
     resume_epoch = -1
     if weights:
-        checkpoint = load_weights(weights)
+        # Load custom and original classifiers
+        checkpoint_classifier = load_weights(weights)
+        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+        # Update original weights in case some intermediate layers have been finetuned
+        name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
+        for key in name_finetuned_layers:
+            checkpoint[key] = checkpoint_classifier.pop(key)
         feature_extractor.load_state_dict(checkpoint['model_state_dict'])
     elif resume:
-        checkpoint = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
+        checkpoint_classifier = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
+        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+        name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
+        for key in name_finetuned_layers:
+            checkpoint[key] = checkpoint_classifier.pop(key)
         resume_epoch = checkpoint['epoch']
         feature_extractor.load_state_dict(checkpoint['model_state_dict'])
     else:
