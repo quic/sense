@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 """
-Pytorch-to-CoreML conversion script.
+Pytorch-to-Tflite conversion script.
 Author: Mark Tordorovich.
 
 
 Usage:
-  convert_to_coreml.py --backbone=NAME --classifier=NAME --output_name=NAME
+  convert_to_tflite.py --backbone=NAME --classifier=NAME --output_name=NAME
                        [--path_in=PATH]
                        [--plot_model]
                        [--float32]
-  convert_to_coreml.py (-h | --help)
+  convert_to_tflite.py (-h | --help)
 
 Options:
   --backbone=NAME     Name of the backbone model.
@@ -21,38 +21,30 @@ Options:
                       to 16-bit precision.
   -h --help
 """
+
+from docopt import docopt
 import configparser
-import copy
-import coremltools
 import io
 import json
-import numpy as np
 import os
-import torch
-
+import copy
 from collections import defaultdict
-from docopt import docopt
-
+import tensorflow as tf
+import torch
+import numpy as np
 from keras import backend as K
-from keras.initializers import RandomNormal
-from keras.layers import Add
-from keras.layers import Concatenate
-from keras.layers import Conv2D
-from keras.layers import Dense
-from keras.layers import DepthwiseConv2D
-from keras.layers import GlobalAveragePooling2D
-from keras.layers import Input
-from keras.layers import MaxPooling2D
-from keras.layers import Softmax
-from keras.layers import UpSampling2D
-from keras.layers import ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.advanced_activations import PReLU
-from keras.layers.advanced_activations import ReLU
+from keras.layers import (Conv2D, Input, ZeroPadding2D, Add, Dense, GlobalAveragePooling2D,
+                          UpSampling2D, MaxPooling2D, Concatenate, DepthwiseConv2D, Softmax)
+from keras.layers.advanced_activations import (LeakyReLU, ReLU, PReLU)
 from keras.layers.normalization import BatchNormalization
+from keras.initializers import RandomNormal
 from keras.models import Model
 from keras.regularizers import l2
 from keras.utils.vis_utils import plot_model as plot
+
+if not tf.__version__ == '2.3.1':
+    print('wrong TF version, expecting 2.3.1')
+    exit(1)
 
 DEFAULT_CONVERSION_PARAMETERS = {
     'image_scale': 1.,
@@ -136,7 +128,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
 
     conversion_parameters = backbone_settings['conversion_parameters']
     keras_file = os.path.join(output_dir, output_name + '.h5')
-    coreml_file = os.path.join(output_dir, output_name + '.mlmodel')
+    tflite_file = os.path.join(output_dir, output_name + '.tflite')
 
     if plot_model:
         plot_file = os.path.join(output_dir, output_name + '.png')
@@ -244,12 +236,12 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             outputs = []
 
             for f in range(inputs_needed):
-                # print('input index: ', len(all_layers) - inputs_needed + f,
-                #     ' shape: ', all_layers[len(all_layers) - inputs_needed + f].shape)
+                #                print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
+                #                      all_layers[len(all_layers) - inputs_needed + f].shape)
                 inputs.append(all_layers[len(all_layers) - inputs_needed + f])
                 if merge_in > 0:
-                    # print('merge input index: ', len(all_layers) - inputs_needed + f,
-                    #       ' shape: ', all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
+                    #                    print('merge input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
+                    #                          all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
                     inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
 
             for f in range(int(frames / tstride)):
@@ -597,8 +589,8 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             outputs = []
 
             for f in range(inputs_needed):
-                # print('input index: ', len(all_layers) - inputs_needed + f,
-                # ' shape: ', all_layers[len(all_layers) - inputs_needed + f].shape)
+                #  print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ', all_layers[len(all_layers) -
+                #  inputs_needed + f].shape)
                 inputs.append(all_layers[len(all_layers) - inputs_needed + f])
                 if merge_in > 0:
                     # print('merge input index: ', len(all_layers) - inputs_needed + f,
@@ -1100,55 +1092,29 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     elif conversion_parameters['image_scale']:
         build_args['image_scale'] = 1.0 / conversion_parameters['image_scale']
 
-    coreml_model = coremltools.converters.keras.convert(keras_file, **build_args)
-    coreml_model.short_description = coreml_file
-    spec = coreml_model.get_spec()
+    print(type(keras_file))
+    model = tf.keras.models.load_model(str('{}'.format(keras_file)))
 
-    if conversion_parameters['normalize_inputs']:
-        print('\nimage input normalization requested!')
-        # get NN portion of the spec
-        nn_spec = spec.neuralNetwork
-        layers = nn_spec.layers  # this is a list of all the layers
-        layers_copy = copy.deepcopy(
-            layers)  # make a copy of the layers, these will be added back later
-        del nn_spec.layers[:]  # delete all the layers
+    # hack to make an add 0 to the model in a way that tflite does not remove it. Tflite will change the add 1
+    # subtract 1 to an add 0. Normally, add 0 will be deleted by tflite converter. The reason we need an add 0 is
+    # because GPU delegate gives wrong output without the add 0
+    #
+    # ** ReLU may not be needed, depending on TF version.
 
-        for ii in image_inputs:
-            # add a scale layer now
-            # since mlmodel is in protobuf format, we can add proto messages directly
-            # To look at more examples on how to add other layers: see "builder.py" file in coremltools repo
-
-            scale_layer = nn_spec.layers.add()
-            scale_layer.name = 'scale_' + ii
-            scale_layer.input.append(ii)
-            scale_layer.output.append(ii + '_scaled')
-            print('inserted scaling layer ', scale_layer.name, )
-            print(' input is image input ', ii, ', output is ', ii + '_scaled')
-
-            params = scale_layer.scale
-            params.scale.floatValue.extend(
-                [conversion_parameters['red_scale'], conversion_parameters['green_scale'],
-                 conversion_parameters['blue_scale']])  # scale values for RGB
-            params.shapeScale.extend([3, 1, 1])  # shape of the scale vector
-
-        # now add back the rest of the layers (which happens to be just one in this case: the crop layer)
-        nn_spec.layers.extend(layers_copy)
-
-        for i in range(len(image_inputs)):
-            nn_spec.layers[i + len(image_inputs)].input[0] = image_inputs[i] + '_scaled'
-            print('attached layer ', nn_spec.layers[i + len(image_inputs)].name, ' to ',
-                  image_inputs[i] + '_scaled')
-
-        # print(spec.description)
-
-        coreml_model = coremltools.models.MLModel(spec)
-        coreml_model.short_description = coreml_file
-        print('\nsaving normalized network ', coreml_file)
-        coreml_model.save(coreml_file)
-
-    else:
-        print('\nsaving ', coreml_file)
-        coreml_model.save(coreml_file)
+    # rename output layers to order them in alphabetical order
+    outputlen = len(model.outputs)
+    outputs_names = "abcdefghijklmnopqrstuvw"
+    outputs_names = ["aa" + x for x in outputs_names]
+    for i in range(0, outputlen):
+        relu = ReLU(name='relu' + str(i), negative_slope=.999)(model.outputs[i])
+        adder = tf.keras.layers.Lambda(lambda x: x + tf.constant(1.))(relu)
+        subtracter = tf.keras.layers.Lambda(lambda x: x + tf.constant(-1.), name=outputs_names[i])(
+            adder)
+        model.outputs.append(subtracter)
+    m = Model(model.inputs, model.outputs)
+    converter = tf.lite.TFLiteConverter.from_keras_model(m)
+    tflite_model = converter.convert()
+    open(tflite_file, "wb").write(tflite_model)
 
     if fake_weights:
         print('************************* Warning!! **************************')
