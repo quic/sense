@@ -1100,7 +1100,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
     elif conversion_parameters['image_scale']:
         build_args['image_scale'] = 1.0 / conversion_parameters['image_scale']
 
-    coreml_model = coremltools.converters.keras.convert(keras_file, **build_args)
+    coreml_model = coremltools.convert(keras_file, **build_args)
     coreml_model.short_description = coreml_file
     spec = coreml_model.get_spec()
 
