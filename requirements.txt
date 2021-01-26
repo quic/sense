@@ -15,6 +15,9 @@ simpleaudio             ==1.0.4       # MIT
 tensorflow              ==2.3.1      # Apache 2.0
 Keras                   ==2.4.3      # Apache 2.0
 
+coremltools             ==3.3          # BSD 3
+h5py                    ==2.10.0       # BSD 3
+
 # unit tests
 pycodestyle             ==2.5.0          # MIT
 pytest                  ==5.4.3          # MIT
