@@ -276,7 +276,8 @@ class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
     """
-    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30):
+    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30,
+                 window_size: Tuple[int, int] = (480, 640)):
         """
         :param title:
             Title of the image frame on display.
@@ -289,10 +290,13 @@ class DisplayResults:
                 - DisplayTopKClassificationOutputs
         :param border_size:
             Thickness of the display border.
+        :param window_size:
+            Resolution of the display window.
         """
+        self.window_size = window_size
         self._window_title = 'Real-time SenseNet'
         cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_KEEPRATIO)
-        cv2.resizeWindow(self._window_title, 640, 480)
+        cv2.resizeWindow(self._window_title, self.window_size[1], self.window_size[0])
         self.title = title
         self.display_ops = display_ops
         self.border_size = border_size
@@ -314,7 +318,7 @@ class DisplayResults:
         img = img[:, ::-1].copy()
 
         # Add black borders
-        side_border_size = 0 if img.shape[1] > 640 else (640 - img.shape[1]) // 2
+        side_border_size = 0 if img.shape[1] > self.window_size[1] else (self.window_size[1] - img.shape[1]) // 2
         img = cv2.copyMakeBorder(img, self.border_size, 0, side_border_size, side_border_size,
                                  cv2.BORDER_CONSTANT)
 
