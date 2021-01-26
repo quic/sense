@@ -211,7 +211,7 @@ def invResidual(
         print('weight shape, expected : ', expected_weights_shape,
               'transposed: ', weights_k.shape)
 
-        if (weights_k.shape != expected_weights_shape):
+        if weights_k.shape != expected_weights_shape:
             print('weight matrix shape is wrong, making a fake one')
             weights_k = np.random.rand(1, 1, tsize * input_channels, x_channels)
             bias = np.zeros(x_channels)
@@ -223,22 +223,16 @@ def invResidual(
         outputs = []
 
         for f in range(inputs_needed):
-            #                print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
-            #                      all_layers[len(all_layers) - inputs_needed + f].shape)
             inputs.append(all_layers[len(all_layers) - inputs_needed + f])
             if merge_in > 0:
-                #                    print('merge input index: ', len(all_layers) - inputs_needed + f, ' shape: ',
-                #                          all_layers[len(all_layers) - (2 * inputs_needed) + f].shape)
                 inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
 
         for f in range(int(frames / tstride)):
             layers = []
             if tsize > 1:
-                #                    print('concatenate layers:')
                 for t in range(tsize):
                     # offset is constant with f, except if tstride,
                     # then steps by extra step every time through
-                    #                        layers.append(inputs[t + (f * (tstride))])
                     layers.append(inputs[(tsize - t - 1) + (f * (tstride))])
                 cat_layer = Concatenate()(layers)
             else:
@@ -293,7 +287,7 @@ def invResidual(
     print('weight shape, expected : ', expected_weights_shape,
           'transposed: ', weights_k.shape)
 
-    if (weights_k.shape != expected_weights_shape):
+    if weights_k.shape != expected_weights_shape:
         print('weight matrix shape is wrong, making a fake one')
         fake_weights = True
         weights_k = np.random.rand(size, size, x_channels, 1)
@@ -307,8 +301,6 @@ def invResidual(
     padding = 'same' if pad == 1 and stride == 1 else 'valid'
 
     for f in range(frames):
-        #            print('input index: ', len(all_layers) - frames + f, ' shape: ',
-        #                  all_layers[len(all_layers) - frames + f].shape)
         inputs.append(all_layers[len(all_layers) - frames + f])
 
     if stride > 1:
@@ -380,8 +372,6 @@ def invResidual(
     outputs = []
 
     for f in range(frames):
-        #            print('input index: ', len(all_layers) - frames + f, ' shape: ',
-        #                  all_layers[len(all_layers) - frames + f].shape)
         inputs.append(all_layers[len(all_layers) - frames + f])
 
     print('parallel convs: ', f, ' : ', K.int_shape(all_layers[len(all_layers) - frames]))
@@ -397,11 +387,7 @@ def invResidual(
 
     if stride == 1 and input_channels == out_channels:
         for f in range(int(frames)):
-            #                if tstride==2:
-            #                    out_index.append(input_indexes[f])
-            #                    out_names.append('outputx_' + str(f) + layer_name)
-
-            all_layers.append(Add()([all_layers[input_indexes[f]], outputs[f]]))
+           all_layers.append(Add()([all_layers[input_indexes[f]], outputs[f]]))
     else:
         for f in range(int(frames)):
             all_layers.append(outputs[f])
@@ -504,7 +490,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             prev_layer_shape = K.int_shape(all_layers[-1])
             input_channels = prev_layer_shape[-1]
             image_size = prev_layer_shape[-3], prev_layer_shape[-2]
-            #            print('conv input image size: ', image_size)
 
             num_convs = int(frames / tstride)
             if num_convs > 1:
@@ -542,7 +527,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
                     image_inputs.append(xx)
                 all_layers.append(Input(shape=(image_size[0], image_size[1], input_channels),
                                         name=xx))
-                #                print('History input at: ', len(all_layers) - 1)
                 in_index.append(len(all_layers) - 1)
 
             # create input ports for merged-in frames
@@ -600,7 +584,7 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
                   'checkpoint: ', conv_weights_pt.shape,
                   'created: ', conv_weights.shape)
 
-            if (conv_weights.shape != expected_weights_shape):
+            if conv_weights.shape != expected_weights_shape:
                 print('weight matrix shape is wrong, making a fake one')
                 fake_weights = True
                 conv_weights = np.random.rand(size, size, tsize * input_channels, filters)
@@ -614,12 +598,8 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             outputs = []
 
             for f in range(inputs_needed):
-                #  print('input index: ', len(all_layers) - inputs_needed + f, ' shape: ', all_layers[len(all_layers) -
-                #  inputs_needed + f].shape)
                 inputs.append(all_layers[len(all_layers) - inputs_needed + f])
                 if merge_in > 0:
-                    # print('merge input index: ', len(all_layers) - inputs_needed + f,
-                    # ' shape: ', all_layers[len(all_layers) - (2*inputs_needed) + f].shape)
                     inputs.append(all_layers[len(all_layers) - (2 * inputs_needed) + f])
 
             # Create Conv3d from Conv2D layers
@@ -630,7 +610,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             for f in range(int(frames / tstride)):
                 layers = []
                 if tsize > 1:
-                    #                    print('concatenate layers:')
                     for t in range(tsize):
                         # offset is constant with f, except if tstride,
                         # then steps by extra step every time through
@@ -647,7 +626,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
                         layers.append(inputs[2 * f * (tstride)])
                         layers.append(inputs[2 * f * (tstride) + 1])
                         cat_layer = Concatenate()(layers)
-                #                print(K.int_shape(cat_layer))
                 outputs.append((Conv2D(
                     filters, (size, size),
                     strides=(stride, stride),
@@ -659,8 +637,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
 
             if batch_normalize:
                 for f in range(int(frames / tstride)):
-                    #                    print (all_layers[0-int(frames/tstride)])
-                    #                    print(bn_weight_list)
                     outputs[f] = BatchNormalization(weights=bn_weight_list)(outputs[f])
 
             if activation == 'relu6':
@@ -1018,7 +994,6 @@ def convert(backbone_settings, classifier_settings, output_name, float32, plot_m
             frames = frames + 1
             if 'size' in cfg_parser[section]:
                 size = []
-                # size = [s.strip() for s in cfg_parser[section]['size'].split(',')]
                 for i in cfg_parser[section]['size'].split(','):
                     if i == 'None':
                         size.append(None)
