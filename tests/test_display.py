@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch
+
 import sense.display as base_display
 
 

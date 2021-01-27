@@ -20,20 +20,21 @@ Options:
 import os
 import json
 from docopt import docopt
+import torch
 
 import sense.display
 from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.nn_utils import load_weights
+from sense.downstream_tasks.nn_utils import load_weights_from_resources
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 
 
 if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
-    camera_id = args['--camera_id'] or 0
+    camera_id = int(args['--camera_id'] or 0)
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
     custom_classifier = args['--custom_classifier'] or None
@@ -42,10 +43,11 @@ if __name__ == "__main__":
 
     # Load original feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    checkpoint = load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
+    feature_extractor.load_weights_from_resources('backbone/strided_inflated_efficientnet.ckpt')
+    checkpoint = feature_extractor.state_dict()
 
     # Load custom classifier
-    checkpoint_classifier = load_weights(os.path.join(custom_classifier, 'classifier.checkpoint'))
+    checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'classifier.checkpoint'))
     # Update original weights in case some intermediate layers have been finetuned
     name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
     for key in name_finetuned_layers:

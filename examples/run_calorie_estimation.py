@@ -31,7 +31,7 @@ from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks import calorie_estimation
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.nn_utils import load_weights
+from sense.downstream_tasks.nn_utils import load_weights_from_resources
 
 if __name__ == "__main__":
     # Parse arguments
@@ -42,19 +42,19 @@ if __name__ == "__main__":
     gender = args['--gender'] or None
     use_gpu = args['--use_gpu']
 
-    camera_id = args['--camera_id'] or 0
+    camera_id = int(args['--camera_id'] or 0)
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
     title = args['--title'] or None
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedMobileNetV2()
-    feature_extractor.load_weights('resources/backbone/strided_inflated_mobilenet.ckpt')
+    feature_extractor.load_weights_from_resources('backbone/strided_inflated_mobilenet.ckpt')
     feature_extractor.eval()
 
     # Load MET value converter
     met_value_converter = calorie_estimation.METValueMLPConverter()
-    checkpoint = load_weights('resources/calorie_estimation/mobilenet_features_met_converter.ckpt')
+    checkpoint = load_weights_from_resources('calorie_estimation/mobilenet_features_met_converter.ckpt')
     met_value_converter.load_state_dict(checkpoint)
     met_value_converter.eval()
 
