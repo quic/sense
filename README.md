@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/imgs/sense_logo.png" height="70px">
+<img src="docs/imgs/sense_logo.png" height="70px">
 
 **State-of-the-art Real-time Action Recognition**
 
