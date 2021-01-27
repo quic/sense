@@ -317,7 +317,7 @@ class DisplayResults:
         # Mirror the img
         img = img[:, ::-1].copy()
 
-        # Add black borders
+        # Adjust image to fit in display window
         img = self.resize_to_fit_window(img)
 
         # Display information on top
@@ -348,7 +348,6 @@ class DisplayResults:
             new_height = round(new_width * height / width)
 
         img = cv2.resize(img, (new_width, new_height))
-
         # Pad black borders:
         #   - top: controlled by border_size
         #   - bottom: none
