@@ -43,7 +43,8 @@ if __name__ == "__main__":
 
     # Load original feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    checkpoint = load_weights_from_resources('resources/backbone/strided_inflated_efficientnet.ckpt')
+    feature_extractor.load_weights_from_resources('backbone/strided_inflated_efficientnet.ckpt')
+    checkpoint = feature_extractor.state_dict()
 
     # Load custom classifier
     checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'classifier.checkpoint'))
