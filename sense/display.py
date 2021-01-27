@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 
+from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Optional
@@ -10,8 +11,14 @@ from typing import Optional
 FONT = cv2.FONT_HERSHEY_PLAIN
 
 
-def put_text(img: np.ndarray, text: str, position: Tuple[int, int],
-             color: Tuple[int, int, int] = (255, 255, 255)) -> np.ndarray:
+def put_text(
+        img: np.ndarray,
+        text: str,
+        position: Tuple[int, int],
+        font_scale: float = 1.,
+        color: Tuple[int, int, int] = (255, 255, 255),
+        thickness: int = 1
+) -> np.ndarray:
     """
     Draw a white text string on an image at a specified position and return the image.
 
@@ -21,13 +28,16 @@ def put_text(img: np.ndarray, text: str, position: Tuple[int, int],
         The text to be written.
     :param position:
         A tuple of x and y coordinates of the bottom-left corner of the text in the image.
+    :param font_scale:
+        Font scale factor for modifying the font size.
     :param color:
         A tuple for font color. For BGR, eg: (0, 255, 0) for green color.
-
+    :param thickness:
+        Thickness of the lines used to draw the text.
     :return:
         The image with the text string drawn.
     """
-    cv2.putText(img, text, position, FONT, 1, color, 1, cv2.LINE_AA)
+    cv2.putText(img, text, position, FONT, font_scale, color, thickness, cv2.LINE_AA)
     return img
 
 
@@ -99,7 +109,7 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
         :param top_k:
             Number of the top classification labels to be displayed.
         :param threshold:
-            Threshhold for the output to be displayed.
+            Threshold for the output to be displayed.
         """
         super().__init__(**kwargs)
         self.top_k = top_k
@@ -181,8 +191,83 @@ class DisplayFPS(BaseDisplay):
             text_color = self.default_text_color
 
         # Show FPS on the video screen
-        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, img.shape[0] - self.y_offset - 20), text_color)
-        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, img.shape[0] - self.y_offset), text_color)
+        put_text(img, "Camera FPS: {:.1f}".format(camera_fps), (5, img.shape[0] - self.y_offset - 20),
+                 color=text_color)
+        put_text(img, "Model FPS: {:.1f}".format(inference_engine_fps), (5, img.shape[0] - self.y_offset),
+                 color=text_color)
+
+        return img
+
+
+class DisplayClassnameOverlay(BaseDisplay):
+    """
+    Display recognized class name as a large video overlay. Once the probability for a class passes the threshold,
+    the name is shown and stays visible for a certain duration.
+    """
+
+    def __init__(
+            self,
+            thresholds: Dict[str, float],
+            duration: float = 2.,
+            font_scale: float = 3.,
+            thickness: int = 2,
+            border_size: int = 50,
+            **kwargs
+    ):
+        """
+        :param thresholds:
+            Dictionary of thresholds for all classes.
+        :param duration:
+            Duration in seconds how long the class name should be displayed after it has been recognized.
+        :param font_scale:
+            Font scale factor for modifying the font size.
+        :param thickness:
+            Thickness of the lines used to draw the text.
+        :param border_size:
+            Height of the border on top of the video display. Used for correctly centering the displayed class name
+            on the video.
+        """
+        super().__init__(**kwargs)
+        self.thresholds = thresholds
+        self.duration = duration
+        self.font_scale = font_scale
+        self.thickness = thickness
+        self.border_size = border_size
+
+        self._current_class_name = None
+        self._start_time = None
+
+    def _get_center_coordinates(self, img: np.ndarray, text: str):
+        textsize = cv2.getTextSize(text, FONT, self.font_scale, self.thickness)[0]
+
+        height, width, _ = img.shape
+        height -= self.border_size
+
+        x = int((width - textsize[0]) / 2)
+        y = int((height + textsize[1]) / 2) + self.border_size
+
+        return x, y
+
+    def _display_class_name(self, img: np.ndarray, class_name: str):
+        pos = self._get_center_coordinates(img, class_name)
+        put_text(img, class_name, position=pos, font_scale=self.font_scale, thickness=self.thickness)
+
+    def display(self, img: np.ndarray, display_data: dict):
+        now = time.perf_counter()
+
+        if self._current_class_name and now - self._start_time < self.duration:
+            # Keep displaying the same class name
+            self._display_class_name(img, self._current_class_name)
+        else:
+            self._current_class_name = None
+            for class_name, proba in display_data['sorted_predictions']:
+                if class_name in self.thresholds and proba > self.thresholds[class_name]:
+                    # Display new class name
+                    self._display_class_name(img, class_name)
+                    self._current_class_name = class_name
+                    self._start_time = now
+
+                    break
 
         return img
 

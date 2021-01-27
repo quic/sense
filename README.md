@@ -44,7 +44,7 @@
  actions in front of, and interacting with, a camera. Both neural networks are small, efficient, and run smoothly in real time on a CPU.
 - Demo applications showcasing the potential of our models: gesture recognition, fitness activity tracking, live
  calorie estimation.
-- A pipeline to train your own custom classifier on top of our models with an easy-to-use script to fine-tune our weights. 
+- A pipeline to record and annotate your own video dataset and train a custom classifier on top of our models with an easy-to-use script to fine-tune our weights.
 
 <div align="center">
 
@@ -133,32 +133,32 @@ needs to be downloaded separately.
 --- 
 
 ## Getting Started
-To get started, try out the demos we've provided. Inside the `sense/scripts` directory, you will find 3 Python scripts,
+To get started, try out the demos we've provided. Inside the `sense/examples` directory, you will find 3 Python scripts,
 `run_gesture_recognition.py`, `run_fitness_tracker.py`, and `run_calorie_estimation.py`. Launching each demo is as
  simple as running the script in terminal as described below. 
 
 #### Demo 1: Gesture Recognition
 
-`scripts/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
+`examples/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
 30 gestures are supported (see full list 
 [here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/gesture_recognition/__init__.py)).
 
 Usage:
 ```shell
-PYTHONPATH=./ python scripts/run_gesture_recognition.py
+PYTHONPATH=./ python examples/run_gesture_recognition.py
 ```
 
 
 #### Demo 2: Fitness Activity Tracking
 
-`scripts/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
+`examples/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
 [here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/fitness_activity_recognition/__init__.py)).
 
 Usage:
 
 ```shell
-PYTHONPATH=./ python scripts/run_fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
+PYTHONPATH=./ python examples/run_fitness_tracker.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
 Weight, age, height should be respectively given in kilograms, years and centimeters. If not provided, default values will be used.
@@ -186,12 +186,12 @@ In order to estimate burned calories, we trained a neural net to convert activit
 We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
 and convert them to calories using the user's weight.
 
-If you're only interested in the calorie estimation part, you might want to use `scripts/calorie_estimation.py` which has a slightly more
+If you're only interested in the calorie estimation part, you might want to use `examples/run_calorie_estimation.py` which has a slightly more
 detailed display (see video [here](https://drive.google.com/file/d/1VIAnFPm9JJAbxTMchTazUE3cRRgql6Z6/view?usp=sharing) which compares two videos produced by that script).
 
 Usage:
 ```shell
-PYTHONPATH=./ python scripts/run_calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female
+PYTHONPATH=./ python examples/run_calorie_estimation.py --weight=65 --age=30 --height=170 --gender=female
 ```
 
 The estimated calorie estimates are roughly in the range produced by wearable devices, though they have not been verified in terms of accuracy. 
@@ -205,33 +205,39 @@ This section will describe how you can build your own custom classifier on top o
  as a powerful feature extractor that will reduce the amount of data you need to build your project. 
 
 #### Step 1: Data preparation
-Prepare the training and validation videos for each of the desired classes (labels) and organise them in this manner:
+
+First, run the `tools/sense_studio/sense_studio.py` script and open http://127.0.0.1:5000/ in your browser.
+There you can set up a new project in a location of your choice and specify the classes that you want to collect.
+
+The tool will prepare the following file structure for your project, so you can insert the recorded videos into the
+corresponding folders:
 
 ```
 /path/to/your/dataset/
 ├── videos_train
-│   ├── label1
+│   ├── class1
 │   │   ├── video1.mp4
 │   │   ├── video2.mp4
 │   │   └── ...
-│   ├── label2
+│   ├── class2
 │   │   ├── video3.mp4
 │   │   ├── video4.mp4
 │   │   └── ...
 │   └── ...
-└── videos_valid
-    ├── label1
-    │   ├── video5.mp4
-    │   ├── video6.mp4
-    │   └── ...
-    ├── label2
-    │   ├── video7.mp4
-    │   ├── video8.mp4
-    │   └── ...
-    └── ...
+├── videos_valid
+│   ├── class1
+│   │   ├── video5.mp4
+│   │   ├── video6.mp4
+│   │   └── ...
+│   ├── class2
+│   │   ├── video7.mp4
+│   │   ├── video8.mp4
+│   │   └── ...
+│   └── ...
+└── project_config.json
 ```
 - Two top-level folders: one for the training data, one for the validation data.
-- One sub-folder for each label with as many videos as you want (but at least one!)
+- One sub-folder for each class with as many videos as you want (but at least one!)
 - Requirement: videos should have a framerate of 16 fps or higher.
 
 In some cases, as few as 2-5 videos per class have been enough to achieve excellent performance!
@@ -240,7 +246,7 @@ In some cases, as few as 2-5 videos per class have been enough to achieve excell
 
 Once your data is prepared, run this command to train a customized classifier on top of one of our features extractor:
 ```shell
-PYTHONPATH=./ python scripts/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu] [--num_layers_to_finetune=9]
+PYTHONPATH=./ python tools/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu] [--num_layers_to_finetune=9]
 ```
 
 ####  Step 3: Running your model
@@ -249,7 +255,7 @@ The training script should produce a checkpoint file called `classifier.checkpoi
 You can now run it live using the following script:
 
 ```shell
-PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
+PYTHONPATH=./ python tools/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
 ```
 
 ---
@@ -257,8 +263,8 @@ PYTHONPATH=./ python scripts/run_custom_classifier.py --custom_classifier=/path/
 ## Advanced Options
 
 You can further improve your model's performance by training on top of temporally annotated data; 
-individually labelled frames that identify the event locally in the video versus treating every frame with the same 
-label. For instructions on how to prepare your data with temporal annotation, refer to this 
+individually tagged frames that identify the event locally in the video versus treating every frame with the same 
+label. For instructions on how to prepare your data with temporal annotations, refer to this 
 [page](https://github.com/TwentyBN/sense/wiki/tools#temporal-annotations-tool).
 
 After preparing your dataset with our temporal annotations tool, pass `--temporal_training` as an additional
@@ -268,17 +274,33 @@ flag to the `train_classifier.py` script.
 
 ## iOS Deployment
 
-If you're interested in mobile app development and want to run our models on iOS devices, please check out [sense-iOS](https://github.com/TwentyBN/sense-iOS) for step by step instructions on how to get our gesture demo to run on an iOS device.
-One of the steps involves converting our Pytorch models to the CoreML format, which can be done from this repo using the following script:
+If you're interested in mobile app development and want to run our models on iOS devices, please 
+check out [sense-iOS](https://github.com/TwentyBN/sense-iOS) for step by step instructions on how 
+to get our gesture demo to run on an iOS device. One of the steps involves converting our Pytorch 
+models to the TensorFlow Lite format.
+
+### Conversion to TensorFlow Lite
+
+Our models can be converted to TensorFlow Lite using the following script:
 
 ```shell
-python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=sensenet
+python tools/conversion/convert_to_tflite.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=model
 ```
 
-If you want to convert a custom classifier, set the classifier name to "custom_classifier", and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.
+If you want to convert a custom classifier, set the classifier name to "custom_classifier", 
+and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.
 ```shell
-python scripts/conversion/convert_to_coreml.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=sensenet
+python tools/conversion/convert_to_tflite.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=model
 ```
+
+### Conversion to CoreML
+
+To convert models to CoreML, a few specific dependencies are required:
+```shell
+pip install -r requirements-coreml.txt
+```
+You will then be able to run the `convert_to_coreml.py` script, which works similarly to the 
+`convert_to_tflite.py` script mentioned above.
 
 ---
 
