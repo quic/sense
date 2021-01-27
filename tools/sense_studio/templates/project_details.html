@@ -21,11 +21,13 @@
         <input type="hidden" id="projectName" name="projectName" value="{{ config.name }}">
         <div class="ui centered cards">
             {% for class, tags in config.classes.items() %}
-            <div class="card">
+            <div class="card" id="classShow{{ loop.index }}">
                 <div class="content">
                     <div class="header">
-                        {{ class }}
-                        <a class="right floated" onclick="">
+                        <span>
+                            {{ class }}
+                        </span>
+                        <a class="right floated" onclick="editClass('{{ loop.index }}', true)">
                              <i class="edit icon"></i>
                         </a>
                     </div>
@@ -66,6 +68,41 @@
                         </a>
                     </div>
                 </div>
+            </div>
+
+            <div class="card display-hidden" id="classEdit{{ loop.index }}">
+                <div class="content">
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="eye icon"></i>
+                            <input type="text" name="class" placeholder="Class Name" value="{{ class }}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="content">
+                    <h4>Tags</h4>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="tag icon"></i>
+                            <input type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" />
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="tag icon"></i>
+                            <input type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" />
+                        </div>
+                    </div>
+                    <div class="ui error message"></div>
+                </div>
+                <button class="ui bottom attached button" type="button" onclick="editClass('{{ loop.index }}', false)">
+                    <i class="close icon"></i>
+                    Cancel
+                </button>
+                <button class="ui bottom attached button" type="submit">
+                    <i class="download icon"></i>
+                    Save Changes
+                </button>
             </div>
             {% endfor %}
 
