@@ -21,6 +21,7 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.advanced_activations import PReLU
 from keras.models import Model
 
+
 def invResidual(
     module_name,
     frames,
@@ -281,7 +282,7 @@ def invResidual(
     if n + "weight" in weights_full:
         weights_pt = weights_full[n + "weight"]
         print(
-            "checkpoint: ",
+            "checQoutputkpoint: ",
             weights_pt.shape,
         )
         weights_k = np.transpose(weights_pt, [2, 3, 1, 0])
@@ -343,11 +344,6 @@ def invResidual(
     s += 1
 
     return frames, fake_weights
-
-
-
-
-
 
 
 def create_keras_model(cfg_parser, weights_full, conversion_parameters):

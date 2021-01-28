@@ -78,7 +78,7 @@ SUPPORTED_CLASSIFIER_CONVERSIONS = {
 }
 
 
-def convert(backbone_settings, classifier_settings, output_name, float32, plot_model):
+def convert(backbone_settings, classifier_settings, output_name, plot_model):
     output_dir = "resources/model_conversion/"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -161,4 +161,4 @@ if __name__ == "__main__":
             "{}".format(classifier_settings["corresponding_backbone"])
         )
 
-    convert(backbone_settings, classifier_settings, output_name, float32, plot_model)
+    convert(backbone_settings, classifier_settings, output_name, plot_model)
