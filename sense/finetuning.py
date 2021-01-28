@@ -11,6 +11,7 @@ import torch.optim as optim
 from PIL import Image
 from sense import camera
 from sense import engine
+from sense.downstream_tasks.nn_utils import load_weights
 from sklearn.metrics import confusion_matrix
 from os.path import join
 
@@ -272,9 +273,17 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1
 
 
 def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False, save_checkpoints=False, frequency=5, resume_epoch=-1):
+                   temporal_annotation_training=False, save_checkpoints=False, frequency=5, load_checkpoint=False, resume_epoch=-1):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
+
+    # load custom optimizer
+    if isinstance(load_checkpoint, str):
+        if load_checkpoint != '':
+            checkpoint_classifier = load_weights(load_checkpoint)
+        else:
+            checkpoint_classifier = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
+        optimizer.load_state_dict(checkpoint_classifier['optimizer'])
 
     best_state_dict = None
     best_top1 = 0.
@@ -302,18 +311,25 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
 
-        print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
+        print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch, train_loss, train_top1,
                                                                                       valid_loss, valid_top1))
 
         if not temporal_annotation_training:
             if valid_top1 > best_top1:
+
                 best_top1 = valid_top1
                 best_state_dict = net.state_dict().copy()
+                best_epoch = epoch
+                best_optimizer = optimizer.state_dict()
+                best_train_loss = train_loss
                 save_confusion_matrix(path_out, cnf_matrix, label_names)
         else:
             if valid_loss < best_loss:
                 best_loss = valid_loss
                 best_state_dict = net.state_dict().copy()
+                best_epoch = epoch
+                best_optimizer = optimizer.state_dict()
+                best_train_loss = train_loss
 
         # save all checkpoints 
         if save_checkpoints:
@@ -324,6 +340,8 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 torch.save({
                             'epoch': epoch,
                             'model_state_dict': model_state_dict,
+                            'optimizer': optimizer.state_dict(),
+                            'loss': train_loss,
                             }, os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % epoch))
                 # rename the previous checkpoint back to the original name
                 if os.path.exists(os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint")):
@@ -331,7 +349,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                               os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch - frequency)))
 
     print('Finished Training')
-    return best_state_dict
+    return best_state_dict, best_epoch, best_optimizer, best_train_loss
 
 
 def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False,

@@ -12,8 +12,7 @@ Usage:
                        [--temporal_training]
                        [--save_checkpoints]
                        [--frequency=NUM]
-                       [--weights=PATH]
-                       [--resume]
+                       [--load_checkpoint=PATH]
   train_classifier.py  (-h | --help)
 
 Options:
@@ -28,10 +27,10 @@ Options:
   --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
   --temporal_training            Use this flag if your dataset has been annotated with the temporal
                                  annotations tool
-  --save_checkpoints             save all checkpoints to the "weights" folder
+  --save_checkpoints             save all checkpoints to the "checkpoints" folder
   --frequency=NUM                frequency of the amount of checkpoints saved (default: 5)
-  --weights=PATH                 initialize weight from a specific checkpoint file
-  --resume                       initialize weight from the last saved checkpoint file
+  --load_checkpoint=PATH         initialize weight from a specific checkpoint file or the last saved checkpoint file
+                                 if enter '' as PATH
 """
 import json
 import os
@@ -65,8 +64,7 @@ if __name__ == "__main__":
     temporal_training = args['--temporal_training']
     save_checkpoints = args['--save_checkpoints']
     frequency = int(args['--frequency'] or 5)
-    weights = args['--weights']
-    resume = args['--resume']
+    load_checkpoint = args['--load_checkpoint']
 
     # Create a folder "checkpoints" to save model training weights
     if save_checkpoints:
@@ -77,31 +75,37 @@ if __name__ == "__main__":
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     # explanation of resume_epoch is in training_loops function
     resume_epoch = -1
-    if weights:
-        # Load custom and original classifiers
-        checkpoint_classifier = load_weights(weights)
+    if isinstance(load_checkpoint, str):
+        if load_checkpoint != '':
+            # Load custom classifier
+            checkpoint_classifier = load_weights(load_checkpoint)
+        else:
+            checkpoint_classifier = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
         # Update original weights in case some intermediate layers have been finetuned
-        name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
+        name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier['model_state_dict'].keys())
         for key in name_finetuned_layers:
-            checkpoint[key] = checkpoint_classifier.pop(key)
-        feature_extractor.load_state_dict(checkpoint['model_state_dict'])
-    elif resume:
-        checkpoint_classifier = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
-        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
-        name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
-        for key in name_finetuned_layers:
-            checkpoint[key] = checkpoint_classifier.pop(key)
-        resume_epoch = checkpoint['epoch']
-        feature_extractor.load_state_dict(checkpoint['model_state_dict'])
+            checkpoint[key] = checkpoint_classifier['model_state_dict'].pop(key)
+        # extract epoch number in the saved model
+        resume_epoch = checkpoint_classifier['epoch']
+        # extract number of fine-tuned layers in the saved model
+        layers_number = []
+        for layer in name_finetuned_layers:
+            layers_number.append(int(layer[4:6]))
+        custom_num_layers_to_finetune = max(layers_number) - min(layers_number) + 1
+        feature_extractor.load_state_dict(checkpoint)
     else:
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
         feature_extractor.load_state_dict(checkpoint)
         
     feature_extractor.eval()
 
+    # check if number of fine-tuned layers in custom checkpoint match user input
+    if isinstance(load_checkpoint, str):
+        if custom_num_layers_to_finetune != num_layers_to_finetune:
+            num_layers_to_finetune = custom_num_layers_to_finetune
     # Get the require temporal dimension of feature tensors in order to
-    # finetune the provided number of layers.
+    # finetune the provided number of layers
     if num_layers_to_finetune > 0:
         num_timesteps = feature_extractor.num_required_frames_per_layer.get(-num_layers_to_finetune)
         if not num_timesteps:
@@ -170,15 +174,24 @@ if __name__ == "__main__":
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 80
-    best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
-                                           label_names, path_out, temporal_annotation_training=temporal_training,
-                                           save_checkpoints=save_checkpoints, frequency=frequency, resume_epoch=resume_epoch)
-
+    best_model_state_dict, best_epoch, best_optimizer, best_train_loss = training_loops(net, train_loader, valid_loader,
+                                                                                  use_gpu, num_epochs, lr_schedule,
+                                                                                  label_names, path_out,
+                                                                                  temporal_annotation_training=temporal_training,
+                                                                                  save_checkpoints=save_checkpoints,
+                                                                                  frequency=frequency,
+                                                                                  load_checkpoint=load_checkpoint,
+                                                                                  resume_epoch=resume_epoch)
     # Save best model
     if isinstance(net, Pipe):
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
-    torch.save(best_model_state_dict, os.path.join(path_out, "checkpoints/", "best_classifier.checkpoint"))
+    torch.save({
+        'epoch': best_epoch,
+        'model_state_dict': best_model_state_dict,
+        'optimizer': best_optimizer,
+        'loss': best_train_loss,
+    }, os.path.join(path_out, "checkpoints/", "best_classifier.checkpoint"))
     if temporal_training:
         json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "label2int.json"), "w"))
     else:
