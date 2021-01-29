@@ -275,7 +275,7 @@ def invResidual(config, container):
     if n + "weight" in container.weights:
         weights_pt = container.weights[n + "weight"]
         print(
-            "checQoutputkpoint: ",
+            "checkpoint: ",
             weights_pt.shape,
         )
         weights_k = np.transpose(weights_pt, [2, 3, 1, 0])
