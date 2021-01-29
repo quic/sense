@@ -12,13 +12,9 @@ from keras.layers import Dense
 from keras.layers import DepthwiseConv2D
 from keras.layers import GlobalAveragePooling2D
 from keras.layers import Input
-from keras.layers import MaxPooling2D
-from keras.layers import Softmax
-from keras.layers import UpSampling2D
 from keras.layers import ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.advanced_activations import PReLU
-from keras.models import Model
 
 
 def invResidual(config, container):
