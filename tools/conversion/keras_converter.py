@@ -1,4 +1,3 @@
-
 import numpy as np
 from keras.models import Model
 
@@ -12,12 +11,13 @@ from tools.conversion.section_conversion import output
 
 
 class ConfigSection:
-
     def __init__(self, config):
         self.module_name = config.get("module_name", None)
         self.layer_name = config.get("layer_name", "")
         self.merge_in = int(config["merge_in"]) if "merge_in" in config else 0
-        self.out_channels = int(config["out_channels"]) if "out_channels" in config else None
+        self.out_channels = (
+            int(config["out_channels"]) if "out_channels" in config else None
+        )
         self.xratio = int(config["xratio"]) if "xratio" in config else None
         self.size = config["size"] if "size" in config else None
         self.shift = "shift" in config
@@ -31,11 +31,10 @@ class ConfigSection:
         self.share = "share" in config
         self.no_output = "no_output" in config
         self.image_input = "image" in config
-        self.outputs = int(config["outputs"])  if "outputs" in config else None
+        self.outputs = int(config["outputs"]) if "outputs" in config else None
 
 
 class Container:
-
     def __init__(self, conversion_parameters, weights):
         self.all_layers = []
         self.out_index = []
@@ -52,7 +51,6 @@ class Container:
 
 
 class KerasConver:
-
     def __init__(self, cfg, weights, conversion_parameters):
         self.cfg_parser = cfg
         self.container = Container(conversion_parameters, weights)
@@ -82,7 +80,7 @@ class KerasConver:
             elif section.startswith("input"):
                 input(config, self.container)
 
-            elif section.startswith('output'):
+            elif section.startswith("output"):
                 output(config, self.container)
             elif section.startswith("net"):
                 pass
@@ -129,6 +127,13 @@ class KerasConver:
         # - shape comes from the Keras layer they point to
         out_layers = [self.container.all_layers[i] for i in self.container.out_index]
         for i in range(len(self.container.out_names)):
-            print("name: ", self.container.out_names[i] + "; shape: ", out_layers[i].shape)
-        return model, self.container.fake_weights, self.container.in_names, \
-               self.container.out_names, self.container.image_inputs
+            print(
+                "name: ", self.container.out_names[i] + "; shape: ", out_layers[i].shape
+            )
+        return (
+            model,
+            self.container.fake_weights,
+            self.container.in_names,
+            self.container.out_names,
+            self.container.image_inputs,
+        )

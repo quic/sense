@@ -89,13 +89,20 @@ def convert(backbone_settings, classifier_settings, output_name, plot_model):
     if plot_model:
         plot_file = os.path.join(output_dir, output_name + ".png")
 
-    weights_full = load_weights(backbone_settings["weights_file"],
-                                classifier_settings["weights_file"])
+    weights_full = load_weights(
+        backbone_settings["weights_file"], classifier_settings["weights_file"]
+    )
 
     cfg_parser = load_config(backbone_settings, classifier_settings)
     keras_converter = KerasConver(cfg_parser, weights_full, conversion_parameters)
 
-    model, fake_weights, in_names, out_names, image_inputs = keras_converter.create_keras_model()
+    (
+        model,
+        fake_weights,
+        in_names,
+        out_names,
+        image_inputs,
+    ) = keras_converter.create_keras_model()
 
     model.save("{}".format(keras_file))
     print("Saved Keras model to {}".format(keras_file))
@@ -108,7 +115,6 @@ def convert(backbone_settings, classifier_settings, output_name, plot_model):
     print("output_names", out_names)
     print("image_input_names", image_inputs)
     print(type(keras_file))
-
 
     export_keras_to_tflite(keras_file, tflite_file)
 

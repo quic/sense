@@ -5,6 +5,7 @@ import json
 import numpy as np
 import os
 
+
 def merge_backbone_and_classifier_cfg_files(
     backbone_config_file, classifier_config_file, placeholder_values=None
 ):

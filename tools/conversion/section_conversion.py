@@ -18,7 +18,9 @@ from keras.layers.advanced_activations import PReLU
 
 
 def invResidual(config, container):
-    config.layer_name = config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
+    config.layer_name = (
+        config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
+    )
     print("frames: ", container.frames)
     s = 0
     if config.shift:
@@ -58,7 +60,9 @@ def invResidual(config, container):
 
     input_indexes = []
     for i in range(num_convs):
-        input_indexes.append(len(container.all_layers) - container.frames + (i * config.tstride))
+        input_indexes.append(
+            len(container.all_layers) - container.frames + (i * config.tstride)
+        )
 
     if config.xratio != 1:
         print("---------- Insert channel multiplier pointwise conv -------------")
@@ -112,9 +116,15 @@ def invResidual(config, container):
         outputs = []
 
         for f in range(inputs_needed):
-            inputs.append(container.all_layers[len(container.all_layers) - inputs_needed + f])
+            inputs.append(
+                container.all_layers[len(container.all_layers) - inputs_needed + f]
+            )
             if config.merge_in > 0:
-                inputs.append(container.all_layers[len(container.all_layers) - (2 * inputs_needed) + f])
+                inputs.append(
+                    container.all_layers[
+                        len(container.all_layers) - (2 * inputs_needed) + f
+                    ]
+                )
 
         for f in range(int(container.frames / config.tstride)):
             layers = []
@@ -140,7 +150,12 @@ def invResidual(config, container):
                 )(cat_layer)
             )
 
-        print("parallel convs: ", int(container.frames / config.tstride), " : ", K.int_shape(cat_layer))
+        print(
+            "parallel convs: ",
+            int(container.frames / config.tstride),
+            " : ",
+            K.int_shape(cat_layer),
+        )
 
         if config.activation == "leaky":
             for f in range(int(container.frames / config.tstride)):
@@ -204,15 +219,16 @@ def invResidual(config, container):
     padding = "same" if config.pad == 1 and config.stride == 1 else "valid"
 
     for f in range(container.frames):
-        inputs.append(container.all_layers[len(container.all_layers) - container.frames + f])
+        inputs.append(
+            container.all_layers[len(container.all_layers) - container.frames + f]
+        )
 
     if config.stride > 1:
         for f in range(len(inputs)):
             if config.size == 3:  # originally for all sizes
-                inputs[f] = ZeroPadding2D(((config.size - config.stride, 0),
-                                           (config.size - config.stride, 0)))(
-                    inputs[f]
-                )
+                inputs[f] = ZeroPadding2D(
+                    ((config.size - config.stride, 0), (config.size - config.stride, 0))
+                )(inputs[f])
             elif config.size == 5:  # I found this works...
                 inputs[f] = ZeroPadding2D(((2, 2), (2, 2)))(inputs[f])
             else:
@@ -291,13 +307,20 @@ def invResidual(config, container):
     outputs = []
 
     for f in range(container.frames):
-        inputs.append(container.all_layers[len(container.all_layers) - container.frames + f])
+        inputs.append(
+            container.all_layers[len(container.all_layers) - container.frames + f]
+        )
 
     print(
-        "parallel convs: ", f, " : ", K.int_shape(container.all_layers[len(container.all_layers) - container.frames])
+        "parallel convs: ",
+        f,
+        " : ",
+        K.int_shape(container.all_layers[len(container.all_layers) - container.frames]),
     )
     for f in range(container.frames):
-        conv_input = container.all_layers[len(container.all_layers) - container.frames + f]
+        conv_input = container.all_layers[
+            len(container.all_layers) - container.frames + f
+        ]
 
         outputs.append(
             (
@@ -314,7 +337,9 @@ def invResidual(config, container):
 
     if config.stride == 1 and input_channels == config.out_channels:
         for f in range(int(container.frames)):
-            container.all_layers.append(Add()([container.all_layers[input_indexes[f]], outputs[f]]))
+            container.all_layers.append(
+                Add()([container.all_layers[input_indexes[f]], outputs[f]])
+            )
     else:
         for f in range(int(container.frames)):
             container.all_layers.append(outputs[f])
@@ -322,8 +347,9 @@ def invResidual(config, container):
 
 
 def convolutional(config, container):
-    config.layer_name = config.layer_name if config.layer_name else str(
-        len(container.all_layers) - 1)
+    config.layer_name = (
+        config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
+    )
     config.size = int(config.size)
     if container.frames > 1:
         print("frames: ", container.frames)
@@ -385,7 +411,9 @@ def convolutional(config, container):
     padding = "same" if config.pad == 1 and config.stride == 1 else "valid"
 
     # extract parameter for this module from Pytorch checkpoint file
-    conv_weights_pt = np.random.rand(input_channels, config.filters, config.tsize, config.size, config.size)
+    conv_weights_pt = np.random.rand(
+        input_channels, config.filters, config.tsize, config.size, config.size
+    )
     conv_bias = [0]
     if config.module_name + ".weight" in container.weights:
         conv_weights_pt = container.weights[config.module_name + ".weight"]
@@ -396,9 +424,7 @@ def convolutional(config, container):
         )
         # convert to tsize list of 2d conv weight matrices, transposed for Keras
         w_list = []
-        if (
-                len(conv_weights_pt.shape) == 5
-        ):  # check if this is a 3D conv being unfolded
+        if len(conv_weights_pt.shape) == 5:  # check if this is a 3D conv being unfolded
             for t in range(config.tsize):
                 w_list.append(
                     np.transpose(
@@ -406,9 +432,7 @@ def convolutional(config, container):
                     )
                 )
         else:  # this is simply a single 2D conv
-            w_list.append(
-                np.transpose(conv_weights_pt[:, :, :, :], [2, 3, 1, 0])
-            )
+            w_list.append(np.transpose(conv_weights_pt[:, :, :, :], [2, 3, 1, 0]))
         # concatenate along the in_dim axis the tsize matrices
         conv_weights = np.concatenate(w_list, axis=2)
         if not config.batch_normalize:
@@ -424,8 +448,12 @@ def convolutional(config, container):
     if config.batch_normalize:
         bn_bias = container.weights[config.module_name + ".batchnorm.bias"]
         bn_weight = container.weights[config.module_name + ".batchnorm.weight"]
-        bn_running_var = container.weights[config.module_name + ".batchnorm.running_var"]
-        bn_running_mean = container.weights[config.module_name + ".batchnorm.running_mean"]
+        bn_running_var = container.weights[
+            config.module_name + ".batchnorm.running_var"
+        ]
+        bn_running_mean = container.weights[
+            config.module_name + ".batchnorm.running_mean"
+        ]
 
         bn_weight_list = [
             bn_weight,  # scale gamma
@@ -434,7 +462,12 @@ def convolutional(config, container):
             bn_running_var,  # running var
         ]
 
-    expected_weights_shape = (config.size, config.size, config.tsize * input_channels, config.filters)
+    expected_weights_shape = (
+        config.size,
+        config.size,
+        config.tsize * input_channels,
+        config.filters,
+    )
     print(
         "weight shape, expected : ",
         expected_weights_shape,
@@ -460,9 +493,15 @@ def convolutional(config, container):
     outputs = []
 
     for f in range(inputs_needed):
-        inputs.append(container.all_layers[len(container.all_layers) - inputs_needed + f])
+        inputs.append(
+            container.all_layers[len(container.all_layers) - inputs_needed + f]
+        )
         if config.merge_in > 0:
-            inputs.append(container.all_layers[len(container.all_layers) - (2 * inputs_needed) + f])
+            inputs.append(
+                container.all_layers[
+                    len(container.all_layers) - (2 * inputs_needed) + f
+                ]
+            )
 
     # Create Conv3d from Conv2D layers
     if config.stride > 1:
@@ -516,9 +555,7 @@ def convolutional(config, container):
                 outputs[f] = LeakyReLU(alpha=0.1)(outputs[f])
             else:
                 outputs[f] = PReLU(
-                    alpha_initializer=RandomNormal(
-                        mean=0.1, stddev=0.0, seed=None
-                    ),
+                    alpha_initializer=RandomNormal(mean=0.1, stddev=0.0, seed=None),
                     shared_axes=[1, 2],
                 )(outputs[f])
 
@@ -533,8 +570,9 @@ def convolutional(config, container):
 
 
 def linear(config, container):
-    config.layer_name = config.layer_name if config.layer_name else str(
-        len(container.all_layers) - 1)
+    config.layer_name = (
+        config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
+    )
     prev_layer_shape = K.int_shape(container.all_layers[-1])
     input_channels = prev_layer_shape[-1]
 
@@ -566,7 +604,9 @@ def linear(config, container):
 
     size = np.prod(container.all_layers[-1].shape[1])  # skip the junk first dimension
     if config.module_name + ".weight" in container.weights:
-        weights = np.transpose(container.weights[config.module_name + ".weight"], (1, 0))
+        weights = np.transpose(
+            container.weights[config.module_name + ".weight"], (1, 0)
+        )
         bias = container.weights[config.module_name + ".bias"]
     else:
         print("weights missing")
@@ -592,13 +632,16 @@ def linear(config, container):
         bias = np.random.rand(config.outputs)
     weights = [weights, bias]
     print(container.all_layers[-1])
-    container.all_layers.append(Dense(config.outputs, weights=weights)(container.all_layers[-1]))
+    container.all_layers.append(
+        Dense(config.outputs, weights=weights)(container.all_layers[-1])
+    )
     container.layer_names[config.layer_name] = len(container.all_layers) - 1
 
 
 def nblinear(config, container):
-    config.layer_name = config.layer_name if config.layer_name else str(
-        len(container.all_layers) - 1)
+    config.layer_name = (
+        config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
+    )
     prev_layer_shape = K.int_shape(container.all_layers[-1])
     input_channels = prev_layer_shape[-1]
     print("prev_layer_shape: ", prev_layer_shape)
@@ -629,7 +672,9 @@ def nblinear(config, container):
 
     size = np.prod(container.all_layers[-1].shape[1])  # skip the junk first dimension
     if config.module_name + ".weight" in container.weights:
-        weights = np.transpose(container.weights[config.module_name + ".weight"], (1, 0))
+        weights = np.transpose(
+            container.weights[config.module_name + ".weight"], (1, 0)
+        )
     else:
         print("weights missing")
         print("Using fake weights for Linear layer")
@@ -650,24 +695,30 @@ def nblinear(config, container):
     bias = np.zeros(config.outputs)
     weights = [weights, bias]
     print(container.all_layers[-1])
-    container.all_layers.append(Dense(config.outputs, weights=weights)(container.all_layers[-1]))
+    container.all_layers.append(
+        Dense(config.outputs, weights=weights)(container.all_layers[-1])
+    )
     container.layer_names[config.layer_name] = len(container.all_layers) - 1
 
 
 def globalaveragepool(config, container):
-    config.layer_name = config.layer_name if config.layer_name else str(
-        len(container.all_layers) - 1)
+    config.layer_name = (
+        config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
+    )
     for f in range(container.frames):
-        container.all_layers.append(GlobalAveragePooling2D()(container.all_layers[0 - container.frames]))
+        container.all_layers.append(
+            GlobalAveragePooling2D()(container.all_layers[0 - container.frames])
+        )
     container.layer_names[config.layer_name] = len(container.all_layers) - 1
     prev_layer_shape = K.int_shape(container.all_layers[-1])
     image_size = prev_layer_shape[-2]
     print("global average pooling: ", image_size)
-    
-    
+
+
 def input(config, container):
-    config.layer_name = config.layer_name if config.layer_name else str(
-        len(container.all_layers) - 1)
+    config.layer_name = (
+        config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
+    )
     container.frames = container.frames + 1
     size = []
     for i in config.size.split(","):
@@ -683,18 +734,20 @@ def input(config, container):
         container.image_inputs.append(config.layer_name)
     print("input layer: ", config.layer_name, " shape: ", input_layer.shape)
     container.in_index.append(len(container.all_layers) - 1)
-    container.coreml_list.append(("fake", config.layer_name, {}, config.layer_name + ":0"))
+    container.coreml_list.append(
+        ("fake", config.layer_name, {}, config.layer_name + ":0")
+    )
 
 
 def output(config, container):
     if config.layer_name:
         layer_name = config.layer_name
         container.out_index.append(len(container.all_layers) - 1)
-        container.out_names.append('output_' + layer_name)
+        container.out_names.append("output_" + layer_name)
         # all_layers.append(None)
         container.layer_names[layer_name] = len(container.all_layers) - 1
     else:
-        layer_name = container.coreml_list[-1][1][0] + '_output'
+        layer_name = container.coreml_list[-1][1][0] + "_output"
         container.out_index.append(len(container.all_layers) - 1)
         container.out_names.append(layer_name)
         container.all_layers.append(None)
