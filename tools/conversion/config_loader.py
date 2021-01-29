@@ -3,6 +3,7 @@ from collections import defaultdict
 import json
 import numpy as np
 import os
+import logging
 
 
 def merge_backbone_and_classifier_cfg_files(
@@ -39,7 +40,7 @@ def merge_backbone_and_classifier_cfg_files(
 
 
 def load_config(backbone_settings, classifier_settings):
-    print("Parsing CFG file.")
+    logging.info("Parsing CFG file.")
     placeholder_values = {
         **backbone_settings.get("placeholder_values", {}),
         **classifier_settings.get("placeholder_values", {}),

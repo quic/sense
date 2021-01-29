@@ -23,6 +23,7 @@ Options:
 """
 
 import os
+import logging
 from docopt import docopt
 from keras.utils.vis_utils import plot_model as plot
 
@@ -105,33 +106,28 @@ def convert(backbone_settings, classifier_settings, output_name, plot_model):
     ) = keras_converter.create_keras_model()
 
     model.save("{}".format(keras_file))
-    print("Saved Keras model to {}".format(keras_file))
+    logging.info("Saved Keras model to {}".format(keras_file))
 
     if plot_model:
         plot(model, to_file=plot_file, show_shapes=True)
-        print("Saved model plot to {}".format(plot_file))
+        logging.info("Saved model plot to {}".format(plot_file))
 
-    print("input_names", in_names)
-    print("output_names", out_names)
-    print("image_input_names", image_inputs)
-    print(type(keras_file))
+    logging.info("input_names", in_names)
+    logging.info("output_names", out_names)
+    logging.info("image_input_names", image_inputs)
+    logging.info(type(keras_file))
 
     export_keras_to_tflite(keras_file, tflite_file)
 
     if fake_weights:
-        print("************************* Warning!! **************************")
-        print("************************* Warning!! **************************")
-        print("************************* Warning!! **************************")
-        print("************************* Warning!! **************************")
-        print("Weights in checkpoint did not match weights required by network")
-        print("Fake weights were generated where they were needed!!!!!!!!!!!!")
-        print("************************* Warning!! **************************")
-        print("************************* Warning!! **************************")
+        logging.warning("************************* Warning!! **************************")
+        logging.warning("Weights in checkpoint did not match weights required by network")
+        logging.warning("Fake weights were generated where they were needed!!!!!!!!!!!!")
+        logging.warning("************************* Warning!! **************************")
 
 
 if __name__ == "__main__":
     args = docopt(__doc__)
-    print(args)
     backbone_name = args["--backbone"]
     classifier_name = args["--classifier"]
     output_name = args["--output_name"]

@@ -1,9 +1,11 @@
+import logging
+
 import torch
 
 
 def load_weights(backbone_ckpt, classifier_ckpt):
     # Load weights and config.
-    print("Loading weights.")
+    logging.info("Loading weights.")
     weights_backbone = torch.load(backbone_ckpt, map_location="cpu")
     weights_classifier = torch.load(classifier_ckpt, map_location="cpu")
     # if some deeper layer have been finetuned, change them in the backbone weights dictionary
@@ -15,6 +17,6 @@ def load_weights(backbone_ckpt, classifier_ckpt):
     weights_full = {**weights_backbone, **weights_classifier}
 
     for key in weights_full.keys():
-        print(key, weights_full[key].shape)
+        logging.info(key, weights_full[key].shape)
 
     return weights_full

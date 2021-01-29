@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from keras.models import Model
 
@@ -56,12 +58,12 @@ class KerasConver:
         self.container = Container(conversion_parameters, weights)
 
     def create_keras_model(self):
-        print("Creating Keras model.")
+        logging.info("Creating Keras model.")
         np.random.seed(13)  # start the same way each time...
 
         for section in self.cfg_parser.sections():
             config = ConfigSection(self.cfg_parser[section])
-            print("    ***** Parsing section {} ************".format(section))
+            logging.info("***** Parsing section {} *****".format(section))
             if section.startswith("convolutional"):
                 convolutional(config, self.container)
 
@@ -89,10 +91,10 @@ class KerasConver:
                 raise ValueError("Unsupported section header type: {}".format(section))
 
         # Create and save model.
-        print("done reading config file")
+        logging.info("done reading config file")
         # assume the end of the network is an output if none are define.
         if len(self.container.out_index) == 0:
-            print(
+            logging.info(
                 "No outputs defined, so we are assuming last layer is the output and define it as such"
             )
             self.container.out_index.append(len(self.container.all_layers) - 1)
@@ -100,34 +102,34 @@ class KerasConver:
             inputs=[self.container.all_layers[i] for i in self.container.in_index],
             outputs=[self.container.all_layers[i] for i in self.container.out_index],
         )
-        print("done assembling model")
-        print(model.summary())
+        logging.info("done assembling model")
+        logging.info(model.summary())
 
-        # print all inputs, formatted for use with coremltools Keras convertor
-        print("input_names=[")
+        # logging.info() all inputs, formatted for use with coremltools Keras convertor
+        logging.info("input_names=[")
         for name in self.container.in_names:
-            print("'" + name + "',")
-        print("],")
+            logging.info("'" + name + "',")
+        logging.info("],")
 
-        # print all outputs, formatted for use with coremltools Keras convertor
-        print("output_names=[")
+        # logging.info() all outputs, formatted for use with coremltools Keras convertor
+        logging.info("output_names=[")
         for name in self.container.out_names:
-            print("'" + name + "',")
-        print("],")
+            logging.info("'" + name + "',")
+        logging.info("],")
 
-        # Just for fun, print all inputs and outputs and their shapes.
+        # Just for fun, logging.info() all inputs and outputs and their shapes.
 
         # Inputs are actual Keras layers so we extract their names
         # also build input_features for CoreML generation
         for layer in [self.container.all_layers[i] for i in self.container.in_index]:
-            print("name: ", layer.name, "; shape: ", layer.shape)
+            logging.info("name: ", layer.name, "; shape: ", layer.shape)
 
         # Outputs are not Keras layers, so we have a separate list of names for them
         # - name comes from our list,
         # - shape comes from the Keras layer they point to
         out_layers = [self.container.all_layers[i] for i in self.container.out_index]
         for i in range(len(self.container.out_names)):
-            print(
+            logging.info(
                 "name: ", self.container.out_names[i] + "; shape: ", out_layers[i].shape
             )
         return (

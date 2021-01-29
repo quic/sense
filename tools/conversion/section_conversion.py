@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 from keras.layers.advanced_activations import ReLU
@@ -21,13 +23,13 @@ def invResidual(config, container):
     config.layer_name = (
         config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
     )
-    print("frames: ", container.frames)
+    logging.info("frames: ", container.frames)
     s = 0
     if config.shift:
-        print("3D conv block")
+        logging.info("3D conv block")
         tsize = 3
     else:
-        print("2D conv block")
+        logging.info("2D conv block")
         tsize = 1
     config.size = int(config.size)
 
@@ -36,15 +38,15 @@ def invResidual(config, container):
     input_channels = prev_layer_shape[-1]
     x_channels = input_channels * config.xratio
     image_size = prev_layer_shape[-3], prev_layer_shape[-2]
-    print("input image size: ", image_size)
+    logging.info("input image size: ", image_size)
     num_convs = int(container.frames / config.tstride)
     inputs_needed = (config.tstride * (num_convs - 1)) + tsize
     #            inputs_needed = frames + tsize - 1
     if inputs_needed > 1:
-        print("inputs_needed: ", inputs_needed)
+        logging.info("inputs_needed: ", inputs_needed)
     old_frames_to_read = inputs_needed - container.frames
     new_frames_to_save = min(container.frames, old_frames_to_read)
-    print(
+    logging.info(
         "num_convs: ",
         num_convs,
         "inputs_needed: ",
@@ -65,7 +67,7 @@ def invResidual(config, container):
         )
 
     if config.xratio != 1:
-        print("---------- Insert channel multiplier pointwise conv -------------")
+        logging.info("---------- Insert channel multiplier pointwise conv -------------")
         # attach output ports to inputs we will need next pass if tsize>1
         for f in range(new_frames_to_save):
             container.out_index.append(len(container.all_layers) - container.frames + f)
@@ -84,20 +86,20 @@ def invResidual(config, container):
         n = config.module_name + ".conv." + str(s) + ".0."
         if n + "weight" in container.weights:
             weights_pt = container.weights[n + "weight"]
-            print(
+            logging.info(
                 "checkpoint: ",
                 weights_pt.shape,
             )
             weights_k = np.transpose(weights_pt, [2, 3, 1, 0])
             bias = container.weights[n + "bias"]
         else:
-            print("missing weight ", n + "weight")
+            logging.info("missing weight ", n + "weight")
             weights_k = np.random.rand(1, 1, tsize * input_channels, x_channels)
             bias = np.zeros(x_channels)
             container.fake_weights = True
 
         expected_weights_shape = (1, 1, tsize * input_channels, x_channels)
-        print(
+        logging.info(
             "weight shape, expected : ",
             expected_weights_shape,
             "transposed: ",
@@ -105,7 +107,7 @@ def invResidual(config, container):
         )
 
         if weights_k.shape != expected_weights_shape:
-            print("weight matrix shape is wrong, making a fake one")
+            logging.info("weight matrix shape is wrong, making a fake one")
             weights_k = np.random.rand(1, 1, tsize * input_channels, x_channels)
             bias = np.zeros(x_channels)
             container.fake_weights = True
@@ -150,7 +152,7 @@ def invResidual(config, container):
                 )(cat_layer)
             )
 
-        print(
+        logging.info(
             "parallel convs: ",
             int(container.frames / config.tstride),
             " : ",
@@ -176,29 +178,29 @@ def invResidual(config, container):
         container.frames = int(container.frames / config.tstride)
 
     else:
-        print("Skipping channel multiplier pointwise conv, no expansion")
+        logging.info("Skipping channel multiplier pointwise conv, no expansion")
 
     # create groupwise convolution
     # get weights
-    print("---------- Depthwise conv -------------")
+    logging.info("---------- Depthwise conv -------------")
     n = config.module_name + ".conv." + str(s) + ".0."
-    print("module name base: ", n)
+    logging.info("module name base: ", n)
     if n + "weight" in container.weights:
         weights_pt = container.weights[n + "weight"]
-        print(
+        logging.info(
             "checkpoint: ",
             weights_pt.shape,
         )
         weights_k = np.transpose(weights_pt, [2, 3, 0, 1])
         bias = container.weights[n + "bias"]
     else:
-        print("missing weight ", n + "weight")
+        logging.info("missing weight ", n + "weight")
         weights_k = np.random.rand(config.size, config.size, x_channels, 1)
         bias = np.zeros(x_channels)
         container.fake_weights = True
 
     expected_weights_shape = (config.size, config.size, x_channels, 1)
-    print(
+    logging.info(
         "weight shape, expected : ",
         expected_weights_shape,
         "transposed: ",
@@ -206,7 +208,7 @@ def invResidual(config, container):
     )
 
     if weights_k.shape != expected_weights_shape:
-        print("weight matrix shape is wrong, making a fake one")
+        logging.info("weight matrix shape is wrong, making a fake one")
         container.fake_weights = True
         weights_k = np.random.rand(config.size, config.size, x_channels, 1)
         bias = np.zeros(x_channels)
@@ -232,10 +234,10 @@ def invResidual(config, container):
             elif config.size == 5:  # I found this works...
                 inputs[f] = ZeroPadding2D(((2, 2), (2, 2)))(inputs[f])
             else:
-                print("I have no idea what to do for size ", config.size)
+                logging.info("I have no idea what to do for size ", config.size)
                 exit()
 
-    print("parallel convs: ", f, " : ", K.int_shape(inputs[0]), "padding: ", padding)
+    logging.info("parallel convs: ", f, " : ", K.int_shape(inputs[0]), "padding: ", padding)
     for f in range(container.frames):
         outputs.append(
             (
@@ -269,25 +271,25 @@ def invResidual(config, container):
 
     # create pointwise convolution
     # get weights
-    print("---------- Pointwise conv -------------")
+    logging.info("---------- Pointwise conv -------------")
     n = config.module_name + ".conv." + str(s) + "."
-    print("module name base: ", n)
+    logging.info("module name base: ", n)
     if n + "weight" in container.weights:
         weights_pt = container.weights[n + "weight"]
-        print(
+        logging.info(
             "checkpoint: ",
             weights_pt.shape,
         )
         weights_k = np.transpose(weights_pt, [2, 3, 1, 0])
         bias = container.weights[n + "bias"]
     else:
-        print("missing weight ", n + "weight")
+        logging.info("missing weight ", n + "weight")
         container.fake_weights = True
         weights_k = np.random.rand(1, 1, x_channels, config.out_channels)
         bias = np.zeros(config.out_channels)
 
     expected_weights_shape = (1, 1, x_channels, config.out_channels)
-    print(
+    logging.info(
         "weight shape, expected : ",
         expected_weights_shape,
         "transposed: ",
@@ -295,13 +297,13 @@ def invResidual(config, container):
     )
 
     if weights_k.shape != expected_weights_shape:
-        print("weight matrix shape is wrong, making a fake one")
+        logging.info("weight matrix shape is wrong, making a fake one")
         container.fake_weights = True
         weights_k = np.random.rand(1, 1, x_channels, config.out_channels)
         bias = np.zeros(config.out_channels)
 
     weights = [weights_k, bias]
-    print("combined shape: ", weights[0].shape, weights[1].shape)
+    logging.info("combined shape: ", weights[0].shape, weights[1].shape)
 
     inputs = []
     outputs = []
@@ -311,7 +313,7 @@ def invResidual(config, container):
             container.all_layers[len(container.all_layers) - container.frames + f]
         )
 
-    print(
+    logging.info(
         "parallel convs: ",
         f,
         " : ",
@@ -352,26 +354,26 @@ def convolutional(config, container):
     )
     config.size = int(config.size)
     if container.frames > 1:
-        print("frames: ", container.frames)
+        logging.info("frames: ", container.frames)
     prev_layer_shape = K.int_shape(container.all_layers[-1])
     input_channels = prev_layer_shape[-1]
     image_size = prev_layer_shape[-3], prev_layer_shape[-2]
 
     num_convs = int(container.frames / config.tstride)
     if num_convs > 1:
-        print("num_convs: ", num_convs)
+        logging.info("num_convs: ", num_convs)
     inputs_needed = (config.tstride * (num_convs - 1)) + config.tsize
     #            inputs_needed = frames + tsize - 1
     if inputs_needed > 1:
-        print("inputs_needed: ", inputs_needed)
+        logging.info("inputs_needed: ", inputs_needed)
     old_frames_to_read = inputs_needed - container.frames
     if old_frames_to_read < 0:
-        print("negative number of old frames!!!!!!!!!")
+        logging.info("negative number of old frames!!!!!!!!!")
     if old_frames_to_read:
-        print("history frames needed: ", old_frames_to_read)
+        logging.info("history frames needed: ", old_frames_to_read)
     new_frames_to_save = min(container.frames, old_frames_to_read)
     if new_frames_to_save:
-        print("new frames to save: ", new_frames_to_save)
+        logging.info("new frames to save: ", new_frames_to_save)
 
     # attach output ports to inputs we will need next pass
     if config.no_output is False:
@@ -405,7 +407,7 @@ def convolutional(config, container):
             container.all_layers.append(
                 Input(shape=(image_size[0], image_size[1], config.merge_in), name=xx)
             )
-            print("merge_in input at: ", len(container.all_layers) - 1)
+            logging.info("merge_in input at: ", len(container.all_layers) - 1)
             container.in_index.append(len(container.all_layers) - 1)
 
     padding = "same" if config.pad == 1 and config.stride == 1 else "valid"
@@ -417,7 +419,7 @@ def convolutional(config, container):
     conv_bias = [0]
     if config.module_name + ".weight" in container.weights:
         conv_weights_pt = container.weights[config.module_name + ".weight"]
-        print(
+        logging.info(
             "weight: ",
             config.module_name + ".weight",
             container.weights[config.module_name + ".weight"].shape,
@@ -438,7 +440,7 @@ def convolutional(config, container):
         if not config.batch_normalize:
             conv_bias = container.weights[config.module_name + ".bias"]
     else:
-        print("cannot find weight: ", config.module_name + ".weight")
+        logging.info("cannot find weight: ", config.module_name + ".weight")
         container.fake_weights = True
         conv_weights = np.random.rand(
             config.size, config.size, config.tsize * input_channels, config.filters
@@ -468,7 +470,7 @@ def convolutional(config, container):
         config.tsize * input_channels,
         config.filters,
     )
-    print(
+    logging.info(
         "weight shape, expected : ",
         expected_weights_shape,
         "checkpoint: ",
@@ -478,7 +480,7 @@ def convolutional(config, container):
     )
 
     if conv_weights.shape != expected_weights_shape:
-        print("weight matrix shape is wrong, making a fake one")
+        logging.info("weight matrix shape is wrong, making a fake one")
         container.fake_weights = True
         conv_weights = np.random.rand(
             config.size, config.size, config.tsize * input_channels, config.filters
@@ -576,7 +578,7 @@ def linear(config, container):
     prev_layer_shape = K.int_shape(container.all_layers[-1])
     input_channels = prev_layer_shape[-1]
 
-    print("prev_layer_shape: ", prev_layer_shape)
+    logging.info("prev_layer_shape: ", prev_layer_shape)
     # if share, create output port with all its inputs
     if config.share is True:
         container.out_index.append(len(container.all_layers) - container.frames)
@@ -588,7 +590,7 @@ def linear(config, container):
         container.all_layers.append(
             Input(shape=[config.merge_in], name=config.module_name + "_merge_in")
         )
-        print(
+        logging.info(
             "merge_in input at: ",
             len(container.all_layers) - 1,
             " shape: ",
@@ -609,12 +611,12 @@ def linear(config, container):
         )
         bias = container.weights[config.module_name + ".bias"]
     else:
-        print("weights missing")
-        print("Using fake weights for Linear layer")
+        logging.warning("weights missing")
+        logging.warning("Using fake weights for Linear layer")
         weights = np.random.rand(size, config.outputs)
         bias = np.random.rand(config.outputs)
         container.fake_weights = True
-    print(
+    logging.info(
         "total input size: ",
         size,
         "output size: ",
@@ -624,14 +626,14 @@ def linear(config, container):
     )
     if (weights.shape[0], weights.shape[1]) != (size, config.outputs):
         container.fake_weights = True
-        print("Using fake weights for Linear layer")
+        logging.warning("Using fake weights for Linear layer")
         weights = np.random.rand(size, config.outputs)
     if bias.shape != (config.outputs,):
         container.fake_weights = True
-        print("Using fake bias for Linear layer")
+        logging.warning("Using fake bias for Linear layer")
         bias = np.random.rand(config.outputs)
     weights = [weights, bias]
-    print(container.all_layers[-1])
+    logging.info(container.all_layers[-1])
     container.all_layers.append(
         Dense(config.outputs, weights=weights)(container.all_layers[-1])
     )
@@ -644,7 +646,7 @@ def nblinear(config, container):
     )
     prev_layer_shape = K.int_shape(container.all_layers[-1])
     input_channels = prev_layer_shape[-1]
-    print("prev_layer_shape: ", prev_layer_shape)
+    logging.info("prev_layer_shape: ", prev_layer_shape)
     # if share, create output port with all its inputs
     if config.share is True:
         container.out_index.append(len(container.all_layers) - container.frames)
@@ -656,7 +658,7 @@ def nblinear(config, container):
         container.all_layers.append(
             Input(shape=[config.merge_in], name=config.module_name + "_merge_in")
         )
-        print(
+        logging.info(
             "merge_in input at: ",
             len(container.all_layers) - 1,
             " shape: ",
@@ -676,11 +678,11 @@ def nblinear(config, container):
             container.weights[config.module_name + ".weight"], (1, 0)
         )
     else:
-        print("weights missing")
-        print("Using fake weights for Linear layer")
+        logging.warning("weights missing")
+        logging.warning("Using fake weights for Linear layer")
         weights = np.random.rand(size, config.outputs)
         container.fake_weights = True
-    print(
+    logging.info(
         "total input size: ",
         size,
         "output size: ",
@@ -690,11 +692,11 @@ def nblinear(config, container):
     )
     if (weights.shape[0], weights.shape[1]) != (size, config.outputs):
         container.fake_weights = True
-        print("Using fake weights for Linear layer")
+        logging.warning("Using fake weights for Linear layer")
         weights = np.random.rand(size, config.outputs)
     bias = np.zeros(config.outputs)
     weights = [weights, bias]
-    print(container.all_layers[-1])
+    logging.info(container.all_layers[-1])
     container.all_layers.append(
         Dense(config.outputs, weights=weights)(container.all_layers[-1])
     )
@@ -712,7 +714,7 @@ def globalaveragepool(config, container):
     container.layer_names[config.layer_name] = len(container.all_layers) - 1
     prev_layer_shape = K.int_shape(container.all_layers[-1])
     image_size = prev_layer_shape[-2]
-    print("global average pooling: ", image_size)
+    logging.info("global average pooling: ", image_size)
 
 
 def input(config, container):
@@ -726,13 +728,13 @@ def input(config, container):
             size.append(None)
         else:
             size.append(int(i))
-    print("size: ", size)
+    logging.info("size: ", size)
     input_layer = Input(shape=size, name=config.layer_name)
     container.in_names.append(config.layer_name)
     container.all_layers.append(input_layer)
     if config.image_input:
         container.image_inputs.append(config.layer_name)
-    print("input layer: ", config.layer_name, " shape: ", input_layer.shape)
+    logging.info("input layer: ", config.layer_name, " shape: ", input_layer.shape)
     container.in_index.append(len(container.all_layers) - 1)
     container.coreml_list.append(
         ("fake", config.layer_name, {}, config.layer_name + ":0")
