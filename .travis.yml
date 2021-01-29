@@ -18,4 +18,5 @@ jobs:
       script:
         - pycodestyle
         - python -m pytest
-        - ./tests/test_examples.sh
+        - sh tests/scripts/test_examples.sh
+        - sh tests/scripts/test_run_custom_classifier.sh

@@ -17,52 +17,86 @@
         Prepare Annotations
     </a>
     <h3 class="ui header">Classes</h3>
-    <div class="ui centered cards">
-        {% for class, tags in config.classes.items() %}
-        <div class="card">
-            <div class="content">
-                <div class="header">
-                    {{ class }}
+    <form class="ui form" id="newClassForm" method="POST" action="{{ url_for('add_class', project=config.name) }}">
+        <input type="hidden" id="projectName" name="projectName" value="{{ config.name }}">
+        <div class="ui centered cards">
+            {% for class, tags in config.classes.items() %}
+            <div class="card">
+                <div class="content">
+                    <div class="header">
+                        {{ class }}
+                    </div>
                 </div>
-            </div>
-            <div class="content">
-                <h4>Tags</h4>
-                <div class="ui list">
-                    {% for tag in tags %}
-                    <div class="item">
-                        <i class="tag icon"></i>
-                        <div class="content">
-                            <div class="description">
-                                {{ tag }}
+                <div class="content">
+                    <h4>Tags</h4>
+                    <div class="ui list">
+                        {% for tag in tags %}
+                        <div class="item">
+                            <i class="tag icon"></i>
+                            <div class="content">
+                                <div class="description">
+                                    {{ tag }}
+                                </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+                </div>
+                <div class="content">
+                    <h4>Annotated Videos</h4>
+                    <div class="ui left labeled button">
+                        <div class="ui basic label">
+                            Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
+                        </div>
+                        <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
+                            <i class="edit icon"></i>
+                            Annotate
+                        </a>
+                    </div>
+                    <div class="ui left labeled button mt">
+                        <div class="ui basic label">
+                            Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
+                        </div>
+                        <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
+                            <i class="edit icon"></i>
+                            Annotate
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="content">
-                <h4>Annotated Videos</h4>
-                <div class="ui left labeled button" tabindex="0">
-                    <div class="ui basic label">
-                        Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
+            {% endfor %}
+
+            <div class="card">
+                <div class="content">
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="eye icon"></i>
+                            <input type="text" name="class" placeholder="Class Name" />
+                        </div>
                     </div>
-                    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
-                        <i class="edit icon"></i>
-                        Annotate
-                    </a>
                 </div>
-                <div class="ui left labeled button mt" tabindex="0">
-                    <div class="ui basic label">
-                        Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
+                <div class="content">
+                    <h4>Tags</h4>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="tag icon"></i>
+                            <input type="text" name="tag1" placeholder="Tag 1" />
+                        </div>
                     </div>
-                    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
-                        <i class="edit icon"></i>
-                        Annotate
-                    </a>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="tag icon"></i>
+                            <input type="text" name="tag2" placeholder="Tag 2" />
+                        </div>
+                    </div>
+                    <div class="ui error message"></div>
                 </div>
+                <button class="ui bottom attached button" type="submit">
+                    <i class="plus icon"></i>
+                    Add New Class
+                </button>
             </div>
         </div>
-        {% endfor %}
-    </div>
+    </form>
 </div>
 {% endblock %}

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """
 Pytorch-to-Tflite conversion script.
-Author: Mark Tordorovich.
+Author: Mark Todorovich.
 
 
 Usage:

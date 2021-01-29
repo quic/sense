@@ -276,7 +276,8 @@ class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
     """
-    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30):
+    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30,
+                 window_size: Tuple[int, int] = (480, 640)):
         """
         :param title:
             Title of the image frame on display.
@@ -289,12 +290,16 @@ class DisplayResults:
                 - DisplayTopKClassificationOutputs
         :param border_size:
             Thickness of the display border.
+        :param window_size:
+            Resolution of the display window.
         """
+        self.window_size = window_size
         self._window_title = 'Real-time SenseNet'
-        cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_AUTOSIZE)
+        self.border_size = border_size
+        cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_KEEPRATIO)
+        cv2.resizeWindow(self._window_title, self.window_size[1], self.window_size[0] + self.border_size)
         self.title = title
         self.display_ops = display_ops
-        self.border_size = border_size
 
     def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
@@ -308,11 +313,12 @@ class DisplayResults:
         :return:
             The image with displayed data.
         """
+
         # Mirror the img
         img = img[:, ::-1].copy()
 
-        # Add black borders
-        img = cv2.copyMakeBorder(img, self.border_size, 0, 0, 0, cv2.BORDER_CONSTANT)
+        # Adjust image to fit in display window
+        img = self.resize_to_fit_window(img)
 
         # Display information on top
         for display_op in self.display_ops:
@@ -327,6 +333,27 @@ class DisplayResults:
 
         # Show the image in a window
         cv2.imshow(self._window_title, img)
+        return img
+
+    def resize_to_fit_window(self, img):
+        height, width = img.shape[0:2]
+        window_aspect_ratio = self.window_size[1] / self.window_size[0]
+        img_aspect_ratio = width / height
+
+        if img_aspect_ratio < window_aspect_ratio:
+            new_height = self.window_size[0]
+            new_width = round(new_height * width / height)
+        else:
+            new_width = self.window_size[1]
+            new_height = round(new_width * height / width)
+
+        img = cv2.resize(img, (new_width, new_height))
+        # Pad black borders:
+        #   - top: controlled by border_size
+        #   - bottom: none
+        #   - left-right: so that the width is equal to window_size[1]
+        lr_pad = max(round((self.window_size[1] - new_width) / 2), 0)
+        img = cv2.copyMakeBorder(img, self.border_size, 0, lr_pad, lr_pad, cv2.BORDER_CONSTANT)
         return img
 
     def clean_up(self):
