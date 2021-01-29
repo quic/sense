@@ -52,7 +52,7 @@ class Container:
         self.weights = weights
 
 
-class KerasConver:
+class KerasConverter:
     def __init__(self, cfg, weights, conversion_parameters):
         self.cfg_parser = cfg
         self.container = Container(conversion_parameters, weights)

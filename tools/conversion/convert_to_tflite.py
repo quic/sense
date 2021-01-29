@@ -30,7 +30,7 @@ from keras.utils.vis_utils import plot_model as plot
 from tools.conversion.config_loader import load_config
 from tools.conversion.config_loader import finalize_custom_classifier_config
 from tools.conversion.weights_loader import load_weights
-from tools.conversion.keras_converter import KerasConver
+from tools.conversion.keras_converter import KerasConverter
 from tools.conversion.keras_exporter import export_keras_to_tflite
 
 
@@ -87,15 +87,12 @@ def convert(backbone_settings, classifier_settings, output_name, plot_model):
     keras_file = os.path.join(output_dir, output_name + ".h5")
     tflite_file = os.path.join(output_dir, output_name + ".tflite")
 
-    if plot_model:
-        plot_file = os.path.join(output_dir, output_name + ".png")
-
     weights_full = load_weights(
         backbone_settings["weights_file"], classifier_settings["weights_file"]
     )
 
     cfg_parser = load_config(backbone_settings, classifier_settings)
-    keras_converter = KerasConver(cfg_parser, weights_full, conversion_parameters)
+    keras_converter = KerasConverter(cfg_parser, weights_full, conversion_parameters)
 
     (
         model,
@@ -109,8 +106,9 @@ def convert(backbone_settings, classifier_settings, output_name, plot_model):
     logging.info("Saved Keras model to {}".format(keras_file))
 
     if plot_model:
-        plot(model, to_file=plot_file, show_shapes=True)
-        logging.info("Saved model plot to {}".format(plot_file))
+        to_file = os.path.join(output_dir, output_name + ".png")
+        plot(model, to_file=to_file, show_shapes=True)
+        logging.info("Saved model plot to {}".format(to_file))
 
     logging.info("input_names", in_names)
     logging.info("output_names", out_names)
