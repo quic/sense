@@ -29,7 +29,7 @@ from keras.utils.vis_utils import plot_model as plot
 from tools.conversion.config_loader import load_config
 from tools.conversion.config_loader import finalize_custom_classifier_config
 from tools.conversion.weights_loader import load_weights
-from tools.conversion.keras_converter import create_keras_model
+from tools.conversion.keras_converter import KerasConver
 from tools.conversion.keras_exporter import export_keras_to_tflite
 
 
@@ -93,9 +93,9 @@ def convert(backbone_settings, classifier_settings, output_name, plot_model):
                                 classifier_settings["weights_file"])
 
     cfg_parser = load_config(backbone_settings, classifier_settings)
+    keras_converter = KerasConver(cfg_parser, weights_full, conversion_parameters)
 
-    model, fake_weights, in_names, \
-    out_names, image_inputs = create_keras_model(cfg_parser, weights_full, conversion_parameters)
+    model, fake_weights, in_names, out_names, image_inputs = keras_converter.create_keras_model()
 
     model.save("{}".format(keras_file))
     print("Saved Keras model to {}".format(keras_file))

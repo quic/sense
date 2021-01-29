@@ -22,6 +22,7 @@ from keras.models import Model
 
 
 def invResidual(config, container):
+    config.layer_name = config.layer_name if config.layer_name else str(len(container.all_layers) - 1)
     print("frames: ", container.frames)
     s = 0
     if config.shift:
@@ -30,6 +31,7 @@ def invResidual(config, container):
     else:
         print("2D conv block")
         tsize = 1
+    config.size = int(config.size)
 
     prev_layer = container.all_layers[-1]
     prev_layer_shape = K.int_shape(prev_layer)
@@ -160,7 +162,7 @@ def invResidual(config, container):
         for f in range(int(container.frames / config.tstride)):
             container.all_layers.append(outputs[f])
         s += 1
-        frames = int(container.frames / config.tstride)
+        container.frames = int(container.frames / config.tstride)
 
     else:
         print("Skipping channel multiplier pointwise conv, no expansion")
@@ -205,8 +207,8 @@ def invResidual(config, container):
 
     padding = "same" if config.pad == 1 and config.stride == 1 else "valid"
 
-    for f in range(frames):
-        inputs.append(container.all_layers[len(container.all_layers) - frames + f])
+    for f in range(container.frames):
+        inputs.append(container.all_layers[len(container.all_layers) - container.frames + f])
 
     if config.stride > 1:
         for f in range(len(inputs)):
@@ -222,7 +224,7 @@ def invResidual(config, container):
                 exit()
 
     print("parallel convs: ", f, " : ", K.int_shape(inputs[0]), "padding: ", padding)
-    for f in range(frames):
+    for f in range(container.frames):
         outputs.append(
             (
                 DepthwiseConv2D(
@@ -237,7 +239,7 @@ def invResidual(config, container):
         )
 
     if config.activation == "leaky":
-        for f in range(int(frames)):
+        for f in range(int(container.frames)):
             if not container.conversion_parameters["use_prelu"]:
                 outputs[f] = LeakyReLU(alpha=0.1)(outputs[f])
             else:
@@ -246,10 +248,10 @@ def invResidual(config, container):
                     shared_axes=[1, 2],
                 )(outputs[f])
     elif config.activation == "relu6":
-        for f in range(int(frames)):
+        for f in range(int(container.frames)):
             outputs[f] = ReLU(max_value=6)(outputs[f])
 
-    for f in range(int(frames)):
+    for f in range(int(container.frames)):
         container.all_layers.append(outputs[f])
     s += 1
 
@@ -292,14 +294,14 @@ def invResidual(config, container):
     inputs = []
     outputs = []
 
-    for f in range(frames):
-        inputs.append(container.all_layers[len(container.all_layers) - frames + f])
+    for f in range(container.frames):
+        inputs.append(container.all_layers[len(container.all_layers) - container.frames + f])
 
     print(
-        "parallel convs: ", f, " : ", K.int_shape(container.all_layers[len(container.all_layers) - frames])
+        "parallel convs: ", f, " : ", K.int_shape(container.all_layers[len(container.all_layers) - container.frames])
     )
-    for f in range(frames):
-        conv_input = container.all_layers[len(container.all_layers) - frames + f]
+    for f in range(container.frames):
+        conv_input = container.all_layers[len(container.all_layers) - container.frames + f]
 
         outputs.append(
             (
@@ -315,15 +317,18 @@ def invResidual(config, container):
         )
 
     if config.stride == 1 and input_channels == config.out_channels:
-        for f in range(int(frames)):
+        for f in range(int(container.frames)):
             container.all_layers.append(Add()([container.all_layers[input_indexes[f]], outputs[f]]))
     else:
-        for f in range(int(frames)):
+        for f in range(int(container.frames)):
             container.all_layers.append(outputs[f])
     s += 1
 
 
 def convolutional(config, container):
+    config.layer_name = config.layer_name if config.layer_name else str(
+        len(container.all_layers) - 1)
+    config.size = int(config.size)
     if container.frames > 1:
         print("frames: ", container.frames)
     prev_layer_shape = K.int_shape(container.all_layers[-1])
@@ -532,7 +537,11 @@ def convolutional(config, container):
 
 
 def linear(config, container):
+    config.layer_name = config.layer_name if config.layer_name else str(
+        len(container.all_layers) - 1)
     prev_layer_shape = K.int_shape(container.all_layers[-1])
+    input_channels = prev_layer_shape[-1]
+
     print("prev_layer_shape: ", prev_layer_shape)
     # if share, create output port with all its inputs
     if config.share is True:
@@ -540,7 +549,7 @@ def linear(config, container):
         container.out_names.append(config.module_name + "_share")
     # create input ports for merged-in data
     if config.merge_in > 0:
-        input_channels = container.input_channels + config.merge_in
+        input_channels = input_channels + config.merge_in
         container.in_names.append(config.module_name + "_merge_in")
         container.all_layers.append(
             Input(shape=[config.merge_in], name=config.module_name + "_merge_in")
@@ -560,9 +569,9 @@ def linear(config, container):
         container.all_layers.append(Concatenate()(layers))
 
     size = np.prod(container.all_layers[-1].shape[1])  # skip the junk first dimension
-    if config.module_name + ".weight" in container.weights_full:
-        weights = np.transpose(container.weights_full[config.module_name + ".weight"], (1, 0))
-        bias = container.weights_full[config.module_name + ".bias"]
+    if config.module_name + ".weight" in container.weights:
+        weights = np.transpose(container.weights[config.module_name + ".weight"], (1, 0))
+        bias = container.weights[config.module_name + ".bias"]
     else:
         print("weights missing")
         print("Using fake weights for Linear layer")
@@ -589,3 +598,108 @@ def linear(config, container):
     print(container.all_layers[-1])
     container.all_layers.append(Dense(config.outputs, weights=weights)(container.all_layers[-1]))
     container.layer_names[config.layer_name] = len(container.all_layers) - 1
+
+
+def nblinear(config, container):
+    config.layer_name = config.layer_name if config.layer_name else str(
+        len(container.all_layers) - 1)
+    prev_layer_shape = K.int_shape(container.all_layers[-1])
+    input_channels = prev_layer_shape[-1]
+    print("prev_layer_shape: ", prev_layer_shape)
+    # if share, create output port with all its inputs
+    if config.share is True:
+        container.out_index.append(len(container.all_layers) - container.frames)
+        container.out_names.append(config.module_name + "_share")
+    # create input ports for merged-in data
+    if config.merge_in > 0:
+        input_channels = input_channels + config.merge_in
+        container.in_names.append(config.module_name + "_merge_in")
+        container.all_layers.append(
+            Input(shape=[config.merge_in], name=config.module_name + "_merge_in")
+        )
+        print(
+            "merge_in input at: ",
+            len(container.all_layers) - 1,
+            " shape: ",
+            container.all_layers[-1].shape,
+            " plus: ",
+            container.all_layers[-2].shape,
+        )
+        container.in_index.append(len(container.all_layers) - 1)
+        layers = []
+        layers.append(container.all_layers[-1])
+        layers.append(container.all_layers[-2])
+        container.all_layers.append(Concatenate()(layers))
+
+    size = np.prod(container.all_layers[-1].shape[1])  # skip the junk first dimension
+    if config.module_name + ".weight" in container.weights:
+        weights = np.transpose(container.weights[config.module_name + ".weight"], (1, 0))
+    else:
+        print("weights missing")
+        print("Using fake weights for Linear layer")
+        weights = np.random.rand(size, config.outputs)
+        container.fake_weights = True
+    print(
+        "total input size: ",
+        size,
+        "output size: ",
+        config.outputs,
+        "weights: ",
+        weights.shape,
+    )
+    if (weights.shape[0], weights.shape[1]) != (size, config.outputs):
+        container.fake_weights = True
+        print("Using fake weights for Linear layer")
+        weights = np.random.rand(size, config.outputs)
+    bias = np.zeros(config.outputs)
+    weights = [weights, bias]
+    print(container.all_layers[-1])
+    container.all_layers.append(Dense(config.outputs, weights=weights)(container.all_layers[-1]))
+    container.layer_names[config.layer_name] = len(container.all_layers) - 1
+
+
+def globalaveragepool(config, container):
+    config.layer_name = config.layer_name if config.layer_name else str(
+        len(container.all_layers) - 1)
+    for f in range(container.frames):
+        container.all_layers.append(GlobalAveragePooling2D()(container.all_layers[0 - container.frames]))
+    container.layer_names[config.layer_name] = len(container.all_layers) - 1
+    prev_layer_shape = K.int_shape(container.all_layers[-1])
+    image_size = prev_layer_shape[-2]
+    print("global average pooling: ", image_size)
+    
+    
+def input(config, container):
+    config.layer_name = config.layer_name if config.layer_name else str(
+        len(container.all_layers) - 1)
+    container.frames = container.frames + 1
+    size = []
+    for i in config.size.split(","):
+        if i == "None":
+            size.append(None)
+        else:
+            size.append(int(i))
+    print("size: ", size)
+    input_layer = Input(shape=size, name=config.layer_name)
+    container.in_names.append(config.layer_name)
+    container.all_layers.append(input_layer)
+    if config.image_input:
+        container.image_inputs.append(config.layer_name)
+    print("input layer: ", config.layer_name, " shape: ", input_layer.shape)
+    container.in_index.append(len(container.all_layers) - 1)
+    container.coreml_list.append(("fake", config.layer_name, {}, config.layer_name + ":0"))
+
+
+def output(config, container):
+    if config.layer_name:
+        layer_name = config.layer_name
+        container.out_index.append(len(container.all_layers) - 1)
+        container.out_names.append('output_' + layer_name)
+        # all_layers.append(None)
+        container.layer_names[layer_name] = len(container.all_layers) - 1
+    else:
+        layer_name = container.coreml_list[-1][1][0] + '_output'
+        container.out_index.append(len(container.all_layers) - 1)
+        container.out_names.append(layer_name)
+        container.all_layers.append(None)
+        container.layer_names[layer_name] = len(container.all_layers) - 1
