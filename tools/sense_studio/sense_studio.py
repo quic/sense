@@ -288,6 +288,7 @@ def add_class(project):
     tag2 = data['tag2'] or f'{class_name}_tag2'
 
     if tag2 == tag1:
+        tag1 = f'{tag1}_1'
         tag2 = f'{tag2}_2'
 
     # Update project config
