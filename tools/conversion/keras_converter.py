@@ -6,7 +6,6 @@ from keras.models import Model
 from tools.conversion.section_conversion import invResidual
 from tools.conversion.section_conversion import convolutional
 from tools.conversion.section_conversion import linear
-from tools.conversion.section_conversion import nblinear
 from tools.conversion.section_conversion import globalaveragepool
 from tools.conversion.section_conversion import input
 from tools.conversion.section_conversion import output
@@ -46,7 +45,7 @@ class Container:
         self.image_inputs = []
         self.layer_names = dict()
         self.frames = 0
-        self.coreml_list = []
+        self.layer_list = []
         self.fake_weights = False
         self.conversion_parameters = conversion_parameters
         self.weights = weights
@@ -72,9 +71,6 @@ class KerasConverter:
 
             elif section.startswith("Linear"):
                 linear(config, self.container)
-
-            elif section.startswith("NBLinear"):
-                nblinear(config, self.container)
 
             elif section.startswith("globalaveragepool"):
                 globalaveragepool(config, self.container)
