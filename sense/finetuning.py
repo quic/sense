@@ -11,7 +11,6 @@ import torch.optim as optim
 from PIL import Image
 from sense import camera
 from sense import engine
-from sense.downstream_tasks.nn_utils import load_weights
 from sklearn.metrics import confusion_matrix
 from os.path import join
 
