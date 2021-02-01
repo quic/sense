@@ -248,9 +248,18 @@ class DisplayClassnameOverlay(BaseDisplay):
 
         return x, y
 
-    def _display_class_name(self, img: np.ndarray, class_name: str):
-        pos = self._get_center_coordinates(img, class_name)
-        put_text(img, class_name, position=pos, font_scale=self.font_scale, thickness=self.thickness)
+    def _adjust_font_scale(self, img: np.ndarray, text: str) -> float:
+        """
+        In case the class name text width with default font scale is larger than frame width,
+        adjust font scale to fit the class name text within the frame width.
+        """
+        _, frame_width, _ = img.shape
+        text_width = cv2.getTextSize(text, FONT, self.font_scale, self.thickness)[0][0]
+        text_to_frame_ratio = text_width / frame_width
+
+        if text_to_frame_ratio > 1:
+            return self.font_scale / text_to_frame_ratio
+        return self.font_scale
 
     def display(self, img: np.ndarray, display_data: dict):
         now = time.perf_counter()
