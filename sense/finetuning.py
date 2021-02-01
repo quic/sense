@@ -21,8 +21,6 @@ MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
 
 
-
-
 def set_internal_padding_false(module):
     """
     This is used to turn off padding of steppable convolution layers.
@@ -273,24 +271,29 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1
 
 
 def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False, save_checkpoints=False, frequency=5, load_checkpoint=False, resume_epoch=-1):
+                   temporal_annotation_training=False, save_checkpoints=False, frequency=5,
+                   load_checkpoint=False, resume_epoch=-1, change_layers=None, checkpoint_classifier=None):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
     # load custom optimizer
     if isinstance(load_checkpoint, str):
+        if change_layers == "No change" or change_layers == "N":
+            optimizer.load_state_dict(checkpoint_classifier['optimizer'])
+        # remove all checkpoints and epoch restart at 0 if training from a intermediate checkpoint
         if load_checkpoint != '':
-            checkpoint_classifier = load_weights(load_checkpoint)
-        else:
-            checkpoint_classifier = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
-        optimizer.load_state_dict(checkpoint_classifier['optimizer'])
+            cdir = os.path.dirname(load_checkpoint)
+            filelist = [f for f in os.listdir(cdir)]
+            for f in filelist:
+                os.remove(os.path.join(cdir, f))
 
     best_state_dict = None
     best_top1 = 0.
     best_loss = 9999
 
-    # if no resume from the last checkpoint file, epoch will start at 0, otherwise, it will start at the resumed epoch+1
-    for epoch in range(resume_epoch+1, num_epochs+resume_epoch+1):  # loop over the dataset multiple times
+    # if resume training from the last checkpoint, epoch will continue at epoch + 1
+    # otherwise, it will start at 0
+    for epoch in range(resume_epoch + 1, num_epochs + resume_epoch + 1):  # loop over the dataset multiple times
         new_lr = lr_schedule.get(epoch)
         if new_lr:
             print(f"update lr to {new_lr}")
@@ -298,8 +301,9 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 param_group['lr'] = new_lr
 
         # rename the last saved checkpoint
-        if epoch % frequency == 1 and os.path.exists(os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch-1))):
-            os.rename(os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch-1)),
+        if epoch % frequency == 1 and \
+                os.path.exists(os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch - 1))):
+            os.rename(os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch - 1)),
                       os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint"))
 
         net.train()
@@ -321,7 +325,6 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 best_state_dict = net.state_dict().copy()
                 best_epoch = epoch
                 best_optimizer = optimizer.state_dict()
-                best_train_loss = train_loss
                 save_confusion_matrix(path_out, cnf_matrix, label_names)
         else:
             if valid_loss < best_loss:
@@ -329,27 +332,25 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 best_state_dict = net.state_dict().copy()
                 best_epoch = epoch
                 best_optimizer = optimizer.state_dict()
-                best_train_loss = train_loss
 
-        # save all checkpoints 
+        # save all checkpoints
         if save_checkpoints:
             model_state_dict = net.state_dict().copy()
             model_state_dict = {clean_pipe_state_dict_key(key): value
-                                    for key, value in model_state_dict.items()}
+                                for key, value in model_state_dict.items()}
             if epoch >= 0 and epoch % frequency == 0:
                 torch.save({
-                            'epoch': epoch,
-                            'model_state_dict': model_state_dict,
-                            'optimizer': optimizer.state_dict(),
-                            'loss': train_loss,
-                            }, os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % epoch))
+                    'epoch': epoch,
+                    'model_state_dict': model_state_dict,
+                    'optimizer': optimizer.state_dict(),
+                }, os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % epoch))
                 # rename the previous checkpoint back to the original name
                 if os.path.exists(os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint")):
                     os.rename(os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint"),
                               os.path.join(path_out, "checkpoints/", "classifier%g.checkpoint" % (epoch - frequency)))
 
     print('Finished Training')
-    return best_state_dict, best_epoch, best_optimizer, best_train_loss
+    return best_state_dict, best_epoch, best_optimizer
 
 
 def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False,
