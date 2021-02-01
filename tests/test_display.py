@@ -74,7 +74,11 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
     def test_display_default(self, mock_put_text):
         test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5})
         test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.6]]})
-        mock_put_text.assert_called_with(self.img, 'Dabbing', font_scale=self.font_scale, position=(224, 294),
+
+        mock_put_text.assert_called_with(self.img,
+                                         'Dabbing',
+                                         font_scale=self.font_scale,
+                                         position=(224, 294),
                                          thickness=self.thickness)
 
     @patch('sense.display.put_text')
@@ -87,8 +91,11 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
         _, frame_width, _ = self.img.shape
         font_scale = self.font_scale / (text_width / frame_width)
 
-        mock_put_text.assert_called_with(self.img, 'Swiping down (with two hands)', font_scale=font_scale,
-                                         position=(0, 291), thickness=self.thickness)
+        mock_put_text.assert_called_with(self.img,
+                                         'Swiping down (with two hands)',
+                                         font_scale=font_scale,
+                                         position=(0, 291),
+                                         thickness=self.thickness)
 
 
 class TestDisplayResults(unittest.TestCase):
