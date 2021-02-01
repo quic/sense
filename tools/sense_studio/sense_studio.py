@@ -337,6 +337,39 @@ def show_video_list(split, label, path):
     return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
 
 
+@app.route('/record_video/<split>/<label>/<path:path>')
+def record_video(split, label, path):
+    """
+    Show the list of videos for the given split, class label and project.
+    If the necessary files for annotation haven't been prepared yet, this is done now.
+    """
+    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    split = urllib.parse.unquote((split))
+    label = urllib.parse.unquote(label)
+    frames_dir = join(path, f"frames_{split}", label)
+    tags_dir = join(path, f"tags_{split}", label)
+    logreg_dir = join(path, 'logreg', label)
+
+    os.makedirs(logreg_dir, exist_ok=True)
+    os.makedirs(tags_dir, exist_ok=True)
+
+    # load feature extractor if needed
+    _load_feature_extractor()
+    # compute the features and frames missing.
+    compute_frames_features(inference_engine, split, label, path)
+
+    videos = os.listdir(frames_dir)
+    videos.sort()
+
+    logreg_path = join(logreg_dir, 'logreg.joblib')
+    if os.path.isfile(logreg_path):
+        global logreg
+        logreg = load(logreg_path)
+
+    folder_id = zip(videos, list(range(len(videos))))
+    return render_template('record_video.html', folders=folder_id, split=split, label=label, path=path)
+
+
 @app.route('/prepare_annotation/<path:path>')
 def prepare_annotation(path):
     """

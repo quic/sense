@@ -1,0 +1,33 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} Record video {% endblock %}
+
+{% block main %}
+<div id="main" class="ui main text container">
+	<h1 class="ui header">
+        Video List
+        <div class="sub header">
+			<i class="folder open icon"></i> {{ path }}
+			<br>
+			<i class="eye icon"></i> {{ label }}
+			<br>
+			<i class="database icon"></i> {{ split }}
+        </div>
+    </h1>
+	<div>
+		<video id="player" controls></video>
+		<script>
+		  var player = document.getElementById('player');
+
+		  var handleSuccess = function(stream) {
+			player.srcObject = stream;
+		  };
+
+		  navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+			  .then(handleSuccess)
+		</script>
+	</div>
+</div>
+{% endblock %}
+
+

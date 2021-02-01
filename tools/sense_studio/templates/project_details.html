@@ -57,6 +57,10 @@
                             <i class="edit icon"></i>
                             Annotate
                         </a>
+                        <a class="ui icon button" href="{{ url_for('record_video', split='train', label=class, path=path) }}">
+                            <i class="edit icon"></i>
+                            Record
+                        </a>
                     </div>
                     <div class="ui left labeled button mt">
                         <div class="ui basic label">
@@ -65,6 +69,10 @@
                         <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
                             <i class="edit icon"></i>
                             Annotate
+                        </a>
+                        <a class="ui icon button" href="{{ url_for('record_video', split='train', label=class, path=path) }}">
+                            <i class="edit icon"></i>
+                            Record
                         </a>
                     </div>
                 </div>
