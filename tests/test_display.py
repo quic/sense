@@ -1,6 +1,9 @@
 import unittest
+from unittest.mock import Mock
 from unittest.mock import patch
 
+from cv2 import FONT_HERSHEY_PLAIN
+from cv2 import getTextSize
 import numpy as np
 
 import sense.display as base_display
@@ -57,6 +60,35 @@ class TestDisplayRepCounts(unittest.TestCase):
         test_display = base_display.DisplayRepCounts()
         test_display.display(self.img, self.display_data)
         mock_put_text.assert_called_with(self.img, 'Count: 10', (360, 60))
+
+
+class TestDisplayClassnameOverlay(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.img = Mock()
+        self.img.shape = (510, 640, 3)
+        self.font_scale = 3.0
+        self.thickness = 2
+
+    @patch('sense.display.put_text')
+    def test_display_default(self, mock_put_text):
+        test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5})
+        test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.6]]})
+        mock_put_text.assert_called_with(self.img, 'Dabbing', font_scale=self.font_scale, position=(224, 294),
+                                         thickness=self.thickness)
+
+    @patch('sense.display.put_text')
+    def test_display_adjust_font_scale(self, mock_put_text):
+        test_display = base_display.DisplayClassnameOverlay(thresholds={'Swiping down (with two hands)': 0.5})
+        test_display.display(self.img, {'sorted_predictions': [['Swiping down (with two hands)', 0.6]]})
+
+        text_width = getTextSize('Swiping down (with two hands)', FONT_HERSHEY_PLAIN, self.font_scale,
+                                 self.thickness)[0][0]
+        _, frame_width, _ = self.img.shape
+        font_scale = self.font_scale / (text_width / frame_width)
+
+        mock_put_text.assert_called_with(self.img, 'Swiping down (with two hands)', font_scale=font_scale,
+                                         position=(0, 291), thickness=self.thickness)
 
 
 class TestDisplayResults(unittest.TestCase):
