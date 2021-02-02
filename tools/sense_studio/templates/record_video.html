@@ -16,7 +16,8 @@
     </h1>
     <div>
         <button onclick="record_video()">record</button>
-        <video id="player" controls></video>
+        <p/>
+        <video id="player" controls autoplay></video>
         <script>
 		  var player = document.getElementById('player');
 
@@ -64,7 +65,7 @@
                   method: 'POST',
                   body: formData,
                 }).then(res => {
-                  if(res.ok) alert('OK!');
+                  if(res.ok) alert('Video saved');
                 }).catch(err => {
                   alert(err);
                 });
