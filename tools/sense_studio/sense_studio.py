@@ -13,6 +13,7 @@ import glob
 import json
 import numpy as np
 import os
+import subprocess
 import urllib
 
 from flask import Flask
@@ -354,10 +355,21 @@ def save_video(path, label, split):
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     if request.method == 'POST':
         file = request.files['video']
-        with open(os.path.join(path, "temp_video.webm"), "wb") as vid:
+        temp_file = os.path.join(path, "temp_video.webm")
+        with open(temp_file, "wb") as vid:
             video_stream = file.read()
             vid.write(video_stream)
-            return "Success"
+        output_path = os.path.join(path, "videos_" + split, label)
+
+        os.path.join(output_path, f"video_0.mp4")
+        # find a video name that is not used yet
+        for i in range(100000):
+            output_file = os.path.join(output_path, f"video_{i}.mp4")
+            if not os.path.isfile(output_file):
+                break
+        subprocess.call(f'ffmpeg -i {temp_file} -r 30 {output_file}', shell=True)
+
+        return "Success"
 
 
 @app.route('/prepare_annotation/<path:path>')
