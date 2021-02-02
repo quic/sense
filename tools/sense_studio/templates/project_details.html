@@ -16,6 +16,8 @@
         <i class="file video outline icon"></i>
         Prepare Annotations
     </a>
+    <input type="hidden" id="projectName" value="{{ config.name }}">
+
     <h3 class="ui header">Classes</h3>
     <div class="ui centered cards">
         {% for class, tags in config.classes.items() %}
