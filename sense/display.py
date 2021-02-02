@@ -238,7 +238,9 @@ class DisplayClassnameOverlay(BaseDisplay):
         self._start_time = None
 
     def _get_center_coordinates(self, img: np.ndarray, text: str, font_scale: float) -> Tuple[int, int]:
-        """Calculate and return the center coordinates for the text on the current frame."""
+        """
+        Calculate and return the coordinates of the lower left corner the text on the current frame.
+        """
         text_size = cv2.getTextSize(text, FONT, font_scale, self.thickness)[0]
 
         height, width, _ = img.shape
@@ -263,13 +265,17 @@ class DisplayClassnameOverlay(BaseDisplay):
         return self.font_scale
 
     def _display_class_name(self, img: np.ndarray, class_name: str) -> None:
-        """Display the class name on the center of the current frame."""
+        """
+        Display the class name on the center of the current frame.
+        """
         font_scale = self._adjust_font_scale(img=img, text=class_name)
         pos = self._get_center_coordinates(img=img, text=class_name, font_scale=font_scale)
         put_text(img, class_name, position=pos, font_scale=font_scale, thickness=self.thickness)
 
     def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
-        """Render all display data onto the current frame."""
+        """
+        Render all display data onto the current frame.
+        """
         now = time.perf_counter()
 
         if self._current_class_name and now - self._start_time < self.duration:

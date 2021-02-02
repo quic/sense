@@ -56,11 +56,14 @@ if __name__ == "__main__":
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
     ]
 
+    border_size = 50  # Increase border size for showing top 2 predictions
+
     display_ops = [
         sense.display.DisplayFPS(expected_camera_fps=net.fps,
                                  expected_inference_fps=net.fps / net.step_size),
         sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
-        sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS),
+        sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS,
+                                              border_size=border_size if not title else border_size + 50),
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops)
 
