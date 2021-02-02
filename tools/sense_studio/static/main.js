@@ -121,7 +121,7 @@ $(document).ready(function () {
 
     $('#newClassForm').form({
         fields: {
-            addClassName: {
+            className: {
                 rules: [
                     {
                         type   : 'empty',

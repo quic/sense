@@ -283,9 +283,9 @@ def add_class(project):
 
     # Get class name and tags
     data = request.form
-    class_name = data['addClassName']
-    tag1 = data['addTag1'] or f'{class_name}_tag1'
-    tag2 = data['addTag2'] or f'{class_name}_tag2'
+    class_name = data['className']
+    tag1 = data['tag1'] or f'{class_name}_tag1'
+    tag2 = data['tag2'] or f'{class_name}_tag2'
 
     if tag2 == tag1:
         tag1 = f'{tag1}_1'
@@ -305,20 +305,20 @@ def add_class(project):
     return redirect(url_for("project_details", path=path))
 
 
-@app.route('/edit-class/<string:project>/<string:class_name>/<int:idx>', methods=['POST'])
-def edit_class(project, class_name, idx):
+@app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
+def edit_class(project, class_name):
     """
-    Add a new class to the given project.
+    Edit the class name and tags for an existing class in the given project.
     """
     # Lookup project path
     projects = _load_project_overview_config()
     path = projects[project]['path']
 
-    # Get class name and tags
+    # Get new class name and tags
     data = request.form
-    new_class_name = data[f'editClassName{idx}']
-    new_tag1 = data[f'editTag1{idx}'] or f'{new_class_name}_tag1'
-    new_tag2 = data[f'editTag2{idx}'] or f'{new_class_name}_tag2'
+    new_class_name = data['className']
+    new_tag1 = data['tag1'] or f'{new_class_name}_tag1'
+    new_tag2 = data['tag2'] or f'{new_class_name}_tag2'
 
     if new_tag2 == new_tag1:
         new_tag1 = f'{new_tag1}_1'
@@ -330,11 +330,24 @@ def edit_class(project, class_name, idx):
     config['classes'][new_class_name] = [new_tag1, new_tag2]
     _write_project_config(path, config)
 
-    # TODO: Update directory structure
-    # for split in ['train', 'valid']:
-    #     videos_dir = os.path.join(path, f'videos_{split}')
-    #     class_dir = os.path.join(videos_dir, class_name)
-    #     os.mkdir(class_dir)
+    # Update directory names
+    splits = ['train', 'valid']
+    prefixes = ['videos', 'features', 'frames', 'tags']
+    for split in splits:
+        for prefix in prefixes:
+            main_dir = os.path.join(path, f'{prefix}_{split}')
+            class_dir = os.path.join(main_dir, class_name)
+
+            if os.path.exists(class_dir):
+                new_class_dir = os.path.join(main_dir, new_class_name)
+                os.rename(class_dir, new_class_dir)
+
+    logreg_dir = os.path.join(path, 'logreg')
+    class_dir = os.path.join(logreg_dir, class_name)
+
+    if os.path.exists(class_dir):
+        new_class_dir = os.path.join(logreg_dir, new_class_name)
+        os.rename(class_dir, new_class_dir)
 
     return redirect(url_for("project_details", path=path))
 
