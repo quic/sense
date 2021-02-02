@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/imgs/temp_sense_header.png" height="70px">
+<img src="docs/imgs/sense_logo.png" height="80px">
 
 **State-of-the-art Real-time Action Recognition**
 
@@ -292,15 +292,6 @@ and provide the path to the dataset directory used to train the classifier using
 ```shell
 python tools/conversion/convert_to_tflite.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=model
 ```
-
-### Conversion to CoreML
-
-To convert models to CoreML, a few specific dependencies are required:
-```shell
-pip install -r requirements-coreml.txt
-```
-You will then be able to run the `convert_to_coreml.py` script, which works similarly to the 
-`convert_to_tflite.py` script mentioned above.
 
 ---
 
