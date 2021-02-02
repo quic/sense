@@ -50,7 +50,7 @@ LAB_THRESHOLDS = {
     "Scratching": .5,
     "Shaking head": .5,
     "Showing the middle finger": .3,
-    "Swiping down": .4,
+    "Swiping down": .65,
     "Swiping down (with two hands)": .5,
     "Swiping left": .5,
     "Swiping right": .5,
