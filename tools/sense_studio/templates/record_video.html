@@ -4,20 +4,20 @@
 
 {% block main %}
 <div id="main" class="ui main text container">
-	<h1 class="ui header">
+    <h1 class="ui header">
         Video List
         <div class="sub header">
-			<i class="folder open icon"></i> {{ path }}
-			<br>
-			<i class="eye icon"></i> {{ label }}
-			<br>
-			<i class="database icon"></i> {{ split }}
+            <i class="folder open icon"></i> {{ path }}
+            <br>
+            <i class="eye icon"></i> {{ label }}
+            <br>
+            <i class="database icon"></i> {{ split }}
         </div>
     </h1>
-	<div>
-		<button onclick="record_video()" >record</button>
-		<video id="player" controls></video>
-		<script>
+    <div>
+        <button onclick="record_video()">record</button>
+        <video id="player" controls></video>
+        <script>
 		  var player = document.getElementById('player');
 
 
@@ -54,28 +54,32 @@
 
 			// TODO: send this data to flask server
 			function download() {
+			  const url = "{{ url_for("save_video", filename="video.webm") }}";
 			  var blob = new Blob(recordedChunks, {
 				type: "video/webm"
 			  });
-			  var url = URL.createObjectURL(blob);
-			  var a = document.createElement("a");
-			  document.body.appendChild(a);
-			  a.style = "display: none";
-			  a.href = url;
-			  a.download = "test.webm";
-			  a.click();
-			  window.URL.revokeObjectURL(url);
+			    const formData = new FormData();
+                formData.append("video", blob);
+                fetch(url, {
+                  method: 'POST',
+                  body: formData,
+                }).then(res => {
+                  if(res.ok) alert('OK!');
+                }).catch(err => {
+                  alert(err);
+                });
 			}
 
-			// demo: to download after 9sec
+			// demo: to download after 2sec
 			setTimeout(event => {
 			  console.log("stopping");
 			  mediaRecorder.stop();
-			}, 9000);
+			}, 2000);
 			player.srcObject = stream;
 		  };
-		</script>
-	</div>
+
+        </script>
+    </div>
 </div>
 {% endblock %}
 

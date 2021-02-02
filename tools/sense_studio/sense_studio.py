@@ -346,28 +346,17 @@ def record_video(split, label, path):
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     split = urllib.parse.unquote((split))
     label = urllib.parse.unquote(label)
-    frames_dir = join(path, f"frames_{split}", label)
-    tags_dir = join(path, f"tags_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
+    return render_template('record_video.html', split=split, label=label, path=path)
 
-    os.makedirs(logreg_dir, exist_ok=True)
-    os.makedirs(tags_dir, exist_ok=True)
 
-    # load feature extractor if needed
-    _load_feature_extractor()
-    # compute the features and frames missing.
-    compute_frames_features(inference_engine, split, label, path)
-
-    videos = os.listdir(frames_dir)
-    videos.sort()
-
-    logreg_path = join(logreg_dir, 'logreg.joblib')
-    if os.path.isfile(logreg_path):
-        global logreg
-        logreg = load(logreg_path)
-
-    folder_id = zip(videos, list(range(len(videos))))
-    return render_template('record_video.html', folders=folder_id, split=split, label=label, path=path)
+@app.route('/video_saving/<filename>', methods=['POST'])
+def save_video(filename):
+    if request.method == 'POST':
+        file = request.files['video']
+        with open(filename, "wb") as vid:
+            video_stream = file.read()
+            vid.write(video_stream)
+            return "Success"
 
 
 @app.route('/prepare_annotation/<path:path>')
