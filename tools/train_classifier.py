@@ -43,6 +43,8 @@ from sense.finetuning import set_internal_padding_false
 from sense.finetuning import training_loops
 from sense.utils import clean_pipe_state_dict_key
 
+import sys
+
 
 if __name__ == "__main__":
     # Parse arguments
@@ -65,6 +67,15 @@ if __name__ == "__main__":
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
 
     if resume:
+        print("Warning: if resume training, all files in the 'checkpoints' folder will be overwritten.")
+        while True:
+            overwrite_files = input("Enter Y if allow to overwrite files, enter N then the program will stop: ")
+            if overwrite_files.lower() == "y":
+                break
+            elif overwrite_files.lower() == "n":
+                sys.exit()
+            else:
+                print('Wrong input')
         # load the last classifier
         checkpoint_classifier = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
@@ -160,6 +171,6 @@ if __name__ == "__main__":
     }, os.path.join(path_out, "checkpoints/", "best_classifier.checkpoint"))
 
     if temporal_training:
-        json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "label2int.json"), "w"))
+        json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "checkpoints/", "label2int.json"), "w"))
     else:
-        json.dump(label2int, open(os.path.join(path_out, "label2int.json"), "w"))
+        json.dump(label2int, open(os.path.join(path_out, "checkpoints/", "label2int.json"), "w"))

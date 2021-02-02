@@ -53,7 +53,7 @@ if __name__ == "__main__":
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
-    with open(os.path.join(custom_classifier, 'label2int.json')) as file:
+    with open(os.path.join(custom_classifier, 'checkpoints/', 'label2int.json')) as file:
         class2int = json.load(file)
     INT2LAB = {value: key for key, value in class2int.items()}
 

@@ -311,9 +311,6 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         model_state_dict = {clean_pipe_state_dict_key(key): value
                             for key, value in model_state_dict.items()}
         last_classifier = os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint")
-
-        if os.path.exists(last_classifier):
-            os.remove(last_classifier)
         torch.save({
             'model_state_dict': model_state_dict,
         }, last_classifier)
@@ -426,8 +423,8 @@ def save_confusion_matrix(
                  horizontalalignment="center",
                  color="white" if confusion_matrix_array[i, j] > thresh else "black")
 
-    plt.savefig(os.path.join(path_out, 'confusion_matrix.png'), bbox_inches='tight',
+    plt.savefig(os.path.join(path_out, "checkpoints/", 'confusion_matrix.png'), bbox_inches='tight',
                 transparent=False, pad_inches=0.1, dpi=300)
     plt.close()
 
-    np.save(os.path.join(path_out, 'confusion_matrix.npy'), confusion_matrix_array)
+    np.save(os.path.join(path_out, "checkpoints/", 'confusion_matrix.npy'), confusion_matrix_array)
