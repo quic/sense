@@ -349,11 +349,12 @@ def record_video(split, label, path):
     return render_template('record_video.html', split=split, label=label, path=path)
 
 
-@app.route('/video_saving/<filename>', methods=['POST'])
-def save_video(filename):
+@app.route('/video_saving/<split>/<label>/<path:path>', methods=['POST'])
+def save_video(path, label, split):
+    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     if request.method == 'POST':
         file = request.files['video']
-        with open(filename, "wb") as vid:
+        with open(os.path.join(path, "temp_video.webm"), "wb") as vid:
             video_stream = file.read()
             vid.write(video_stream)
             return "Success"

@@ -38,7 +38,6 @@
 			console.log(stream);
 			var options = { mimeType: "video/webm; codecs=vp9" };
 			mediaRecorder = new MediaRecorder(stream, options);
-
 			mediaRecorder.ondataavailable = handleDataAvailable;
 			mediaRecorder.start();
 
@@ -55,7 +54,7 @@
 
 			// TODO: send this data to flask server
 			function download() {
-			  const url = "{{ url_for("save_video", filename="video.webm") }}";
+			  const url = "{{ url_for("save_video", path=path, label=label, split=split) }}".replace(/([^:]\/)\/+/g, "$1");
 			  var blob = new Blob(recordedChunks, {
 				type: "video/webm"
 			  });
