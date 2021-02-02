@@ -75,6 +75,9 @@
 			setTimeout(event => {
 			  console.log("stopping");
 			  mediaRecorder.stop();
+			  stream.getTracks().forEach(function(track) {
+              track.stop();
+                });
 			}, 2000);
 			player.srcObject = stream;
 		  };
