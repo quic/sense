@@ -119,7 +119,7 @@ $(document).ready(function () {
         }
     });
 
-    $('#newClassForm').form({
+    $('.ui.form.card').form({
         fields: {
             className: {
                 rules: [

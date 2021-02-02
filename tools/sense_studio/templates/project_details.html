@@ -111,7 +111,7 @@
         </form>
         {% endfor %}
 
-        <form class="ui form card" id="newClassForm" method="POST" action="{{ url_for('add_class', project=config.name) }}">
+        <form class="ui form card" method="POST" action="{{ url_for('add_class', project=config.name) }}">
             <div class="content">
                 <div class="field">
                     <div class="ui left icon input">
