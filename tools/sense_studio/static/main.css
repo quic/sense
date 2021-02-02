@@ -41,9 +41,26 @@ a {
     width: 100%;
 }
 
+.container { position:relative; }
+
+.container video {
+    position:relative;
+    z-index:0;
+}
+.overlay {
+    position:absolute;
+    margin-top: 50px;
+    margin-left: 150px;
+    top:0;
+    left:0;
+    z-index:1;
+    font-size: 30px;
+}
+
 #path {
     width: 100%;
     border-radius: .28571429rem;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
+
