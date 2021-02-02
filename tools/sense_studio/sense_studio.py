@@ -277,6 +277,8 @@ def add_class(project):
     """
     Add a new class to the given project.
     """
+    project = urllib.parse.unquote(project)
+
     # Lookup project path
     projects = _load_project_overview_config()
     path = projects[project]['path']
@@ -300,7 +302,9 @@ def add_class(project):
     for split in ['train', 'valid']:
         videos_dir = os.path.join(path, f'videos_{split}')
         class_dir = os.path.join(videos_dir, class_name)
-        os.mkdir(class_dir)
+
+        if not os.path.exists(class_dir):
+            os.mkdir(class_dir)
 
     return redirect(url_for("project_details", path=path))
 
@@ -310,6 +314,9 @@ def edit_class(project, class_name):
     """
     Edit the class name and tags for an existing class in the given project.
     """
+    project = urllib.parse.unquote(project)
+    class_name = urllib.parse.unquote(class_name)
+
     # Lookup project path
     projects = _load_project_overview_config()
     path = projects[project]['path']
@@ -348,6 +355,26 @@ def edit_class(project, class_name):
     if os.path.exists(class_dir):
         new_class_dir = os.path.join(logreg_dir, new_class_name)
         os.rename(class_dir, new_class_dir)
+
+    return redirect(url_for("project_details", path=path))
+
+
+@app.route('/remove-class/<string:project>/<string:class_name>')
+def remove_class(project, class_name):
+    """
+    Remove the given class from the config file of the given project. No data will be deleted.
+    """
+    project = urllib.parse.unquote(project)
+    class_name = urllib.parse.unquote(class_name)
+
+    # Lookup project path
+    projects = _load_project_overview_config()
+    path = projects[project]['path']
+
+    # Update project config
+    config = _load_project_config(path)
+    del config['classes'][class_name]
+    _write_project_config(path, config)
 
     return redirect(url_for("project_details", path=path))
 

@@ -104,10 +104,20 @@
                 <i class="download icon"></i>
                 Save Changes
             </button>
-            <button class="ui bottom attached button" type="button">
+            <button class="ui bottom attached button hasclickpopup" type="button">
                 <i class="trash alternate outline icon"></i>
                 Delete Class
             </button>
+            <div class="ui popup transition hidden">
+                <p>
+                    Remove class from the local config.
+                    No data will be deleted.
+                </p>
+                <a class="ui red icon button" href="{{ url_for('remove_class', project=config.name, class_name=class) }}">
+                    <i class="trash alternate outline icon"></i>
+                    Delete Class
+                </a>
+            </div>
         </form>
         {% endfor %}
 
