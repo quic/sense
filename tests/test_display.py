@@ -1,3 +1,4 @@
+import time
 import unittest
 from unittest.mock import Mock
 from unittest.mock import patch
@@ -71,6 +72,20 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
         self.thickness = 2
 
     @patch('sense.display.put_text')
+    def test_display_below_threshold(self, mock_put_text):
+        test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5})
+        test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.4]]})
+
+        mock_put_text.assert_not_called()
+
+    @patch('sense.display.put_text')
+    def test_display_class_not_in_threshold(self, mock_put_text):
+        test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5})
+        test_display.display(self.img, {'sorted_predictions': [['Nodding', 0.4]]})
+
+        mock_put_text.assert_not_called()
+
+    @patch('sense.display.put_text')
     def test_display_default(self, mock_put_text):
         test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5})
         test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.6]]})
@@ -80,6 +95,25 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
                                          font_scale=self.font_scale,
                                          position=(224, 294),
                                          thickness=self.thickness)
+
+    @patch('sense.display.DisplayClassnameOverlay._display_class_name')
+    def test_display_default_within_duration(self, mock_display_class_name):
+        test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5}, duration=.1)
+        start_time = time.perf_counter()
+        test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.6]]})
+
+        call_count = 0
+        while time.perf_counter() - start_time <= test_display.duration:
+            test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.6]]})
+            mock_display_class_name.assert_called_with(self.img, 'Dabbing')
+            call_count = mock_display_class_name.call_count
+
+        # Display something that's not in threshold
+        test_display.display(self.img, {'sorted_predictions': [['Nodding', 0.6]]})
+        # Total call counts should remain the same
+        assert call_count == mock_display_class_name.call_count
+
+
 
     @patch('sense.display.put_text')
     def test_display_adjust_font_scale(self, mock_put_text):
