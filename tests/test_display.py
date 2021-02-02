@@ -113,8 +113,6 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
         # Total call counts should remain the same
         assert call_count == mock_display_class_name.call_count
 
-
-
     @patch('sense.display.put_text')
     def test_display_adjust_font_scale(self, mock_put_text):
         test_display = base_display.DisplayClassnameOverlay(thresholds={'Swiping down (with two hands)': 0.5})
