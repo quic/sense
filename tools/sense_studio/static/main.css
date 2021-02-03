@@ -41,9 +41,9 @@ a {
     width: 100%;
 }
 
-.container { position:relative; }
+.video_container { position:relative; }
 
-.container video {
+.video_container video {
     position:relative;
     z-index:0;
 }

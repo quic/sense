@@ -341,8 +341,7 @@ def show_video_list(split, label, path):
 @app.route('/record_video/<split>/<label>/<path:path>')
 def record_video(split, label, path):
     """
-    Show the list of videos for the given split, class label and project.
-    If the necessary files for annotation haven't been prepared yet, this is done now.
+    Display the video recording screen.
     """
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     split = urllib.parse.unquote((split))
@@ -361,7 +360,7 @@ def save_video(path, label, split):
             vid.write(video_stream)
         output_path = os.path.join(path, "videos_" + split, label)
 
-        os.path.join(output_path, f"video_0.mp4")
+        output_file = os.path.join(output_path, f"video_0.mp4")
         # find a video name that is not used yet
         for i in range(100000):
             output_file = os.path.join(output_path, f"video_{i}.mp4")
