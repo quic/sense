@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
     path_in = args['--path_in']
-    path_out = args['--path_out'] or path_in
+    path_out = args['--path_out'] or os.path.join(path_in, "checkpoints")
     os.makedirs(path_out, exist_ok=True)
     use_gpu = args['--use_gpu']
     path_annotations_train = args['--path_annotations_train'] or None
@@ -58,25 +58,22 @@ if __name__ == "__main__":
     temporal_training = args['--temporal_training']
     resume = args['--resume']
 
-    # Create a folder "checkpoints" to save model weights
-    path = os.path.join(path_in, "checkpoints")
-    os.makedirs(path, exist_ok=True)
-
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
 
+    print("Warning: if start training, files in the path_out folder will be overwritten.")
+    while True:
+        overwrite_files = input("Enter Y if allow to overwrite files, enter N then the program will stop: ")
+        if overwrite_files.lower() == "y":
+            break
+        elif overwrite_files.lower() == "n":
+            sys.exit()
+        else:
+            print('Wrong input')
+
     if resume:
-        print("Warning: if resume training, all files in the 'checkpoints' folder will be overwritten.")
-        while True:
-            overwrite_files = input("Enter Y if allow to overwrite files, enter N then the program will stop: ")
-            if overwrite_files.lower() == "y":
-                break
-            elif overwrite_files.lower() == "n":
-                sys.exit()
-            else:
-                print('Wrong input')
         # load the last classifier
-        checkpoint_classifier = torch.load(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
+        checkpoint_classifier = torch.load(os.path.join(path_out, 'last_classifier.checkpoint'))
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
         # Update original weights in case some intermediate layers have been finetuned
         name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
@@ -165,9 +162,9 @@ if __name__ == "__main__":
     if isinstance(net, Pipe):
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
-    torch.save(best_model_state_dict, os.path.join(path_out, "checkpoints/", "best_classifier.checkpoint"))
+    torch.save(best_model_state_dict, os.path.join(path_out, "best_classifier.checkpoint"))
 
     if temporal_training:
-        json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "checkpoints/", "label2int.json"), "w"))
+        json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "label2int.json"), "w"))
     else:
-        json.dump(label2int, open(os.path.join(path_out, "checkpoints/", "label2int.json"), "w"))
+        json.dump(label2int, open(os.path.join(path_out, "label2int.json"), "w"))
