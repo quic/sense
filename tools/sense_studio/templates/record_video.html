@@ -23,64 +23,55 @@
         <p/>
         <button onclick="record_video()">record</button>
         <p/>
-        <div class="container" width="640" height="480" >
-        <video id="player" width="640" height="480" controls autoplay>
-            <source src="video/Motion.mp4" type="video/mp4" />
-        </video>
-        <div class="overlay">
-            <p id= "text_overlay"> </p>
-        </div>
+        <div class="video_container" width="640" height="480" >
+            <video id="player" width="640" height="480" controls autoplay></video>
+            <div class="overlay">
+                <p id= "text_overlay"> </p>
+            </div>
         </div>
     </div>
         <script>
-		  var player = document.getElementById('player');
-		  var timestamp = Date.now();
-		  var pre_recording = 3;
-		  var recording = 5;
+		    var player = document.getElementById('player');
+		    var timestamp = Date.now();
+		    var pre_recording = 3;
+		    var recording = 5;
 
 
             function record_video() {
                 navigator.mediaDevices.getUserMedia({ audio: false, video: true })
-                  .then(handleSuccess)
+                    .then(handleSuccess)
             }
 
 
-		  var handleSuccess = function(stream) {
+		    var handleSuccess = function(stream) {
 		    var canvas = document.querySelector("canvas");
-
-			// Optional frames per second argument.
-			// var stream = canvas.captureStream(30);
 			var recordedChunks = [];
 
-			console.log(stream);
-			var options = { mimeType: "video/webm; codecs=vp9" };
+			var options = { mimeType: "video/webm; codecs=vp8" };
 
 			function handleDataAvailable(event) {
-			  console.log("data-available");
-			  if (event.data.size > 0) {
-				recordedChunks.push(event.data);
-				console.log(recordedChunks);
-				download();
-			  } else {
+			    console.log("data-available");
+			    if (event.data.size > 0) {
+				    recordedChunks.push(event.data);
+				    console.log(recordedChunks);
+				    download();
+			    } else {
 				// ...
-			  }
+			    }
 			}
 
-			// TODO: send this data to flask server
 			function download() {
-			  const url = "{{ url_for("save_video", path=path, label=label, split=split) }}".replace(/([^:]\/)\/+/g, "$1");
-			  var blob = new Blob(recordedChunks, {
-				type: "video/webm"
-			  });
+			    const url = "{{ url_for("save_video", path=path, label=label, split=split) }}".replace(/([^:]\/)\/+/g, "$1");
+			    var blob = new Blob(recordedChunks, {type: "video/webm"});
 			    const formData = new FormData();
                 formData.append("video", blob);
                 fetch(url, {
-                  method: 'POST',
-                  body: formData,
+                    method: 'POST',
+                    body: formData,
                 }).then(res => {
-                  if(res.ok) alert('Video saved');
+                    if(res.ok) alert('Video saved');
                 }).catch(err => {
-                  alert(err);
+                    alert(err);
                 });
 			}
 
@@ -92,21 +83,20 @@
 
 			// demo: to download after 2sec
 			setTimeout(event => {
-			  mediaRecorder = new MediaRecorder(stream, options);
-			  mediaRecorder.ondataavailable = handleDataAvailable;
-			  mediaRecorder.start();
-			  var text = "RECORDING: " + recording + "s";
-			  document.getElementById("text_overlay").innerHTML = text;
-			  setTimeout(event => {
-			    console.log("stopping");
-			    mediaRecorder.stop();
-			    stream.getTracks().forEach(function(track) {
-                track.stop();
-                  });
+			    mediaRecorder = new MediaRecorder(stream, options);
+			    mediaRecorder.ondataavailable = handleDataAvailable;
+			    mediaRecorder.start();
+			    var text = "RECORDING: " + recording + "s";
+			    document.getElementById("text_overlay").innerHTML = text;
+			    setTimeout(event => {
+			        mediaRecorder.stop();
+			        stream.getTracks().forEach(function(track) {
+                    track.stop();
+                    });
                 }, recording * 1000);
 			}, pre_recording * 1000);
 			player.srcObject = stream;
-		  };
+		};
 
         </script>
     </div>
