@@ -311,9 +311,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         model_state_dict = {clean_pipe_state_dict_key(key): value
                             for key, value in model_state_dict.items()}
         last_classifier = os.path.join(path_out, "checkpoints/", "last_classifier.checkpoint")
-        torch.save({
-            'model_state_dict': model_state_dict,
-        }, last_classifier)
+        torch.save(model_state_dict, last_classifier)
 
     print('Finished Training')
     return best_state_dict

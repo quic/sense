@@ -49,9 +49,9 @@ if __name__ == "__main__":
     # Load custom classifier
     checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'checkpoints/', 'best_classifier.checkpoint'))
     # Update original weights in case some intermediate layers have been finetuned
-    name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier['model_state_dict'].keys())
+    name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
     for key in name_finetuned_layers:
-        checkpoint[key] = checkpoint_classifier['model_state_dict'].pop(key)
+        checkpoint[key] = checkpoint_classifier.pop(key)
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=len(INT2LAB))
-    gesture_classifier.load_state_dict(checkpoint_classifier['model_state_dict'])
+    gesture_classifier.load_state_dict(checkpoint_classifier)
     gesture_classifier.eval()
 
     # Concatenate feature extractor and met converter

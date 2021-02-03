@@ -36,7 +36,6 @@ from docopt import docopt
 from sense import feature_extractors
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.nn_utils import load_weights
 from sense.finetuning import extract_features
 from sense.finetuning import generate_data_loader
 from sense.finetuning import set_internal_padding_false
@@ -77,12 +76,12 @@ if __name__ == "__main__":
             else:
                 print('Wrong input')
         # load the last classifier
-        checkpoint_classifier = load_weights(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
+        checkpoint_classifier = torch.load(os.path.join(path_out, 'checkpoints/', 'last_classifier.checkpoint'))
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
         # Update original weights in case some intermediate layers have been finetuned
-        name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier['model_state_dict'].keys())
+        name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
         for key in name_finetuned_layers:
-            checkpoint[key] = checkpoint_classifier['model_state_dict'].pop(key)
+            checkpoint[key] = checkpoint_classifier.pop(key)
     else:
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
 
@@ -166,9 +165,7 @@ if __name__ == "__main__":
     if isinstance(net, Pipe):
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
-    torch.save({
-        'model_state_dict': best_model_state_dict,
-    }, os.path.join(path_out, "checkpoints/", "best_classifier.checkpoint"))
+    torch.save(best_model_state_dict, os.path.join(path_out, "checkpoints/", "best_classifier.checkpoint"))
 
     if temporal_training:
         json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "checkpoints/", "label2int.json"), "w"))
