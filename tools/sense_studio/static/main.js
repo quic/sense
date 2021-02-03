@@ -119,9 +119,9 @@ $(document).ready(function () {
         }
     });
 
-    $('#newClassForm').form({
+    $('.ui.form.card').form({
         fields: {
-            class: {
+            className: {
                 rules: [
                     {
                         type   : 'empty',
@@ -143,6 +143,8 @@ $(document).ready(function () {
     });
 
     $('.hashoverpopup').popup();
+
+    $('.display-hidden').hide();
 });
 
 
@@ -332,5 +334,19 @@ function assignTag(frameIdx, selectedTagIdx) {
         } else {
             button.classList.remove(tagColors[tagIdx]);
         }
+    }
+}
+
+
+function editClass(index, shouldEdit) {
+    let classShow = $('#classShow' + index);
+    let classEdit = $('#classEdit' + index);
+
+    if (shouldEdit) {
+        classShow.hide();
+        classEdit.show();
+    } else {
+        classShow.show();
+        classEdit.hide();
     }
 }
