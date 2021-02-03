@@ -1,9 +1,9 @@
 
 $(document).ready(function () {
-    $('#pathSearch').search({
+    $('.path-search').search({
         apiSettings: {
             response: function (e) {
-                let path = document.getElementById('path').value;
+                let path = this.children[1].value;
                 let response = checkProjectDirectory(path);
 
                 let results = [];
@@ -16,6 +16,28 @@ $(document).ready(function () {
         },
         showNoResults: false,
         cache: false
+    });
+
+    $('.project-card').form({
+        fields: {
+            path: {
+                rules: [
+                    {
+                        type   : 'regExp',
+                        value  : /\/.*/,
+                        prompt : 'Please enter an absolute path (starting with a "/")'
+                    },
+                    {
+                        type   : 'notExistingPath',
+                        prompt : 'The chosen directory doesn\'t exist'
+                    },
+                    {
+                        type   : 'uniquePath',
+                        prompt : 'Another project is already initialized in this location'
+                    }
+                ]
+            }
+        }
     });
 
     $('#newProjectForm').form({
@@ -42,53 +64,6 @@ $(document).ready(function () {
                     {
                         type   : 'existingPath',
                         prompt : 'The chosen directory already exists'
-                    }
-                ]
-            }
-        }
-    });
-
-    let relocateProjectName = '';
-    let nameInput = $('#name');
-    if (nameInput) {
-        relocateProjectName = nameInput.val();
-    }
-    let relocateProjectPath = '';
-    let pathInput = $('#path');
-    if (pathInput) {
-        relocateProjectPath = pathInput.val();
-    }
-
-    $('#importProjectForm').form({
-        fields: {
-            name: {
-                rules: [
-                    {
-                        type   : 'empty',
-                        prompt : 'Please enter a project name'
-                    },
-                    {
-                        type   : 'uniqueProjectName',
-                        value  : relocateProjectName,
-                        prompt : 'The chosen project name already exists'
-                    }
-                ]
-            },
-            path: {
-                rules: [
-                    {
-                        type   : 'regExp',
-                        value  : /\/.*/,
-                        prompt : 'Please enter an absolute path (starting with a "/")'
-                    },
-                    {
-                        type   : 'notExistingPath',
-                        prompt : 'The chosen directory doesn\'t exist'
-                    },
-                    {
-                        type   : 'uniquePath',
-                        value  : relocateProjectPath,
-                        prompt : 'Another project is already initialized in this location'
                     }
                 ]
             }
@@ -124,11 +99,7 @@ $(document).ready(function () {
 });
 
 
-$.fn.form.settings.rules.uniqueProjectName = function (projectName, relocatedName) {
-    if (relocatedName && projectName === relocatedName) {
-        return true;
-    }
-
+$.fn.form.settings.rules.uniqueProjectName = function (projectName) {
     let projects = getProjects();
     let projectNames = Object.keys(projects);
     return !projectNames.includes(projectName);
@@ -151,11 +122,7 @@ $.fn.form.settings.rules.notExistingPath = function (projectPath) {
 }
 
 
-$.fn.form.settings.rules.uniquePath = function (projectPath, relocatedPath) {
-    if (relocatedPath && projectPath === relocatedPath) {
-        return true;
-    }
-
+$.fn.form.settings.rules.uniquePath = function (projectPath) {
     let projects = getProjects();
     for (project of Object.values(projects)) {
         if (project.path === projectPath) {

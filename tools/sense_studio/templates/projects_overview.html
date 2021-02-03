@@ -8,7 +8,8 @@
     <div class="row">
         <div class="centered ui cards">
             {% for name, project in projects.items() %}
-            <div class="ui card">
+            <form class="ui form card project-card" method="POST" action="{{ url_for('setup_project') }}">
+                <input type="hidden" name="projectName" value="{{ name }}">
                 <div class="content">
                     <div class="header">
                         {{ name }}
@@ -33,10 +34,24 @@
                             <i class="folder open icon"></i>
                             {{ project.path }}
                         {% else %}
-                            <i class="exclamation triangle icon"></i>
-                            {{ project.path }}
+                            <div class="ui yellow message">
+                                <div class="content">
+                                    <i class="exclamation triangle icon"></i>
+                                    This path no longer exists.
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="ui left icon input search path-search">
+                                    <i class="folder open icon"></i>
+                                    <input class="prompt" type="text" name="path" placeholder="/path/to/project" value="{{ project.path }}" autocomplete="off" />
+                                    <div id="pathSuggestions{{ loop.index }}" class="results">
+                                        <!-- Filled automatically -->
+                                    </div>
+                                </div>
+                            </div>
                         {% endif %}
                     </div>
+                    <div class="ui error message"></div>
                 </div>
                 {% if project.exists %}
                     <a class="ui bottom attached icon button" href="{{ url_for('project_details', path=project.path) }}">
@@ -44,15 +59,15 @@
                         Open
                     </a>
                 {% else %}
-                    <a class="ui bottom attached icon button" href="{{ url_for('import_project', name=name, path=project.path) }}">
-                        <i class="crosshairs icon"></i>
-                        Update Location
-                    </a>
+                    <button class="ui bottom attached button" type="submit">
+                        <i class="download icon"></i>
+                        Save New Location
+                    </button>
                 {% endif %}
-            </div>
+            </form>
             {% endfor %}
 
-            <form class="ui form card" id="newProjectForm" method="POST" action="{{ url_for('create_new_project') }}">
+            <form class="ui form card" id="newProjectForm" method="POST" action="{{ url_for('setup_project') }}">
                 <div class="content">
                     <div class="field">
                         <div class="ui left icon input">
@@ -61,9 +76,9 @@
                         </div>
                     </div>
                     <div class="field">
-                        <div class="ui left icon input search" id="pathSearch">
+                        <div class="ui left icon input search path-search">
                             <i class="folder open icon"></i>
-                            <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" />
+                            <input class="prompt" type="text" name="path" placeholder="/path/to/project" autocomplete="off" />
                             <div id="pathSuggestions" class="results">
                                 <!-- Filled automatically -->
                             </div>

@@ -171,8 +171,8 @@ def check_existing_project():
     return jsonify(path_exists=True, classes=classes, subdirs=subdirs)
 
 
-@app.route('/create-new-project', methods=['POST'])
-def create_new_project():
+@app.route('/setup-project', methods=['POST'])
+def setup_project():
     """
     Add a new project to the config file. Can also be used for updating an existing project.
     """
@@ -180,15 +180,24 @@ def create_new_project():
     name = data['projectName']
     path = data['path']
 
-    config = {
-        'name': name,
-        'date_created': datetime.date.today().isoformat(),
-        'classes': {},
-    }
-
-    # Initialize config file in project directory
+    # Initialize project directory
     if not os.path.exists(path):
         os.mkdir(path)
+
+    # Update project config
+    try:
+        # Check for existing config file
+        config = _load_project_config(path)
+        old_name = config['name']
+        config['name'] = name
+    except FileNotFoundError:
+        # Setup new project config
+        config = {
+            'name': name,
+            'date_created': datetime.date.today().isoformat(),
+            'classes': {},
+        }
+        old_name = None
 
     _write_project_config(path, config)
 
@@ -196,14 +205,18 @@ def create_new_project():
     for split in SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         if not os.path.exists(videos_dir):
-            print(f'Creating {videos_dir}')
             os.mkdir(videos_dir)
 
     # Update overall projects config file
     projects = _load_project_overview_config()
+
+    if old_name:
+        del projects[old_name]
+
     projects[name] = {
         'path': path,
     }
+
     _write_project_overview_config(projects)
 
     return redirect(url_for('project_details', path=path))
