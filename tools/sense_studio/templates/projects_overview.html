@@ -8,7 +8,7 @@
     <div class="row">
         <div class="centered ui cards">
             {% for name, project in projects.items() %}
-            <form class="ui form card project-card" method="POST" action="{{ url_for('setup_project') }}">
+            <form class="ui form card update-project-card" method="POST" action="{{ url_for('setup_project') }}">
                 <input type="hidden" name="projectName" value="{{ name }}">
                 <div class="content">
                     <div class="header">
@@ -67,7 +67,7 @@
             </form>
             {% endfor %}
 
-            <form class="ui form card" id="newProjectForm" method="POST" action="{{ url_for('setup_project') }}">
+            <form class="ui form card" id="newProjectCard" method="POST" action="{{ url_for('setup_project') }}">
                 <div class="content">
                     <div class="field">
                         <div class="ui left icon input">
@@ -88,7 +88,7 @@
                 </div>
                 <button class="ui bottom attached button" type="submit">
                     <i class="file outline icon"></i>
-                    Create New Project
+                    Create / Import Project
                 </button>
             </form>
         </div>

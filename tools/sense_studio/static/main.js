@@ -4,7 +4,7 @@ $(document).ready(function () {
         apiSettings: {
             response: function (e) {
                 let path = this.children[1].value;
-                let response = checkProjectDirectory(path);
+                let response = browseDirectory(path);
 
                 let results = [];
                 for (const subdir of response.subdirs) {
@@ -18,13 +18,13 @@ $(document).ready(function () {
         cache: false
     });
 
-    $('.project-card').form({
+    $('.update-project-card').form({
         fields: {
             path: {
                 rules: [
                     {
                         type   : 'regExp',
-                        value  : /\/.*/,
+                        value  : /^\/.*/,
                         prompt : 'Please enter an absolute path (starting with a "/")'
                     },
                     {
@@ -40,7 +40,7 @@ $(document).ready(function () {
         }
     });
 
-    $('#newProjectForm').form({
+    $('#newProjectCard').form({
         fields: {
             projectName: {
                 rules: [
@@ -58,12 +58,12 @@ $(document).ready(function () {
                 rules: [
                     {
                         type   : 'regExp',
-                        value  : /\/.*/,
+                        value  : /^\/.*/,
                         prompt : 'Please enter an absolute path (starting with a "/")'
                     },
                     {
-                        type   : 'existingPath',
-                        prompt : 'The chosen directory already exists'
+                        type   : 'uniquePath',
+                        prompt : 'Another project is already initialized in this location'
                     }
                 ]
             }
@@ -107,14 +107,14 @@ $.fn.form.settings.rules.uniqueProjectName = function (projectName) {
 
 
 $.fn.form.settings.rules.existingPath = function (projectPath) {
-    let response = checkProjectDirectory(projectPath);
+    let response = browseDirectory(projectPath);
     return !response.path_exists;
 }
 
 
 $.fn.form.settings.rules.notExistingPath = function (projectPath) {
     if (projectPath) {
-        let response = checkProjectDirectory(projectPath);
+        let response = browseDirectory(projectPath);
         return response.path_exists;
     } else {
         return true;
@@ -161,8 +161,8 @@ function getProjects() {
 }
 
 
-function checkProjectDirectory(path) {
-    return syncRequest('/check-existing-project', {path: path});
+function browseDirectory(path) {
+    return syncRequest('/browse-directory', {path: path});
 }
 
 

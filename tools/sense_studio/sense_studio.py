@@ -147,28 +147,19 @@ def remove_project(name):
     return redirect(url_for('projects_overview'))
 
 
-@app.route('/check-existing-project', methods=['POST'])
-def check_existing_project():
+@app.route('/browse-directory', methods=['POST'])
+def browse_directory():
     """
     Browse the local file system starting at the given path and provide the following information:
-    - path_exsists: If the given path exists
-    - classes: The list existing classes discovered in the videos_train directory
+    - path_exists: If the given path exists
     - subdirs: The list of sub-directories at the given path
     """
     data = request.json
     path = data['path']
 
-    subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)]
+    subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)] if os.path.isabs(path) else []
 
-    if not os.path.exists(path):
-        return jsonify(path_exists=False, classes=[], subdirs=subdirs)
-
-    train_dir = os.path.join(path, 'videos_train')
-    classes = []
-    if os.path.exists(train_dir):
-        classes = os.listdir(train_dir)
-
-    return jsonify(path_exists=True, classes=classes, subdirs=subdirs)
+    return jsonify(path_exists=os.path.exists(path), subdirs=subdirs)
 
 
 @app.route('/setup-project', methods=['POST'])
@@ -210,7 +201,7 @@ def setup_project():
     # Update overall projects config file
     projects = _load_project_overview_config()
 
-    if old_name:
+    if old_name and old_name in projects:
         del projects[old_name]
 
     projects[name] = {
