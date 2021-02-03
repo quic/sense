@@ -96,6 +96,11 @@ $(document).ready(function () {
     $('.hashoverpopup').popup();
 
     $('.display-hidden').hide();
+
+    $('.message .close').on('click', function() {
+        $(this).closest('.message').transition('fade');
+    });
+;
 });
 
 
