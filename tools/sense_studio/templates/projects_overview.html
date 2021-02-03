@@ -7,7 +7,7 @@
     <h1 class="ui header">Projects</h1>
     <div class="row">
         <div class="centered ui cards">
-        {% for name, project in projects.items() %}
+            {% for name, project in projects.items() %}
             <div class="ui card">
                 <div class="content">
                     <div class="header">
@@ -50,7 +50,36 @@
                     </a>
                 {% endif %}
             </div>
-        {% endfor %}
+            {% endfor %}
+
+            <form class="ui form card" method="POST" action="{{ url_for('add_class', project='name') }}">
+                <div class="content">
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="id card outline icon"></i>
+                            <input type="text" name="projectName" placeholder="Project Name" />
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                <i class="folder open icon"></i>
+                                Path
+                            </div>
+                            <div class="ui search" id="pathSearch">
+                                <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" />
+                                <div id="pathSuggestions" class="results">
+                                    <!-- Filled automatically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="ui bottom attached button" type="submit">
+                    <i class="file outline icon"></i>
+                    Create New Project
+                </button>
+            </form>
         </div>
     </div>
 
