@@ -362,9 +362,10 @@ def save_video(path, label, split):
 
         output_file = os.path.join(output_path, f"video_0.mp4")
         # find a video name that is not used yet
+        existing_files = set(glob.glob(os.path.join(output_path, f"video_*.mp4")))
         for i in range(100000):
             output_file = os.path.join(output_path, f"video_{i}.mp4")
-            if not os.path.isfile(output_file):
+            if output_file not in existing_files:
                 break
         subprocess.call(f'ffmpeg -i {temp_file} -r 30 {output_file}', shell=True)
 
