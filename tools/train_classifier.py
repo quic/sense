@@ -58,18 +58,26 @@ if __name__ == "__main__":
     temporal_training = args['--temporal_training']
     resume = args['--resume']
 
+    saved_files = ["last_classifier.checkpoint", "best_classifier.checkpoint", "label2int.json",
+                   "confusion_matrix.png", "confusion_matrix.npy"]
+    exist_files = []
+
+    for file in saved_files:
+        exist_files.append(os.path.exists(os.path.join(path_out, file)))
+
+    if any(f for f in exist_files):
+        print("Warning: if start training, files in the path_out folder will be overwritten.")
+        while True:
+            overwrite_files = input("Enter Y if allow to overwrite files, enter N then the program will stop: ")
+            if overwrite_files.lower() == "y":
+                break
+            elif overwrite_files.lower() == "n":
+                sys.exit()
+            else:
+                print('Wrong input')
+
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-
-    print("Warning: if start training, files in the path_out folder will be overwritten.")
-    while True:
-        overwrite_files = input("Enter Y if allow to overwrite files, enter N then the program will stop: ")
-        if overwrite_files.lower() == "y":
-            break
-        elif overwrite_files.lower() == "n":
-            sys.exit()
-        else:
-            print('Wrong input')
 
     if resume:
         # load the last classifier
