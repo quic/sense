@@ -38,6 +38,8 @@ PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
 
+SPLITS = ['train', 'valid']
+
 
 def _load_feature_extractor():
     global inference_engine
@@ -227,7 +229,7 @@ def create_new_project():
     _write_project_config(path, config)
 
     # Setup directory structure
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         if not os.path.exists(videos_dir):
             print(f'Creating {videos_dir}')
@@ -261,7 +263,7 @@ def project_details(path):
     stats = {}
     for class_name, tags in config['classes'].items():
         stats[class_name] = {}
-        for split in ['train', 'valid']:
+        for split in SPLITS:
             videos_path = os.path.join(path, f'videos_{split}', class_name)
             tags_path = os.path.join(path, f'tags_{split}', class_name)
             stats[class_name][split] = {
@@ -308,7 +310,7 @@ def add_class(project):
     _write_project_config(path, config)
 
     # Setup directory structure
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         class_dir = os.path.join(videos_dir, class_name)
 
@@ -340,9 +342,8 @@ def edit_class(project, class_name):
     _write_project_config(path, config)
 
     # Update directory names
-    splits = ['train', 'valid']
     prefixes = ['videos', 'features', 'frames', 'tags']
-    for split in splits:
+    for split in SPLITS:
         for prefix in prefixes:
             main_dir = os.path.join(path, f'{prefix}_{split}')
             class_dir = os.path.join(main_dir, class_name)
@@ -423,7 +424,7 @@ def prepare_annotation(path):
 
     # load feature extractor if needed
     _load_feature_extractor()
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(path, f'videos_{split}')):
             compute_frames_features(inference_engine, split, label, path)
