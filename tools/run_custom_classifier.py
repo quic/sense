@@ -27,7 +27,6 @@ from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.nn_utils import load_weights_from_resources
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 
 
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     checkpoint = feature_extractor.state_dict()
 
     # Load custom classifier
-    checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'checkpoints/', 'best_classifier.checkpoint'))
+    checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))
     # Update original weights in case some intermediate layers have been finetuned
     name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
     for key in name_finetuned_layers:
@@ -55,7 +54,7 @@ if __name__ == "__main__":
     feature_extractor.load_state_dict(checkpoint)
     feature_extractor.eval()
 
-    with open(os.path.join(custom_classifier, 'checkpoints/', 'label2int.json')) as file:
+    with open(os.path.join(custom_classifier, 'label2int.json')) as file:
         class2int = json.load(file)
     INT2LAB = {value: key for key, value in class2int.items()}
 
