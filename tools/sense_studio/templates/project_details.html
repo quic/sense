@@ -16,13 +16,20 @@
         <i class="file video outline icon"></i>
         Prepare Annotations
     </a>
+    <input type="hidden" id="projectName" value="{{ config.name }}">
+
     <h3 class="ui header">Classes</h3>
     <div class="ui centered cards">
         {% for class, tags in config.classes.items() %}
-        <div class="card">
+        <div class="card" id="classShow{{ loop.index }}">
             <div class="content">
                 <div class="header">
-                    {{ class }}
+                    <span>
+                        {{ class }}
+                    </span>
+                    <a class="right floated" onclick="editClass('{{ loop.index }}', true)">
+                         <i class="edit icon"></i>
+                    </a>
                 </div>
             </div>
             <div class="content">
@@ -42,7 +49,7 @@
             </div>
             <div class="content">
                 <h4>Annotated Videos</h4>
-                <div class="ui left labeled button" tabindex="0">
+                <div class="ui left labeled button">
                     <div class="ui basic label">
                         Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
                     </div>
@@ -51,7 +58,7 @@
                         Annotate
                     </a>
                 </div>
-                <div class="ui left labeled button mt" tabindex="0">
+                <div class="ui left labeled button mt">
                     <div class="ui basic label">
                         Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
                     </div>
@@ -62,7 +69,88 @@
                 </div>
             </div>
         </div>
+
+        <form class="ui form card display-hidden" id="classEdit{{ loop.index }}" method="POST"
+              action="{{ url_for('edit_class', project=config.name, class_name=class) }}">
+            <div class="content">
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="eye icon"></i>
+                        <input type="text" name="className" placeholder="Class Name" value="{{ class }}" />
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+                <h4>Tags</h4>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="tag icon"></i>
+                        <input type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="tag icon"></i>
+                        <input type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" />
+                    </div>
+                </div>
+                <div class="ui error message"></div>
+            </div>
+            <button class="ui bottom attached button" type="button" onclick="editClass('{{ loop.index }}', false)">
+                <i class="close icon"></i>
+                Cancel
+            </button>
+            <button class="ui bottom attached button" type="submit">
+                <i class="download icon"></i>
+                Save Changes
+            </button>
+            <button class="ui bottom attached button hasclickpopup" type="button">
+                <i class="trash alternate outline icon"></i>
+                Delete Class
+            </button>
+            <div class="ui popup transition hidden">
+                <p>
+                    Remove class from the local config.
+                    No data will be deleted.
+                </p>
+                <a class="ui red icon button" href="{{ url_for('remove_class', project=config.name, class_name=class) }}">
+                    <i class="trash alternate outline icon"></i>
+                    Delete Class
+                </a>
+            </div>
+        </form>
         {% endfor %}
+
+        <form class="ui form card" method="POST" action="{{ url_for('add_class', project=config.name) }}">
+            <div class="content">
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="eye icon"></i>
+                        <input type="text" name="className" placeholder="Class Name" />
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+                <h4>Tags</h4>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="tag icon"></i>
+                        <input type="text" name="tag1" placeholder="Tag 1" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="tag icon"></i>
+                        <input type="text" name="tag2" placeholder="Tag 2" />
+                    </div>
+                </div>
+                <div class="ui error message"></div>
+            </div>
+            <button class="ui bottom attached button" type="submit">
+                <i class="plus icon"></i>
+                Add New Class
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}

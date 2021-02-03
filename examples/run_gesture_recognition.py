@@ -23,7 +23,7 @@ from sense.controller import Controller
 from sense.downstream_tasks.gesture_recognition import INT2LAB
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.nn_utils import load_weights
+from sense.downstream_tasks.nn_utils import load_weights_from_resources
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 
 
@@ -38,13 +38,13 @@ if __name__ == "__main__":
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    feature_extractor.load_weights('resources/backbone/strided_inflated_efficientnet.ckpt')
+    feature_extractor.load_weights_from_resources('backbone/strided_inflated_efficientnet.ckpt')
     feature_extractor.eval()
 
     # Load a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=30)
-    checkpoint = load_weights('resources/gesture_detection/efficientnet_logistic_regression.ckpt')
+    checkpoint = load_weights_from_resources('gesture_detection/efficientnet_logistic_regression.ckpt')
     gesture_classifier.load_state_dict(checkpoint)
     gesture_classifier.eval()
 

@@ -2,6 +2,10 @@ body {
     background-color: #FFFFFF;
 }
 
+a {
+    color: inherit;
+}
+
 .ui.menu .item img.logo {
     margin-right: 1.5em;
     height: 4em;

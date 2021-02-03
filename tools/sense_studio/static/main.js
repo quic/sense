@@ -119,6 +119,23 @@ $(document).ready(function () {
         }
     });
 
+    $('.ui.form.card').form({
+        fields: {
+            className: {
+                rules: [
+                    {
+                        type   : 'empty',
+                        prompt : 'Please enter a class name'
+                    },
+                    {
+                        type   : 'uniqueClassName',
+                        prompt : 'The chosen class name already exists'
+                    }
+                ]
+            }
+        }
+    });
+
     $('.hasclickpopup').popup({
         inline: true,
         on: 'click',
@@ -126,6 +143,8 @@ $(document).ready(function () {
     });
 
     $('.hashoverpopup').popup();
+
+    $('.display-hidden').hide();
 });
 
 
@@ -171,6 +190,13 @@ $.fn.form.settings.rules.uniquePath = function (projectPath, relocatedPath) {
 }
 
 
+$.fn.form.settings.rules.uniqueClassName = function (className) {
+    let projectName = $('#projectName').val();
+    let config = getProjectConfig(projectName);
+    return !(className in config.classes)
+}
+
+
 function syncRequest(url, data) {
     let xhttp = new XMLHttpRequest();
 
@@ -194,6 +220,11 @@ function getProjects() {
 
 function checkProjectDirectory(path) {
     return syncRequest('/check-existing-project', {path: path});
+}
+
+
+function getProjectConfig(projectName) {
+    return syncRequest('/project-config', {name: projectName});
 }
 
 
@@ -303,5 +334,19 @@ function assignTag(frameIdx, selectedTagIdx) {
         } else {
             button.classList.remove(tagColors[tagIdx]);
         }
+    }
+}
+
+
+function editClass(index, shouldEdit) {
+    let classShow = $('#classShow' + index);
+    let classEdit = $('#classEdit' + index);
+
+    if (shouldEdit) {
+        classShow.hide();
+        classEdit.show();
+    } else {
+        classShow.show();
+        classEdit.hide();
     }
 }
