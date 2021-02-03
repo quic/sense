@@ -119,9 +119,9 @@ $(document).ready(function () {
         }
     });
 
-    $('#newClassForm').form({
+    $('.ui.form.card').form({
         fields: {
-            class: {
+            className: {
                 rules: [
                     {
                         type   : 'empty',
