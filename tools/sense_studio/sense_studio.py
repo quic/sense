@@ -352,6 +352,8 @@ def record_video(split, label, path):
 @app.route('/video_saving/<split>/<label>/<path:path>', methods=['POST'])
 def save_video(path, label, split):
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    split = urllib.parse.unquote((split))
+    label = urllib.parse.unquote(label)
     if request.method == 'POST':
         file = request.files['video']
         temp_file = os.path.join(path, "temp_video.webm")
