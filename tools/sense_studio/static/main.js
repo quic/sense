@@ -20,7 +20,7 @@ $(document).ready(function () {
 
     $('#newProjectForm').form({
         fields: {
-            name: {
+            projectName: {
                 rules: [
                     {
                         type   : 'empty',
@@ -46,30 +46,6 @@ $(document).ready(function () {
                 ]
             }
         }
-    });
-
-    $('#pathSearchImport').search({
-        apiSettings: {
-            response: function (e) {
-                let path = document.getElementById('path').value;
-                let response = checkProjectDirectory(path);
-
-                results = [];
-                for (const subdir of response.subdirs) {
-                    results.push({title: subdir})
-                }
-
-                updateClassList(response.classes);
-
-                return {results: results}
-            }
-        },
-        onSelect: function (selectedResult, resultList) {
-            let classes = checkProjectDirectory(selectedResult.title).classes;
-            updateClassList(classes);
-        },
-        showNoResults: false,
-        cache: false
     });
 
     let relocateProjectName = '';
@@ -119,7 +95,7 @@ $(document).ready(function () {
         }
     });
 
-    $('.ui.form.card').form({
+    $('.class-card').form({
         fields: {
             className: {
                 rules: [
@@ -227,88 +203,6 @@ function getProjectConfig(projectName) {
     return syncRequest('/project-config', {name: projectName});
 }
 
-
-function updateClassList(classes) {
-    let classList = document.getElementById('classList');
-
-    while (classList.firstChild) {
-        classList.removeChild(classList.lastChild);
-    }
-
-    for (const className of classes){
-        addClassInput(className);
-    }
-}
-
-
-function addClassInput(className) {
-    let classList = document.getElementById('classList');
-    let numClasses = classList.children.length;
-    let disabled = className !== '';
-
-    // Create new row
-    let row = document.createElement('div');
-    row.className = 'three fields';
-
-    classField = document.createElement('div');
-    classField.className = 'field';
-    classInputGroup = createInputWithLabel('eye', 'Class', 'class' + numClasses, className, true, disabled)
-    classField.appendChild(classInputGroup);
-    row.appendChild(classField);
-
-    tag1Field = document.createElement('div');
-    tag1Field.className = 'field';
-    tag1InputGroup = createInputWithLabel('tag', 'Tag 1', 'class' + numClasses + '_tag1', '', false, disabled)
-    tag1Field.appendChild(tag1InputGroup);
-    row.appendChild(tag1Field);
-
-    tag2Field = document.createElement('div');
-    tag2Field.className = 'field';
-    tag2InputGroup = createInputWithLabel('tag', 'Tag 2', 'class' + numClasses + '_tag2', '', false, disabled)
-    tag2Field.appendChild(tag2InputGroup);
-    row.appendChild(tag2Field);
-
-    classList.appendChild(row);
-
-    // Remove onfocus handler on previous node
-    if (numClasses > 0) {
-        let previousLabeledInput = classList.children[numClasses - 1].children[0].children[0];
-        let previousInput = previousLabeledInput.children[previousLabeledInput.children.length - 1];
-        previousInput.removeAttribute('onfocus');
-    }
-}
-
-function createInputWithLabel(icon, labelText, name, prefill, addOnFocus, disabled) {
-    let inputGroup = document.createElement('div');
-    inputGroup.className = 'ui labeled input';
-
-    if (disabled) {
-        inputGroup.classList.add('disabled');
-    }
-
-    let label = document.createElement('div');
-    label.className = 'ui label';
-
-    let iconElement = document.createElement('i');
-    iconElement.className = icon + ' icon';
-
-    label.appendChild(iconElement);
-    label.appendChild(document.createTextNode(' ' + labelText + ' '));
-    inputGroup.appendChild(label);
-
-    let input = document.createElement('input');
-    input.type = 'text';
-    input.name = name;
-    input.value = prefill;
-    input.placeholder = name;
-
-    if (addOnFocus) {
-        input.setAttribute('onfocus', 'addClassInput("");');
-    }
-
-    inputGroup.appendChild(input);
-    return inputGroup
-}
 
 function loading(element) {
     element.classList.add('loading');

@@ -1,6 +1,6 @@
 {% extends 'skeleton.html' %}
 
-{% block title %} Projects Overview {% endblock %}
+{% block title %} Projects {% endblock %}
 
 {% block main %}
 <div id="main" class="ui main text container grid">
@@ -52,7 +52,7 @@
             </div>
             {% endfor %}
 
-            <form class="ui form card" method="POST" action="{{ url_for('add_class', project='name') }}">
+            <form class="ui form card" id="newProjectForm" method="POST" action="{{ url_for('create_new_project') }}">
                 <div class="content">
                     <div class="field">
                         <div class="ui left icon input">
@@ -61,19 +61,15 @@
                         </div>
                     </div>
                     <div class="field">
-                        <div class="ui labeled input">
-                            <div class="ui label">
-                                <i class="folder open icon"></i>
-                                Path
-                            </div>
-                            <div class="ui search" id="pathSearch">
-                                <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" />
-                                <div id="pathSuggestions" class="results">
-                                    <!-- Filled automatically -->
-                                </div>
+                        <div class="ui left icon input search" id="pathSearch">
+                            <i class="folder open icon"></i>
+                            <input class="prompt" type="text" id="path" name="path" placeholder="/path/to/project" autocomplete="off" />
+                            <div id="pathSuggestions" class="results">
+                                <!-- Filled automatically -->
                             </div>
                         </div>
                     </div>
+                    <div class="ui error message"></div>
                 </div>
                 <button class="ui bottom attached button" type="submit">
                     <i class="file outline icon"></i>
@@ -81,17 +77,6 @@
                 </button>
             </form>
         </div>
-    </div>
-
-    <div class="centered row">
-        <a class="ui icon button hashoverpopup" href="{{ url_for('import_project') }}" data-content="Import an existing project folder">
-            <i class="sign-in icon"></i>
-            Import Project
-        </a>
-        <a class="ui icon button hashoverpopup" href="{{ url_for('new_project_setup') }}"  data-content="Setup a new project folder from scratch">
-            <i class="file outline icon"></i>
-            Start New Project
-        </a>
     </div>
 </div>
 {% endblock %}

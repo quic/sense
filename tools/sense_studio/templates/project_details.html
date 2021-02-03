@@ -70,7 +70,7 @@
             </div>
         </div>
 
-        <form class="ui form card display-hidden" id="classEdit{{ loop.index }}" method="POST"
+        <form class="ui form card class-card display-hidden" id="classEdit{{ loop.index }}" method="POST"
               action="{{ url_for('edit_class', project=config.name, class_name=class) }}">
             <div class="content">
                 <div class="field">
@@ -121,7 +121,7 @@
         </form>
         {% endfor %}
 
-        <form class="ui form card" method="POST" action="{{ url_for('add_class', project=config.name) }}">
+        <form class="ui form card class-card" method="POST" action="{{ url_for('add_class', project=config.name) }}">
             <div class="content">
                 <div class="field">
                     <div class="ui left icon input">

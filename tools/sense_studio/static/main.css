@@ -16,17 +16,9 @@ a {
     margin-top: 7em;
 }
 
-.wireframe {
-    margin-top: 2em;
-}
-
 .ui.footer.segment {
     margin: 5em 0em 0em;
     padding: 2em 0em;
-}
-
-.class-row {
-    margin-bottom: 0.5em;
 }
 
 .ui.button.mt {
@@ -35,15 +27,4 @@ a {
 
 .ui.prediction-label {
     margin-bottom: 0.5em;
-}
-
-.ui.search {
-    width: 100%;
-}
-
-#path {
-    width: 100%;
-    border-radius: .28571429rem;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
 }
