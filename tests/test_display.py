@@ -70,6 +70,8 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
         self.img.shape = (510, 640, 3)
         self.font_scale = 3.0
         self.thickness = 2
+        self.duration = 2
+        self.half_duration = self.duration / 2
 
     @patch('sense.display.put_text')
     def test_display_below_threshold(self, mock_put_text):
@@ -81,7 +83,7 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
     @patch('sense.display.put_text')
     def test_display_class_not_in_threshold(self, mock_put_text):
         test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5})
-        test_display.display(self.img, {'sorted_predictions': [['Nodding', 0.4]]})
+        test_display.display(self.img, {'sorted_predictions': [['Nodding', 1.0]]})
 
         mock_put_text.assert_not_called()
 
@@ -98,20 +100,28 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
 
     @patch('sense.display.DisplayClassnameOverlay._display_class_name')
     def test_display_default_within_duration(self, mock_display_class_name):
-        test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5}, duration=.1)
-        start_time = time.perf_counter()
-        test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.6]]})
+        test_display = base_display.DisplayClassnameOverlay(thresholds={'Dabbing': 0.5},
+                                                            duration=self.duration)
 
-        call_count = 0
-        while time.perf_counter() - start_time <= test_display.duration:
-            test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.6]]})
-            mock_display_class_name.assert_called_with(self.img, 'Dabbing')
-            call_count = mock_display_class_name.call_count
+        # Set start time and call display once
+        test_display._start_time = test_display._get_current_time()
+        test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.51]]})
+        mock_display_class_name.assert_called_with(self.img, 'Dabbing')
+        assert mock_display_class_name.call_count == 1
 
-        # Display something that's not in threshold
-        test_display.display(self.img, {'sorted_predictions': [['Nodding', 0.6]]})
+        # Call display once during the duration
+        with patch("sense.display.DisplayClassnameOverlay._get_current_time",
+                   return_value=test_display._start_time + self.half_duration):
+            test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.51]]})
+
+        # Call display post the duration
+        with patch("sense.display.DisplayClassnameOverlay._get_current_time",
+                   return_value=test_display._start_time + self.duration):
+            # Display nothing after duration has passed
+            test_display.display(self.img, {'sorted_predictions': []})
+
         # Total call counts should remain the same
-        assert call_count == mock_display_class_name.call_count
+        assert mock_display_class_name.call_count == 2
 
     @patch('sense.display.put_text')
     def test_display_adjust_font_scale(self, mock_put_text):

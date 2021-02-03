@@ -239,7 +239,8 @@ class DisplayClassnameOverlay(BaseDisplay):
 
     def _get_center_coordinates(self, img: np.ndarray, text: str, font_scale: float) -> Tuple[int, int]:
         """
-        Calculate and return the coordinates of the lower left corner the text on the current frame.
+        Calculate and return the coordinates of the lower left corner of the text
+        for centering it on the current frame.
         """
         text_size = cv2.getTextSize(text, FONT, font_scale, self.thickness)[0]
 
@@ -276,7 +277,7 @@ class DisplayClassnameOverlay(BaseDisplay):
         """
         Render all display data onto the current frame.
         """
-        now = time.perf_counter()
+        now = self._get_current_time()
 
         if self._current_class_name and now - self._start_time < self.duration:
             # Keep displaying the same class name
@@ -293,6 +294,10 @@ class DisplayClassnameOverlay(BaseDisplay):
                     break
 
         return img
+
+    @staticmethod
+    def _get_current_time() -> float:
+        return time.perf_counter()
 
 
 class DisplayResults:
