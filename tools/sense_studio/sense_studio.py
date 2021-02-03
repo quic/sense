@@ -38,6 +38,8 @@ PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
 
+SPLITS = ['train', 'valid']
+
 
 def _load_feature_extractor():
     global inference_engine
@@ -227,7 +229,7 @@ def create_new_project():
     _write_project_config(path, config)
 
     # Setup directory structure
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         if not os.path.exists(videos_dir):
             print(f'Creating {videos_dir}')
@@ -261,7 +263,7 @@ def project_details(path):
     stats = {}
     for class_name, tags in config['classes'].items():
         stats[class_name] = {}
-        for split in ['train', 'valid']:
+        for split in SPLITS:
             videos_path = os.path.join(path, f'videos_{split}', class_name)
             tags_path = os.path.join(path, f'tags_{split}', class_name)
             stats[class_name][split] = {
@@ -270,6 +272,22 @@ def project_details(path):
             }
 
     return render_template('project_details.html', config=config, path=path, stats=stats)
+
+
+def _get_class_name_and_tags(form_data):
+    """
+    Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
+    are not empty or the same.
+    """
+    class_name = form_data['className']
+    tag1 = form_data['tag1'] or f'{class_name}_tag1'
+    tag2 = form_data['tag2'] or f'{class_name}_tag2'
+
+    if tag2 == tag1:
+        tag1 = f'{tag1}_1'
+        tag2 = f'{tag2}_2'
+
+    return class_name, tag1, tag2
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
@@ -284,14 +302,7 @@ def add_class(project):
     path = projects[project]['path']
 
     # Get class name and tags
-    data = request.form
-    class_name = data['className']
-    tag1 = data['tag1'] or f'{class_name}_tag1'
-    tag2 = data['tag2'] or f'{class_name}_tag2'
-
-    if tag2 == tag1:
-        tag1 = f'{tag1}_1'
-        tag2 = f'{tag2}_2'
+    class_name, tag1, tag2 = _get_class_name_and_tags(request.form)
 
     # Update project config
     config = _load_project_config(path)
@@ -299,7 +310,7 @@ def add_class(project):
     _write_project_config(path, config)
 
     # Setup directory structure
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         class_dir = os.path.join(videos_dir, class_name)
 
@@ -322,14 +333,7 @@ def edit_class(project, class_name):
     path = projects[project]['path']
 
     # Get new class name and tags
-    data = request.form
-    new_class_name = data['className']
-    new_tag1 = data['tag1'] or f'{new_class_name}_tag1'
-    new_tag2 = data['tag2'] or f'{new_class_name}_tag2'
-
-    if new_tag2 == new_tag1:
-        new_tag1 = f'{new_tag1}_1'
-        new_tag2 = f'{new_tag2}_2'
+    new_class_name, new_tag1, new_tag2 = _get_class_name_and_tags(request.form)
 
     # Update project config
     config = _load_project_config(path)
@@ -338,9 +342,8 @@ def edit_class(project, class_name):
     _write_project_config(path, config)
 
     # Update directory names
-    splits = ['train', 'valid']
     prefixes = ['videos', 'features', 'frames', 'tags']
-    for split in splits:
+    for split in SPLITS:
         for prefix in prefixes:
             main_dir = os.path.join(path, f'{prefix}_{split}')
             class_dir = os.path.join(main_dir, class_name)
@@ -421,7 +424,7 @@ def prepare_annotation(path):
 
     # load feature extractor if needed
     _load_feature_extractor()
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(path, f'videos_{split}')):
             compute_frames_features(inference_engine, split, label, path)
