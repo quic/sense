@@ -18,6 +18,21 @@
     </a>
     <input type="hidden" id="projectName" value="{{ config.name }}">
 
+    <div class="ui icon message">
+        <i class="info circle icon"></i>
+        <i class="close icon"></i>
+        <div class="content">
+            <div class="header">
+                Classes and Tags?
+            </div>
+            <p>
+                Each video will have exactly one class label.
+                Tags can be used for temporally annotating single frames out of a video with more specific labels,
+                which later enable you to perform tasks such as counting certain actions.
+            </p>
+        </div>
+    </div>
+
     <h3 class="ui header">Classes</h3>
     <div class="ui centered cards">
         {% for class, tags in config.classes.items() %}
@@ -70,7 +85,7 @@
             </div>
         </div>
 
-        <form class="ui form card display-hidden" id="classEdit{{ loop.index }}" method="POST"
+        <form class="ui form card class-card display-hidden" id="classEdit{{ loop.index }}" method="POST"
               action="{{ url_for('edit_class', project=config.name, class_name=class) }}">
             <div class="content">
                 <div class="field">
@@ -121,7 +136,7 @@
         </form>
         {% endfor %}
 
-        <form class="ui form card" method="POST" action="{{ url_for('add_class', project=config.name) }}">
+        <form class="ui form card class-card" method="POST" action="{{ url_for('add_class', project=config.name) }}">
             <div class="content">
                 <div class="field">
                     <div class="ui left icon input">
