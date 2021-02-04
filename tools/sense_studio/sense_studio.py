@@ -441,11 +441,15 @@ def save_video(path, label, split):
 
     # Find a video name that is not used yet
     output_path = os.path.join(path, f'videos_{split}', label)
-    existing_files = set(glob.glob(os.path.join(output_path, 'video_*.mp4')))
-    for i in range(100000):
-        output_file = os.path.join(output_path, f'video_{i}.mp4')
-        if output_file not in existing_files:
-            break
+    existing_files = set(glob.glob(os.path.join(output_path, 'video_[0-9]*.mp4')))
+
+    video_idx = 0
+    output_file = os.path.join(output_path, f'video_{video_idx}.mp4')
+    while output_file in existing_files:
+        video_idx += 1
+        output_file = os.path.join(output_path, f'video_{video_idx}.mp4')
+
+    # Convert video to target frame rate and save to output name
     subprocess.call(f'ffmpeg -i "{temp_file_name}" -r 30 "{output_file}"', shell=True)
 
     return jsonify(success=True)
