@@ -446,9 +446,9 @@ def save_video(path, label, split):
         output_file = os.path.join(output_path, f'video_{i}.mp4')
         if output_file not in existing_files:
             break
-    subprocess.call(f'ffmpeg -i {temp_file_name} -r 30 {output_file}', shell=True)
+    subprocess.call(f'ffmpeg -i "{temp_file_name}" -r 30 "{output_file}"', shell=True)
 
-    return 'Success'
+    return jsonify(success=True)
 
 
 @app.route('/prepare_annotation/<path:path>')
