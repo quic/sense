@@ -435,14 +435,13 @@ def save_video(path, label, split):
 
     # Read given video to a file
     input_stream = request.files['video']
-    temp_file_name = os.path.join(path, 'temp_video.webm')
+    output_path = os.path.join(path, f'videos_{split}', label)
+    temp_file_name = os.path.join(output_path, 'temp_video.webm')
     with open(temp_file_name, 'wb') as temp_file:
         temp_file.write(input_stream.read())
 
     # Find a video name that is not used yet
-    output_path = os.path.join(path, f'videos_{split}', label)
     existing_files = set(glob.glob(os.path.join(output_path, 'video_[0-9]*.mp4')))
-
     video_idx = 0
     output_file = os.path.join(output_path, f'video_{video_idx}.mp4')
     while output_file in existing_files:
@@ -451,6 +450,9 @@ def save_video(path, label, split):
 
     # Convert video to target frame rate and save to output name
     subprocess.call(f'ffmpeg -i "{temp_file_name}" -r 30 "{output_file}"', shell=True)
+
+    # Remove temp video file
+    os.remove(temp_file_name)
 
     return jsonify(success=True)
 
