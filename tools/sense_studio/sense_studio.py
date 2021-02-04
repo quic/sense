@@ -416,40 +416,39 @@ def show_video_list(split, label, path):
     return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
 
 
-@app.route('/record_video/<split>/<label>/<path:path>')
+@app.route('/record-video/<split>/<label>/<path:path>')
 def record_video(split, label, path):
     """
     Display the video recording screen.
     """
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
-    split = urllib.parse.unquote((split))
+    split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
     return render_template('record_video.html', split=split, label=label, path=path)
 
 
-@app.route('/video_saving/<split>/<label>/<path:path>', methods=['POST'])
+@app.route('/video-saving/<split>/<label>/<path:path>', methods=['POST'])
 def save_video(path, label, split):
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
-    split = urllib.parse.unquote((split))
+    split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
-    if request.method == 'POST':
-        file = request.files['video']
-        temp_file = os.path.join(path, "temp_video.webm")
-        with open(temp_file, "wb") as vid:
-            video_stream = file.read()
-            vid.write(video_stream)
-        output_path = os.path.join(path, "videos_" + split, label)
 
-        output_file = os.path.join(output_path, f"video_0.mp4")
-        # find a video name that is not used yet
-        existing_files = set(glob.glob(os.path.join(output_path, f"video_*.mp4")))
-        for i in range(100000):
-            output_file = os.path.join(output_path, f"video_{i}.mp4")
-            if output_file not in existing_files:
-                break
-        subprocess.call(f'ffmpeg -i {temp_file} -r 30 {output_file}', shell=True)
+    # Read given video to a file
+    input_stream = request.files['video']
+    temp_file_name = os.path.join(path, 'temp_video.webm')
+    with open(temp_file_name, 'wb') as temp_file:
+        temp_file.write(input_stream.read())
 
-        return "Success"
+    # Find a video name that is not used yet
+    output_path = os.path.join(path, f'videos_{split}', label)
+    existing_files = set(glob.glob(os.path.join(output_path, 'video_*.mp4')))
+    for i in range(100000):
+        output_file = os.path.join(output_path, f'video_{i}.mp4')
+        if output_file not in existing_files:
+            break
+    subprocess.call(f'ffmpeg -i {temp_file_name} -r 30 {output_file}', shell=True)
+
+    return 'Success'
 
 
 @app.route('/prepare_annotation/<path:path>')
