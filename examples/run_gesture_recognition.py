@@ -21,6 +21,7 @@ import sense.display
 from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks.gesture_recognition import INT2LAB
+from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.nn_utils import load_weights_from_resources
@@ -55,10 +56,14 @@ if __name__ == "__main__":
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
     ]
 
+    border_size = 30
+
     display_ops = [
         sense.display.DisplayFPS(expected_camera_fps=net.fps,
                                  expected_inference_fps=net.fps / net.step_size),
         sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
+        sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS,
+                                              border_size=border_size if not title else border_size + 50),
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops)
 
