@@ -297,6 +297,10 @@ class DisplayClassnameOverlay(BaseDisplay):
 
     @staticmethod
     def _get_current_time() -> float:
+        """
+        Wrapper method to get the current time.
+        Extracted for ease of testing.
+        """
         return time.perf_counter()
 
 

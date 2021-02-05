@@ -56,7 +56,7 @@ if __name__ == "__main__":
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
     ]
 
-    border_size = 30  # Increase border size for top 1 prediction
+    border_size = 30
 
     display_ops = [
         sense.display.DisplayFPS(expected_camera_fps=net.fps,
