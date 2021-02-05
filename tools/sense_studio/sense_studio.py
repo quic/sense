@@ -38,6 +38,8 @@ PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
 
+SPLITS = ['train', 'valid']
+
 
 def _load_feature_extractor():
     global inference_engine
@@ -145,106 +147,67 @@ def remove_project(name):
     return redirect(url_for('projects_overview'))
 
 
-@app.route('/new-project-setup')
-def new_project_setup():
-    """
-    Show the page for setting up a new project including name, path and class definitions.
-    """
-    return render_template('new_project_setup.html')
-
-
-@app.route('/import-project/', defaults={'name': None, 'path': None})
-@app.route('/import-project/<string:name>/<path:path>')
-def import_project(name, path):
-    """
-    Show the page for importing an existing project. If name and path are given, this is used to
-    update an existing project config, otherwise any existing directory can be selected from the
-    local file system.
-    """
-    name = urllib.parse.unquote(name) if name else ''
-    path = f'/{urllib.parse.unquote(path)}' if path else ''  # Make path absolute
-
-    return render_template('import_project.html', name=name, path=path)
-
-
-@app.route('/check-existing-project', methods=['POST'])
-def check_existing_project():
+@app.route('/browse-directory', methods=['POST'])
+def browse_directory():
     """
     Browse the local file system starting at the given path and provide the following information:
-    - path_exsists: If the given path exists
-    - classes: The list existing classes discovered in the videos_train directory
+    - path_exists: If the given path exists
     - subdirs: The list of sub-directories at the given path
     """
     data = request.json
     path = data['path']
 
-    subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)]
+    subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)] if os.path.isabs(path) else []
 
-    if not os.path.exists(path):
-        return jsonify(path_exists=False, classes=[], subdirs=subdirs)
-
-    train_dir = os.path.join(path, 'videos_train')
-    classes = []
-    if os.path.exists(train_dir):
-        classes = os.listdir(train_dir)
-
-    return jsonify(path_exists=True, classes=classes, subdirs=subdirs)
+    return jsonify(path_exists=os.path.exists(path), subdirs=subdirs)
 
 
-@app.route('/create-new-project', methods=['POST'])
-def create_new_project():
+@app.route('/setup-project', methods=['POST'])
+def setup_project():
     """
     Add a new project to the config file. Can also be used for updating an existing project.
     """
     data = request.form
-    name = data['name']
+    name = data['projectName']
     path = data['path']
 
-    classes = {}
-    class_idx = 0
-    class_key = f'class{class_idx}'
-    while class_key in data:
-        class_name = data[class_key]
-        if class_name:
-            classes[class_name] = [
-                data[f'{class_key}_tag{tag_idx}'] or f'{class_name}_{tag_idx}'
-                for tag_idx in range(1, 3)
-            ]
-
-        class_idx += 1
-        class_key = f'class{class_idx}'
-
-    config = {
-        'name': name,
-        'date_created': datetime.date.today().isoformat(),
-        'classes': classes,
-    }
-
-    # Initialize config file in project directory
+    # Initialize project directory
     if not os.path.exists(path):
         os.mkdir(path)
+
+    # Update project config
+    try:
+        # Check for existing config file
+        config = _load_project_config(path)
+        old_name = config['name']
+        config['name'] = name
+    except FileNotFoundError:
+        # Setup new project config
+        config = {
+            'name': name,
+            'date_created': datetime.date.today().isoformat(),
+            'classes': {},
+        }
+        old_name = None
 
     _write_project_config(path, config)
 
     # Setup directory structure
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         if not os.path.exists(videos_dir):
-            print(f'Creating {videos_dir}')
             os.mkdir(videos_dir)
-
-        for class_name in classes:
-            class_dir = os.path.join(videos_dir, class_name)
-
-            if not os.path.exists(class_dir):
-                print(f'Creating {class_dir}')
-                os.mkdir(class_dir)
 
     # Update overall projects config file
     projects = _load_project_overview_config()
+
+    if old_name and old_name in projects:
+        del projects[old_name]
+
     projects[name] = {
         'path': path,
     }
+
     _write_project_overview_config(projects)
 
     return redirect(url_for('project_details', path=path))
@@ -261,7 +224,7 @@ def project_details(path):
     stats = {}
     for class_name, tags in config['classes'].items():
         stats[class_name] = {}
-        for split in ['train', 'valid']:
+        for split in SPLITS:
             videos_path = os.path.join(path, f'videos_{split}', class_name)
             tags_path = os.path.join(path, f'tags_{split}', class_name)
             stats[class_name][split] = {
@@ -272,24 +235,35 @@ def project_details(path):
     return render_template('project_details.html', config=config, path=path, stats=stats)
 
 
+def _get_class_name_and_tags(form_data):
+    """
+    Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
+    are not empty or the same.
+    """
+    class_name = form_data['className']
+    tag1 = form_data['tag1'] or f'{class_name}_tag1'
+    tag2 = form_data['tag2'] or f'{class_name}_tag2'
+
+    if tag2 == tag1:
+        tag1 = f'{tag1}_1'
+        tag2 = f'{tag2}_2'
+
+    return class_name, tag1, tag2
+
+
 @app.route('/add-class/<string:project>', methods=['POST'])
 def add_class(project):
     """
     Add a new class to the given project.
     """
+    project = urllib.parse.unquote(project)
+
     # Lookup project path
     projects = _load_project_overview_config()
     path = projects[project]['path']
 
     # Get class name and tags
-    data = request.form
-    class_name = data['class']
-    tag1 = data['tag1'] or f'{class_name}_tag1'
-    tag2 = data['tag2'] or f'{class_name}_tag2'
-
-    if tag2 == tag1:
-        tag1 = f'{tag1}_1'
-        tag2 = f'{tag2}_2'
+    class_name, tag1, tag2 = _get_class_name_and_tags(request.form)
 
     # Update project config
     config = _load_project_config(path)
@@ -297,10 +271,74 @@ def add_class(project):
     _write_project_config(path, config)
 
     # Setup directory structure
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         class_dir = os.path.join(videos_dir, class_name)
-        os.mkdir(class_dir)
+
+        if not os.path.exists(class_dir):
+            os.mkdir(class_dir)
+
+    return redirect(url_for("project_details", path=path))
+
+
+@app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
+def edit_class(project, class_name):
+    """
+    Edit the class name and tags for an existing class in the given project.
+    """
+    project = urllib.parse.unquote(project)
+    class_name = urllib.parse.unquote(class_name)
+
+    # Lookup project path
+    projects = _load_project_overview_config()
+    path = projects[project]['path']
+
+    # Get new class name and tags
+    new_class_name, new_tag1, new_tag2 = _get_class_name_and_tags(request.form)
+
+    # Update project config
+    config = _load_project_config(path)
+    del config['classes'][class_name]
+    config['classes'][new_class_name] = [new_tag1, new_tag2]
+    _write_project_config(path, config)
+
+    # Update directory names
+    prefixes = ['videos', 'features', 'frames', 'tags']
+    for split in SPLITS:
+        for prefix in prefixes:
+            main_dir = os.path.join(path, f'{prefix}_{split}')
+            class_dir = os.path.join(main_dir, class_name)
+
+            if os.path.exists(class_dir):
+                new_class_dir = os.path.join(main_dir, new_class_name)
+                os.rename(class_dir, new_class_dir)
+
+    logreg_dir = os.path.join(path, 'logreg')
+    class_dir = os.path.join(logreg_dir, class_name)
+
+    if os.path.exists(class_dir):
+        new_class_dir = os.path.join(logreg_dir, new_class_name)
+        os.rename(class_dir, new_class_dir)
+
+    return redirect(url_for("project_details", path=path))
+
+
+@app.route('/remove-class/<string:project>/<string:class_name>')
+def remove_class(project, class_name):
+    """
+    Remove the given class from the config file of the given project. No data will be deleted.
+    """
+    project = urllib.parse.unquote(project)
+    class_name = urllib.parse.unquote(class_name)
+
+    # Lookup project path
+    projects = _load_project_overview_config()
+    path = projects[project]['path']
+
+    # Update project config
+    config = _load_project_config(path)
+    del config['classes'][class_name]
+    _write_project_config(path, config)
 
     return redirect(url_for("project_details", path=path))
 
@@ -347,7 +385,7 @@ def prepare_annotation(path):
 
     # load feature extractor if needed
     _load_feature_extractor()
-    for split in ['train', 'valid']:
+    for split in SPLITS:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(path, f'videos_{split}')):
             compute_frames_features(inference_engine, split, label, path)
