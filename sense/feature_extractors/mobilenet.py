@@ -192,7 +192,7 @@ class StridedInflatedMobileNetV2(RealtimeNeuralNet):
         return self.cnn(video)
 
     def preprocess(self, clip):
-        clip = clip[:, :, :, ::-1].copy()
+        clip = clip.copy()
         clip /= 255.
         clip = clip.transpose(0, 1, 4, 2, 3)
         clip = torch.Tensor(clip).float()
