@@ -108,7 +108,7 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
         mock_display_class_name.assert_called_with(self.img, 'Dabbing')
         assert mock_display_class_name.call_count == 1
 
-        # Call display once during the duration will display, even when confidence below threshold
+        # Class name will continue to be displayed during the duration even if input is below threshold
         with patch("sense.display.DisplayClassnameOverlay._get_current_time",
                    return_value=test_display._start_time + self.half_duration):
             test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.49]]})
@@ -118,7 +118,7 @@ class TestDisplayClassnameOverlay(unittest.TestCase):
         with patch("sense.display.DisplayClassnameOverlay._get_current_time",
                    return_value=test_display._start_time + self.duration):
             # Display nothing after duration has passed
-            test_display.display(self.img, {'sorted_predictions': []})
+            test_display.display(self.img, {'sorted_predictions': [['Dabbing', 0.49]]})
             # Total call counts should remain the same
             assert mock_display_class_name.call_count == 2
 
