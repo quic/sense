@@ -9,6 +9,7 @@ Usage:
                        [--path_in=PATH]
                        [--plot_model]
                        [--float32]
+                       [--verbose]
   convert_to_tflite.py (-h | --help)
 
 Options:
@@ -19,6 +20,8 @@ Options:
   --plot_model        Plot intermediate Keras model and save as image.
   --float32           Use full precision. By default, this script quantizes weights
                       to 16-bit precision.
+  --verbose           Enable detailed logging
+
   -h --help
 """
 
@@ -79,7 +82,10 @@ SUPPORTED_CLASSIFIER_CONVERSIONS = {
 }
 
 
-def convert(backbone_settings, classifier_settings, output_name, plot_model):
+def convert(backbone_settings, classifier_settings, output_name, plot_model, verbose=False):
+    if verbose:
+        logging.getLogger().setLevel(logging.INFO)
+
     output_dir = "resources/model_conversion/"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -110,18 +116,18 @@ def convert(backbone_settings, classifier_settings, output_name, plot_model):
         plot(model, to_file=to_file, show_shapes=True)
         logging.info("Saved model plot to {}".format(to_file))
 
-    logging.info("input_names", in_names)
-    logging.info("output_names", out_names)
-    logging.info("image_input_names", image_inputs)
+    logging.info(f"input_names {in_names}")
+    logging.info(f"output_names {out_names}")
+    logging.info(f"image_input_names {image_inputs}")
     logging.info(type(keras_file))
 
     export_keras_to_tflite(keras_file, tflite_file)
 
     if fake_weights:
-        logging.warning("************************* Warning!! **************************")
-        logging.warning("Weights in checkpoint did not match weights required by network")
-        logging.warning("Fake weights were generated where they were needed!!!!!!!!!!!!")
-        logging.warning("************************* Warning!! **************************")
+        logging.error("************************* Warning!! **************************")
+        logging.error("Weights in checkpoint did not match weights required by network")
+        logging.error("Fake weights were generated where they were needed!!!!!!!!!!!!")
+        logging.error("************************* Warning!! **************************")
 
 
 if __name__ == "__main__":
@@ -132,6 +138,9 @@ if __name__ == "__main__":
     float32 = args["--float32"]
     path_in = args["--path_in"]
     plot_model = args["--plot_model"]
+    verbose = args["--verbose"]
+    print(verbose)
+    print("\n\n\n\n\n")
 
     backbone_settings = SUPPORTED_BACKBONE_CONVERSIONS.get(backbone_name)
     if not backbone_settings:
@@ -161,4 +170,9 @@ if __name__ == "__main__":
             "{}".format(classifier_settings["corresponding_backbone"])
         )
 
-    convert(backbone_settings, classifier_settings, output_name, plot_model)
+    convert(
+        backbone_settings,
+        classifier_settings,
+        output_name,
+        plot_model,
+        verbose=verbose)

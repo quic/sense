@@ -99,7 +99,7 @@ class KerasConverter:
             outputs=[self.container.all_layers[i] for i in self.container.out_index],
         )
         logging.info("done assembling model")
-        logging.info(model.summary())
+        model.summary(print_fn=logging.info)
 
         # logging.info() all inputs, formatted for use with coremltools Keras convertor
         logging.info("input_names=[")
@@ -118,7 +118,7 @@ class KerasConverter:
         # Inputs are actual Keras layers so we extract their names
         # also build input_features for CoreML generation
         for layer in [self.container.all_layers[i] for i in self.container.in_index]:
-            logging.info("name: ", layer.name, "; shape: ", layer.shape)
+            logging.info(f"name: {layer.name}; shape: {layer.shape}")
 
         # Outputs are not Keras layers, so we have a separate list of names for them
         # - name comes from our list,
@@ -126,7 +126,7 @@ class KerasConverter:
         out_layers = [self.container.all_layers[i] for i in self.container.out_index]
         for i in range(len(self.container.out_names)):
             logging.info(
-                "name: ", self.container.out_names[i] + "; shape: ", out_layers[i].shape
+                f"name: {self.container.out_names[i]}; shape: {out_layers[i].shape}"
             )
         return (
             model,
