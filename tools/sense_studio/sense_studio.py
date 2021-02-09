@@ -148,84 +148,48 @@ def remove_project(name):
     return redirect(url_for('projects_overview'))
 
 
-@app.route('/new-project-setup')
-def new_project_setup():
-    """
-    Show the page for setting up a new project including name, path and class definitions.
-    """
-    return render_template('new_project_setup.html')
-
-
-@app.route('/import-project/', defaults={'name': None, 'path': None})
-@app.route('/import-project/<string:name>/<path:path>')
-def import_project(name, path):
-    """
-    Show the page for importing an existing project. If name and path are given, this is used to
-    update an existing project config, otherwise any existing directory can be selected from the
-    local file system.
-    """
-    name = urllib.parse.unquote(name) if name else ''
-    path = f'/{urllib.parse.unquote(path)}' if path else ''  # Make path absolute
-
-    return render_template('import_project.html', name=name, path=path)
-
-
-@app.route('/check-existing-project', methods=['POST'])
-def check_existing_project():
+@app.route('/browse-directory', methods=['POST'])
+def browse_directory():
     """
     Browse the local file system starting at the given path and provide the following information:
-    - path_exsists: If the given path exists
-    - classes: The list existing classes discovered in the videos_train directory
+    - path_exists: If the given path exists
     - subdirs: The list of sub-directories at the given path
     """
     data = request.json
     path = data['path']
 
-    subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)]
+    subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)] if os.path.isabs(path) else []
 
-    if not os.path.exists(path):
-        return jsonify(path_exists=False, classes=[], subdirs=subdirs)
-
-    train_dir = os.path.join(path, 'videos_train')
-    classes = []
-    if os.path.exists(train_dir):
-        classes = os.listdir(train_dir)
-
-    return jsonify(path_exists=True, classes=classes, subdirs=subdirs)
+    return jsonify(path_exists=os.path.exists(path), subdirs=subdirs)
 
 
-@app.route('/create-new-project', methods=['POST'])
-def create_new_project():
+@app.route('/setup-project', methods=['POST'])
+def setup_project():
     """
     Add a new project to the config file. Can also be used for updating an existing project.
     """
     data = request.form
-    name = data['name']
+    name = data['projectName']
     path = data['path']
 
-    classes = {}
-    class_idx = 0
-    class_key = f'class{class_idx}'
-    while class_key in data:
-        class_name = data[class_key]
-        if class_name:
-            classes[class_name] = [
-                data[f'{class_key}_tag{tag_idx}'] or f'{class_name}_{tag_idx}'
-                for tag_idx in range(1, 3)
-            ]
-
-        class_idx += 1
-        class_key = f'class{class_idx}'
-
-    config = {
-        'name': name,
-        'date_created': datetime.date.today().isoformat(),
-        'classes': classes,
-    }
-
-    # Initialize config file in project directory
+    # Initialize project directory
     if not os.path.exists(path):
         os.mkdir(path)
+
+    # Update project config
+    try:
+        # Check for existing config file
+        config = _load_project_config(path)
+        old_name = config['name']
+        config['name'] = name
+    except FileNotFoundError:
+        # Setup new project config
+        config = {
+            'name': name,
+            'date_created': datetime.date.today().isoformat(),
+            'classes': {},
+        }
+        old_name = None
 
     _write_project_config(path, config)
 
@@ -233,21 +197,18 @@ def create_new_project():
     for split in SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         if not os.path.exists(videos_dir):
-            print(f'Creating {videos_dir}')
             os.mkdir(videos_dir)
-
-        for class_name in classes:
-            class_dir = os.path.join(videos_dir, class_name)
-
-            if not os.path.exists(class_dir):
-                print(f'Creating {class_dir}')
-                os.mkdir(class_dir)
 
     # Update overall projects config file
     projects = _load_project_overview_config()
+
+    if old_name and old_name in projects:
+        del projects[old_name]
+
     projects[name] = {
         'path': path,
     }
+
     _write_project_overview_config(projects)
 
     return redirect(url_for('project_details', path=path))

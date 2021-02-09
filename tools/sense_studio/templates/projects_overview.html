@@ -1,14 +1,15 @@
 {% extends 'skeleton.html' %}
 
-{% block title %} Projects Overview {% endblock %}
+{% block title %} Projects {% endblock %}
 
 {% block main %}
 <div id="main" class="ui main text container grid">
     <h1 class="ui header">Projects</h1>
     <div class="row">
         <div class="centered ui cards">
-        {% for name, project in projects.items() %}
-            <div class="ui card">
+            {% for name, project in projects.items() %}
+            <form class="ui form card update-project-card" method="POST" action="{{ url_for('setup_project') }}">
+                <input type="hidden" name="projectName" value="{{ name }}">
                 <div class="content">
                     <div class="header">
                         {{ name }}
@@ -33,10 +34,24 @@
                             <i class="folder open icon"></i>
                             {{ project.path }}
                         {% else %}
-                            <i class="exclamation triangle icon"></i>
-                            {{ project.path }}
+                            <div class="ui yellow message">
+                                <div class="content">
+                                    <i class="exclamation triangle icon"></i>
+                                    This path no longer exists.
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="ui left icon input search path-search">
+                                    <i class="folder open icon"></i>
+                                    <input class="prompt" type="text" name="path" placeholder="/path/to/project" value="{{ project.path }}" autocomplete="off" />
+                                    <div id="pathSuggestions{{ loop.index }}" class="results">
+                                        <!-- Filled automatically -->
+                                    </div>
+                                </div>
+                            </div>
                         {% endif %}
                     </div>
+                    <div class="ui error message"></div>
                 </div>
                 {% if project.exists %}
                     <a class="ui bottom attached icon button" href="{{ url_for('project_details', path=project.path) }}">
@@ -44,25 +59,39 @@
                         Open
                     </a>
                 {% else %}
-                    <a class="ui bottom attached icon button" href="{{ url_for('import_project', name=name, path=project.path) }}">
-                        <i class="crosshairs icon"></i>
-                        Update Location
-                    </a>
+                    <button class="ui bottom attached button" type="submit">
+                        <i class="download icon"></i>
+                        Save New Location
+                    </button>
                 {% endif %}
-            </div>
-        {% endfor %}
-        </div>
-    </div>
+            </form>
+            {% endfor %}
 
-    <div class="centered row">
-        <a class="ui icon button hashoverpopup" href="{{ url_for('import_project') }}" data-content="Import an existing project folder">
-            <i class="sign-in icon"></i>
-            Import Project
-        </a>
-        <a class="ui icon button hashoverpopup" href="{{ url_for('new_project_setup') }}"  data-content="Setup a new project folder from scratch">
-            <i class="file outline icon"></i>
-            Start New Project
-        </a>
+            <form class="ui form card" id="newProjectCard" method="POST" action="{{ url_for('setup_project') }}">
+                <div class="content">
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="id card outline icon"></i>
+                            <input type="text" name="projectName" placeholder="Project Name" />
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui left icon input search path-search">
+                            <i class="folder open icon"></i>
+                            <input class="prompt" type="text" name="path" placeholder="/path/to/project" autocomplete="off" />
+                            <div id="pathSuggestions" class="results">
+                                <!-- Filled automatically -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ui error message"></div>
+                </div>
+                <button class="ui bottom attached button" type="submit">
+                    <i class="file outline icon"></i>
+                    Create / Import Project
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
