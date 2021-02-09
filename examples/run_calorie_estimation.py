@@ -14,10 +14,13 @@ Usage:
   run_calorie_estimation.py (-h | --help)
 
 Options:
-  --weight=WEIGHT                 Weight (in kilograms). Will be used to convert predicted MET value to calories [default: 70]
+  --weight=WEIGHT                 Weight (in kilograms). Will be used to convert predicted MET value to calories
+                                  [default: 70]
   --age=AGE                       Age (in years). Will be used to convert predicted MET value to calories [default: 30]
-  --height=HEIGHT                 Height (in centimeters). Will be used to convert predicted MET value to calories [default: 170]
-  --gender=GENDER                 Gender ("male" or "female" or "other"). Will be used to convert predicted MET value to calories
+  --height=HEIGHT                 Height (in centimeters). Will be used to convert predicted MET value to calories
+                                  [default: 170]
+  --gender=GENDER                 Gender ("male" or "female" or "other"). Will be used to convert predicted MET value to
+                                  calories
   --camera_id=CAMERA_ID           ID of the camera to stream from
   --path_in=FILENAME              Video file to stream from
   --path_out=FILENAME             Video file to stream to
@@ -26,7 +29,6 @@ Options:
 from docopt import docopt
 
 import sense.display
-
 from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks import calorie_estimation
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     model_version = args['--model_version'] or None
     use_gpu = args['--use_gpu']
 
-    camera_id = args['--camera_id'] or 0
+    camera_id = int(args['--camera_id'] or 0)
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
     title = args['--title'] or None

@@ -1,0 +1,30 @@
+body {
+    background-color: #FFFFFF;
+}
+
+a {
+    color: inherit;
+}
+
+.ui.menu .item img.logo {
+    margin-right: 1.5em;
+    height: 4em;
+    width: auto;
+}
+
+.main.container {
+    margin-top: 7em;
+}
+
+.ui.footer.segment {
+    margin: 5em 0em 0em;
+    padding: 2em 0em;
+}
+
+.ui.button.mt {
+    margin-top: 1em;
+}
+
+.ui.prediction-label {
+    margin-bottom: 0.5em;
+}

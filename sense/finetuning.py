@@ -12,6 +12,9 @@ from PIL import Image
 from sense import camera
 from sense import engine
 from sklearn.metrics import confusion_matrix
+from os.path import join
+
+from sense.utils import clean_pipe_state_dict_key
 
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
@@ -217,6 +220,28 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)
 
 
+def compute_frames_features(inference_engine, split, label, dataset_path):
+    # Get data-set from path, given split and label
+    folder = join(dataset_path, f'videos_{split}', label)
+
+    # Create features and frames folders for the given split and label
+    features_folder = join(dataset_path, f'features_{split}', label)
+    frames_folder = join(dataset_path, f'frames_{split}', label)
+    os.makedirs(features_folder, exist_ok=True)
+    os.makedirs(frames_folder, exist_ok=True)
+
+    # Loop through all videos for the given class-label
+    videos = glob.glob(folder + '/*.mp4')
+    for e, video_path in enumerate(videos):
+        print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
+        path_frames = join(frames_folder, os.path.basename(video_path).replace(".mp4", ""))
+        path_features = join(features_folder, os.path.basename(video_path).replace(".mp4", ".npy"))
+        if not os.path.isfile(path_features):
+            os.makedirs(path_frames, exist_ok=True)
+            compute_features(video_path, path_features, inference_engine,
+                             num_timesteps=1, path_frames=path_frames, batch_size=64)
+
+
 def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
@@ -253,7 +278,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
     best_top1 = 0.
     best_loss = 9999
 
-    for epoch in range(num_epochs):  # loop over the dataset multiple times
+    for epoch in range(0, num_epochs):  # loop over the dataset multiple times
         new_lr = lr_schedule.get(epoch)
         if new_lr:
             print(f"update lr to {new_lr}")
@@ -261,7 +286,6 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 param_group['lr'] = new_lr
 
         net.train()
-
         train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, optimizer,
                                                        use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
@@ -281,6 +305,12 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
             if valid_loss < best_loss:
                 best_loss = valid_loss
                 best_state_dict = net.state_dict().copy()
+
+        # save the last checkpoint
+        model_state_dict = net.state_dict().copy()
+        model_state_dict = {clean_pipe_state_dict_key(key): value
+                            for key, value in model_state_dict.items()}
+        torch.save(model_state_dict, os.path.join(path_out, "last_classifier.checkpoint"))
 
     print('Finished Training')
     return best_state_dict

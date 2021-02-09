@@ -90,7 +90,12 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
 
         if all(os.path.exists(path) for path in path_weights.values()):
             print(f'Weights found:\n{path_weights_string}')
-            return model_config, {name: load_weights(path) for name, path in path_weights.items()}
+            weights = {}
+            for name, path in path_weights.items():
+                load_fn = load_backbone_weights if name == 'backbone' else load_weights
+                weights[name] = load_fn(path)
+
+            return model_config, weights
         else:
             print(f'Could not find at least one of the following files:\n{path_weights_string}')
 
@@ -111,14 +116,18 @@ def load_weights(checkpoint_path: str):
 
 def load_backbone_weights(checkpoint_path: str):
     """
-    Load weights from a checkpoint file. Raises an error pointing to the SDK page
-    in case weights are missing.
+    Load backbone weights from a checkpoint file, unless the TRAVIS environment
+    variable is defined. Raises an error pointing to the SDK page in case weights
+    are missing.
 
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
     try:
-        return load_weights(checkpoint_path)
+        if not os.getenv('TRAVIS', False) == 'true':
+            return load_weights(checkpoint_path)
+        else:
+            print('Weights are not loaded on Travis.')
     finally:
         raise Exception(f'ERROR - Weights file missing {checkpoint_path}. To download, please go to '
                         f'https://20bn.com/licensing/sdk/evaluation and follow the '

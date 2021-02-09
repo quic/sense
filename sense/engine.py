@@ -16,6 +16,7 @@ class InferenceEngine(Thread):
     InferenceEngine takes in a neural network and uses it to output predictions
     either using the local machine's CPU or GPU.
     """
+
     def __init__(self, net: RealtimeNeuralNet, use_gpu: bool = False):
         """
         :param net:

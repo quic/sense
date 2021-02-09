@@ -1,7 +1,12 @@
-import numpy as np
-import torch.nn as nn
+import os
+from pathlib import Path
 
+import numpy as np
+import torch
+import torch.nn as nn
 from typing import Tuple
+
+from sense import RESOURCES_DIR
 
 
 class RealtimeNeuralNet(nn.Module):
@@ -83,3 +88,28 @@ class LogisticRegression(nn.Sequential):
         if self.global_average_pooling:
             input_tensor = input_tensor.mean(dim=-1).mean(dim=-1)
         return super().forward(input_tensor)
+
+
+class LogisticRegressionSigmoid(LogisticRegression):
+
+    def __init__(self, **kwargs):
+        super().__init__(use_softmax=False, **kwargs)
+        self.add_module(str(len(self)), nn.Sigmoid())
+
+
+def load_weights_from_resources(checkpoint_path: str):
+    """
+    Load weights from a checkpoint file located in the resources folder.
+
+    :param checkpoint_path:
+        A string representing the absolute/relative path to the checkpoint file.
+    """
+    checkpoint_path = os.path.join(RESOURCES_DIR, checkpoint_path.split(f'resources{os.sep}')[-1])
+    try:
+        return torch.load(checkpoint_path, map_location='cpu')
+
+    except FileNotFoundError:
+        raise FileNotFoundError('Weights file missing: {}. '
+                                'To download, please go to '
+                                'https://20bn.com/licensing/sdk/evaluation and follow the '
+                                'instructions.'.format(checkpoint_path))
