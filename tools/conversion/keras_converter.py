@@ -99,19 +99,19 @@ class KerasConverter:
             outputs=[self.container.all_layers[i] for i in self.container.out_index],
         )
         logging.info("done assembling model")
-        model.summary(print_fn=logging.info)
+        model.summary(print_fn=print)
 
         # logging.info() all inputs, formatted for use with coremltools Keras convertor
-        logging.info("input_names=[")
+        print("input_names = [")
         for name in self.container.in_names:
-            logging.info("  '" + name + "',")
-        logging.info("],")
+            print(f"    '{name}',")
+        print("],")
 
         # logging.info() all outputs, formatted for use with coremltools Keras convertor
-        logging.info("output_names=[")
+        print("output_names = [")
         for name in self.container.out_names:
-            logging.info("  '" + name + "',")
-        logging.info("],")
+            print(f"    '{name}',")
+        print("],")
 
         # Just for fun, logging.info() all inputs and outputs and their shapes.
 
