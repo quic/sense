@@ -29,12 +29,15 @@ a {
     margin-bottom: 0.5em;
 }
 
-.video_container { position:relative; }
+.video-container {
+    position:relative;
+}
 
-.video_container video {
+.video-container video {
     position:relative;
     z-index:0;
 }
+
 .overlay {
     position:absolute;
     margin-top: 50px;

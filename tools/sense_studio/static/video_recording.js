@@ -1,3 +1,32 @@
+
+function increase(inputID) {
+    let element = document.getElementById(inputID);
+    let value = parseInt(element.value);
+
+    if (isNaN(value)) {
+        value = 1;
+    } else {
+        value++;
+    }
+
+    element.value = value;
+}
+
+
+function decrease(inputID, minValue) {
+    let element = document.getElementById(inputID);
+    let value = parseInt(element.value);
+
+    if (isNaN(value)) {
+        value = 1;
+    } else if (value > minValue) {
+        value--;
+    }
+
+    element.value = value;
+}
+
+
 function recordVideo(url) {
     navigator.mediaDevices.getUserMedia({ audio: false, video: true })
         .then(stream => setupRecording(stream, url));
@@ -13,17 +42,17 @@ function setupRecording(stream, url) {
     let player = document.getElementById('player');
     player.srcObject = stream;
 
-    preRecordingDuration = parseInt(document.getElementById('preRecordingDuration').value)
-    recordingDuration = parseInt(document.getElementById('recordingDuration').value)
+    countdownDuration = parseInt(document.getElementById('countdown').value)
+    recordingDuration = parseInt(document.getElementById('duration').value)
 
     // Show countdown
-    for (const seconds of Array(preRecordingDuration).keys()) {
-        const countdown = preRecordingDuration - seconds;
+    for (const seconds of Array(countdownDuration).keys()) {
+        const countdown = countdownDuration - seconds;
         setTimeout(displayOverlay, seconds * 1000, 'PRE RECORDING: ' + countdown + 's');
     }
 
     // Start recording
-    setTimeout(startRecording, preRecordingDuration * 1000, stream, recordingDuration, url);
+    setTimeout(startRecording, countdownDuration * 1000, stream, recordingDuration, url);
 };
 
 

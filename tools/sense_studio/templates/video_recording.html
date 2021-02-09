@@ -14,25 +14,46 @@
             <i class="database icon"></i> {{ split }}
         </div>
     </h1>
-    <div>
-        <div>
-            <a>Pre recording duration</a>
-            <div class="ui input"><input type="text" value="3" id="preRecordingDuration"/></div>
+    <form class="ui form">
+        <div class="fields">
+            <div class="four wide field">
+                <label>Countdown</label>
+                <div class="ui action left icon input">
+                    <i class="stopwatch icon"></i>
+                    <input type="text" value="3" id="countdown"/>
+                    <div class="ui icon button" onclick="decrease('countdown', 0);">
+                        <i class="minus icon"></i>
+                    </div>
+                    <div class="ui icon button" onclick="increase('countdown');">
+                        <i class="plus icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="four wide field">
+                <label>Duration</label>
+                <div class="ui action left icon input">
+                    <i class="hourglass icon"></i>
+                    <input type="text" value="5" id="duration"/>
+                    <div class="ui icon button" onclick="decrease('duration', 1);">
+                        <i class="minus icon"></i>
+                    </div>
+                    <div class="ui icon button" onclick="increase('duration');">
+                        <i class="plus icon"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <a>Recording duration</a>
-            <div class="ui input"><input type="text" value="5" id="recordingDuration"/></div>
-        </div>
-        <button class="ui primary button" onclick="recordVideo('{{ url_for('save_video', project=project, label=label, split=split) }}')">
+        <div class="ui primary icon button" onclick="recordVideo('{{ url_for('save_video', project=project, label=label, split=split) }}');">
+            <i class="circle icon"></i>
             Record
-        </button>
-        <div class="video_container">
+        </div>
+        <div class="video-container">
             <video id="player" width="640" height="480" autoplay></video>
             <div class="overlay">
                 <p id="textOverlay"> </p>
             </div>
         </div>
-    </div>
+    </form>
 </div>
 {% endblock %}
 
