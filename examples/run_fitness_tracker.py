@@ -14,16 +14,16 @@ Usage:
   run_fitness_tracker.py (-h | --help)
 
 Options:
-  --weight=WEIGHT            Weight (in kilograms). Will be used to convert predicted MET value to calories [default: 70]
-  --age=AGE                  Age (in years). Will be used to convert predicted MET value to calories [default: 30]
-  --height=HEIGHT            Height (in centimeters). Will be used to convert predicted MET value to calories [default: 170]
-  --gender=GENDER            Gender ("male" or "female" or "other"). Will be used to convert predicted MET value to calories
-  --path_in=FILENAME         Video file to stream from
-  --path_out=FILENAME        Video file to stream to
-  --title=TITLE              This adds a title to the window display
-  --model_name=NAME          Name of the model to be used.
-  --model_version=VERSION    Version of the model to be used.
-  --use_gpu                  Whether to run inference on the GPU or not.
+  --weight=WEIGHT          Weight (in kilograms). Will be used to convert MET values to calories [default: 70]
+  --age=AGE                Age (in years). Will be used to convert MET values to calories [default: 30]
+  --height=HEIGHT          Height (in centimeters). Will be used to convert MET values to calories [default: 170]
+  --gender=GENDER          Gender ("male" or "female" or "other"). Will be used to convert MET values to calories
+  --path_in=FILENAME       Video file to stream from
+  --path_out=FILENAME      Video file to stream to
+  --title=TITLE            This adds a title to the window display
+  --model_name=NAME        Name of the model to be used.
+  --model_version=VERSION  Version of the model to be used.
+  --use_gpu                Whether to run inference on the GPU or not.
 """
 from docopt import docopt
 
