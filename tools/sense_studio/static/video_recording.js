@@ -34,8 +34,8 @@ function recordVideo(url) {
 
 
 function displayOverlay(text, mode) {
-    overlay = document.getElementById('textOverlay');
-    container = document.getElementById('videoContainer');
+    let overlay = document.getElementById('textOverlay');
+    let container = document.getElementById('videoContainer');
 
     // Update overlay text
     overlay.innerHTML = text;
@@ -74,8 +74,8 @@ function setupRecording(stream, url) {
     let player = document.getElementById('player');
     player.srcObject = stream;
 
-    countdownDuration = parseInt(document.getElementById('countdown').value)
-    recordingDuration = parseInt(document.getElementById('duration').value)
+    let countdownDuration = parseInt(document.getElementById('countdown').value)
+    let recordingDuration = parseInt(document.getElementById('duration').value)
 
     // Show countdown
     for (const seconds of Array(countdownDuration).keys()) {
@@ -89,7 +89,7 @@ function setupRecording(stream, url) {
 
 
 function startRecording(stream, recordingDuration, url) {
-    mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm; codecs=vp8'});
+    let mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm; codecs=vp8'});
     mediaRecorder.ondataavailable = function (event) {
         if (event.data.size > 0) {
             saveVideo(event.data, url);
