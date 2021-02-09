@@ -72,7 +72,7 @@
                         <i class="edit icon"></i>
                         Annotate
                     </a>
-                    <a class="ui icon button" href="{{ url_for('record_video', split='train', label=class, path=path) }}">
+                    <a class="ui icon button" href="{{ url_for('record_video', project=config.name, split='train', label=class) }}">
                         <i class="record icon"></i>
                         Record
                     </a>
@@ -85,7 +85,7 @@
                         <i class="edit icon"></i>
                         Annotate
                     </a>
-                    <a class="ui icon button" href="{{ url_for('record_video', split='train', label=class, path=path) }}">
+                    <a class="ui icon button" href="{{ url_for('record_video', project=config.name, split='train', label=class) }}">
                         <i class="record icon"></i>
                         Record
                     </a>

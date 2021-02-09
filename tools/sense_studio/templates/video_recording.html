@@ -23,9 +23,11 @@
             <a>Recording duration</a>
             <div class="ui input"><input type="text" value="5" id="recordingDuration"/></div>
         </div>
-        <button class="ui primary button" onclick="recordVideo('{{ url_for('save_video', path=path, label=label, split=split) }}')">record</button>
+        <button class="ui primary button" onclick="recordVideo('{{ url_for('save_video', project=project, label=label, split=split) }}')">
+            Record
+        </button>
         <div class="video_container">
-            <video id="player" width="640" height="480" controls autoplay></video>
+            <video id="player" width="640" height="480" autoplay></video>
             <div class="overlay">
                 <p id="textOverlay"> </p>
             </div>

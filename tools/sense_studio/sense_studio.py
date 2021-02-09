@@ -79,6 +79,11 @@ def _write_project_overview_config(projects):
         json.dump(projects, f, indent=2)
 
 
+def _lookup_project_path(project_name):
+    projects = _load_project_overview_config()
+    return projects[project_name]['path']
+
+
 def _load_project_config(path):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
     with open(config_path, 'r') as f:
@@ -123,10 +128,7 @@ def project_config():
     """
     data = request.json
     name = data['name']
-
-    # Lookup project path
-    projects = _load_project_overview_config()
-    path = projects[name]['path']
+    path = _lookup_project_path(name)
 
     # Get config
     config = _load_project_config(path)
@@ -258,10 +260,7 @@ def add_class(project):
     Add a new class to the given project.
     """
     project = urllib.parse.unquote(project)
-
-    # Lookup project path
-    projects = _load_project_overview_config()
-    path = projects[project]['path']
+    path = _lookup_project_path(project)
 
     # Get class name and tags
     class_name, tag1, tag2 = _get_class_name_and_tags(request.form)
@@ -289,10 +288,7 @@ def edit_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-
-    # Lookup project path
-    projects = _load_project_overview_config()
-    path = projects[project]['path']
+    path = _lookup_project_path(project)
 
     # Get new class name and tags
     new_class_name, new_tag1, new_tag2 = _get_class_name_and_tags(request.form)
@@ -331,10 +327,7 @@ def remove_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-
-    # Lookup project path
-    projects = _load_project_overview_config()
-    path = projects[project]['path']
+    path = _lookup_project_path(project)
 
     # Update project config
     config = _load_project_config(path)
@@ -377,22 +370,24 @@ def show_video_list(split, label, path):
     return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
 
 
-@app.route('/record-video/<split>/<label>/<path:path>')
-def record_video(split, label, path):
+@app.route('/record-video/<string:project>/<string:split>/<string:label>')
+def record_video(project, split, label):
     """
     Display the video recording screen.
     """
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    project = urllib.parse.unquote(project)
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
-    return render_template('video_recording.html', split=split, label=label, path=path)
+    path = _lookup_project_path(project)
+    return render_template('video_recording.html', project=project, split=split, label=label, path=path)
 
 
-@app.route('/video-saving/<split>/<label>/<path:path>', methods=['POST'])
-def save_video(path, label, split):
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+@app.route('/save-video/<string:project>/<string:split>/<string:label>', methods=['POST'])
+def save_video(project, split, label):
+    project = urllib.parse.unquote(project)
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
+    path = _lookup_project_path(project)
 
     # Read given video to a file
     input_stream = request.files['video']
