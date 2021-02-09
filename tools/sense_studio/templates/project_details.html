@@ -63,32 +63,36 @@
                 </div>
             </div>
             <div class="content">
-                <h4>Annotated Videos</h4>
-                <div class="ui left labeled button">
-                    <div class="ui basic label">
-                        Train: {{ stats[class].train.tagged }} / {{ stats[class].train.total }}
+                <h4>Videos</h4>
+
+                <div class="ui segments">
+                    <div class="ui segment">
+                        <h5>Train: {{ stats[class].train.total }} ({{ stats[class].train.tagged }} annotated)</h5>
+                        <div class="ui buttons">
+                            <a class="ui icon button" href="{{ url_for('record_video', project=config.name, split='train', label=class) }}">
+                                <i class="record icon"></i>
+                                Record
+                            </a>
+                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
+                                <i class="edit icon"></i>
+                                Annotate
+                            </a>
+                        </div>
                     </div>
-                    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
-                        <i class="edit icon"></i>
-                        Annotate
-                    </a>
-                    <a class="ui icon button" href="{{ url_for('record_video', project=config.name, split='train', label=class) }}">
-                        <i class="record icon"></i>
-                        Record
-                    </a>
-                </div>
-                <div class="ui left labeled button mt">
-                    <div class="ui basic label">
-                        Valid: {{ stats[class].valid.tagged }} / {{ stats[class].valid.total }}
+
+                    <div class="ui segment">
+                        <h5>Valid: {{ stats[class].valid.total }} ({{ stats[class].valid.tagged }} annotated)</h5>
+                        <div class="ui buttons">
+                            <a class="ui icon button" href="{{ url_for('record_video', project=config.name, split='train', label=class) }}">
+                                <i class="record icon"></i>
+                                Record
+                            </a>
+                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
+                                <i class="edit icon"></i>
+                                Annotate
+                            </a>
+                        </div>
                     </div>
-                    <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
-                        <i class="edit icon"></i>
-                        Annotate
-                    </a>
-                    <a class="ui icon button" href="{{ url_for('record_video', project=config.name, split='train', label=class) }}">
-                        <i class="record icon"></i>
-                        Record
-                    </a>
                 </div>
             </div>
         </div>
