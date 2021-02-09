@@ -33,20 +33,34 @@ function recordVideo(url) {
 }
 
 
-function displayOverlay(text, recording) {
+function displayOverlay(text, mode) {
     overlay = document.getElementById('textOverlay');
     container = document.getElementById('videoContainer');
 
-    // Update overlay
+    // Update overlay text
     overlay.innerHTML = text;
+
+    // Update overlay visibility
     if (text !== '') {
         overlay.classList.remove('hidden');
     } else {
         overlay.classList.add('hidden');
     }
 
+    // Update overlay color
+    if (mode === 'saved') {
+        overlay.classList.add('green');
+        overlay.classList.remove('red');
+    } else if (mode === 'error') {
+        overlay.classList.remove('green');
+        overlay.classList.add('red');
+    } else {
+        overlay.classList.remove('green');
+        overlay.classList.remove('red');
+    }
+
     // Update container color
-    if (recording) {
+    if (mode === 'recording') {
         container.classList.add('red');
         container.classList.add('inverted');
     } else {
@@ -66,7 +80,7 @@ function setupRecording(stream, url) {
     // Show countdown
     for (const seconds of Array(countdownDuration).keys()) {
         const countdown = countdownDuration - seconds;
-        setTimeout(displayOverlay, seconds * 1000, 'Get Ready: ' + countdown, false);
+        setTimeout(displayOverlay, seconds * 1000, 'Get Ready: ' + countdown, 'countdown');
     }
 
     // Start recording
@@ -86,7 +100,7 @@ function startRecording(stream, recordingDuration, url) {
     // Show countdown
     for (const seconds of Array(recordingDuration).keys()) {
         const countdown = recordingDuration - seconds;
-        setTimeout(displayOverlay, seconds * 1000, countdown, true);
+        setTimeout(displayOverlay, seconds * 1000, countdown, 'recording');
     }
 
     // Stop recording
@@ -112,8 +126,12 @@ function saveVideo(chunk, url) {
         method: 'POST',
         body: formData,
     }).then(res => {
-        if(res.ok) alert('Video saved');
+        if (res.ok) {
+            displayOverlay('Video Saved', 'saved');
+        } else {
+            displayOverlay('Error: ' + res.status, 'error');
+        }
     }).catch(err => {
-        alert(err);
+        displayOverlay(err, 'error');;
     });
 }
