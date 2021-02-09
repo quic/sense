@@ -30,20 +30,24 @@ a {
 }
 
 .video-container {
-    position:relative;
+    position: relative;
 }
 
 .video-container video {
     position:relative;
     z-index:0;
+    border-radius: inherit;
 }
 
-.overlay {
-    position:absolute;
-    margin-top: 50px;
-    margin-left: 150px;
-    top:0;
-    left:0;
-    z-index:1;
-    font-size: 30px;
+#textOverlay {
+    position: absolute;
+    margin-top: 30px;
+    margin-left: 30px;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    opacity: 0.7;
+    line-height: 1em;
+    padding: 0.2em 0.3em;
+    font-size: 50px;
 }

@@ -33,8 +33,26 @@ function recordVideo(url) {
 }
 
 
-function displayOverlay(text) {
-    document.getElementById('textOverlay').innerHTML = text;
+function displayOverlay(text, recording) {
+    overlay = document.getElementById('textOverlay');
+    container = document.getElementById('videoContainer');
+
+    // Update overlay
+    overlay.innerHTML = text;
+    if (text !== '') {
+        overlay.classList.remove('hidden');
+    } else {
+        overlay.classList.add('hidden');
+    }
+
+    // Update container color
+    if (recording) {
+        container.classList.add('red');
+        container.classList.add('inverted');
+    } else {
+        container.classList.remove('red');
+        container.classList.remove('inverted');
+    }
 }
 
 
@@ -48,7 +66,7 @@ function setupRecording(stream, url) {
     // Show countdown
     for (const seconds of Array(countdownDuration).keys()) {
         const countdown = countdownDuration - seconds;
-        setTimeout(displayOverlay, seconds * 1000, 'PRE RECORDING: ' + countdown + 's');
+        setTimeout(displayOverlay, seconds * 1000, 'Get Ready: ' + countdown, false);
     }
 
     // Start recording
@@ -68,7 +86,7 @@ function startRecording(stream, recordingDuration, url) {
     // Show countdown
     for (const seconds of Array(recordingDuration).keys()) {
         const countdown = recordingDuration - seconds;
-        setTimeout(displayOverlay, seconds * 1000, 'RECORDING: ' + countdown + 's');
+        setTimeout(displayOverlay, seconds * 1000, countdown, true);
     }
 
     // Stop recording
@@ -82,7 +100,7 @@ function stopRecording(mediaRecorder) {
         track.stop();
     });
 
-    displayOverlay('Done');
+    displayOverlay('', false);
 }
 
 
