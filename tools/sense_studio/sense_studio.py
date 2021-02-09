@@ -424,7 +424,7 @@ def record_video(split, label, path):
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
-    return render_template('record_video.html', split=split, label=label, path=path)
+    return render_template('video_recording.html', split=split, label=label, path=path)
 
 
 @app.route('/video-saving/<split>/<label>/<path:path>', methods=['POST'])

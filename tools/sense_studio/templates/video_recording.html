@@ -1,0 +1,39 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} Record video {% endblock %}
+
+{% block main %}
+<div id="main" class="ui main text container">
+    <h1 class="ui header">
+        Video Recording
+        <div class="sub header">
+            <i class="folder open icon"></i> {{ path }}
+            <br>
+            <i class="eye icon"></i> {{ label }}
+            <br>
+            <i class="database icon"></i> {{ split }}
+        </div>
+    </h1>
+    <div>
+        <div>
+            <a>Pre recording duration</a>
+            <div class="ui input"><input type="text" value="3" id="preRecordingDuration"/></div>
+        </div>
+        <div>
+            <a>Recording duration</a>
+            <div class="ui input"><input type="text" value="5" id="recordingDuration"/></div>
+        </div>
+        <button class="ui primary button" onclick="recordVideo('{{ url_for('save_video', path=path, label=label, split=split) }}')">record</button>
+        <div class="video_container">
+            <video id="player" width="640" height="480" controls autoplay></video>
+            <div class="overlay">
+                <p id="textOverlay"> </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='video_recording.js') }}"></script>
+{% endblock %}
