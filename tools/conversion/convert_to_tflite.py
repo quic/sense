@@ -139,8 +139,6 @@ if __name__ == "__main__":
     path_in = args["--path_in"]
     plot_model = args["--plot_model"]
     verbose = args["--verbose"]
-    print(verbose)
-    print("\n\n\n\n\n")
 
     backbone_settings = SUPPORTED_BACKBONE_CONVERSIONS.get(backbone_name)
     if not backbone_settings:
@@ -175,4 +173,5 @@ if __name__ == "__main__":
         classifier_settings,
         output_name,
         plot_model,
-        verbose=verbose)
+        verbose=verbose
+    )

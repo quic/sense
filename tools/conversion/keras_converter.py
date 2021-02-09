@@ -104,13 +104,13 @@ class KerasConverter:
         # logging.info() all inputs, formatted for use with coremltools Keras convertor
         logging.info("input_names=[")
         for name in self.container.in_names:
-            logging.info("'" + name + "',")
+            logging.info("  '" + name + "',")
         logging.info("],")
 
         # logging.info() all outputs, formatted for use with coremltools Keras convertor
         logging.info("output_names=[")
         for name in self.container.out_names:
-            logging.info("'" + name + "',")
+            logging.info("  '" + name + "',")
         logging.info("],")
 
         # Just for fun, logging.info() all inputs and outputs and their shapes.
