@@ -91,7 +91,7 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         path_weights = model_config.get_path_weights()
         path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
 
-        if all(os.path.exists(path) for path in path_weights.values()):
+        if all(os.path.exists(path) for path in path_weights.values()) or using_travis():
             print(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
@@ -172,5 +172,4 @@ def using_travis():
     """
     Returns True if Travis is currently being used.
     """
-    return True
     return os.getenv('TRAVIS', False) == 'true'
