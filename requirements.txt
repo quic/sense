@@ -1,16 +1,15 @@
 # package                version       license
-docopt                  ==0.6.2       # MIT
-ffmpeg-python           ==0.2.0       # GNU-GPL
-Flask                   ==1.1.2       # BSD
-matplotlib              ==3.3.2       # BSD
+torch                   ==1.5.1
 numpy                   ==1.16.2      # BSD
 opencv-python           ==3.4.3.18    # MIT
-Pillow                  ==8.0.1       # HPND
-PyYAML                  ~=5.3.1       # MIT
-scikit-learn            ==0.23.2      # BSD
 queuelib                ==1.5.0       # BSD
+docopt                  ==0.6.2       # MIT
+matplotlib              ==3.3.2       # BSD
+scikit-learn            ==0.23.2      # BSD
+Flask                   ==1.1.2       # BSD
+Pillow                  ==8.0.1       # HPND
+ffmpeg-python           ==0.2.0       # GNU-GPL
 simpleaudio             ==1.0.4       # MIT
-torch                   ==1.5.1
 
 # Dependencies needed for converting Pytorch models to tensorflow Lite
 tensorflow              ==2.3.1      # Apache 2.0
