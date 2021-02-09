@@ -33,7 +33,7 @@ import torch.utils.data
 
 from docopt import docopt
 
-from sense import feature_extractors
+from sense import backbone_networks
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.finetuning import extract_features
@@ -77,7 +77,7 @@ if __name__ == "__main__":
                 print('Wrong input')
 
     # Load feature extractor
-    feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+    feature_extractor = backbone_networks.StridedInflatedEfficientNet()
 
     if resume:
         # load the last classifier

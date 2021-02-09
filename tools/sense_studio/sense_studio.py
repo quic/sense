@@ -45,9 +45,9 @@ def _load_feature_extractor():
     global inference_engine
     import torch
     from sense import engine
-    from sense import feature_extractors
+    from sense import backbone_networks
     if inference_engine is None:
-        feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+        feature_extractor = backbone_networks.StridedInflatedEfficientNet()
 
         # Remove internal padding for feature extraction and training
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')

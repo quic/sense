@@ -24,7 +24,7 @@ from docopt import docopt
 import torch
 
 import sense.display
-from sense import feature_extractors
+from sense import backbone_networks
 from sense.controller import Controller
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
@@ -43,8 +43,9 @@ if __name__ == "__main__":
     use_gpu = args['--use_gpu']
 
     # Load original feature extractor
-    feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+    feature_extractor = backbone_networks.StridedInflatedEfficientNet()
     checkpoint = load_backbone_weights('backbone/strided_inflated_efficientnet.ckpt')
+    checkpoint = checkpoint or feature_extractor.state_dict()  # on Travis, load_backbone_weights returns None
 
     # Load custom classifier
     checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))

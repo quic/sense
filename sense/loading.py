@@ -8,6 +8,7 @@ from typing import Optional
 from typing import Tuple
 
 from sense import RESOURCES_DIR
+from sense import backbone_networks
 
 with open(os.path.join(os.getcwd(), os.path.dirname(__file__), 'models.yml')) as f:
     MODELS = yaml.load(f, Loader=yaml.FullLoader)
@@ -136,14 +137,40 @@ def load_weights_from_resources(checkpoint_path: str):
 
 def load_backbone_weights(checkpoint_path: str):
     """
-    Load backbone weights from a checkpoint file, unless the TRAVIS environment
-    variable is defined. Raises an error pointing to the SDK page in case weights
+    Load backbone weights from a checkpoint file, unless Travis is used. Raises an error pointing
+    to the SDK page in case weights
     are missing.
 
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
-    if not os.getenv('TRAVIS', False) == 'true':
+    if not using_travis():
         return load_weights_from_resources(checkpoint_path)
     else:
         print('Weights are not loaded on Travis.')
+
+
+def build_backbone_network(selected_config: ModelConfig, weights: dict):
+    """
+    Creates a backbone network and load provided weights, unless Travis is used.
+
+    :param selected_config:
+        An instance of ModelConfig, specifying the backbone architecture name.
+    :param weights:
+        A model state dict.
+    :return:
+        A backbone network, with pre-trained weights.
+    """
+    backbone_network = getattr(backbone_networks, selected_config.model_name)()
+    if not using_travis():
+        backbone_network.load_state_dict(weights)
+    backbone_network.eval()
+    return backbone_network
+
+
+def using_travis():
+    """
+    Returns True if Travis is currently being used.
+    """
+    return True
+    return os.getenv('TRAVIS', False) == 'true'

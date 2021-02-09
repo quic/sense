@@ -23,7 +23,6 @@ Options:
 from docopt import docopt
 
 import sense.display
-from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks.gesture_recognition import INT2LAB
 from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS
@@ -31,6 +30,7 @@ from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import get_relevant_weights
+from sense.loading import build_backbone_network
 from sense.loading import ModelConfig
 
 
@@ -59,19 +59,17 @@ if __name__ == "__main__":
         model_version
     )
 
-    # Create feature extractor
-    feature_extractor = getattr(feature_extractors, selected_config.model_name)()
-    feature_extractor.load_state_dict(weights['backbone'])
-    feature_extractor.eval()
+    # Load backbone extractor
+    backbone_network = build_backbone_network(selected_config, weights['backbone'])
 
     # Create a logistic regression classifier
-    gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
+    gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
                                             num_out=30)
     gesture_classifier.load_state_dict(weights['gesture_recognition'])
     gesture_classifier.eval()
 
     # Concatenate feature extractor and met converter
-    net = Pipe(feature_extractor, gesture_classifier)
+    net = Pipe(backbone_network, gesture_classifier)
 
     postprocessor = [
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
