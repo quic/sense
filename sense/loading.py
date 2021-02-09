@@ -7,6 +7,8 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+from sense import RESOURCES_DIR
+
 with open(os.path.join(os.getcwd(), os.path.dirname(__file__), 'models.yml')) as f:
     MODELS = yaml.load(f, Loader=yaml.FullLoader)
 
@@ -114,6 +116,24 @@ def load_weights(checkpoint_path: str):
     return torch.load(checkpoint_path, map_location='cpu')
 
 
+def load_weights_from_resources(checkpoint_path: str):
+    """
+    Load weights from a checkpoint file located in the resources folder.
+
+    :param checkpoint_path:
+        A string representing the absolute/relative path to the checkpoint file.
+    """
+    checkpoint_path = os.path.join(RESOURCES_DIR, checkpoint_path.split(f'resources{os.sep}')[-1])
+    try:
+        return load_weights(checkpoint_path)
+
+    except FileNotFoundError:
+        raise FileNotFoundError('Weights file missing: {}. '
+                                'To download, please go to '
+                                'https://20bn.com/licensing/sdk/evaluation and follow the '
+                                'instructions.'.format(checkpoint_path))
+
+
 def load_backbone_weights(checkpoint_path: str):
     """
     Load backbone weights from a checkpoint file, unless the TRAVIS environment
@@ -123,12 +143,7 @@ def load_backbone_weights(checkpoint_path: str):
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
-    try:
-        if not os.getenv('TRAVIS', False) == 'true':
-            return load_weights(checkpoint_path)
-        else:
-            print('Weights are not loaded on Travis.')
-    finally:
-        raise Exception(f'ERROR - Weights file missing {checkpoint_path}. To download, please go to '
-                        f'https://20bn.com/licensing/sdk/evaluation and follow the '
-                        f'instructions.')
+    if not os.getenv('TRAVIS', False) == 'true':
+        return load_weights_from_resources(checkpoint_path)
+    else:
+        print('Weights are not loaded on Travis.')

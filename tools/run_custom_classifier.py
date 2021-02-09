@@ -29,6 +29,7 @@ from sense.controller import Controller
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
+from sense.loading import load_backbone_weights
 
 
 if __name__ == "__main__":
@@ -43,8 +44,7 @@ if __name__ == "__main__":
 
     # Load original feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    feature_extractor.load_weights_from_resources('backbone/strided_inflated_efficientnet.ckpt')
-    checkpoint = feature_extractor.state_dict()
+    checkpoint = load_backbone_weights('backbone/strided_inflated_efficientnet.ckpt')
 
     # Load custom classifier
     checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))
