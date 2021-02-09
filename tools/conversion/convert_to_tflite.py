@@ -119,7 +119,7 @@ def convert(backbone_settings, classifier_settings, output_name, plot_model, ver
     logging.info(f"input_names {in_names}")
     logging.info(f"output_names {out_names}")
     logging.info(f"image_input_names {image_inputs}")
-    logging.info(type(keras_file))
+    logging.info(f"keras file type: {type(keras_file)}")
 
     export_keras_to_tflite(keras_file, tflite_file)
 
