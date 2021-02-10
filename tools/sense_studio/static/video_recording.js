@@ -28,6 +28,7 @@ function decrease(inputID, minValue) {
 
 
 function recordVideo(url) {
+    document.getElementById('recordVideoButton').classList.add('disabled');
     navigator.mediaDevices.getUserMedia({ audio: false, video: true })
         .then(stream => setupRecording(stream, url));
 }
@@ -115,6 +116,7 @@ function stopRecording(mediaRecorder) {
     });
 
     displayOverlay('', false);
+    document.getElementById('recordVideoButton').classList.remove('disabled');
 }
 
 

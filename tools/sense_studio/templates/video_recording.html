@@ -43,7 +43,8 @@
                 </div>
             </div>
         </div>
-        <div class="ui primary icon button" onclick="recordVideo('{{ url_for('save_video', project=project, label=label, split=split) }}');">
+        <div class="ui primary icon button" id="recordVideoButton"
+             onclick="recordVideo('{{ url_for('save_video', project=project, label=label, split=split) }}');">
             <i class="circle icon"></i>
             Record
         </div>
