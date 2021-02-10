@@ -80,7 +80,7 @@ function setupRecording(stream, url) {
     // Show countdown
     for (const seconds of Array(countdownDuration).keys()) {
         const countdown = countdownDuration - seconds;
-        setTimeout(displayOverlay, seconds * 1000, 'Get Ready: ' + countdown, 'countdown');
+        setTimeout(displayOverlay, seconds * 1000, `Get Ready: ${countdown}`, 'countdown');
     }
 
     // Start recording
@@ -119,7 +119,7 @@ function stopRecording(mediaRecorder) {
 
 
 function saveVideo(chunk, url) {
-    let blob = new Blob([chunk], {type: "video/webm"});
+    let blob = new Blob([chunk], {type: 'video/webm'});
     const formData = new FormData();
     formData.append('video', blob);
     fetch(url, {
@@ -129,7 +129,7 @@ function saveVideo(chunk, url) {
         if (res.ok) {
             displayOverlay('Video Saved', 'saved');
         } else {
-            displayOverlay('Error: ' + res.status, 'error');
+            displayOverlay(`Error: ${res.status}`, 'error');
         }
     }).catch(err => {
         displayOverlay(err, 'error');;
