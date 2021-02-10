@@ -37,6 +37,9 @@ a {
     position:relative;
     z-index:0;
     border-radius: inherit;
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg); /* Safari and Chrome */
+    -moz-transform: rotateY(180deg); /* Firefox */
 }
 
 #textOverlay {
