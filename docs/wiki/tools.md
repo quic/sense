@@ -19,10 +19,11 @@ your browser and create a new project.
 PYTHONPATH=./ python tools/sense_studio/sense_studio.py
 ```
 
-On the setup page you can also assign custom names to the temporal tags that will later be used
+On the project page you can assign custom names to the temporal tags that will later be used
 for annotating frames.
 
-Once the project is created, fill the automatically created folders with your videos.
+Once the project is created, fill the automatically created folders with your videos by using the
+recording tool in the browser or by manually moving existing videos there.
 
 #### Step 1: Prepare the videos for annotation
 
@@ -51,11 +52,11 @@ Processing all of your videos can take a few minutes, depending on the size of y
 Alternatively, the videos from a single class and train/valid split will be individually processed
 when you click the "Annotate" button.
 
-#### Step 2 : Annotating the videos
+#### Step 2: Annotating the videos
 
 Now you can annotate the videos for the relevant classes by clicking the corresponding "Annotate"
 button.
-The interface will show the extracted frames from your video and you can select the appriate tag
+The interface will show the extracted frames from your video and you can select the appropriate tag
 for each one.
 Per default, all frames are labeled "Background".
 
