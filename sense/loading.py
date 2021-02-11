@@ -138,8 +138,7 @@ def load_weights_from_resources(checkpoint_path: str):
 def load_backbone_weights(checkpoint_path: str):
     """
     Load backbone weights from a checkpoint file, unless Travis is used. Raises an error pointing
-    to the SDK page in case weights
-    are missing.
+    to the SDK page in case weights are missing.
 
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
