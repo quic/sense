@@ -50,7 +50,7 @@ DEFAULT_CONVERSION_PARAMETERS = {
 EFFICIENTNET = 'StridedInflatedEfficientNet'
 
 SUPPORTED_BACKBONE_CONVERSIONS = {
-    "efficientnet": {
+    EFFICIENTNET: {
         "config_file": "tools/conversion/cfg/efficientnet.cfg",
         "weights_file": MODELS[EFFICIENTNET]['pro']['backbone'],
         "conversion_parameters": {
@@ -61,7 +61,7 @@ SUPPORTED_BACKBONE_CONVERSIONS = {
 }
 
 SUPPORTED_CLASSIFIER_CONVERSIONS = {
-    "efficient_net_gesture_control": {
+    "efficient_net_gesture_recognition": {
         "config_file": "tools/conversion/cfg/logistic_regression.cfg",
         "placeholder_values": {"NUM_CLASSES": "30"},
         "weights_file": MODELS[EFFICIENTNET]['pro']['gesture_recognition'],
