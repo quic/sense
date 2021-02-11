@@ -61,13 +61,13 @@ if __name__ == "__main__":
     backbone_network = build_backbone_network(selected_config, weights['backbone'])
 
     # Load a logistic regression classifier
-    gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
-                                            num_out=5)
-    gesture_classifier.load_state_dict(weights['rep_counter'])
-    gesture_classifier.eval()
+    rep_counter = LogisticRegression(num_in=backbone_network.feature_dim,
+                                     num_out=5)
+    rep_counter.load_state_dict(weights['rep_counter'])
+    rep_counter.eval()
 
-    # Concatenate feature extractor and met converter
-    net = Pipe(backbone_network, gesture_classifier)
+    # Concatenate backbone network and rep counter
+    net = Pipe(backbone_network, rep_counter)
 
     postprocessor = [
         PostprocessRepCounts(INT2LAB),

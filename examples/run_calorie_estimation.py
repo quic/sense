@@ -76,7 +76,7 @@ if __name__ == "__main__":
     met_value_converter.load_state_dict(weights['met_converter'])
     met_value_converter.eval()
 
-    # Concatenate feature extractor and met converter
+    # Concatenate backbone network and met converter
     net = Pipe(backbone_network, met_value_converter)
 
     post_processors = [

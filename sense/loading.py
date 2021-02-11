@@ -28,7 +28,7 @@ class ModelConfig:
         :param version:
             Model version to use (pro or lite)
         :param feature_converters:
-            List of classifier heads on top of the feature extractor
+            List of classifier heads on top of the backbone network
         """
 
         all_model_names = sorted(MODELS.keys())

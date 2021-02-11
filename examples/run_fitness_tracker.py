@@ -85,7 +85,7 @@ if __name__ == "__main__":
     met_value_converter.load_state_dict(weights['met_converter'])
     met_value_converter.eval()
 
-    # Concatenate feature extractor with downstream nets
+    # Concatenate backbone network with downstream nets
     net = Pipe(backbone_network, feature_converter=[gesture_classifier,
                                                     met_value_converter])
 

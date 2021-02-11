@@ -68,7 +68,7 @@ if __name__ == "__main__":
     gesture_classifier.load_state_dict(weights['gesture_recognition'])
     gesture_classifier.eval()
 
-    # Concatenate feature extractor and met converter
+    # Concatenate backbone network and logistic regression
     net = Pipe(backbone_network, gesture_classifier)
 
     postprocessor = [
