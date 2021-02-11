@@ -16,9 +16,9 @@ Options:
   --path_in=FILENAME              Video file to stream from
   --path_out=FILENAME             Video file to stream to
   --title=TITLE                   This adds a title to the window display
-  --model_name=NAME          Name of the model to be used.
-  --model_version=VERSION    Version of the model to be used.
-  --use_gpu                  Whether to run inference on the GPU or not.
+  --model_name=NAME               Name of the model to be used.
+  --model_version=VERSION         Version of the model to be used.
+  --use_gpu                       Whether to run inference on the GPU or not.
 """
 from docopt import docopt
 
