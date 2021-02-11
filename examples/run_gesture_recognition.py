@@ -59,7 +59,7 @@ if __name__ == "__main__":
         model_version
     )
 
-    # Load backbone extractor
+    # Load backbone network
     backbone_network = build_backbone_network(selected_config, weights['backbone'])
 
     # Create a logistic regression classifier
