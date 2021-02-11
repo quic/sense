@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/imgs/sense_logo.png" height="80px">
+<img src="docs/imgs/sense_core_logo.svg" height="110px">
 
 **State-of-the-art Real-time Action Recognition**
 
