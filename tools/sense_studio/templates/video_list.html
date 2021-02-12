@@ -17,7 +17,6 @@
 	<div class="ui segments">
 	{% for  f, exists, id in folders %}
 	   <div class="ui segment">
-		 <!-- TODO: Mark videos that were already tagged -->
 		 <a href="{{ url_for('annotate', split=split, label=label, path=path, idx=id) }}">
 			<i class="film icon"></i>
 			{{ f }}
