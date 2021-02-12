@@ -1,0 +1,63 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} Record video {% endblock %}
+
+{% block main %}
+<div id="main" class="ui main text container">
+    <h1 class="ui header">
+        Video Recording
+        <div class="sub header">
+            <i class="folder open icon"></i> {{ path }}
+            <br>
+            <i class="eye icon"></i> {{ label }}
+            <br>
+            <i class="database icon"></i> {{ split }}
+        </div>
+    </h1>
+    <form class="ui form">
+        <div class="fields">
+            <div class="four wide field">
+                <label>Countdown</label>
+                <div class="ui action left icon input">
+                    <i class="stopwatch icon"></i>
+                    <input type="text" value="3" id="countdown"/>
+                    <div class="ui icon button" onclick="decrease('countdown', 0);">
+                        <i class="minus icon"></i>
+                    </div>
+                    <div class="ui icon button" onclick="increase('countdown');">
+                        <i class="plus icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="four wide field">
+                <label>Duration</label>
+                <div class="ui action left icon input">
+                    <i class="hourglass icon"></i>
+                    <input type="text" value="5" id="duration"/>
+                    <div class="ui icon button" onclick="decrease('duration', 1);">
+                        <i class="minus icon"></i>
+                    </div>
+                    <div class="ui icon button" onclick="increase('duration');">
+                        <i class="plus icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui primary icon button" id="recordVideoButton"
+             onclick="recordVideo('{{ url_for('save_video', project=project, label=label, split=split) }}');">
+            <i class="circle icon"></i>
+            Record
+        </div>
+        <div class="ui compact placeholder segment video-container" id="videoContainer">
+            <div class="ui compact message hidden" id="textOverlay">
+                <!-- Automatically filled -->
+            </div>
+            <video id="player" width="640" height="480" autoplay></video>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='video_recording.js') }}"></script>
+{% endblock %}

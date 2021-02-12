@@ -13,6 +13,7 @@ import glob
 import json
 import numpy as np
 import os
+import subprocess
 import urllib
 
 from flask import Flask
@@ -78,6 +79,11 @@ def _write_project_overview_config(projects):
         json.dump(projects, f, indent=2)
 
 
+def _lookup_project_path(project_name):
+    projects = _load_project_overview_config()
+    return projects[project_name]['path']
+
+
 def _load_project_config(path):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
     with open(config_path, 'r') as f:
@@ -122,10 +128,7 @@ def project_config():
     """
     data = request.json
     name = data['name']
-
-    # Lookup project path
-    projects = _load_project_overview_config()
-    path = projects[name]['path']
+    path = _lookup_project_path(name)
 
     # Get config
     config = _load_project_config(path)
@@ -257,10 +260,7 @@ def add_class(project):
     Add a new class to the given project.
     """
     project = urllib.parse.unquote(project)
-
-    # Lookup project path
-    projects = _load_project_overview_config()
-    path = projects[project]['path']
+    path = _lookup_project_path(project)
 
     # Get class name and tags
     class_name, tag1, tag2 = _get_class_name_and_tags(request.form)
@@ -288,10 +288,7 @@ def edit_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-
-    # Lookup project path
-    projects = _load_project_overview_config()
-    path = projects[project]['path']
+    path = _lookup_project_path(project)
 
     # Get new class name and tags
     new_class_name, new_tag1, new_tag2 = _get_class_name_and_tags(request.form)
@@ -330,10 +327,7 @@ def remove_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-
-    # Lookup project path
-    projects = _load_project_overview_config()
-    path = projects[project]['path']
+    path = _lookup_project_path(project)
 
     # Update project config
     config = _load_project_config(path)
@@ -374,6 +368,49 @@ def show_video_list(split, label, path):
 
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
+
+
+@app.route('/record-video/<string:project>/<string:split>/<string:label>')
+def record_video(project, split, label):
+    """
+    Display the video recording screen.
+    """
+    project = urllib.parse.unquote(project)
+    split = urllib.parse.unquote(split)
+    label = urllib.parse.unquote(label)
+    path = _lookup_project_path(project)
+    return render_template('video_recording.html', project=project, split=split, label=label, path=path)
+
+
+@app.route('/save-video/<string:project>/<string:split>/<string:label>', methods=['POST'])
+def save_video(project, split, label):
+    project = urllib.parse.unquote(project)
+    split = urllib.parse.unquote(split)
+    label = urllib.parse.unquote(label)
+    path = _lookup_project_path(project)
+
+    # Read given video to a file
+    input_stream = request.files['video']
+    output_path = os.path.join(path, f'videos_{split}', label)
+    temp_file_name = os.path.join(output_path, 'temp_video.webm')
+    with open(temp_file_name, 'wb') as temp_file:
+        temp_file.write(input_stream.read())
+
+    # Find a video name that is not used yet
+    existing_files = set(glob.glob(os.path.join(output_path, 'video_[0-9]*.mp4')))
+    video_idx = 0
+    output_file = os.path.join(output_path, f'video_{video_idx}.mp4')
+    while output_file in existing_files:
+        video_idx += 1
+        output_file = os.path.join(output_path, f'video_{video_idx}.mp4')
+
+    # Convert video to target frame rate and save to output name
+    subprocess.call(f'ffmpeg -i "{temp_file_name}" -r 30 "{output_file}"', shell=True)
+
+    # Remove temp video file
+    os.remove(temp_file_name)
+
+    return jsonify(success=True)
 
 
 @app.route('/prepare_annotation/<path:path>')
