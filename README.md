@@ -222,7 +222,7 @@ The tool will prepare the following file structure for your project:
 └── project_config.json
 ```
 - Two top-level folders: one for the training data, one for the validation data.
-- One sub-folder for each class that you specify
+- One sub-folder for each class that you specify.
 
 #### Step 2: Data Collection
 
