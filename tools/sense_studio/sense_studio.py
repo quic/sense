@@ -361,20 +361,16 @@ def show_video_list(split, label, path):
     videos = os.listdir(frames_dir)
     videos.sort()
 
-    annotations_exist = []
-    for video in videos:
-        if f'{video}.json' in os.listdir(tags_dir):
-            annotations_exist.append(True)
-        else:
-            annotations_exist.append(False)
+    tagged_list = set(os.listdir(tags_dir))
+    tagged = [f'{video}.json' in tagged_list for video in videos]
 
     logreg_path = join(logreg_dir, 'logreg.joblib')
     if os.path.isfile(logreg_path):
         global logreg
         logreg = load(logreg_path)
 
-    folder_id = zip(videos, annotations_exist, list(range(len(videos))))
-    return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
+    video_list = zip(videos, tagged, list(range(len(videos))))
+    return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path)
 
 
 @app.route('/record-video/<string:project>/<string:split>/<string:label>')
