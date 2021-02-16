@@ -92,7 +92,7 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         path_weights = model_config.get_path_weights()
         path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
 
-        if all(os.path.exists(path) for path in path_weights.values()) or using_travis():
+        if all(os.path.exists(path) for path in path_weights.values()) or running_on_travis():
             print(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
@@ -144,7 +144,7 @@ def load_backbone_weights(checkpoint_path: str):
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
-    if not using_travis():
+    if not running_on_travis():
         return load_weights_from_resources(checkpoint_path)
     else:
         print('Weights are not loaded on Travis.')
@@ -162,13 +162,13 @@ def build_backbone_network(selected_config: ModelConfig, weights: dict):
         A backbone network, with pre-trained weights.
     """
     backbone_network = getattr(backbone_networks, selected_config.model_name)()
-    if not using_travis():
+    if not running_on_travis():
         backbone_network.load_state_dict(weights)
     backbone_network.eval()
     return backbone_network
 
 
-def using_travis():
+def running_on_travis():
     """
     Returns True if Travis is currently being used.
     """
