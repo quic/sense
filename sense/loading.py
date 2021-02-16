@@ -8,9 +8,10 @@ from typing import Optional
 from typing import Tuple
 
 from sense import RESOURCES_DIR
+from sense import SOURCE_DIR
 from sense import backbone_networks
 
-with open(os.path.join(os.getcwd(), os.path.dirname(__file__), 'models.yml')) as f:
+with open(os.path.join(SOURCE_DIR, 'models.yml')) as f:
     MODELS = yaml.load(f, Loader=yaml.FullLoader)
 
 
