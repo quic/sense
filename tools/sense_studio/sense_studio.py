@@ -17,7 +17,6 @@ import subprocess
 import urllib
 
 from flask import Flask
-from flask import g
 from flask import jsonify
 from flask import redirect
 from flask import render_template
@@ -366,7 +365,6 @@ def train_logreg():
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
     """
-    # global logreg
 
     data = request.form  # a multi-dict containing POST data
     idx = int(data['idx'])
@@ -419,9 +417,9 @@ def train_logreg():
 
         X = np.array(X)
         y = np.array(y)
-        g.logreglogreg = LogisticRegression(C=0.1, class_weight=class_weight)
-        g.logreg.fit(X, y)
-        dump(g.logreg, logreg_path)
+        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
+        logreg.fit(X, y)
+        dump(logreg, logreg_path)
 
     return redirect(url_for('annotations_bp.annotate', split=split, label=label, path=path, idx=idx))
 
@@ -448,12 +446,6 @@ def download_file(img_path):
     img_dir, img = os.path.split(img_path)
     return send_from_directory(img_dir, img, as_attachment=True)
 
-
-# This runs before every request
-@app.before_request
-def before_request():
-    g.inference_engine = None
-    g.logreg = None
 
 if __name__ == '__main__':
     app.run(debug=True)
