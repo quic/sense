@@ -1,8 +1,6 @@
 import json
 import os
 
-from flask import g
-
 MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
@@ -10,13 +8,16 @@ PROJECT_CONFIG_FILE = 'project_config.json'
 
 SPLITS = ['train', 'valid']
 
+inference_engine = None
+
 
 def _load_feature_extractor():
-
+    global inference_engine
     import torch
     from sense import engine
     from sense import feature_extractors
-    if g.inference_engine is None:
+
+    if inference_engine is None:
         feature_extractor = feature_extractors.StridedInflatedEfficientNet()
 
         # Remove internal padding for feature extraction and training
@@ -25,7 +26,8 @@ def _load_feature_extractor():
         feature_extractor.eval()
 
         # Create Inference Engine
-        g.inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
+        inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
+    return inference_engine
 
 
 def _extension_ok(filename):
@@ -64,6 +66,5 @@ def _write_project_config(path, config):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
-
 
 
