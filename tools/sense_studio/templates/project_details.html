@@ -11,7 +11,8 @@
             {{ path }}
         </div>
     </h1>
-    <a class="ui icon button hashoverpopup" onclick="loading(this);" href="{{ url_for('prepare_annotation', path=path) }}"
+    <a class="ui icon button hashoverpopup" onclick="loading(this);"
+       href="{{ url_for('prepare_annotations_bp.prepare_annotation', path=path) }}"
        data-content="Prepare required files for all classes">
         <i class="file video outline icon"></i>
         Prepare Annotations
@@ -73,7 +74,7 @@
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='train', label=class, path=path) }}">
+                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('annotations_bp.show_video_list', split='train', label=class, path=path) }}">
                                 <i class="edit icon"></i>
                                 Annotate
                             </a>
@@ -87,7 +88,7 @@
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('show_video_list', split='valid', label=class, path=path) }}">
+                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('annotations_bp.show_video_list', split='valid', label=class, path=path) }}">
                                 <i class="edit icon"></i>
                                 Annotate
                             </a>
