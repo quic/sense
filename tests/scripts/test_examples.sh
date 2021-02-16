@@ -6,9 +6,9 @@ calorie_estimation_args="--weight=65 --age=30 --height=170 --gender=female --pat
 
 echo "Test Gesture Recognition demo ::"
 PYTHONPATH=./ python examples/run_gesture_recognition.py --path_in=$test_video_path
-PYTHONPATH=./ python examples/run_gesture_recognition.py $calorie_estimation_args --model_version=lite
-PYTHONPATH=./ python examples/run_gesture_recognition.py $calorie_estimation_args --model_name=StridedInflatedMobileNetV2
-PYTHONPATH=./ python examples/run_gesture_recognition.py $calorie_estimation_args --model_name=StridedInflatedMobileNetV2 --model_version=lite
+PYTHONPATH=./ python examples/run_gesture_recognition.py --path_in=$test_video_path --model_version=lite
+PYTHONPATH=./ python examples/run_gesture_recognition.py --path_in=$test_video_path --model_name=StridedInflatedMobileNetV2
+PYTHONPATH=./ python examples/run_gesture_recognition.py --path_in=$test_video_path --model_name=StridedInflatedMobileNetV2 --model_version=lite
 
 echo "Test Fitness Tracker demo ::"
 PYTHONPATH=./ python examples/run_fitness_tracker.py $calorie_estimation_args

@@ -92,11 +92,12 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         path_weights = model_config.get_path_weights()
         path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
 
-        if all(os.path.exists(path) for path in path_weights.values()) or running_on_travis():
+        files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
+        if files_exist or running_on_travis():
             print(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
-                load_fn = load_backbone_weights if name == 'backbone' else load_weights
+                load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
                 weights[name] = load_fn(path)
 
             return model_config, weights
@@ -106,6 +107,13 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
     raise Exception('ERROR - Weights file missing. To download, please go to '
                     'https://20bn.com/licensing/sdk/evaluation and follow the '
                     'instructions.')
+
+
+def prepend_resources_path(checkpoint_path):
+    """
+    Prepend the absolute resources path to the provided path.
+    """
+    return os.path.join(RESOURCES_DIR, checkpoint_path.split(f'resources{os.sep}')[-1])
 
 
 def load_weights(checkpoint_path: str):
@@ -125,7 +133,7 @@ def load_weights_from_resources(checkpoint_path: str):
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
-    checkpoint_path = os.path.join(RESOURCES_DIR, checkpoint_path.split(f'resources{os.sep}')[-1])
+    checkpoint_path = prepend_resources_path(checkpoint_path)
     try:
         return load_weights(checkpoint_path)
 

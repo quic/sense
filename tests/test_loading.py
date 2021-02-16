@@ -6,7 +6,7 @@ from sense import RESOURCES_DIR
 
 class TestLoadWeightsFromResources(unittest.TestCase):
 
-    RELATIVE_PATH = 'gesture_recognition/strided_inflated_efficientnet_lite_logistic_regression.ckpt'
+    RELATIVE_PATH = loading.MODELS['StridedInflatedEfficientNet']['lite']['gesture_recognition']
     ABSOLUTE_PATH = '{}/{}'.format(RESOURCES_DIR, RELATIVE_PATH)
 
     def test_load_weights_from_resources_on_relative_path(self):
