@@ -46,7 +46,7 @@ class ModelConfig:
             if feature_converter not in all_feature_converters:
                 raise Exception(f'The {version} version of {model_name} does not support '
                                 f'{feature_converter} as a downstream task.'
-                                f'\nAvailable versions: {all_feature_converters}')
+                                f'\nAvailable converters: {all_feature_converters}')
 
         self.model_name = model_name
         self.version = version
