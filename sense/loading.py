@@ -52,6 +52,10 @@ class ModelConfig:
         self.version = version
         self.feature_converters = feature_converters
 
+    @property
+    def combined_model_name(self):
+        return f'{self.model_name}-{self.version}'
+
     def get_path_weights(self):
         model_weights = MODELS[self.model_name][self.version]
         return {name: model_weights[name] for name in ['backbone'] + self.feature_converters}

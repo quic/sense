@@ -26,8 +26,13 @@ from joblib import dump
 from joblib import load
 from os.path import join
 from sklearn.linear_model import LogisticRegression
+from typing import Optional
 
+from sense.engine import InferenceEngine
 from sense.finetuning import compute_frames_features
+from sense.loading import build_backbone_network
+from sense.loading import get_relevant_weights
+from sense.loading import ModelConfig
 
 
 app = Flask(__name__)
@@ -40,22 +45,29 @@ PROJECT_CONFIG_FILE = 'project_config.json'
 
 SPLITS = ['train', 'valid']
 
+SUPPORTED_MODEL_CONFIGURATIONS = [
+    ModelConfig('StridedInflatedEfficientNet', 'pro', []),
+    ModelConfig('StridedInflatedMobileNetV2', 'pro', []),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', []),
+    ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
+]
+
 
 def _load_feature_extractor():
     global inference_engine
-    import torch
-    from sense import engine
-    from sense import backbone_networks
-    if inference_engine is None:
-        feature_extractor = backbone_networks.StridedInflatedEfficientNet()
+    global model_config
 
-        # Remove internal padding for feature extraction and training
-        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
-        feature_extractor.load_state_dict(checkpoint)
-        feature_extractor.eval()
+    if inference_engine is None:
+        # Load weights
+        # TODO: Let user specify model and version on the UI
+        selected_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
+        model_config = selected_config
+
+        # Setup backbone network
+        backbone_network = build_backbone_network(selected_config, weights['backbone'])
 
         # Create Inference Engine
-        inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
+        inference_engine = InferenceEngine(backbone_network, use_gpu=True)
 
 
 def _extension_ok(filename):
@@ -381,14 +393,26 @@ def prepare_annotation(path):
     """
     Prepare all files needed for annotating the videos in the given project.
     """
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    dataset_path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
 
     # load feature extractor if needed
     _load_feature_extractor()
     for split in SPLITS:
-        print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
+        print(f'\n\tPreparing videos in the {split}-set')
+
+        videos_split_path = os.path.join(dataset_path, f'videos_{split}')
+        features_split_path = os.path.join(dataset_path, f'features_{split}', model_config.combined_model_name)
+        frames_split_path = os.path.join(dataset_path, f'frames_{split}')
+
         for label in os.listdir(join(path, f'videos_{split}')):
-            compute_frames_features(inference_engine, split, label, path)
+            videos_label_path = os.path.join(videos_split_path, label)
+            features_label_path = os.path.join(features_split_path, label)
+            frames_label_path = os.path.join(frames_split_path, label)
+
+            compute_frames_features(
+                inference_engine=inference_engine,
+                videos_path=videos_label_path,
+                split, label, path, model_config)
     return redirect(url_for("project_details", path=path))
 
 
@@ -553,7 +577,8 @@ def download_file(img_path):
 
 
 if __name__ == '__main__':
-    logreg = None
-    inference_engine = None
+    logreg: Optional[LogisticRegression] = None
+    inference_engine: Optional[InferenceEngine] = None
+    model_config: Optional[ModelConfig] = None
 
     app.run(debug=True)

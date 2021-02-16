@@ -14,6 +14,8 @@ from sense import engine
 from sklearn.metrics import confusion_matrix
 from os.path import join
 
+from sense.engine import InferenceEngine
+from sense.loading import ModelConfig
 from sense.utils import clean_pipe_state_dict_key
 
 MODEL_TEMPORAL_DEPENDENCY = 45
@@ -220,10 +222,17 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)
 
 
-def compute_frames_features(inference_engine, split, label, dataset_path):
-    # Get data-set from path, given split and label
-    folder = join(dataset_path, f'videos_{split}', label)
+def compute_frames_features(
+        inference_engine: InferenceEngine,
+        videos_path: str,
+        split: str,
+        label: str,
+        dataset_path: str,
+        model_config: ModelConfig,
+):
+    """
 
+    """
     # Create features and frames folders for the given split and label
     features_folder = join(dataset_path, f'features_{split}', label)
     frames_folder = join(dataset_path, f'frames_{split}', label)
@@ -231,7 +240,7 @@ def compute_frames_features(inference_engine, split, label, dataset_path):
     os.makedirs(frames_folder, exist_ok=True)
 
     # Loop through all videos for the given class-label
-    videos = glob.glob(folder + '/*.mp4')
+    videos = glob.glob(join(videos_path, '*.mp4'))
     for e, video_path in enumerate(videos):
         print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
         path_frames = join(frames_folder, os.path.basename(video_path).replace(".mp4", ""))
