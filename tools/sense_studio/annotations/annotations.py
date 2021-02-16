@@ -7,7 +7,6 @@ from os.path import join
 
 import numpy as np
 from flask import Blueprint
-from flask import g
 from flask import render_template
 from joblib import load
 
@@ -16,8 +15,9 @@ from tools.sense_studio.utils import _extension_ok
 from tools.sense_studio.utils import _load_feature_extractor
 from tools.sense_studio.utils import _load_project_config
 
-annotations_bp = Blueprint('annotations_bp',  __name__,
-                           template_folder='templates/annotations')
+annotations_bp = Blueprint('annotations_bp',  __name__, template_folder='templates/annotations')
+
+logreg = None
 
 
 @annotations_bp.route('/<split>/<label>/<path:path>/<int:idx>')
@@ -37,8 +37,8 @@ def annotate(split, label, path, idx):
     features = np.load(join(features_dir, videos[idx] + ".npy"))
     features = features.mean(axis=(2, 3))
 
-    if g.logreg is not None:
-        classes = list(g.logreg.predict(features))
+    if logreg is not None:
+        classes = list(logreg.predict(features))
     else:
         classes = [-1] * len(features)
 
@@ -65,7 +65,7 @@ def show_video_list(split, label, path):
     Show the list of videos for the given split, class label and project.
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
-    # global inference_engine
+
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     split = urllib.parse.unquote((split))
     label = urllib.parse.unquote(label)
@@ -77,16 +77,17 @@ def show_video_list(split, label, path):
     os.makedirs(tags_dir, exist_ok=True)
 
     # load feature extractor if needed
-    _load_feature_extractor()
+    inference_engine = _load_feature_extractor()
     # compute the features and frames missing.
-    compute_frames_features(g.inference_engine, split, label, path)
+    compute_frames_features(inference_engine, split, label, path)
 
     videos = os.listdir(frames_dir)
     videos.sort()
 
     logreg_path = join(logreg_dir, 'logreg.joblib')
     if os.path.isfile(logreg_path):
-        g.logreg = load(logreg_path)
+        global logreg
+        logreg = load(logreg_path)
 
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
