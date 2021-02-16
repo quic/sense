@@ -17,6 +17,7 @@ import subprocess
 import urllib
 
 from flask import Flask
+from flask import g
 from flask import jsonify
 from flask import redirect
 from flask import render_template
@@ -24,77 +25,24 @@ from flask import request
 from flask import send_from_directory
 from flask import url_for
 from joblib import dump
-from joblib import load
 from os.path import join
 from sklearn.linear_model import LogisticRegression
 
-from sense.finetuning import compute_frames_features
+from annotations.prepare_annotations import prepare_annotations_bp
+from annotations.annotations import annotations_bp
 
+from tools.sense_studio.utils import _load_project_config
+from tools.sense_studio.utils import _load_project_overview_config
+from tools.sense_studio.utils import _lookup_project_path
+from tools.sense_studio.utils import SPLITS
+from tools.sense_studio.utils import _write_project_config
+from tools.sense_studio.utils import _write_project_overview_config
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
-MODULE_DIR = os.path.dirname(__file__)
-PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
-
-PROJECT_CONFIG_FILE = 'project_config.json'
-
-SPLITS = ['train', 'valid']
-
-
-def _load_feature_extractor():
-    global inference_engine
-    import torch
-    from sense import engine
-    from sense import feature_extractors
-    if inference_engine is None:
-        feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-
-        # Remove internal padding for feature extraction and training
-        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
-        feature_extractor.load_state_dict(checkpoint)
-        feature_extractor.eval()
-
-        # Create Inference Engine
-        inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
-
-
-def _extension_ok(filename):
-    """ Returns `True` if the file has a valid image extension. """
-    return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
-
-
-def _load_project_overview_config():
-    if os.path.isfile(PROJECTS_OVERVIEW_CONFIG_FILE):
-        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
-            projects = json.load(f)
-        return projects
-    else:
-        _write_project_overview_config({})
-        return {}
-
-
-def _write_project_overview_config(projects):
-    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
-        json.dump(projects, f, indent=2)
-
-
-def _lookup_project_path(project_name):
-    projects = _load_project_overview_config()
-    return projects[project_name]['path']
-
-
-def _load_project_config(path):
-    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
-    with open(config_path, 'r') as f:
-        config = json.load(f)
-    return config
-
-
-def _write_project_config(path, config):
-    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
-    with open(config_path, 'w') as f:
-        json.dump(config, f, indent=2)
+app.register_blueprint(prepare_annotations_bp, url_prefix='/prepare_annotation')
+app.register_blueprint(annotations_bp, url_prefix='/annotate')
 
 
 @app.route('/')
@@ -337,39 +285,6 @@ def remove_class(project, class_name):
     return redirect(url_for("project_details", path=path))
 
 
-@app.route('/annotate/<split>/<label>/<path:path>')
-def show_video_list(split, label, path):
-    """
-    Show the list of videos for the given split, class label and project.
-    If the necessary files for annotation haven't been prepared yet, this is done now.
-    """
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
-    split = urllib.parse.unquote((split))
-    label = urllib.parse.unquote(label)
-    frames_dir = join(path, f"frames_{split}", label)
-    tags_dir = join(path, f"tags_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
-
-    os.makedirs(logreg_dir, exist_ok=True)
-    os.makedirs(tags_dir, exist_ok=True)
-
-    # load feature extractor if needed
-    _load_feature_extractor()
-    # compute the features and frames missing.
-    compute_frames_features(inference_engine, split, label, path)
-
-    videos = os.listdir(frames_dir)
-    videos.sort()
-
-    logreg_path = join(logreg_dir, 'logreg.joblib')
-    if os.path.isfile(logreg_path):
-        global logreg
-        logreg = load(logreg_path)
-
-    folder_id = zip(videos, list(range(len(videos))))
-    return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
-
-
 @app.route('/record-video/<string:project>/<string:split>/<string:label>')
 def record_video(project, split, label):
     """
@@ -413,61 +328,6 @@ def save_video(project, split, label):
     return jsonify(success=True)
 
 
-@app.route('/prepare_annotation/<path:path>')
-def prepare_annotation(path):
-    """
-    Prepare all files needed for annotating the videos in the given project.
-    """
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
-
-    # load feature extractor if needed
-    _load_feature_extractor()
-    for split in SPLITS:
-        print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
-        for label in os.listdir(join(path, f'videos_{split}')):
-            compute_frames_features(inference_engine, split, label, path)
-    return redirect(url_for("project_details", path=path))
-
-
-@app.route('/annotate/<split>/<label>/<path:path>/<int:idx>')
-def annotate(split, label, path, idx):
-    """
-    For the given class label, show all frames for annotating the selected video.
-    """
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
-    label = urllib.parse.unquote(label)
-    split = urllib.parse.unquote(split)
-    frames_dir = join(path, f"frames_{split}", label)
-    features_dir = join(path, f"features_{split}", label)
-
-    videos = os.listdir(frames_dir)
-    videos.sort()
-
-    features = np.load(join(features_dir, videos[idx] + ".npy"))
-    features = features.mean(axis=(2, 3))
-
-    if logreg is not None:
-        classes = list(logreg.predict(features))
-    else:
-        classes = [-1] * len(features)
-
-    # The list of images in the folder
-    images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
-              if _extension_ok(image)]
-
-    # Add indexes
-    images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
-    images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
-
-    # Read tags from config
-    config = _load_project_config(path)
-    tags = config['classes'][label]
-
-    return render_template('frame_annotation.html', images=images, idx=idx, fps=16,
-                           n_images=len(images), video_name=videos[idx],
-                           split=split, label=label, path=path, tags=tags)
-
-
 @app.route('/submit-annotation', methods=['POST'])
 def submit_annotation():
     """
@@ -498,7 +358,7 @@ def submit_annotation():
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('project_details', path=path))
 
-    return redirect(url_for('annotate', split=split, label=label, path=path, idx=next_frame_idx))
+    return redirect(url_for('annotations_bp.annotate', split=split, label=label, path=path, idx=next_frame_idx))
 
 
 @app.route('/train-logreg', methods=['POST'])
@@ -506,7 +366,7 @@ def train_logreg():
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
     """
-    global logreg
+    # global logreg
 
     data = request.form  # a multi-dict containing POST data
     idx = int(data['idx'])
@@ -559,11 +419,11 @@ def train_logreg():
 
         X = np.array(X)
         y = np.array(y)
-        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
-        logreg.fit(X, y)
-        dump(logreg, logreg_path)
+        g.logreglogreg = LogisticRegression(C=0.1, class_weight=class_weight)
+        g.logreg.fit(X, y)
+        dump(g.logreg, logreg_path)
 
-    return redirect(url_for('annotate', split=split, label=label, path=path, idx=idx))
+    return redirect(url_for('annotations_bp.annotate', split=split, label=label, path=path, idx=idx))
 
 
 @app.after_request
@@ -589,8 +449,11 @@ def download_file(img_path):
     return send_from_directory(img_dir, img, as_attachment=True)
 
 
-if __name__ == '__main__':
-    logreg = None
-    inference_engine = None
+# This runs before every request
+@app.before_request
+def before_request():
+    g.inference_engine = None
+    g.logreg = None
 
+if __name__ == '__main__':
     app.run(debug=True)
