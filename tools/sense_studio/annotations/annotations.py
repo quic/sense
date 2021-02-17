@@ -26,25 +26,31 @@ from tools.sense_studio.utils import _load_project_config
 
 annotations_bp = Blueprint('annotations_bp', __name__, template_folder='templates/annotations')
 
-logreg = None
-
 
 @annotations_bp.route('/<split>/<label>/<path:path>/<int:idx>')
 def annotate(split, label, path, idx):
     """
     For the given class label, show all frames for annotating the selected video.
     """
+    logreg = None
+
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
     frames_dir = join(path, f"frames_{split}", label)
     features_dir = join(path, f"features_{split}", label)
+    logreg_dir = join(path, 'logreg', label)
 
     videos = os.listdir(frames_dir)
     videos.sort()
 
     features = np.load(join(features_dir, videos[idx] + ".npy"))
     features = features.mean(axis=(2, 3))
+
+    # Load logistic regression model if available
+    logreg_path = join(logreg_dir, 'logreg.joblib')
+    if os.path.isfile(logreg_path):
+        logreg = load(logreg_path)
 
     if logreg is not None:
         classes = list(logreg.predict(features))
@@ -94,11 +100,6 @@ def show_video_list(split, label, path):
 
     tagged_list = set(os.listdir(tags_dir))
     tagged = [f'{video}.json' in tagged_list for video in videos]
-
-    logreg_path = join(logreg_dir, 'logreg.joblib')
-    if os.path.isfile(logreg_path):
-        global logreg
-        logreg = load(logreg_path)
 
     video_list = zip(videos, tagged, list(range(len(videos))))
     return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path)
