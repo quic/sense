@@ -8,9 +8,10 @@ from typing import Optional
 from typing import Tuple
 
 from sense import RESOURCES_DIR
+from sense import SOURCE_DIR
 from sense import backbone_networks
 
-with open(os.path.join(os.getcwd(), os.path.dirname(__file__), 'models.yml')) as f:
+with open(os.path.join(SOURCE_DIR, 'models.yml')) as f:
     MODELS = yaml.load(f, Loader=yaml.FullLoader)
 
 
@@ -46,7 +47,7 @@ class ModelConfig:
             if feature_converter not in all_feature_converters:
                 raise Exception(f'The {version} version of {model_name} does not support '
                                 f'{feature_converter} as a downstream task.'
-                                f'\nAvailable versions: {all_feature_converters}')
+                                f'\nAvailable converters: {all_feature_converters}')
 
         self.model_name = model_name
         self.version = version
@@ -95,11 +96,12 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         path_weights = model_config.get_path_weights()
         path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
 
-        if all(os.path.exists(path) for path in path_weights.values()) or using_travis():
+        files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
+        if files_exist or running_on_travis():
             print(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
-                load_fn = load_backbone_weights if name == 'backbone' else load_weights
+                load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
                 weights[name] = load_fn(path)
 
             return model_config, weights
@@ -109,6 +111,13 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
     raise Exception('ERROR - Weights file missing. To download, please go to '
                     'https://20bn.com/licensing/sdk/evaluation and follow the '
                     'instructions.')
+
+
+def prepend_resources_path(checkpoint_path):
+    """
+    Prepend the absolute resources path to the provided path.
+    """
+    return os.path.join(RESOURCES_DIR, checkpoint_path.split(f'resources{os.sep}')[-1])
 
 
 def load_weights(checkpoint_path: str):
@@ -128,7 +137,7 @@ def load_weights_from_resources(checkpoint_path: str):
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
-    checkpoint_path = os.path.join(RESOURCES_DIR, checkpoint_path.split(f'resources{os.sep}')[-1])
+    checkpoint_path = prepend_resources_path(checkpoint_path)
     try:
         return load_weights(checkpoint_path)
 
@@ -147,7 +156,7 @@ def load_backbone_weights(checkpoint_path: str):
     :param checkpoint_path:
         A string representing the absolute/relative path to the checkpoint file.
     """
-    if not using_travis():
+    if not running_on_travis():
         return load_weights_from_resources(checkpoint_path)
     else:
         print('Weights are not loaded on Travis.')
@@ -165,13 +174,13 @@ def build_backbone_network(selected_config: ModelConfig, weights: dict):
         A backbone network, with pre-trained weights.
     """
     backbone_network = getattr(backbone_networks, selected_config.model_name)()
-    if not using_travis():
+    if not running_on_travis():
         backbone_network.load_state_dict(weights)
     backbone_network.eval()
     return backbone_network
 
 
-def using_travis():
+def running_on_travis():
     """
     Returns True if Travis is currently being used.
     """
