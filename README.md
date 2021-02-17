@@ -109,9 +109,9 @@ conda install pytorch torchvision cudatoolkit=10.2 -c pytorch
 ``` 
 See all available options [here](https://pytorch.org/).
 
-#### Step 3: Download the Pre-trained Weights
-Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation). Follow the 
-instructions there to create an account and download the weights. Once downloaded, unzip the folder and move the 
+#### Step 3: Download the SenseKit Weights
+Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation), subject to separate terms. 
+Follow the instructions to create an account, agree to evaluation license and download the weights. Once downloaded, unzip the folder and move the 
 folder named `backbone` into `sense/resources`. In the end, your resources folder structure should look like
  this:
 
