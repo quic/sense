@@ -15,7 +15,7 @@ from tools.sense_studio.utils import _extension_ok
 from tools.sense_studio.utils import _load_feature_extractor
 from tools.sense_studio.utils import _load_project_config
 
-annotations_bp = Blueprint('annotations_bp',  __name__, template_folder='templates/annotations')
+annotations_bp = Blueprint('annotations_bp', __name__, template_folder='templates/annotations')
 
 logreg = None
 
@@ -91,4 +91,3 @@ def show_video_list(split, label, path):
 
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
-

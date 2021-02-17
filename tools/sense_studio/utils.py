@@ -66,5 +66,3 @@ def _write_project_config(path, config):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
-
-
