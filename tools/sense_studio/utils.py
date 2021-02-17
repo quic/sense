@@ -66,3 +66,18 @@ def _write_project_config(path, config):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
+
+def _get_class_name_and_tags(form_data):
+    """
+    Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
+    are not empty or the same.
+    """
+    class_name = form_data['className']
+    tag1 = form_data['tag1'] or f'{class_name}_tag1'
+    tag2 = form_data['tag2'] or f'{class_name}_tag2'
+
+    if tag2 == tag1:
+        tag1 = f'{tag1}_1'
+        tag2 = f'{tag2}_2'
+
+    return class_name, tag1, tag2
