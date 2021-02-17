@@ -562,9 +562,10 @@ def train_logreg():
 
         X = np.array(X)
         y = np.array(y)
-        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
-        logreg.fit(X, y)
-        dump(logreg, logreg_path)
+        if len(class_weight) > 1:
+            logreg = LogisticRegression(C=0.1, class_weight=class_weight)
+            logreg.fit(X, y)
+            dump(logreg, logreg_path)
 
     return redirect(url_for('annotate', split=split, label=label, path=path, idx=idx))
 
