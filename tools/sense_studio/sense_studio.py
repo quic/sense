@@ -7,11 +7,9 @@ Web app for maintaining all of your video datasets:
 - Train custom models using strong backbone networks (coming soon)
 """
 
-
 import datetime
 import glob
 import os
-import subprocess
 import urllib
 
 from flask import Flask
@@ -21,8 +19,9 @@ from flask import render_template
 from flask import request
 from flask import url_for
 
-from annotations.prepare_annotations import prepare_annotations_bp
 from annotations.annotations import annotations_bp
+from annotations.prepare_annotations import prepare_annotations_bp
+from video_recorder.record_videos import video_recorder_bp
 
 from tools.sense_studio.utils import _load_project_config
 from tools.sense_studio.utils import _load_project_overview_config
@@ -37,6 +36,7 @@ app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
 app.register_blueprint(prepare_annotations_bp, url_prefix='/prepare_annotation')
 app.register_blueprint(annotations_bp, url_prefix='/annotate')
+app.register_blueprint(video_recorder_bp, url_prefix='/video_recorder')
 
 
 @app.route('/')
@@ -261,49 +261,6 @@ def remove_class(project, class_name):
     _write_project_config(path, config)
 
     return redirect(url_for("project_details", path=path))
-
-
-@app.route('/record-video/<string:project>/<string:split>/<string:label>')
-def record_video(project, split, label):
-    """
-    Display the video recording screen.
-    """
-    project = urllib.parse.unquote(project)
-    split = urllib.parse.unquote(split)
-    label = urllib.parse.unquote(label)
-    path = _lookup_project_path(project)
-    return render_template('video_recording.html', project=project, split=split, label=label, path=path)
-
-
-@app.route('/save-video/<string:project>/<string:split>/<string:label>', methods=['POST'])
-def save_video(project, split, label):
-    project = urllib.parse.unquote(project)
-    split = urllib.parse.unquote(split)
-    label = urllib.parse.unquote(label)
-    path = _lookup_project_path(project)
-
-    # Read given video to a file
-    input_stream = request.files['video']
-    output_path = os.path.join(path, f'videos_{split}', label)
-    temp_file_name = os.path.join(output_path, 'temp_video.webm')
-    with open(temp_file_name, 'wb') as temp_file:
-        temp_file.write(input_stream.read())
-
-    # Find a video name that is not used yet
-    existing_files = set(glob.glob(os.path.join(output_path, 'video_[0-9]*.mp4')))
-    video_idx = 0
-    output_file = os.path.join(output_path, f'video_{video_idx}.mp4')
-    while output_file in existing_files:
-        video_idx += 1
-        output_file = os.path.join(output_path, f'video_{video_idx}.mp4')
-
-    # Convert video to target frame rate and save to output name
-    subprocess.call(f'ffmpeg -i "{temp_file_name}" -r 30 "{output_file}"', shell=True)
-
-    # Remove temp video file
-    os.remove(temp_file_name)
-
-    return jsonify(success=True)
 
 
 @app.after_request
