@@ -1,16 +1,25 @@
 #!/usr/bin/env python
 
 import glob
+import json
 import os
 import urllib
-from os.path import join
 
 import numpy as np
 from flask import Blueprint
+from flask import redirect
 from flask import render_template
+from flask import request
+from flask import send_from_directory
+from flask import url_for
+
+from joblib import dump
 from joblib import load
+from os.path import join
+from sklearn.linear_model import LogisticRegression
 
 from sense.finetuning import compute_frames_features
+
 from tools.sense_studio.utils import _extension_ok
 from tools.sense_studio.utils import _load_feature_extractor
 from tools.sense_studio.utils import _load_project_config
@@ -91,3 +100,110 @@ def show_video_list(split, label, path):
 
     folder_id = zip(videos, list(range(len(videos))))
     return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
+
+
+@annotations_bp.route('/submit-annotation', methods=['POST'])
+def submit_annotation():
+    """
+    Submit annotated tags for all frames and save them to a json file.
+    """
+    data = request.form  # a multi-dict containing POST data
+    idx = int(data['idx'])
+    fps = float(data['fps'])
+    path = data['path']
+    split = data['split']
+    label = data['label']
+    video = data['video']
+    next_frame_idx = idx + 1
+
+    tags_dir = join(path, f"tags_{split}", label)
+    frames_dir = join(path, f"frames_{split}", label)
+    description = {'file': video + ".mp4", 'fps': fps}
+
+    out_annotation = os.path.join(tags_dir, video + ".json")
+    time_annotation = []
+
+    for frame_idx in range(int(data['n_images'])):
+        time_annotation.append(int(data[f'{frame_idx}_tag']))
+
+    description['time_annotation'] = time_annotation
+    json.dump(description, open(out_annotation, 'w'))
+
+    if next_frame_idx >= len(os.listdir(frames_dir)):
+        return redirect(url_for('project_details', path=path))
+
+    return redirect(url_for('.annotate', split=split, label=label, path=path, idx=next_frame_idx))
+
+
+@annotations_bp.route('/train-logreg', methods=['POST'])
+def train_logreg():
+    """
+    (Re-)Train a logistic regression model on all annotations that have been submitted so far.
+    """
+
+    data = request.form  # a multi-dict containing POST data
+    idx = int(data['idx'])
+    path = data['path']
+    split = data['split']
+    label = data['label']
+
+    tags_dir = join(path, f"tags_{split}", label)
+    features_dir = join(path, f"features_{split}", label)
+    logreg_dir = join(path, 'logreg', label)
+    logreg_path = join(logreg_dir, 'logreg.joblib')
+
+    annotations = os.listdir(tags_dir)
+    class_weight = {0: 0.5}
+
+    if annotations:
+        features = [join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+        annotations = [join(tags_dir, x) for x in annotations]
+        X = []
+        y = []
+
+        for feature in features:
+            feature = np.load(feature)
+
+            for f in feature:
+                X.append(f.mean(axis=(1, 2)))
+
+        for annotation in annotations:
+            annotation = json.load(open(annotation, 'r'))['time_annotation']
+            pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
+
+            if len(pos1) > 0:
+                class_weight.update({1: 2})
+
+                for p in pos1:
+                    if p + 1 < len(annotation):
+                        annotation[p + 1] = 1
+
+            pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
+
+            if len(pos1) > 0:
+                class_weight.update({2: 2})
+
+                for p in pos1:
+                    if p + 1 < len(annotation):
+                        annotation[p + 1] = 2
+
+            for a in annotation:
+                y.append(a)
+
+        X = np.array(X)
+        y = np.array(y)
+        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
+        logreg.fit(X, y)
+        dump(logreg, logreg_path)
+
+    return redirect(url_for('.annotate', split=split, label=label, path=path, idx=idx))
+
+
+@annotations_bp.route('/uploads/<path:img_path>')
+def download_file(img_path):
+    """
+    Load an image from the given path.
+    """
+    img_path = f'/{urllib.parse.unquote(img_path)}'  # Make path absolute
+    img_dir, img = os.path.split(img_path)
+    return send_from_directory(img_dir, img, as_attachment=True)

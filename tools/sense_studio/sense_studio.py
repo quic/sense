@@ -10,8 +10,6 @@ Web app for maintaining all of your video datasets:
 
 import datetime
 import glob
-import json
-import numpy as np
 import os
 import subprocess
 import urllib
@@ -21,11 +19,7 @@ from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
-from flask import send_from_directory
 from flask import url_for
-from joblib import dump
-from os.path import join
-from sklearn.linear_model import LogisticRegression
 
 from annotations.prepare_annotations import prepare_annotations_bp
 from annotations.annotations import annotations_bp
@@ -36,6 +30,7 @@ from tools.sense_studio.utils import _lookup_project_path
 from tools.sense_studio.utils import SPLITS
 from tools.sense_studio.utils import _write_project_config
 from tools.sense_studio.utils import _write_project_overview_config
+from tools.sense_studio.utils import _get_class_name_and_tags
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
@@ -185,22 +180,6 @@ def project_details(path):
     return render_template('project_details.html', config=config, path=path, stats=stats)
 
 
-def _get_class_name_and_tags(form_data):
-    """
-    Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
-    are not empty or the same.
-    """
-    class_name = form_data['className']
-    tag1 = form_data['tag1'] or f'{class_name}_tag1'
-    tag2 = form_data['tag2'] or f'{class_name}_tag2'
-
-    if tag2 == tag1:
-        tag1 = f'{tag1}_1'
-        tag2 = f'{tag2}_2'
-
-    return class_name, tag1, tag2
-
-
 @app.route('/add-class/<string:project>', methods=['POST'])
 def add_class(project):
     """
@@ -327,103 +306,6 @@ def save_video(project, split, label):
     return jsonify(success=True)
 
 
-@app.route('/submit-annotation', methods=['POST'])
-def submit_annotation():
-    """
-    Submit annotated tags for all frames and save them to a json file.
-    """
-    data = request.form  # a multi-dict containing POST data
-    idx = int(data['idx'])
-    fps = float(data['fps'])
-    path = data['path']
-    split = data['split']
-    label = data['label']
-    video = data['video']
-    next_frame_idx = idx + 1
-
-    tags_dir = join(path, f"tags_{split}", label)
-    frames_dir = join(path, f"frames_{split}", label)
-    description = {'file': video + ".mp4", 'fps': fps}
-
-    out_annotation = os.path.join(tags_dir, video + ".json")
-    time_annotation = []
-
-    for frame_idx in range(int(data['n_images'])):
-        time_annotation.append(int(data[f'{frame_idx}_tag']))
-
-    description['time_annotation'] = time_annotation
-    json.dump(description, open(out_annotation, 'w'))
-
-    if next_frame_idx >= len(os.listdir(frames_dir)):
-        return redirect(url_for('project_details', path=path))
-
-    return redirect(url_for('annotations_bp.annotate', split=split, label=label, path=path, idx=next_frame_idx))
-
-
-@app.route('/train-logreg', methods=['POST'])
-def train_logreg():
-    """
-    (Re-)Train a logistic regression model on all annotations that have been submitted so far.
-    """
-
-    data = request.form  # a multi-dict containing POST data
-    idx = int(data['idx'])
-    path = data['path']
-    split = data['split']
-    label = data['label']
-
-    tags_dir = join(path, f"tags_{split}", label)
-    features_dir = join(path, f"features_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
-    logreg_path = join(logreg_dir, 'logreg.joblib')
-
-    annotations = os.listdir(tags_dir)
-    class_weight = {0: 0.5}
-
-    if annotations:
-        features = [join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-        annotations = [join(tags_dir, x) for x in annotations]
-        X = []
-        y = []
-
-        for feature in features:
-            feature = np.load(feature)
-
-            for f in feature:
-                X.append(f.mean(axis=(1, 2)))
-
-        for annotation in annotations:
-            annotation = json.load(open(annotation, 'r'))['time_annotation']
-            pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
-
-            if len(pos1) > 0:
-                class_weight.update({1: 2})
-
-                for p in pos1:
-                    if p + 1 < len(annotation):
-                        annotation[p + 1] = 1
-
-            pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
-
-            if len(pos1) > 0:
-                class_weight.update({2: 2})
-
-                for p in pos1:
-                    if p + 1 < len(annotation):
-                        annotation[p + 1] = 2
-
-            for a in annotation:
-                y.append(a)
-
-        X = np.array(X)
-        y = np.array(y)
-        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
-        logreg.fit(X, y)
-        dump(logreg, logreg_path)
-
-    return redirect(url_for('annotations_bp.annotate', split=split, label=label, path=path, idx=idx))
-
-
 @app.after_request
 def add_header(r):
     """
@@ -435,16 +317,6 @@ def add_header(r):
     r.headers["Expires"] = "0"
     r.headers['Cache-Control'] = 'public, max-age=0'
     return r
-
-
-@app.route('/uploads/<path:img_path>')
-def download_file(img_path):
-    """
-    Load an image from the given path.
-    """
-    img_path = f'/{urllib.parse.unquote(img_path)}'  # Make path absolute
-    img_dir, img = os.path.split(img_path)
-    return send_from_directory(img_dir, img, as_attachment=True)
 
 
 if __name__ == '__main__':
