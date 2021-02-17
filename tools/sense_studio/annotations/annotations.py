@@ -74,7 +74,6 @@ def show_video_list(split, label, path):
     Show the list of videos for the given split, class label and project.
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
-
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     split = urllib.parse.unquote((split))
     label = urllib.parse.unquote(label)
@@ -93,13 +92,16 @@ def show_video_list(split, label, path):
     videos = os.listdir(frames_dir)
     videos.sort()
 
+    tagged_list = set(os.listdir(tags_dir))
+    tagged = [f'{video}.json' in tagged_list for video in videos]
+
     logreg_path = join(logreg_dir, 'logreg.joblib')
     if os.path.isfile(logreg_path):
         global logreg
         logreg = load(logreg_path)
 
-    folder_id = zip(videos, list(range(len(videos))))
-    return render_template('video_list.html', folders=folder_id, split=split, label=label, path=path)
+    video_list = zip(videos, tagged, list(range(len(videos))))
+    return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path)
 
 
 @annotations_bp.route('/submit-annotation', methods=['POST'])
