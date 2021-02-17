@@ -4,28 +4,28 @@
 
 {% block main %}
 <div id="main" class="ui main text container">
-	<h1 class="ui header">
+    <h1 class="ui header">
         Video List
         <div class="sub header">
-			<i class="folder open icon"></i> {{ path }}
-			<br>
-			<i class="eye icon"></i> {{ label }}
-			<br>
-			<i class="database icon"></i> {{ split }}
+            <i class="folder open icon"></i> {{ path }}
+            <br>
+            <i class="eye icon"></i> {{ label }}
+            <br>
+            <i class="database icon"></i> {{ split }}
         </div>
     </h1>
-	<div class="ui segments">
-	{% for  f, id in folders %}
-		<div class="ui segment">
-			<!-- TODO: Mark videos that were already tagged -->
-			<a href="{{ url_for('annotate', split=split, label=label, path=path, idx=id) }}">
-				<i class="film icon"></i>
-				{{ f }}
-			</a>
-		</div>
-	{% endfor %}
-	</div>
+    <div class="ui segments">
+        {% for video, tagged, id in video_list %}
+        <div class="ui segment">
+            <a href="{{ url_for('annotate', split=split, label=label, path=path, idx=id) }}">
+                <i class="film icon"></i>
+                {{ video }}
+            </a>
+            {% if tagged %}
+            <i class="right-floated check icon"></i>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}
-
-
