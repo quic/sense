@@ -263,6 +263,42 @@ def remove_class(project, class_name):
     return redirect(url_for("project_details", path=path))
 
 
+@app.route('/annotate/<split>/<label>/<path:path>')
+def show_video_list(split, label, path):
+    """
+    Show the list of videos for the given split, class label and project.
+    If the necessary files for annotation haven't been prepared yet, this is done now.
+    """
+    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    split = urllib.parse.unquote((split))
+    label = urllib.parse.unquote(label)
+    frames_dir = join(path, f"frames_{split}", label)
+    tags_dir = join(path, f"tags_{split}", label)
+    logreg_dir = join(path, 'logreg', label)
+
+    os.makedirs(logreg_dir, exist_ok=True)
+    os.makedirs(tags_dir, exist_ok=True)
+
+    # load feature extractor if needed
+    _load_feature_extractor()
+    # compute the features and frames missing.
+    compute_frames_features(inference_engine, split, label, path)
+
+    videos = os.listdir(frames_dir)
+    videos.sort()
+
+    tagged_list = set(os.listdir(tags_dir))
+    tagged = [f'{video}.json' in tagged_list for video in videos]
+
+    logreg_path = join(logreg_dir, 'logreg.joblib')
+    if os.path.isfile(logreg_path):
+        global logreg
+        logreg = load(logreg_path)
+
+    video_list = zip(videos, tagged, list(range(len(videos))))
+    return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path)
+
+
 @app.route('/record-video/<string:project>/<string:split>/<string:label>')
 def record_video(project, split, label):
     """
