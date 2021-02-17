@@ -34,9 +34,9 @@ from tools.sense_studio.utils import _get_class_name_and_tags
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
-app.register_blueprint(prepare_annotations_bp, url_prefix='/prepare_annotation')
+app.register_blueprint(prepare_annotations_bp, url_prefix='/prepare-annotation')
 app.register_blueprint(annotations_bp, url_prefix='/annotate')
-app.register_blueprint(video_recorder_bp, url_prefix='/video_recorder')
+app.register_blueprint(video_recorder_bp, url_prefix='/video-recorder')
 
 
 @app.route('/')
