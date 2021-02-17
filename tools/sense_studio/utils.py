@@ -67,6 +67,7 @@ def _write_project_config(path, config):
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
 
+
 def _get_class_name_and_tags(form_data):
     """
     Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
