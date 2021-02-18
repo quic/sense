@@ -155,15 +155,16 @@ def setup_project():
 
     _write_project_overview_config(projects)
 
-    return redirect(url_for('project_details', path=path))
+    return redirect(url_for('project_details', project=name))
 
 
-@app.route('/project/<path:path>')
-def project_details(path):
+@app.route('/project/<string:project>')
+def project_details(project):
     """
     Show the details for the selected project.
     """
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    project = urllib.parse.unquote(project)
+    path = _lookup_project_path(project)
     config = _load_project_config(path)
 
     stats = {}
@@ -177,7 +178,7 @@ def project_details(path):
                 'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
             }
 
-    return render_template('project_details.html', config=config, path=path, stats=stats)
+    return render_template('project_details.html', config=config, project=project, path=path, stats=stats)
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
@@ -204,7 +205,7 @@ def add_class(project):
         if not os.path.exists(class_dir):
             os.mkdir(class_dir)
 
-    return redirect(url_for("project_details", path=path))
+    return redirect(url_for("project_details", project=project))
 
 
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
@@ -243,7 +244,7 @@ def edit_class(project, class_name):
         new_class_dir = os.path.join(logreg_dir, new_class_name)
         os.rename(class_dir, new_class_dir)
 
-    return redirect(url_for("project_details", path=path))
+    return redirect(url_for("project_details", project=project))
 
 
 @app.route('/remove-class/<string:project>/<string:class_name>')
@@ -260,7 +261,7 @@ def remove_class(project, class_name):
     del config['classes'][class_name]
     _write_project_config(path, config)
 
-    return redirect(url_for("project_details", path=path))
+    return redirect(url_for("project_details", project=project))
 
 
 @app.after_request

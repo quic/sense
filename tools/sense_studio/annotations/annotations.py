@@ -133,7 +133,8 @@ def submit_annotation():
     json.dump(description, open(out_annotation, 'w'))
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
-        return redirect(url_for('project_details', path=path))
+        project = _load_project_config(path)['name']
+        return redirect(url_for('project_details', project=project))
 
     return redirect(url_for('.annotate', split=split, label=label, path=path, idx=next_frame_idx))
 
