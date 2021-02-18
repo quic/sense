@@ -15,7 +15,6 @@ from sklearn.metrics import confusion_matrix
 from os.path import join
 
 from sense.engine import InferenceEngine
-from sense.loading import ModelConfig
 from sense.utils import clean_pipe_state_dict_key
 
 MODEL_TEMPORAL_DEPENDENCY = 45
@@ -110,7 +109,7 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
         features = []
         labels = []
         for label in label_names:
-            feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
+            feature_temp = glob.glob(join(features_dir, label, '*.npy'))
             features += feature_temp
             labels += [label2int[label]] * len(feature_temp)
             labels_string += [label] * len(feature_temp)
@@ -126,8 +125,8 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
     # check if annotation exist for each video
     for label, feature in zip(labels_string, features):
         classe_mapping = {0: "counting_background",
-                          1: f'{label}_position_1', 2:
-                              f'{label}_position_2'}
+                          1: f'{label}_position_1',
+                          2: f'{label}_position_2'}
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file):
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
@@ -166,8 +165,7 @@ def uniform_frame_sample(video, sample_rate):
 
 def compute_features(video_path, path_out, inference_engine, num_timesteps=1, path_frames=None,
                      batch_size=None):
-    video_source = camera.VideoSource(camera_id=None,
-                                      size=inference_engine.expected_frame_size,
+    video_source = camera.VideoSource(size=inference_engine.expected_frame_size,
                                       filename=video_path)
     video_fps = video_source.get_fps()
     frames = []
@@ -198,12 +196,12 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
     pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
 
     # Depending on the number of layers we finetune, we keep the number of features from padding
-    # equal to the temporal dependancy of the model.
-    temporal_dependancy_features = np.array(pre_features)[-num_timesteps:]
+    # equal to the temporal dependency of the model.
+    temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
 
     # predictions of the actual video frames
     predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
-    predictions = np.concatenate([temporal_dependancy_features, predictions], axis=0)
+    predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
     features = np.array(predictions)
     os.makedirs(os.path.dirname(path_out), exist_ok=True)
     np.save(path_out, features)
@@ -219,32 +217,39 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
 
         for e, frame in enumerate(frames_to_save):
             Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
-                os.path.join(path_frames, str(e) + '.jpg'), quality=50)
+                os.path.join(path_frames, f'{e}.jpg'), quality=50)
 
 
-def compute_frames_features(
-        inference_engine: InferenceEngine,
-        videos_path: str,
-        split: str,
-        label: str,
-        dataset_path: str,
-        model_config: ModelConfig,
-):
+def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, frames_dir: str, features_dir: str):
     """
+    Split the videos in the given directory into frames and compute features on each frame.
+    Results are stored in the given directories for frames and features.
 
+    :param inference_engine:
+        Initialized InferenceEngine that can be used for computing the features.
+    :param videos_dir:
+        Directory where the videos are stored.
+    :param frames_dir:
+        Directory where frames should be stored. One sub-directory will be created per video with extracted frames as
+        numbered .jpg files in there.
+    :param features_dir:
+        Directory where computed features should be stored. One .npy file will be created per video.
     """
-    # Create features and frames folders for the given split and label
-    features_folder = join(dataset_path, f'features_{split}', label)
-    frames_folder = join(dataset_path, f'frames_{split}', label)
-    os.makedirs(features_folder, exist_ok=True)
-    os.makedirs(frames_folder, exist_ok=True)
+    # Create features and frames folders
+    os.makedirs(features_dir, exist_ok=True)
+    os.makedirs(frames_dir, exist_ok=True)
 
     # Loop through all videos for the given class-label
-    videos = glob.glob(join(videos_path, '*.mp4'))
-    for e, video_path in enumerate(videos):
-        print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
-        path_frames = join(frames_folder, os.path.basename(video_path).replace(".mp4", ""))
-        path_features = join(features_folder, os.path.basename(video_path).replace(".mp4", ".npy"))
+    videos = glob.glob(join(videos_dir, '*.mp4'))
+    num_videos = len(videos)
+    for idx, video_path in enumerate(videos):
+        print(f'\r  {videos_dir}  -->  Processing video {idx + 1} / {num_videos}',
+              end='' if idx < (num_videos - 1) else '\n')
+
+        video_name = os.path.basename(video_path).replace('.mp4', '')
+        path_frames = join(frames_dir, video_name)
+        path_features = join(features_dir, f'{video_name}.npy')
+
         if not os.path.isfile(path_features):
             os.makedirs(path_frames, exist_ok=True)
             compute_features(video_path, path_features, inference_engine,

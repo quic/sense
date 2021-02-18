@@ -24,8 +24,8 @@ from flask import send_from_directory
 from flask import url_for
 from joblib import dump
 from joblib import load
-from os.path import join
 from sklearn.linear_model import LogisticRegression
+from typing import List
 from typing import Optional
 
 from sense.engine import InferenceEngine
@@ -37,6 +37,10 @@ from sense.loading import ModelConfig
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
+
+logreg: Optional[LogisticRegression] = None
+inference_engine: Optional[InferenceEngine] = None
+model_config: Optional[ModelConfig] = None
 
 MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
@@ -59,7 +63,6 @@ def _load_feature_extractor():
 
     if inference_engine is None:
         # Load weights
-        # TODO: Let user specify model and version on the UI
         selected_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
         model_config = selected_config
 
@@ -101,6 +104,43 @@ def _write_project_config(path, config):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
+
+
+def _get_data_dir(dir_type: str, dataset_path: str, split: Optional[str] = None, subdirs: Optional[List[str]] = None):
+    main_dir = f'{dir_type}_{split}' if split else dir_type
+    subdirs = subdirs or []
+
+    return os.path.join(dataset_path, main_dir, *subdirs)
+
+
+def _get_videos_dir(dataset_path, split, label=None):
+    subdirs = [label] if label else None
+    return _get_data_dir('videos', dataset_path, split, subdirs)
+
+
+def _get_frames_dir(dataset_path, split, label=None):
+    subdirs = [label] if label else None
+    return _get_data_dir('frames', dataset_path, split, subdirs)
+
+
+def _get_features_dir(dataset_path, split, model: Optional[ModelConfig] = None, label=None):
+    subdirs = None
+    if model:
+        subdirs = [model.combined_model_name]
+        if label:
+            subdirs.append(label)
+
+    return _get_data_dir('features', dataset_path, split, subdirs)
+
+
+def _get_tags_dir(dataset_path, split, label=None):
+    subdirs = [label] if label else None
+    return _get_data_dir('tags', dataset_path, split, subdirs)
+
+
+def _get_logreg_dir(dataset_path, label=None):
+    subdirs = [label] if label else None
+    return _get_data_dir('logreg', dataset_path, subdirs=subdirs)
 
 
 @app.route('/')
@@ -206,7 +246,7 @@ def setup_project():
 
     # Setup directory structure
     for split in SPLITS:
-        videos_dir = os.path.join(path, f'videos_{split}')
+        videos_dir = _get_videos_dir(path, split)
         if not os.path.exists(videos_dir):
             os.mkdir(videos_dir)
 
@@ -237,11 +277,11 @@ def project_details(path):
     for class_name, tags in config['classes'].items():
         stats[class_name] = {}
         for split in SPLITS:
-            videos_path = os.path.join(path, f'videos_{split}', class_name)
-            tags_path = os.path.join(path, f'tags_{split}', class_name)
+            videos_dir = _get_videos_dir(path, split, class_name)
+            tags_dir = _get_tags_dir(path, split, class_name)
             stats[class_name][split] = {
-                'total': len(os.listdir(videos_path)),
-                'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
+                'total': len(os.listdir(videos_dir)),
+                'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
             }
 
     return render_template('project_details.html', config=config, path=path, stats=stats)
@@ -284,11 +324,10 @@ def add_class(project):
 
     # Setup directory structure
     for split in SPLITS:
-        videos_dir = os.path.join(path, f'videos_{split}')
-        class_dir = os.path.join(videos_dir, class_name)
+        videos_dir = _get_videos_dir(path, split, class_name)
 
-        if not os.path.exists(class_dir):
-            os.mkdir(class_dir)
+        if not os.path.exists(videos_dir):
+            os.mkdir(videos_dir)
 
     return redirect(url_for("project_details", path=path))
 
@@ -315,24 +354,27 @@ def edit_class(project, class_name):
     _write_project_config(path, config)
 
     # Update directory names
-    prefixes = ['videos', 'features', 'frames', 'tags']
+    data_dirs = []
     for split in SPLITS:
-        for prefix in prefixes:
-            main_dir = os.path.join(path, f'{prefix}_{split}')
-            class_dir = os.path.join(main_dir, class_name)
+        data_dirs.extend([
+            _get_videos_dir(path, split),
+            _get_frames_dir(path, split),
+            _get_tags_dir(path, split),
+        ])
 
-            if os.path.exists(class_dir):
-                new_class_dir = os.path.join(main_dir, new_class_name)
-                os.rename(class_dir, new_class_dir)
+        features_dir = _get_features_dir(path, split)
+        data_dirs.extend([os.path.join(features_dir, model_dir) for model_dir in os.listdir(features_dir)])
 
-    logreg_dir = os.path.join(path, 'logreg')
-    class_dir = os.path.join(logreg_dir, class_name)
+    data_dirs.append(_get_logreg_dir(path))
 
-    if os.path.exists(class_dir):
-        new_class_dir = os.path.join(logreg_dir, new_class_name)
-        os.rename(class_dir, new_class_dir)
+    for base_dir in data_dirs:
+        class_dir = os.path.join(base_dir, class_name)
 
-    return redirect(url_for("project_details", path=path))
+        if os.path.exists(class_dir):
+            new_class_dir = os.path.join(base_dir, new_class_name)
+            os.rename(class_dir, new_class_dir)
+
+    return redirect(url_for('project_details', path=path))
 
 
 @app.route('/remove-class/<string:project>/<string:class_name>')
@@ -362,24 +404,31 @@ def show_video_list(split, label, path):
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
-    split = urllib.parse.unquote((split))
+    split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
-    frames_dir = join(path, f"frames_{split}", label)
-    tags_dir = join(path, f"tags_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
+
+    # load feature extractor if needed
+    _load_feature_extractor()
+
+    videos_dir = _get_videos_dir(path, split, label)
+    frames_dir = _get_frames_dir(path, split, label)
+    features_dir = _get_features_dir(path, split, model_config, label)
+    tags_dir = _get_tags_dir(path, split, label)
+    logreg_dir = _get_logreg_dir(path, label)
 
     os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
 
-    # load feature extractor if needed
-    _load_feature_extractor()
-    # compute the features and frames missing.
-    compute_frames_features(inference_engine, split, label, path)
+    # compute the features and frames missing
+    compute_frames_features(inference_engine=inference_engine,
+                            videos_dir=videos_dir,
+                            frames_dir=frames_dir,
+                            features_dir=features_dir)
 
     videos = os.listdir(frames_dir)
     videos.sort()
 
-    logreg_path = join(logreg_dir, 'logreg.joblib')
+    logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
     if os.path.isfile(logreg_path):
         global logreg
         logreg = load(logreg_path)
@@ -400,19 +449,16 @@ def prepare_annotation(path):
     for split in SPLITS:
         print(f'\n\tPreparing videos in the {split}-set')
 
-        videos_split_path = os.path.join(dataset_path, f'videos_{split}')
-        features_split_path = os.path.join(dataset_path, f'features_{split}', model_config.combined_model_name)
-        frames_split_path = os.path.join(dataset_path, f'frames_{split}')
+        for label in os.listdir(_get_videos_dir(dataset_path, split)):
+            videos_dir = _get_videos_dir(dataset_path, split, label)
+            frames_dir = _get_frames_dir(dataset_path, split, label)
+            features_dir = _get_features_dir(dataset_path, split, model_config, label)
 
-        for label in os.listdir(join(path, f'videos_{split}')):
-            videos_label_path = os.path.join(videos_split_path, label)
-            features_label_path = os.path.join(features_split_path, label)
-            frames_label_path = os.path.join(frames_split_path, label)
+            compute_frames_features(inference_engine=inference_engine,
+                                    videos_dir=videos_dir,
+                                    frames_dir=frames_dir,
+                                    features_dir=features_dir)
 
-            compute_frames_features(
-                inference_engine=inference_engine,
-                videos_path=videos_label_path,
-                split, label, path, model_config)
     return redirect(url_for("project_details", path=path))
 
 
@@ -424,13 +470,13 @@ def annotate(split, label, path, idx):
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
-    frames_dir = join(path, f"frames_{split}", label)
-    features_dir = join(path, f"features_{split}", label)
+    frames_dir = _get_frames_dir(path, split, label)
+    features_dir = _get_features_dir(path, split, model_config, label)
 
     videos = os.listdir(frames_dir)
     videos.sort()
 
-    features = np.load(join(features_dir, videos[idx] + ".npy"))
+    features = np.load(os.path.join(features_dir, videos[idx] + ".npy"))
     features = features.mean(axis=(2, 3))
 
     if logreg is not None:
@@ -439,7 +485,7 @@ def annotate(split, label, path, idx):
         classes = [-1] * len(features)
 
     # The list of images in the folder
-    images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
+    images = [image for image in glob.glob(os.path.join(frames_dir, videos[idx] + '/*'))
               if _extension_ok(image)]
 
     # Add indexes
@@ -469,11 +515,11 @@ def submit_annotation():
     video = data['video']
     next_frame_idx = idx + 1
 
-    tags_dir = join(path, f"tags_{split}", label)
-    frames_dir = join(path, f"frames_{split}", label)
-    description = {'file': video + ".mp4", 'fps': fps}
+    frames_dir = _get_frames_dir(path, split, label)
+    tags_dir = _get_tags_dir(path, split, label)
+    description = {'file': f'{video}.mp4', 'fps': fps}
 
-    out_annotation = os.path.join(tags_dir, video + ".json")
+    out_annotation = os.path.join(tags_dir, f'{video}.json')
     time_annotation = []
 
     for frame_idx in range(int(data['n_images'])):
@@ -501,17 +547,17 @@ def train_logreg():
     split = data['split']
     label = data['label']
 
-    tags_dir = join(path, f"tags_{split}", label)
-    features_dir = join(path, f"features_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
-    logreg_path = join(logreg_dir, 'logreg.joblib')
+    features_dir = _get_features_dir(path, split, model_config, label)
+    tags_dir = _get_tags_dir(path, split, label)
+    logreg_dir = _get_logreg_dir(path, label)
+    logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
 
     annotations = os.listdir(tags_dir)
     class_weight = {0: 0.5}
 
     if annotations:
-        features = [join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-        annotations = [join(tags_dir, x) for x in annotations]
+        features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+        annotations = [os.path.join(tags_dir, x) for x in annotations]
         X = []
         y = []
 
@@ -577,8 +623,4 @@ def download_file(img_path):
 
 
 if __name__ == '__main__':
-    logreg: Optional[LogisticRegression] = None
-    inference_engine: Optional[InferenceEngine] = None
-    model_config: Optional[ModelConfig] = None
-
     app.run(debug=True)
