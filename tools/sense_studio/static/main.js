@@ -182,13 +182,17 @@ function loading(element) {
 }
 
 
-let tagColors = [
-    'grey',
-    'blue',
-    'green'
-]
+function initTagColors() {
+    return [
+        'grey',
+        'blue',
+        'green'
+    ];
+}
+
 
 function assignTag(frameIdx, selectedTagIdx) {
+    let tagColors = initTagColors();
     let tagInput = document.getElementById(`${frameIdx}_tag`);
     tagInput.value = selectedTagIdx;
 
