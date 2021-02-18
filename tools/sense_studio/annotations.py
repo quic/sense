@@ -23,8 +23,25 @@ from sense.finetuning import compute_frames_features
 from tools.sense_studio.utils import _extension_ok
 from tools.sense_studio.utils import _load_feature_extractor
 from tools.sense_studio.utils import _load_project_config
+from tools.sense_studio.utils import SPLITS
 
-annotations_bp = Blueprint('annotations_bp', __name__, template_folder='templates/annotations')
+annotations_bp = Blueprint('annotations_bp', __name__)
+
+
+@annotations_bp.route('/prepare-annotation/<path:path>')
+def prepare_annotation(path):
+    """
+    Prepare all files needed for annotating the videos in the given project.
+    """
+
+    path = f'/{urllib.parse.unquote(path)}'  # Make path
+    # load feature extractor if needed
+    inference_engine = _load_feature_extractor()
+    for split in SPLITS:
+        print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
+        for label in os.listdir(join(path, f'videos_{split}')):
+            compute_frames_features(inference_engine, split, label, path)
+    return redirect(url_for("project_details", path=path))
 
 
 @annotations_bp.route('/<split>/<label>/<path:path>/<int:idx>')
@@ -81,7 +98,7 @@ def show_video_list(split, label, path):
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
-    split = urllib.parse.unquote((split))
+    split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
     frames_dir = join(path, f"frames_{split}", label)
     tags_dir = join(path, f"tags_{split}", label)
