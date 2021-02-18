@@ -46,14 +46,15 @@ def prepare_annotation(project):
     return redirect(url_for("project_details", project=project))
 
 
-@annotations_bp.route('/<split>/<label>/<path:path>/<int:idx>')
-def annotate(split, label, path, idx):
+@annotations_bp.route('/<split>/<label>/<string:project>/<int:idx>')
+def annotate(split, label, project, idx):
     """
     For the given class label, show all frames for annotating the selected video.
     """
     logreg = None
 
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    project = urllib.parse.unquote(project)
+    path = _lookup_project_path(project)
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
     frames_dir = join(path, f"frames_{split}", label)
@@ -93,13 +94,16 @@ def annotate(split, label, path, idx):
                            split=split, label=label, path=path, tags=tags)
 
 
-@annotations_bp.route('/<split>/<label>/<path:path>')
-def show_video_list(split, label, path):
+@annotations_bp.route('/<split>/<label>/<string:project>')
+def show_video_list(split, label, project):
     """
     Show the list of videos for the given split, class label and project.
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
-    path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
+    project = urllib.parse.unquote(project)
+    print(f"==> project: {project}")
+    path = _lookup_project_path(project)
+    print(f"==> path: {path}")
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
     frames_dir = join(path, f"frames_{split}", label)
@@ -121,7 +125,8 @@ def show_video_list(split, label, path):
     tagged = [f'{video}.json' in tagged_list for video in videos]
 
     video_list = zip(videos, tagged, list(range(len(videos))))
-    return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path)
+    return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path,
+                           project=project)
 
 
 @annotations_bp.route('/submit-annotation', methods=['POST'])
@@ -133,6 +138,7 @@ def submit_annotation():
     idx = int(data['idx'])
     fps = float(data['fps'])
     path = data['path']
+    project = _load_project_config(path)['name']
     split = data['split']
     label = data['label']
     video = data['video']
@@ -152,10 +158,9 @@ def submit_annotation():
     json.dump(description, open(out_annotation, 'w'))
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
-        project = _load_project_config(path)['name']
         return redirect(url_for('project_details', project=project))
 
-    return redirect(url_for('.annotate', split=split, label=label, path=path, idx=next_frame_idx))
+    return redirect(url_for('.annotate', split=split, label=label, project=project, idx=next_frame_idx))
 
 
 @annotations_bp.route('/train-logreg', methods=['POST'])
@@ -167,6 +172,7 @@ def train_logreg():
     data = request.form  # a multi-dict containing POST data
     idx = int(data['idx'])
     path = data['path']
+    project = _load_project_config(path)['name']
     split = data['split']
     label = data['label']
 
@@ -219,7 +225,7 @@ def train_logreg():
         logreg.fit(X, y)
         dump(logreg, logreg_path)
 
-    return redirect(url_for('.annotate', split=split, label=label, path=path, idx=idx))
+    return redirect(url_for('.annotate', split=split, label=label, project=project, idx=idx))
 
 
 @annotations_bp.route('/uploads/<path:img_path>')

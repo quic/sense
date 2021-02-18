@@ -176,7 +176,7 @@ def project_details(project):
                 'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
             }
 
-    return render_template('project_details.html', config=config, project=project, path=path, stats=stats)
+    return render_template('project_details.html', config=config, path=path, stats=stats)
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
