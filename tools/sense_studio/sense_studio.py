@@ -19,9 +19,8 @@ from flask import render_template
 from flask import request
 from flask import url_for
 
-from annotations.annotations import annotations_bp
-from annotations.prepare_annotations import prepare_annotations_bp
-from video_recorder.record_videos import video_recorder_bp
+from tools.sense_studio.annotations import annotations_bp
+from tools.sense_studio.video_recording import video_recorder_bp
 
 from tools.sense_studio.utils import _load_project_config
 from tools.sense_studio.utils import _load_project_overview_config
@@ -34,7 +33,6 @@ from tools.sense_studio.utils import _get_class_name_and_tags
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
-app.register_blueprint(prepare_annotations_bp, url_prefix='/prepare-annotation')
 app.register_blueprint(annotations_bp, url_prefix='/annotate')
 app.register_blueprint(video_recorder_bp, url_prefix='/video-recorder')
 
