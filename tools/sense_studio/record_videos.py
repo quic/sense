@@ -12,8 +12,7 @@ from flask import request
 
 from tools.sense_studio.utils import _lookup_project_path
 
-video_recorder_bp = Blueprint('video_recorder_bp', __name__, template_folder='templates/video_recorder',
-                              static_folder='static/video_recorder')
+video_recorder_bp = Blueprint('video_recorder_bp', __name__)
 
 
 @video_recorder_bp.route('/record-video/<string:project>/<string:split>/<string:label>')
