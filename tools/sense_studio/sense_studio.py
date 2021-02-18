@@ -20,7 +20,7 @@ from flask import request
 from flask import url_for
 
 from tools.sense_studio.annotations import annotations_bp
-from tools.sense_studio.record_videos import video_recorder_bp
+from tools.sense_studio.video_recording import video_recorder_bp
 
 from tools.sense_studio.utils import _load_project_config
 from tools.sense_studio.utils import _load_project_overview_config
