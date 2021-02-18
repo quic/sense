@@ -442,6 +442,7 @@ def annotate(split, label, path, idx):
     split = urllib.parse.unquote(split)
     frames_dir = join(path, f"frames_{split}", label)
     features_dir = join(path, f"features_{split}", label)
+    tags_dir = join(path, f"tags_{split}", label)
 
     videos = os.listdir(frames_dir)
     videos.sort()
@@ -462,12 +463,21 @@ def annotate(split, label, path, idx):
     images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
     images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
 
+    annotations = []
+    tagged = False
+    tagged_list = set(os.listdir(tags_dir))
+    video = f"{videos[idx]}.json"
+    if video in tagged_list:
+        with open(join(tags_dir, video)) as f:
+            data = json.load(f)
+            annotations = data['time_annotation']
+            tagged = True
+
     # Read tags from config
     config = _load_project_config(path)
     tags = config['classes'][label]
-
-    return render_template('frame_annotation.html', images=images, idx=idx, fps=16,
-                           n_images=len(images), video_name=videos[idx],
+    return render_template('frame_annotation.html', images=images, tagged=tagged, annotations=annotations,
+                           idx=idx, fps=16, n_images=len(images), video_name=videos[idx],
                            split=split, label=label, path=path, tags=tags)
 
 
