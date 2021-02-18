@@ -138,8 +138,13 @@ def _get_tags_dir(dataset_path, split, label=None):
     return _get_data_dir('tags', dataset_path, split, subdirs)
 
 
-def _get_logreg_dir(dataset_path, label=None):
-    subdirs = [label] if label else None
+def _get_logreg_dir(dataset_path, model: Optional[ModelConfig] = None, label=None):
+    subdirs = None
+    if model:
+        subdirs = [model.combined_model_name]
+        if label:
+            subdirs.append(label)
+
     return _get_data_dir('logreg', dataset_path, subdirs=subdirs)
 
 
@@ -365,7 +370,8 @@ def edit_class(project, class_name):
         features_dir = _get_features_dir(path, split)
         data_dirs.extend([os.path.join(features_dir, model_dir) for model_dir in os.listdir(features_dir)])
 
-    data_dirs.append(_get_logreg_dir(path))
+    logreg_dir = _get_logreg_dir(path)
+    data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
 
     for base_dir in data_dirs:
         class_dir = os.path.join(base_dir, class_name)
@@ -414,7 +420,7 @@ def show_video_list(split, label, path):
     frames_dir = _get_frames_dir(path, split, label)
     features_dir = _get_features_dir(path, split, model_config, label)
     tags_dir = _get_tags_dir(path, split, label)
-    logreg_dir = _get_logreg_dir(path, label)
+    logreg_dir = _get_logreg_dir(path, model_config, label)
 
     os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
@@ -549,7 +555,7 @@ def train_logreg():
 
     features_dir = _get_features_dir(path, split, model_config, label)
     tags_dir = _get_tags_dir(path, split, label)
-    logreg_dir = _get_logreg_dir(path, label)
+    logreg_dir = _get_logreg_dir(path, model_config, label)
     logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
 
     annotations = os.listdir(tags_dir)
