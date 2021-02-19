@@ -17,7 +17,7 @@
     <div class="ui segments">
         {% for video, tagged, id in video_list %}
         <div class="ui segment">
-            <a href="{{ url_for('annotations_bp.annotate', split=split, label=label, path=path, idx=id) }}">
+            <a href="{{ url_for('annotation_bp.annotate', split=split, label=label, path=path, idx=id) }}">
                 <i class="film icon"></i>
                 {{ video }}
             </a>

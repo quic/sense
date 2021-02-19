@@ -10,10 +10,10 @@ from flask import request
 
 from tools.sense_studio.utils import _lookup_project_path
 
-video_recorder_bp = Blueprint('video_recorder_bp', __name__)
+video_recording_bp = Blueprint('video_recording_bp', __name__)
 
 
-@video_recorder_bp.route('/record-video/<string:project>/<string:split>/<string:label>')
+@video_recording_bp.route('/record-video/<string:project>/<string:split>/<string:label>')
 def record_video(project, split, label):
     """
     Display the video recording screen.
@@ -25,7 +25,7 @@ def record_video(project, split, label):
     return render_template('video_recording.html', project=project, split=split, label=label, path=path)
 
 
-@video_recorder_bp.route('/save-video/<string:project>/<string:split>/<string:label>', methods=['POST'])
+@video_recording_bp.route('/save-video/<string:project>/<string:split>/<string:label>', methods=['POST'])
 def save_video(project, split, label):
     project = urllib.parse.unquote(project)
     split = urllib.parse.unquote(split)

@@ -6,7 +6,7 @@
 <div id="main" class="ui main container">
     <h1 class="ui header">Annotate Frames</h1>
     <h2 class="ui header">Video: {{video_name}}</h2>
-    <form method="POST" action="{{ url_for('annotations_bp.submit_annotation') }}">
+    <form method="POST" action="{{ url_for('annotation_bp.submit_annotation') }}">
         <input type="hidden" name="fps" value="{{ fps }}">
         <input type="hidden" name="idx" value="{{ idx }}">
         <input type="hidden" name="path" value="{{ path }}">
@@ -19,7 +19,7 @@
                 <input type="hidden" id="{{ idx }}_tag" name="{{ idx }}_tag" value="0">
                 <div class="card">
                     <div class="image">
-                        <img src="{{ url_for('annotations_bp.download_file', img_path=img) }}">
+                        <img src="{{ url_for('annotation_bp.download_file', img_path=img) }}">
                     </div>
                     <div class="content">
                         {% if pred_class == 0 %}
@@ -61,7 +61,7 @@
         </div>
         <button class="ui button mt" type="submit">Submit</button>
     </form>
-    <form method="POST" action="{{ url_for('annotations_bp.train_logreg') }}">
+    <form method="POST" action="{{ url_for('annotation_bp.train_logreg') }}">
         <input type="hidden" name="idx" value="{{idx}}">
         <input type="hidden" name="path" value="{{path}}">
         <input type="hidden" name="split" value="{{split}}">

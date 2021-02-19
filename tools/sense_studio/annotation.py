@@ -23,10 +23,10 @@ from tools.sense_studio.utils import _load_feature_extractor
 from tools.sense_studio.utils import _load_project_config
 from tools.sense_studio.utils import SPLITS
 
-annotations_bp = Blueprint('annotations_bp', __name__)
+annotation_bp = Blueprint('annotation_bp', __name__)
 
 
-@annotations_bp.route('/<split>/<label>/<path:path>')
+@annotation_bp.route('/<split>/<label>/<path:path>')
 def show_video_list(split, label, path):
     """
     Show the list of videos for the given split, class label and project.
@@ -57,7 +57,7 @@ def show_video_list(split, label, path):
     return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path)
 
 
-@annotations_bp.route('/prepare-annotation/<path:path>')
+@annotation_bp.route('/prepare-annotation/<path:path>')
 def prepare_annotation(path):
     """
     Prepare all files needed for annotating the videos in the given project.
@@ -73,7 +73,7 @@ def prepare_annotation(path):
     return redirect(url_for("project_details", path=path))
 
 
-@annotations_bp.route('/<split>/<label>/<path:path>/<int:idx>')
+@annotation_bp.route('/<split>/<label>/<path:path>/<int:idx>')
 def annotate(split, label, path, idx):
     """
     For the given class label, show all frames for annotating the selected video.
@@ -116,7 +116,7 @@ def annotate(split, label, path, idx):
                            split=split, label=label, path=path, tags=tags)
 
 
-@annotations_bp.route('/submit-annotation', methods=['POST'])
+@annotation_bp.route('/submit-annotation', methods=['POST'])
 def submit_annotation():
     """
     Submit annotated tags for all frames and save them to a json file.
@@ -149,7 +149,7 @@ def submit_annotation():
     return redirect(url_for('.annotate', split=split, label=label, path=path, idx=next_frame_idx))
 
 
-@annotations_bp.route('/train-logreg', methods=['POST'])
+@annotation_bp.route('/train-logreg', methods=['POST'])
 def train_logreg():
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
@@ -212,7 +212,7 @@ def train_logreg():
     return redirect(url_for('.annotate', split=split, label=label, path=path, idx=idx))
 
 
-@annotations_bp.route('/uploads/<path:img_path>')
+@annotation_bp.route('/uploads/<path:img_path>')
 def download_file(img_path):
     """
     Load an image from the given path.
