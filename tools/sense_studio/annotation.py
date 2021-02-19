@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-
 import glob
 import json
+import numpy as np
 import os
 import urllib
 
-import numpy as np
 from flask import Blueprint
 from flask import redirect
 from flask import render_template
@@ -19,42 +17,67 @@ from os.path import join
 from sklearn.linear_model import LogisticRegression
 
 from sense.finetuning import compute_frames_features
+from tools.sense_studio import utils
 
-from tools.sense_studio.utils import _extension_ok
-from tools.sense_studio.utils import _load_feature_extractor
-from tools.sense_studio.utils import _load_project_config
-from tools.sense_studio.utils import _lookup_project_path
-from tools.sense_studio.utils import SPLITS
-
-annotations_bp = Blueprint('annotations_bp', __name__)
+annotation_bp = Blueprint('annotation_bp', __name__)
 
 
-@annotations_bp.route('/prepare-annotation/<string:project>')
+@annotation_bp.route('/<split>/<label>/<string:project>')
+def show_video_list(split, label, project):
+    """
+    Show the list of videos for the given split, class label and project.
+    If the necessary files for annotation haven't been prepared yet, this is done now.
+    """
+    project = urllib.parse.unquote(project)
+    path = utils.lookup_project_path(project)
+    split = urllib.parse.unquote(split)
+    label = urllib.parse.unquote(label)
+    frames_dir = join(path, f"frames_{split}", label)
+    tags_dir = join(path, f"tags_{split}", label)
+    logreg_dir = join(path, 'logreg', label)
+
+    os.makedirs(logreg_dir, exist_ok=True)
+    os.makedirs(tags_dir, exist_ok=True)
+
+    # load feature extractor
+    inference_engine = utils.load_feature_extractor()
+    # compute the features and frames missing.
+    compute_frames_features(inference_engine, split, label, path)
+
+    videos = os.listdir(frames_dir)
+    videos.sort()
+
+    tagged_list = set(os.listdir(tags_dir))
+    tagged = [f'{video}.json' in tagged_list for video in videos]
+
+    video_list = zip(videos, tagged, list(range(len(videos))))
+    return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path,
+                           project=project)
+
+
+@annotation_bp.route('/prepare-annotation/<string:project>')
 def prepare_annotation(project):
     """
     Prepare all files needed for annotating the videos in the given project.
     """
-
     project = urllib.parse.unquote(project)
-    path = _lookup_project_path(project)
+    path = utils.lookup_project_path(project)
     # load feature extractor if needed
-    inference_engine = _load_feature_extractor()
-    for split in SPLITS:
+    inference_engine = utils.load_feature_extractor()
+    for split in utils.SPLITS:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(path, f'videos_{split}')):
             compute_frames_features(inference_engine, split, label, path)
     return redirect(url_for("project_details", project=project))
 
 
-@annotations_bp.route('/<split>/<label>/<string:project>/<int:idx>')
+@annotation_bp.route('/<split>/<label>/<string:project>/<int:idx>')
 def annotate(split, label, project, idx):
     """
     For the given class label, show all frames for annotating the selected video.
     """
-    logreg = None
-
     project = urllib.parse.unquote(project)
-    path = _lookup_project_path(project)
+    path = utils.lookup_project_path(project)
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
     frames_dir = join(path, f"frames_{split}", label)
@@ -71,22 +94,20 @@ def annotate(split, label, project, idx):
     logreg_path = join(logreg_dir, 'logreg.joblib')
     if os.path.isfile(logreg_path):
         logreg = load(logreg_path)
-
-    if logreg is not None:
         classes = list(logreg.predict(features))
     else:
         classes = [-1] * len(features)
 
     # The list of images in the folder
     images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
-              if _extension_ok(image)]
+              if utils.is_image_file(image)]
 
     # Add indexes
     images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
     images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
 
     # Read tags from config
-    config = _load_project_config(path)
+    config = utils.load_project_config(path)
     tags = config['classes'][label]
 
     return render_template('frame_annotation.html', images=images, idx=idx, fps=16,
@@ -94,42 +115,7 @@ def annotate(split, label, project, idx):
                            split=split, label=label, path=path, tags=tags)
 
 
-@annotations_bp.route('/<split>/<label>/<string:project>')
-def show_video_list(split, label, project):
-    """
-    Show the list of videos for the given split, class label and project.
-    If the necessary files for annotation haven't been prepared yet, this is done now.
-    """
-    project = urllib.parse.unquote(project)
-    print(f"==> project: {project}")
-    path = _lookup_project_path(project)
-    print(f"==> path: {path}")
-    split = urllib.parse.unquote(split)
-    label = urllib.parse.unquote(label)
-    frames_dir = join(path, f"frames_{split}", label)
-    tags_dir = join(path, f"tags_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
-
-    os.makedirs(logreg_dir, exist_ok=True)
-    os.makedirs(tags_dir, exist_ok=True)
-
-    # load feature extractor if needed
-    inference_engine = _load_feature_extractor()
-    # compute the features and frames missing.
-    compute_frames_features(inference_engine, split, label, path)
-
-    videos = os.listdir(frames_dir)
-    videos.sort()
-
-    tagged_list = set(os.listdir(tags_dir))
-    tagged = [f'{video}.json' in tagged_list for video in videos]
-
-    video_list = zip(videos, tagged, list(range(len(videos))))
-    return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path,
-                           project=project)
-
-
-@annotations_bp.route('/submit-annotation', methods=['POST'])
+@annotation_bp.route('/submit-annotation', methods=['POST'])
 def submit_annotation():
     """
     Submit annotated tags for all frames and save them to a json file.
@@ -138,7 +124,7 @@ def submit_annotation():
     idx = int(data['idx'])
     fps = float(data['fps'])
     path = data['path']
-    project = _load_project_config(path)['name']
+    project = utils.load_project_config(path)['name']
     split = data['split']
     label = data['label']
     video = data['video']
@@ -163,16 +149,15 @@ def submit_annotation():
     return redirect(url_for('.annotate', split=split, label=label, project=project, idx=next_frame_idx))
 
 
-@annotations_bp.route('/train-logreg', methods=['POST'])
+@annotation_bp.route('/train-logreg', methods=['POST'])
 def train_logreg():
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
     """
-
     data = request.form  # a multi-dict containing POST data
     idx = int(data['idx'])
     path = data['path']
-    project = _load_project_config(path)['name']
+    project = utils.load_project_config(path)['name']
     split = data['split']
     label = data['label']
 
@@ -228,7 +213,7 @@ def train_logreg():
     return redirect(url_for('.annotate', split=split, label=label, project=project, idx=idx))
 
 
-@annotations_bp.route('/uploads/<path:img_path>')
+@annotation_bp.route('/uploads/<path:img_path>')
 def download_file(img_path):
     """
     Load an image from the given path.
