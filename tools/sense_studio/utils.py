@@ -1,5 +1,9 @@
 import json
 import os
+import torch
+
+from sense import engine
+from sense import feature_extractors
 
 MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
@@ -13,9 +17,6 @@ inference_engine = None
 
 def _load_feature_extractor():
     global inference_engine
-    import torch
-    from sense import engine
-    from sense import feature_extractors
 
     if inference_engine is None:
         feature_extractor = feature_extractors.StridedInflatedEfficientNet()
@@ -27,6 +28,7 @@ def _load_feature_extractor():
 
         # Create Inference Engine
         inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
+
     return inference_engine
 
 
