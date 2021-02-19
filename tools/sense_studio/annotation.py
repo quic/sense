@@ -146,7 +146,9 @@ def submit_annotation():
         time_annotation.append(int(data[f'{frame_idx}_tag']))
 
     description['time_annotation'] = time_annotation
-    json.dump(description, open(out_annotation, 'w'))
+
+    with open(out_annotation, 'w') as f:
+        json.dump(description, f)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('project_details', path=path))
@@ -186,7 +188,9 @@ def train_logreg():
                 X.append(f.mean(axis=(1, 2)))
 
         for annotation in annotations:
-            annotation = json.load(open(annotation, 'r'))['time_annotation']
+            with open(annotation, 'r') as f:
+                annotation = json.load(f)['time_annotation']
+
             pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
 
             if len(pos1) > 0:
