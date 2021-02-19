@@ -62,12 +62,14 @@ def prepare_annotation(project):
     """
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
-    # load feature extractor if needed
+
+    # load feature extractor
     inference_engine = utils.load_feature_extractor()
     for split in utils.SPLITS:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(path, f'videos_{split}')):
             compute_frames_features(inference_engine, split, label, path)
+
     return redirect(url_for("project_details", project=project))
 
 
