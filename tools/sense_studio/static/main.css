@@ -58,3 +58,7 @@ a {
     padding: 0.2em 0.3em;
     font-size: 50px;
 }
+
+.frames-container {
+    margin-top: 3px;
+}
