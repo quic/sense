@@ -70,3 +70,9 @@
     </form>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+    initTagButtons({{ annotations }});
+</script>
+{% endblock %}

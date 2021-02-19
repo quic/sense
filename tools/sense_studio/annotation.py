@@ -79,6 +79,7 @@ def annotate(split, label, path, idx):
     split = urllib.parse.unquote(split)
     frames_dir = join(path, f"frames_{split}", label)
     features_dir = join(path, f"features_{split}", label)
+    tags_dir = join(path, f"tags_{split}", label)
     logreg_dir = join(path, 'logreg', label)
 
     videos = os.listdir(frames_dir)
@@ -103,11 +104,19 @@ def annotate(split, label, path, idx):
     images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
     images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
 
+    # Load existing annotations
+    annotations = []
+    annotations_file = join(tags_dir, f'{videos[idx]}.json')
+    if os.path.exists(annotations_file):
+        with open(annotations_file, 'r') as f:
+            data = json.load(f)
+            annotations = data['time_annotation']
+
     # Read tags from config
     config = utils.load_project_config(path)
     tags = config['classes'][label]
 
-    return render_template('frame_annotation.html', images=images, idx=idx, fps=16,
+    return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx],
                            split=split, label=label, path=path, tags=tags)
 
@@ -137,7 +146,9 @@ def submit_annotation():
         time_annotation.append(int(data[f'{frame_idx}_tag']))
 
     description['time_annotation'] = time_annotation
-    json.dump(description, open(out_annotation, 'w'))
+
+    with open(out_annotation, 'w') as f:
+        json.dump(description, f)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('project_details', path=path))
@@ -177,7 +188,9 @@ def train_logreg():
                 X.append(f.mean(axis=(1, 2)))
 
         for annotation in annotations:
-            annotation = json.load(open(annotation, 'r'))['time_annotation']
+            with open(annotation, 'r') as f:
+                annotation = json.load(f)['time_annotation']
+
             pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
 
             if len(pos1) > 0:
