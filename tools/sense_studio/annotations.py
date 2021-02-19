@@ -46,8 +46,8 @@ def prepare_annotation(project):
     return redirect(url_for("project_details", project=project))
 
 
-@annotations_bp.route('/<split>/<label>/<string:project>/<int:idx>')
-def annotate(split, label, project, idx):
+@annotations_bp.route('/<string:project>/<split>/<label>/<int:idx>')
+def annotate(project, split, label, idx):
     """
     For the given class label, show all frames for annotating the selected video.
     """
@@ -81,8 +81,14 @@ def annotate(split, label, project, idx):
     images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
               if _extension_ok(image)]
 
-    # Add indexes
-    images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
+    # Extract image file name (without full path), add indexes, and include class label
+    images = sorted(
+        [
+            # (image index, image file name)
+            (int(os.path.split(image)[-1].split('.')[0]), os.path.split(image)[-1])
+            for image in images
+        ]
+    )
     images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
 
     # Read tags from config
@@ -91,19 +97,17 @@ def annotate(split, label, project, idx):
 
     return render_template('frame_annotation.html', images=images, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx],
-                           split=split, label=label, path=path, tags=tags)
+                           split=split, label=label, path=path, tags=tags, project=project)
 
 
-@annotations_bp.route('/<split>/<label>/<string:project>')
+@annotations_bp.route('/<string:project>/<split>/<label>')
 def show_video_list(split, label, project):
     """
     Show the list of videos for the given split, class label and project.
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
     project = urllib.parse.unquote(project)
-    print(f"==> project: {project}")
     path = _lookup_project_path(project)
-    print(f"==> path: {path}")
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
     frames_dir = join(path, f"frames_{split}", label)
@@ -138,7 +142,7 @@ def submit_annotation():
     idx = int(data['idx'])
     fps = float(data['fps'])
     path = data['path']
-    project = _load_project_config(path)['name']
+    project = data['project']
     split = data['split']
     label = data['label']
     video = data['video']
@@ -172,7 +176,7 @@ def train_logreg():
     data = request.form  # a multi-dict containing POST data
     idx = int(data['idx'])
     path = data['path']
-    project = _load_project_config(path)['name']
+    project = data['project']
     split = data['split']
     label = data['label']
 
@@ -228,11 +232,10 @@ def train_logreg():
     return redirect(url_for('.annotate', split=split, label=label, project=project, idx=idx))
 
 
-@annotations_bp.route('/uploads/<path:img_path>')
-def download_file(img_path):
+@annotations_bp.route('/uploads/<project>/<split>/<label>/<video_name>/<string:img_file>')
+def download_file(project, split, label, video_name, img_file):
     """
     Load an image from the given path.
     """
-    img_path = f'/{urllib.parse.unquote(img_path)}'  # Make path absolute
-    img_dir, img = os.path.split(img_path)
-    return send_from_directory(img_dir, img, as_attachment=True)
+    img_dir = _lookup_project_path(project) + f'/frames_{split}/{label}/{video_name}'
+    return send_from_directory(img_dir, img_file, as_attachment=True)

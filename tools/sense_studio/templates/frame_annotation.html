@@ -10,6 +10,7 @@
         <input type="hidden" name="fps" value="{{ fps }}">
         <input type="hidden" name="idx" value="{{ idx }}">
         <input type="hidden" name="path" value="{{ path }}">
+        <input type="hidden" name="project" value="{{ project }}">
         <input type="hidden" name="split" value="{{ split }}">
         <input type="hidden" name="label" value="{{ label }}">
         <input type="hidden" name="video" value="{{ video_name }}">
@@ -19,7 +20,7 @@
                 <input type="hidden" id="{{ idx }}_tag" name="{{ idx }}_tag" value="0">
                 <div class="card">
                     <div class="image">
-                        <img src="{{ url_for('.download_file', img_path=img) }}">
+                        <img src="{{ url_for('.download_file', project=project, split=split, label=label, video_name=video_name, img_file=img) }}">
                     </div>
                     <div class="content">
                         {% if pred_class == 0 %}
@@ -64,6 +65,7 @@
     <form method="POST" action="{{ url_for('.train_logreg') }}">
         <input type="hidden" name="idx" value="{{idx}}">
         <input type="hidden" name="path" value="{{path}}">
+        <input type="hidden" name="project" value="{{ project }}">
         <input type="hidden" name="split" value="{{split}}">
         <input type="hidden" name="label" value="{{label}}">
         <button class="ui button mt" type="submit">Retrain Model</button>
