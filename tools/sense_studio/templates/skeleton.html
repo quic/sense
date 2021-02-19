@@ -6,19 +6,21 @@
 	<title>{% block title %}{% endblock %}</title>
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 
-    <link rel="shortcut icon" href="{{ url_for('static', filename='sense_kit_icon.ico') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='sense_favicon.png') }}">
 
 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Merienda One">
 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Port Lligat Slab">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+
+    {% block head %}{% endblock %}
 </head>
 <body>
 
     <div class="ui fixed menu">
         <div class="ui container">
             <a href="{{ url_for('projects_overview') }}" class="header item">
-                <img class="logo" src="{{ url_for('static', filename='sense_studio_logo.png') }}">
+                <img class="logo" src="{{ url_for('static', filename='sense_studio_logo.svg') }}">
             </a>
             <a href="{{ url_for('projects_overview') }}" class="item">Projects</a>
         </div>
@@ -41,7 +43,7 @@
 
     <div class="ui vertical footer segment">
         <div class="ui center aligned container">
-            <img src="{{ url_for('static', filename='sense_studio_logo.png') }}" class="ui centered small image">
+            <img src="{{ url_for('static', filename='sense_studio_logo.svg') }}" class="ui centered small image">
             <div class="ui horizontal small divided link list">
                 <a class="item" href="https://github.com/TwentyBN/sense">
                     <i class="github icon"></i>
@@ -55,6 +57,8 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
 
 </body>
 </html>

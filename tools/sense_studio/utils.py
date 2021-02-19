@@ -1,0 +1,140 @@
+import json
+import os
+
+from typing import List
+from typing import Optional
+
+from sense.engine import InferenceEngine
+from sense.loading import build_backbone_network
+from sense.loading import get_relevant_weights
+from sense.loading import ModelConfig
+
+MODULE_DIR = os.path.dirname(__file__)
+PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
+
+PROJECT_CONFIG_FILE = 'project_config.json'
+
+SPLITS = ['train', 'valid']
+
+SUPPORTED_MODEL_CONFIGURATIONS = [
+    ModelConfig('StridedInflatedEfficientNet', 'pro', []),
+    ModelConfig('StridedInflatedMobileNetV2', 'pro', []),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', []),
+    ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
+]
+
+inference_engine: Optional[InferenceEngine] = None
+model_config: Optional[ModelConfig] = None
+
+
+def load_feature_extractor():
+    global inference_engine
+    global model_config
+
+    if inference_engine is None:
+        # Load weights
+        model_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
+
+        # Setup backbone network
+        backbone_network = build_backbone_network(model_config, weights['backbone'])
+
+        # Create Inference Engine
+        inference_engine = InferenceEngine(backbone_network, use_gpu=True)
+
+    return inference_engine, model_config
+
+
+def is_image_file(filename):
+    """ Returns `True` if the file has a valid image extension. """
+    return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
+
+
+def load_project_overview_config():
+    if os.path.isfile(PROJECTS_OVERVIEW_CONFIG_FILE):
+        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
+            projects = json.load(f)
+        return projects
+    else:
+        write_project_overview_config({})
+        return {}
+
+
+def write_project_overview_config(projects):
+    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
+        json.dump(projects, f, indent=2)
+
+
+def lookup_project_path(project_name):
+    projects = load_project_overview_config()
+    return projects[project_name]['path']
+
+
+def load_project_config(path):
+    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+    return config
+
+
+def write_project_config(path, config):
+    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
+    with open(config_path, 'w') as f:
+        json.dump(config, f, indent=2)
+
+
+def get_class_name_and_tags(form_data):
+    """
+    Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
+    are not empty or the same.
+    """
+    class_name = form_data['className']
+    tag1 = form_data['tag1'] or f'{class_name}_tag1'
+    tag2 = form_data['tag2'] or f'{class_name}_tag2'
+
+    if tag2 == tag1:
+        tag1 = f'{tag1}_1'
+        tag2 = f'{tag2}_2'
+
+    return class_name, tag1, tag2
+
+
+def _get_data_dir(dir_type: str, dataset_path: str, split: Optional[str] = None, subdirs: Optional[List[str]] = None):
+    main_dir = f'{dir_type}_{split}' if split else dir_type
+    subdirs = subdirs or []
+
+    return os.path.join(dataset_path, main_dir, *subdirs)
+
+
+def get_videos_dir(dataset_path, split, label=None):
+    subdirs = [label] if label else None
+    return _get_data_dir('videos', dataset_path, split, subdirs)
+
+
+def get_frames_dir(dataset_path, split, label=None):
+    subdirs = [label] if label else None
+    return _get_data_dir('frames', dataset_path, split, subdirs)
+
+
+def get_features_dir(dataset_path, split, model: Optional[ModelConfig] = None, label=None):
+    subdirs = None
+    if model:
+        subdirs = [model.combined_model_name]
+        if label:
+            subdirs.append(label)
+
+    return _get_data_dir('features', dataset_path, split, subdirs)
+
+
+def get_tags_dir(dataset_path, split, label=None):
+    subdirs = [label] if label else None
+    return _get_data_dir('tags', dataset_path, split, subdirs)
+
+
+def get_logreg_dir(dataset_path, model: Optional[ModelConfig] = None, label=None):
+    subdirs = None
+    if model:
+        subdirs = [model.combined_model_name]
+        if label:
+            subdirs.append(label)
+
+    return _get_data_dir('logreg', dataset_path, subdirs=subdirs)
