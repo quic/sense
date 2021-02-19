@@ -81,6 +81,7 @@ def annotate(split, label, path, idx):
     features_dir = join(path, f"features_{split}", label)
     tags_dir = join(path, f"tags_{split}", label)
     logreg_dir = join(path, 'logreg', label)
+    videos_dir = join(path, f"videos_{split}", label)
 
     videos = os.listdir(frames_dir)
     videos.sort()
@@ -118,7 +119,7 @@ def annotate(split, label, path, idx):
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx],
-                           split=split, label=label, path=path, tags=tags)
+                           split=split, label=label, path=path, tags=tags, n_videos=len(os.listdir(videos_dir)))
 
 
 @annotation_bp.route('/submit-annotation', methods=['POST'])
