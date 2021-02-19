@@ -19,22 +19,15 @@ from flask import render_template
 from flask import request
 from flask import url_for
 
-from tools.sense_studio.annotations import annotations_bp
-from tools.sense_studio.video_recording import video_recorder_bp
-
-from tools.sense_studio.utils import _load_project_config
-from tools.sense_studio.utils import _load_project_overview_config
-from tools.sense_studio.utils import _lookup_project_path
-from tools.sense_studio.utils import SPLITS
-from tools.sense_studio.utils import _write_project_config
-from tools.sense_studio.utils import _write_project_overview_config
-from tools.sense_studio.utils import _get_class_name_and_tags
+from tools.sense_studio import utils
+from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.video_recording import video_recording_bp
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
-app.register_blueprint(annotations_bp, url_prefix='/annotate')
-app.register_blueprint(video_recorder_bp, url_prefix='/video-recorder')
+app.register_blueprint(annotation_bp, url_prefix='/annotation')
+app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
 
 
 @app.route('/')
@@ -43,7 +36,7 @@ def projects_overview():
     Home page of SenseStudio. Show the overview of all registered projects and check if their
     locations are still valid.
     """
-    projects = _load_project_overview_config()
+    projects = utils.load_project_overview_config()
 
     # Check if project paths still exist
     for name, project in projects.items():
@@ -57,7 +50,7 @@ def projects_list():
     """
     Provide the current list of projects to external callers.
     """
-    projects = _load_project_overview_config()
+    projects = utils.load_project_overview_config()
     return jsonify(projects)
 
 
@@ -68,10 +61,10 @@ def project_config():
     """
     data = request.json
     name = data['name']
-    path = _lookup_project_path(name)
+    path = utils.lookup_project_path(name)
 
     # Get config
-    config = _load_project_config(path)
+    config = utils.load_project_config(path)
     return jsonify(config)
 
 
@@ -81,11 +74,11 @@ def remove_project(name):
     Remove a given project from the config file and reload the overview page.
     """
     name = urllib.parse.unquote(name)
-    projects = _load_project_overview_config()
+    projects = utils.load_project_overview_config()
 
     del projects[name]
 
-    _write_project_overview_config(projects)
+    utils.write_project_overview_config(projects)
 
     return redirect(url_for('projects_overview'))
 
@@ -121,7 +114,7 @@ def setup_project():
     # Update project config
     try:
         # Check for existing config file
-        config = _load_project_config(path)
+        config = utils.load_project_config(path)
         old_name = config['name']
         config['name'] = name
     except FileNotFoundError:
@@ -133,16 +126,16 @@ def setup_project():
         }
         old_name = None
 
-    _write_project_config(path, config)
+    utils.write_project_config(path, config)
 
     # Setup directory structure
-    for split in SPLITS:
+    for split in utils.SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         if not os.path.exists(videos_dir):
             os.mkdir(videos_dir)
 
     # Update overall projects config file
-    projects = _load_project_overview_config()
+    projects = utils.load_project_overview_config()
 
     if old_name and old_name in projects:
         del projects[old_name]
@@ -151,7 +144,7 @@ def setup_project():
         'path': path,
     }
 
-    _write_project_overview_config(projects)
+    utils.write_project_overview_config(projects)
 
     return redirect(url_for('project_details', project=name))
 
@@ -162,13 +155,13 @@ def project_details(project):
     Show the details for the selected project.
     """
     project = urllib.parse.unquote(project)
-    path = _lookup_project_path(project)
-    config = _load_project_config(path)
+    path = utils.lookup_project_path(project)
+    config = utils.load_project_config(path)
 
     stats = {}
     for class_name, tags in config['classes'].items():
         stats[class_name] = {}
-        for split in SPLITS:
+        for split in utils.SPLITS:
             videos_path = os.path.join(path, f'videos_{split}', class_name)
             tags_path = os.path.join(path, f'tags_{split}', class_name)
             stats[class_name][split] = {
@@ -185,18 +178,18 @@ def add_class(project):
     Add a new class to the given project.
     """
     project = urllib.parse.unquote(project)
-    path = _lookup_project_path(project)
+    path = utils.lookup_project_path(project)
 
     # Get class name and tags
-    class_name, tag1, tag2 = _get_class_name_and_tags(request.form)
+    class_name, tag1, tag2 = utils.get_class_name_and_tags(request.form)
 
     # Update project config
-    config = _load_project_config(path)
+    config = utils.load_project_config(path)
     config['classes'][class_name] = [tag1, tag2]
-    _write_project_config(path, config)
+    utils.write_project_config(path, config)
 
     # Setup directory structure
-    for split in SPLITS:
+    for split in utils.SPLITS:
         videos_dir = os.path.join(path, f'videos_{split}')
         class_dir = os.path.join(videos_dir, class_name)
 
@@ -213,20 +206,20 @@ def edit_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-    path = _lookup_project_path(project)
+    path = utils.lookup_project_path(project)
 
     # Get new class name and tags
-    new_class_name, new_tag1, new_tag2 = _get_class_name_and_tags(request.form)
+    new_class_name, new_tag1, new_tag2 = utils.get_class_name_and_tags(request.form)
 
     # Update project config
-    config = _load_project_config(path)
+    config = utils.load_project_config(path)
     del config['classes'][class_name]
     config['classes'][new_class_name] = [new_tag1, new_tag2]
-    _write_project_config(path, config)
+    utils.write_project_config(path, config)
 
     # Update directory names
     prefixes = ['videos', 'features', 'frames', 'tags']
-    for split in SPLITS:
+    for split in utils.SPLITS:
         for prefix in prefixes:
             main_dir = os.path.join(path, f'{prefix}_{split}')
             class_dir = os.path.join(main_dir, class_name)
@@ -252,12 +245,12 @@ def remove_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-    path = _lookup_project_path(project)
+    path = utils.lookup_project_path(project)
 
     # Update project config
-    config = _load_project_config(path)
+    config = utils.load_project_config(path)
     del config['classes'][class_name]
-    _write_project_config(path, config)
+    utils.write_project_config(path, config)
 
     return redirect(url_for("project_details", project=project))
 
