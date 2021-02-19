@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/imgs/sense_logo.png" height="80px">
+<img src="docs/imgs/sense_core_logo.svg" height="140px">
 
 **State-of-the-art Real-time Action Recognition**
 
@@ -103,11 +103,9 @@ pip install -r requirements.txt
 ```
 
 Note: `pip install -r requirements.txt` only installs the CPU-only version of PyTorch.
-To run inference on your GPU,  another version of PyTorch should be installed. For instance:
-```shell
-conda install pytorch torchvision cudatoolkit=10.2 -c pytorch
-``` 
-See all available options [here](https://pytorch.org/).
+To run inference on your GPU,  another version of PyTorch should be installed (e.g. 
+`conda install pytorch torchvision cudatoolkit=10.2 -c pytorch`). 
+See all available install commands [here](https://pytorch.org/).
 
 #### Step 3: Download the SenseKit Weights
 Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation), subject to separate terms. 
@@ -212,57 +210,52 @@ The full list of available models and versions can be found in `sense/models.yml
 
 ---
 
-## Build Your Own Classifier
+## Build Your Own Classifier with SenseStudio
 
-This section will describe how you can build your own custom classifier on top of our models. Our models will serve
- as a powerful feature extractor that will reduce the amount of data you need to build your project. 
+This section will describe how you can use our SenseStudio tool to build your own custom classifier on top of our models. 
+Our models will serve as a powerful feature extractor that will reduce the amount of data you need to build your project. 
 
-#### Step 1: Data preparation
+#### Step 1: Project Setup
 
 First, run the `tools/sense_studio/sense_studio.py` script and open http://127.0.0.1:5000/ in your browser.
 There you can set up a new project in a location of your choice and specify the classes that you want to collect.
 
-The tool will prepare the following file structure for your project, so you can insert the recorded videos into the
-corresponding folders:
+The tool will prepare the following file structure for your project:
 
 ```
 /path/to/your/dataset/
 ├── videos_train
 │   ├── class1
-│   │   ├── video1.mp4
-│   │   ├── video2.mp4
-│   │   └── ...
 │   ├── class2
-│   │   ├── video3.mp4
-│   │   ├── video4.mp4
-│   │   └── ...
 │   └── ...
 ├── videos_valid
 │   ├── class1
-│   │   ├── video5.mp4
-│   │   ├── video6.mp4
-│   │   └── ...
 │   ├── class2
-│   │   ├── video7.mp4
-│   │   ├── video8.mp4
-│   │   └── ...
 │   └── ...
 └── project_config.json
 ```
 - Two top-level folders: one for the training data, one for the validation data.
-- One sub-folder for each class with as many videos as you want (but at least one!)
-- Requirement: videos should have a framerate of 16 fps or higher.
+- One sub-folder for each class that you specify.
 
-In some cases, as few as 2-5 videos per class have been enough to achieve excellent performance!
+#### Step 2: Data Collection
 
-#### Step 2: Training
+You can record videos for each class right in your browser by pressing the "Record" button.
+Make sure that you have [ffmpeg](https://ffmpeg.org/) installed for that.
+
+Otherwise, you can also just move existing videos into the corresponding project folders.
+Those should have a framerate of 16 fps or higher.
+
+In the end you should have at least one video per class and train/valid split, but preferably more.
+In some cases, as few as 2-5 videos per class have been enough to achieve excellent performance with our models!
+
+#### Step 3: Training
 
 Once your data is prepared, run this command to train a customized classifier on top of one of our features extractor:
 ```shell
 PYTHONPATH=./ python tools/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu] [--num_layers_to_finetune=9]
 ```
 
-####  Step 3: Running your model
+####  Step 4: Running your model
 
 The training script should produce a checkpoint file called `classifier.checkpoint` at the root of the dataset folder.
 You can now run it live using the following script:

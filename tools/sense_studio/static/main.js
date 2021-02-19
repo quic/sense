@@ -189,11 +189,11 @@ let tagColors = [
 ]
 
 function assignTag(frameIdx, selectedTagIdx) {
-    let tagInput = document.getElementById(frameIdx + '_tag');
+    let tagInput = document.getElementById(`${frameIdx}_tag`);
     tagInput.value = selectedTagIdx;
 
     for (const tagIdx of [0, 1, 2]) {
-        let button = document.getElementById(frameIdx + '_tag' + tagIdx);
+        let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
 
         if (tagIdx == selectedTagIdx) {
             button.classList.add(tagColors[tagIdx]);
@@ -205,8 +205,8 @@ function assignTag(frameIdx, selectedTagIdx) {
 
 
 function editClass(index, shouldEdit) {
-    let classShow = $('#classShow' + index);
-    let classEdit = $('#classEdit' + index);
+    let classShow = $(`#classShow${index}`);
+    let classEdit = $(`#classEdit${index}`);
 
     if (shouldEdit) {
         classShow.hide();

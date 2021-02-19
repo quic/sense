@@ -17,6 +17,6 @@ def load_weights(backbone_ckpt, classifier_ckpt):
     weights_full = {**weights_backbone, **weights_classifier}
 
     for key in weights_full.keys():
-        logging.info(key, weights_full[key].shape)
+        logging.info(f"{key}: {weights_full[key].shape}")
 
     return weights_full
