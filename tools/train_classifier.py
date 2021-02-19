@@ -4,6 +4,8 @@ Finetuning script that can be used to train a custom classifier on top of our pr
 
 Usage:
   train_classifier.py  --path_in=PATH
+                       [--model_name=NAME]
+                       [--model_version=VERSION]
                        [--num_layers_to_finetune=NUM]
                        [--use_gpu]
                        [--path_out=PATH]
@@ -16,6 +18,8 @@ Usage:
 Options:
   --path_in=PATH                 Path to the dataset folder.
                                  Important: this folder should follow the structure described in the README.
+  --model_name=NAME              Name of the backbone model to be used.
+  --model_version=VERSION        Version of the backbone model to be used.
   --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
   --path_out=PATH                Where to save results. Will default to `path_in` if not provided.
   --path_annotations_train=PATH  Path to an annotation file. This argument is only useful if you want
@@ -33,16 +37,26 @@ import torch.utils.data
 
 from docopt import docopt
 
-from sense import backbone_networks
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.finetuning import extract_features
 from sense.finetuning import generate_data_loader
 from sense.finetuning import set_internal_padding_false
 from sense.finetuning import training_loops
+from sense.loading import get_relevant_weights
+from sense.loading import build_backbone_network
+from sense.loading import ModelConfig
 from sense.utils import clean_pipe_state_dict_key
 
 import sys
+
+
+SUPPORTED_MODEL_CONFIGURATIONS = [
+    ModelConfig('StridedInflatedEfficientNet', 'pro', []),
+    ModelConfig('StridedInflatedMobileNetV2', 'pro', []),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', []),
+    ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
+]
 
 
 if __name__ == "__main__":
@@ -54,6 +68,8 @@ if __name__ == "__main__":
     use_gpu = args['--use_gpu']
     path_annotations_train = args['--path_annotations_train'] or None
     path_annotations_valid = args['--path_annotations_valid'] or None
+    model_name = args['--model_name'] or None
+    model_version = args['--model_version'] or None
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
     temporal_training = args['--temporal_training']
     resume = args['--resume']
@@ -76,24 +92,27 @@ if __name__ == "__main__":
             else:
                 print('Wrong input')
 
-    # Load backbone network
-    backbone_network = backbone_networks.StridedInflatedEfficientNet()
+    # Load weights
+    selected_config, weights = get_relevant_weights(
+        SUPPORTED_MODEL_CONFIGURATIONS,
+        model_name,
+        model_version
+    )
+    backbone_weights = weights['backbone']
 
     if resume:
-        # load the last classifier
+        # Load the last classifier
         checkpoint_classifier = torch.load(os.path.join(path_out, 'last_classifier.checkpoint'))
-        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+
         # Update original weights in case some intermediate layers have been finetuned
-        name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
-        for key in name_finetuned_layers:
-            checkpoint[key] = checkpoint_classifier.pop(key)
-    else:
-        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+        finetuned_layer_names = set(backbone_weights.keys()).intersection(checkpoint_classifier.keys())
+        for key in finetuned_layer_names:
+            backbone_weights[key] = checkpoint_classifier.pop(key)
 
-    backbone_network.load_state_dict(checkpoint)
-    backbone_network.eval()
+    # Load backbone network
+    backbone_network = build_backbone_network(selected_config, backbone_weights)
 
-    # Get the require temporal dimension of feature tensors in order to
+    # Get the required temporal dimension of feature tensors in order to
     # finetune the provided number of layers
     if num_layers_to_finetune > 0:
         num_timesteps = backbone_network.num_required_frames_per_layer.get(-num_layers_to_finetune)
