@@ -17,11 +17,7 @@ from os.path import join
 from sklearn.linear_model import LogisticRegression
 
 from sense.finetuning import compute_frames_features
-
-from tools.sense_studio.utils import _extension_ok
-from tools.sense_studio.utils import _load_feature_extractor
-from tools.sense_studio.utils import _load_project_config
-from tools.sense_studio.utils import SPLITS
+from tools.sense_studio import utils
 
 annotation_bp = Blueprint('annotation_bp', __name__)
 
@@ -43,7 +39,7 @@ def show_video_list(split, label, path):
     os.makedirs(tags_dir, exist_ok=True)
 
     # load feature extractor
-    inference_engine = _load_feature_extractor()
+    inference_engine = utils.load_feature_extractor()
     # compute the features and frames missing.
     compute_frames_features(inference_engine, split, label, path)
 
@@ -65,8 +61,8 @@ def prepare_annotation(path):
     path = f'/{urllib.parse.unquote(path)}'  # Make path absolute
 
     # load feature extractor
-    inference_engine = _load_feature_extractor()
-    for split in SPLITS:
+    inference_engine = utils.load_feature_extractor()
+    for split in utils.SPLITS:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(path, f'videos_{split}')):
             compute_frames_features(inference_engine, split, label, path)
@@ -101,14 +97,14 @@ def annotate(split, label, path, idx):
 
     # The list of images in the folder
     images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
-              if _extension_ok(image)]
+              if utils.is_image_file(image)]
 
     # Add indexes
     images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
     images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
 
     # Read tags from config
-    config = _load_project_config(path)
+    config = utils.load_project_config(path)
     tags = config['classes'][label]
 
     return render_template('frame_annotation.html', images=images, idx=idx, fps=16,
