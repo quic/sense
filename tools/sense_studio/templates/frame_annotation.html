@@ -54,7 +54,6 @@
                             <button type="button" class="ui button" id="{{ idx }}_tag2" onclick="assignTag({{ idx }}, 2);">
                                 {{ tags[1] }}
                             </button>
-                            <script src="{{ url_for('static', filename='main.js') }}" onload="getTags({{ idx }}, {{ annotations }});"></script>
                         </div>
                     </div>
                 </div>
@@ -70,4 +69,10 @@
         <button class="ui button mt" type="submit">Retrain Model</button>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    initTagButtons({{ annotations }});
+</script>
 {% endblock %}

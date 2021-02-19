@@ -182,17 +182,14 @@ function loading(element) {
 }
 
 
-function initTagColors() {
-    return [
-        'grey',
-        'blue',
-        'green'
-    ];
-}
+let tagColors = [
+    'grey',
+    'blue',
+    'green'
+];
 
 
 function assignTag(frameIdx, selectedTagIdx) {
-    let tagColors = initTagColors();
     let tagInput = document.getElementById(`${frameIdx}_tag`);
     tagInput.value = selectedTagIdx;
 
@@ -208,22 +205,9 @@ function assignTag(frameIdx, selectedTagIdx) {
 }
 
 
-function getTags(frameIdx, annotations) {
-    let tagColors = initTagColors();
-
-    if (annotations.length) {
-        let tagInput = document.getElementById(`${frameIdx}_tag`);
-        tagInput.value = annotations[frameIdx];
-
-        for (const tagIdx of [0, 1, 2]) {
-            let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
-
-            if (tagIdx == annotations[frameIdx]) {
-                button.classList.add(tagColors[tagIdx]);
-            } else {
-                button.classList.remove(tagColors[tagIdx]);
-            }
-        }
+function initTagButtons(annotations) {
+    for (let frameIdx = 0; frameIdx < annotations.length; frameIdx++) {
+        assignTag(frameIdx, annotations[frameIdx]);
     }
 }
 

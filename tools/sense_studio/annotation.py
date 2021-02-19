@@ -104,22 +104,20 @@ def annotate(split, label, path, idx):
     images = sorted([(int(image.split('.')[0].split('/')[-1]), image) for image in images])  # TODO: Path ops?
     images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
 
+    # Load existing annotations
     annotations = []
-    tagged = False
-    tagged_list = set(os.listdir(tags_dir))
-    video = f"{videos[idx]}.json"
-    if video in tagged_list:
-        with open(join(tags_dir, video)) as f:
+    annotations_file = join(tags_dir, f'{videos[idx]}.json')
+    if os.path.exists(annotations_file):
+        with open(annotations_file, 'r') as f:
             data = json.load(f)
             annotations = data['time_annotation']
-            tagged = True
 
     # Read tags from config
     config = utils.load_project_config(path)
     tags = config['classes'][label]
 
-    return render_template('frame_annotation.html', images=images, tagged=tagged, annotations=annotations,
-                           idx=idx, fps=16, n_images=len(images), video_name=videos[idx],
+    return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
+                           n_images=len(images), video_name=videos[idx],
                            split=split, label=label, path=path, tags=tags)
 
 
