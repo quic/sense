@@ -68,9 +68,14 @@ if __name__ == "__main__":
     if not overwrite and any(os.path.exists(os.path.join(path_out, file)) for file in saved_files):
         print(f"Warning: This operation will overwrite files in {path_out}")
 
-        confirmation = input("Are you sure? Add --overwrite to hide this warning. (Y/N) ")
-        if confirmation != "Y":
-            sys.exit()
+        while True:
+            confirmation = input("Are you sure? Add --overwrite to hide this warning. (Y/N) ")
+            if confirmation.lower() == "y":
+                break
+            elif confirmation.lower() == "n":
+                sys.exit()
+            else:
+                print('Invalid input')
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
