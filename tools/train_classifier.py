@@ -61,6 +61,7 @@ if __name__ == "__main__":
     resume = args['--resume']
     overwrite = args['--overwrite']
 
+    # Check for existing files
     saved_files = ["last_classifier.checkpoint", "best_classifier.checkpoint", "label2int.json",
                    "confusion_matrix.png", "confusion_matrix.npy"]
 
