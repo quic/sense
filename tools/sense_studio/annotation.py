@@ -129,7 +129,7 @@ def annotate(project, split, label, idx):
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx],
-                           split=split, label=label, path=path, tags=tags, project=project)
+                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos))
 
 
 @annotation_bp.route('/submit-annotation', methods=['POST'])
