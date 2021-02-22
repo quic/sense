@@ -8,14 +8,14 @@
     <h2 class="ui header">Video: {{video_name}}</h2>
     <div class="flex-container">
         {% if idx > 0 %}
-            <a class="ui left floated button mt mb" href="{{ url_for('annotation_bp.annotate', split=split, label=label, path=path, idx=idx-1) }}">
+            <a class="ui left floated button mt mb" href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx-1) }}">
                 <i class="left arrow icon"></i>
                 Previous
             </a>
         {% endif %}
         <div class="flex-filler"></div>
         {% if idx < n_videos - 1 %}
-            <a class="ui right floated button mt mb" href="{{ url_for('annotation_bp.annotate', split=split, label=label, path=path, idx=idx+1) }}">
+            <a class="ui right floated button mt mb" href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx+1) }}">
                 Next
                 <i class="right arrow icon"></i>
             </a>
