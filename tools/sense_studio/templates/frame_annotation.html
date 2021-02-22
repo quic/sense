@@ -63,11 +63,11 @@
         <button class="ui button mt" type="submit">Submit</button>
     </form>
     <form method="POST" action="{{ url_for('annotation_bp.train_logreg') }}">
-        <input type="hidden" name="idx" value="{{idx}}">
-        <input type="hidden" name="path" value="{{path}}">
+        <input type="hidden" name="idx" value="{{ idx }}">
+        <input type="hidden" name="path" value="{{ path }}">
         <input type="hidden" name="project" value="{{ project }}">
-        <input type="hidden" name="split" value="{{split}}">
-        <input type="hidden" name="label" value="{{label}}">
+        <input type="hidden" name="split" value="{{ split }}">
+        <input type="hidden" name="label" value="{{ label }}">
         <button class="ui button mt" type="submit">Retrain Model</button>
     </form>
 </div>
