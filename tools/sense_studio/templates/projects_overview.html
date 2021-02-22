@@ -54,7 +54,7 @@
                     <div class="ui error message"></div>
                 </div>
                 {% if project.exists %}
-                    <a class="ui bottom attached icon button" href="{{ url_for('project_details', path=project.path) }}">
+                    <a class="ui bottom attached icon button" href="{{ url_for('project_details', project=name) }}">
                         <i class="hand point right outline icon"></i>
                         Open
                     </a>

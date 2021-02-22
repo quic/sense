@@ -186,7 +186,8 @@ let tagColors = [
     'grey',
     'blue',
     'green'
-]
+];
+
 
 function assignTag(frameIdx, selectedTagIdx) {
     let tagInput = document.getElementById(`${frameIdx}_tag`);
@@ -200,6 +201,13 @@ function assignTag(frameIdx, selectedTagIdx) {
         } else {
             button.classList.remove(tagColors[tagIdx]);
         }
+    }
+}
+
+
+function initTagButtons(annotations) {
+    for (let frameIdx = 0; frameIdx < annotations.length; frameIdx++) {
+        assignTag(frameIdx, annotations[frameIdx]);
     }
 }
 

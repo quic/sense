@@ -29,6 +29,10 @@ a {
     margin-top: 1em;
 }
 
+.ui.button.mb {
+    margin-bottom: 1em;
+}
+
 .ui.prediction-label {
     margin-bottom: 0.5em;
 }
@@ -57,4 +61,12 @@ a {
     line-height: 1em;
     padding: 0.2em 0.3em;
     font-size: 50px;
+}
+
+.flex-container {
+    display: flex;
+}
+
+.flex-filler {
+    flex: 1;
 }
