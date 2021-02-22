@@ -6,91 +6,83 @@
 <div id="main" class="ui main container">
     <h1 class="ui header">Annotate Frames</h1>
     <h2 class="ui header">Video: {{video_name}}</h2>
-    <div id="navigation-buttons" style="colot:blue;">
-        <form method="get">
-            {% if idx > 0 %}
-                <button class="ui left floated button mt" type="submit"
-                    formaction="{{ url_for('annotation_bp.annotate', split=split, label=label, path=path, idx=idx-1)}}">
-                    <i class="left arrow icon"></i>
-                    Previous
-                </button>
-            {% endif %}
-            {% if idx < n_videos - 1 %}
-                <button class="ui right floated button mt" type="submit"
-                    formaction="{{ url_for('annotation_bp.annotate', split=split, label=label, path=path, idx=idx+1)}}">
-                    Next
-                    <i class="right arrow icon"></i>
-                </button>
-            {% endif %}
-        </form>
+    <div class="flex-container">
+        {% if idx > 0 %}
+            <a class="ui left floated button mt mb" href="{{ url_for('annotation_bp.annotate', split=split, label=label, path=path, idx=idx-1) }}">
+                <i class="left arrow icon"></i>
+                Previous
+            </a>
+        {% endif %}
+        <div class="flex-filler"></div>
+        {% if idx < n_videos - 1 %}
+            <a class="ui right floated button mt mb" href="{{ url_for('annotation_bp.annotate', split=split, label=label, path=path, idx=idx+1) }}">
+                Next
+                <i class="right arrow icon"></i>
+            </a>
+        {% endif %}
     </div>
-    <br />
-    <br />
-    <br />
-    <div class="frames-container">
-        <form method="POST" action="{{ url_for('annotation_bp.submit_annotation') }}">
-            <input type="hidden" name="fps" value="{{ fps }}">
-            <input type="hidden" name="idx" value="{{ idx }}">
-            <input type="hidden" name="path" value="{{ path }}">
-            <input type="hidden" name="split" value="{{ split }}">
-            <input type="hidden" name="label" value="{{ label }}">
-            <input type="hidden" name="video" value="{{ video_name }}">
-            <input type="hidden" name="n_images" value="{{ n_images }}">
-            <div class="centered ui cards">
-                {% for img, idx, pred_class in images %}
-                    <input type="hidden" id="{{ idx }}_tag" name="{{ idx }}_tag" value="0">
-                    <div class="card">
-                        <div class="image">
-                            <img src="{{ url_for('annotation_bp.download_file', img_path=img) }}">
-                        </div>
-                        <div class="content">
-                            {% if pred_class == 0 %}
-                                <div class="ui large grey label prediction-label">
-                                    Background
-                                    <div class="detail">
-                                        predicted
-                                    </div>
+    <form method="POST" action="{{ url_for('annotation_bp.submit_annotation') }}">
+        <input type="hidden" name="fps" value="{{ fps }}">
+        <input type="hidden" name="idx" value="{{ idx }}">
+        <input type="hidden" name="path" value="{{ path }}">
+        <input type="hidden" name="split" value="{{ split }}">
+        <input type="hidden" name="label" value="{{ label }}">
+        <input type="hidden" name="video" value="{{ video_name }}">
+        <input type="hidden" name="n_images" value="{{ n_images }}">
+        <div class="centered ui cards">
+            {% for img, idx, pred_class in images %}
+                <input type="hidden" id="{{ idx }}_tag" name="{{ idx }}_tag" value="0">
+                <div class="card">
+                    <div class="image">
+                        <img src="{{ url_for('annotation_bp.download_file', img_path=img) }}">
+                    </div>
+                    <div class="content">
+                        {% if pred_class == 0 %}
+                            <div class="ui large grey label prediction-label">
+                                Background
+                                <div class="detail">
+                                    predicted
                                 </div>
-                            {% elif pred_class == 1 %}
-                                <div class="ui large blue label prediction-label">
-                                    {{ tags[0] }}
-                                    <div class="detail">
-                                        predicted
-                                    </div>
-                                </div>
-                            {% elif pred_class == 2 %}
-                                <div class="ui large green label prediction-label">
-                                    {{ tags[1] }}
-                                    <div class="detail">
-                                        predicted
-                                    </div>
-                                </div>
-                            {% endif %}
-                            <div class="ui vertical buttons">
-                                <button type="button" class="ui grey button" id="{{ idx }}_tag0" onclick="assignTag({{ idx }}, 0);">
-                                    Background
-                                </button>
-                                <button type="button" class="ui button" id="{{ idx }}_tag1" onclick="assignTag({{ idx }}, 1);">
-                                    {{ tags[0] }}
-                                </button>
-                                <button type="button" class="ui button" id="{{ idx }}_tag2" onclick="assignTag({{ idx }}, 2);">
-                                    {{ tags[1] }}
-                                </button>
                             </div>
+                        {% elif pred_class == 1 %}
+                            <div class="ui large blue label prediction-label">
+                                {{ tags[0] }}
+                                <div class="detail">
+                                    predicted
+                                </div>
+                            </div>
+                        {% elif pred_class == 2 %}
+                            <div class="ui large green label prediction-label">
+                                {{ tags[1] }}
+                                <div class="detail">
+                                    predicted
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="ui vertical buttons">
+                            <button type="button" class="ui grey button" id="{{ idx }}_tag0" onclick="assignTag({{ idx }}, 0);">
+                                Background
+                            </button>
+                            <button type="button" class="ui button" id="{{ idx }}_tag1" onclick="assignTag({{ idx }}, 1);">
+                                {{ tags[0] }}
+                            </button>
+                            <button type="button" class="ui button" id="{{ idx }}_tag2" onclick="assignTag({{ idx }}, 2);">
+                                {{ tags[1] }}
+                            </button>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
-            <button class="ui button mt" type="submit">Submit</button>
-        </form>
-        <form method="POST" action="{{ url_for('annotation_bp.train_logreg') }}">
-            <input type="hidden" name="idx" value="{{idx}}">
-            <input type="hidden" name="path" value="{{path}}">
-            <input type="hidden" name="split" value="{{split}}">
-            <input type="hidden" name="label" value="{{label}}">
-            <button class="ui button mt" type="submit">Retrain Model</button>
-        </form>
-    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <button class="ui button mt" type="submit">Submit</button>
+    </form>
+    <form method="POST" action="{{ url_for('annotation_bp.train_logreg') }}">
+        <input type="hidden" name="idx" value="{{idx}}">
+        <input type="hidden" name="path" value="{{path}}">
+        <input type="hidden" name="split" value="{{split}}">
+        <input type="hidden" name="label" value="{{label}}">
+        <button class="ui button mt" type="submit">Retrain Model</button>
+    </form>
 </div>
 {% endblock %}
 
