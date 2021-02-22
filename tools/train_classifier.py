@@ -11,6 +11,7 @@ Usage:
                        [--path_annotations_valid=PATH]
                        [--temporal_training]
                        [--resume]
+                       [--overwrite]
   train_classifier.py  (-h | --help)
 
 Options:
@@ -25,7 +26,8 @@ Options:
   --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
   --temporal_training            Use this flag if your dataset has been annotated with the temporal
                                  annotations tool
-  --resume                       initialize weight from the last saved checkpoint and restart training
+  --resume                       Initialize weights from the last saved checkpoint and restart training
+  --overwrite                    Allow overwriting existing checkpoint files in the output folder (path_out)
 """
 import json
 import os
@@ -57,24 +59,23 @@ if __name__ == "__main__":
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
     temporal_training = args['--temporal_training']
     resume = args['--resume']
+    overwrite = args['--overwrite']
 
+    # Check for existing files
     saved_files = ["last_classifier.checkpoint", "best_classifier.checkpoint", "label2int.json",
                    "confusion_matrix.png", "confusion_matrix.npy"]
-    exist_files = []
 
-    for file in saved_files:
-        exist_files.append(os.path.exists(os.path.join(path_out, file)))
+    if not overwrite and any(os.path.exists(os.path.join(path_out, file)) for file in saved_files):
+        print(f"Warning: This operation will overwrite files in {path_out}")
 
-    if any(f for f in exist_files):
-        print("Warning: if start training, files in the path_out folder will be overwritten.")
         while True:
-            overwrite_files = input("Enter Y if allow to overwrite files, enter N then the program will stop: ")
-            if overwrite_files.lower() == "y":
+            confirmation = input("Are you sure? Add --overwrite to hide this warning. (Y/N) ")
+            if confirmation.lower() == "y":
                 break
-            elif overwrite_files.lower() == "n":
+            elif confirmation.lower() == "n":
                 sys.exit()
             else:
-                print('Wrong input')
+                print('Invalid input')
 
     # Load feature extractor
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
@@ -149,6 +150,9 @@ if __name__ == "__main__":
     gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
                                             num_out=num_output,
                                             use_softmax=False)
+
+    if resume:
+        gesture_classifier.load_state_dict(checkpoint_classifier)
 
     if num_layers_to_finetune > 0:
         # remove internal padding for training
