@@ -151,8 +151,8 @@ if __name__ == "__main__":
                                             num_out=num_output,
                                             use_softmax=False)
 
-    # if resume:
-    #     gesture_classifier.load_state_dict(checkpoint_classifier)
+    if resume:
+        gesture_classifier.load_state_dict(checkpoint_classifier)
 
     if num_layers_to_finetune > 0:
         # remove internal padding for training
