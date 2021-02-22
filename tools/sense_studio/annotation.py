@@ -108,7 +108,7 @@ def annotate(project, split, label, idx):
     images = sorted(
         [
             # (image index, image file name)
-            (int(os.path.split(image)[-1].split('.')[0]), os.path.split(image)[-1])
+            (int(os.path.splitext(os.path.basename(image))[0]), os.path.basename(image))
             for image in images
         ]
     )
