@@ -16,8 +16,8 @@
         <input type="hidden" name="video" value="{{ video_name }}">
         <input type="hidden" name="n_images" value="{{ n_images }}">
         <div class="centered ui cards">
-            {% for img, idx, pred_class in images %}
-                <input type="hidden" id="{{ idx }}_tag" name="{{ idx }}_tag" value="0">
+            {% for img, img_idx, pred_class in images %}
+                <input type="hidden" id="{{ img_idx }}_tag" name="{{ img_idx }}_tag" value="0">
                 <div class="card">
                     <div class="image">
                         <img src="{{ url_for('annotation_bp.download_file', project=project, split=split, label=label, video_name=video_name, img_file=img) }}">
@@ -46,13 +46,13 @@
                             </div>
                         {% endif %}
                         <div class="ui vertical buttons">
-                            <button type="button" class="ui grey button" id="{{ idx }}_tag0" onclick="assignTag({{ idx }}, 0);">
+                            <button type="button" class="ui grey button" id="{{ img_idx }}_tag0" onclick="assignTag({{ img_idx }}, 0);">
                                 Background
                             </button>
-                            <button type="button" class="ui button" id="{{ idx }}_tag1" onclick="assignTag({{ idx }}, 1);">
+                            <button type="button" class="ui button" id="{{ img_idx }}_tag1" onclick="assignTag({{ img_idx }}, 1);">
                                 {{ tags[0] }}
                             </button>
-                            <button type="button" class="ui button" id="{{ idx }}_tag2" onclick="assignTag({{ idx }}, 2);">
+                            <button type="button" class="ui button" id="{{ img_idx }}_tag2" onclick="assignTag({{ img_idx }}, 2);">
                                 {{ tags[1] }}
                             </button>
                         </div>
