@@ -1,9 +1,9 @@
 import glob
 import json
+import numpy as np
 import os
 import urllib
 
-import numpy as np
 from flask import Blueprint
 from flask import redirect
 from flask import render_template
