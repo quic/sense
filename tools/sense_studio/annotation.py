@@ -22,8 +22,8 @@ from tools.sense_studio import utils
 annotation_bp = Blueprint('annotation_bp', __name__)
 
 
-@annotation_bp.route('/<string:project>/<split>/<label>')
-def show_video_list(split, label, project):
+@annotation_bp.route('/<string:project>/<string:split>/<string:label>')
+def show_video_list(project, split, label):
     """
     Show the list of videos for the given split, class label and project.
     If the necessary files for annotation haven't been prepared yet, this is done now.
@@ -73,7 +73,7 @@ def prepare_annotation(project):
     return redirect(url_for("project_details", project=project))
 
 
-@annotation_bp.route('/<string:project>/<split>/<label>/<int:idx>')
+@annotation_bp.route('/<string:project>/<string:split>/<string:label>/<int:idx>')
 def annotate(project, split, label, idx):
     """
     For the given class label, show all frames for annotating the selected video.
@@ -221,7 +221,7 @@ def train_logreg():
     return redirect(url_for('.annotate', split=split, label=label, project=project, idx=idx))
 
 
-@annotation_bp.route('/uploads/<project>/<split>/<label>/<video_name>/<string:img_file>')
+@annotation_bp.route('/uploads/<string:project>/<string:split>/<string:label>/<string:video_name>/<string:img_file>')
 def download_file(project, split, label, video_name, img_file):
     """
     Load an image from the given path.
