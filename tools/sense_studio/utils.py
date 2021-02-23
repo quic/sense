@@ -1,7 +1,6 @@
 import json
 import os
 
-from typing import List
 from typing import Optional
 
 from sense.engine import InferenceEngine
@@ -13,8 +12,6 @@ MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
-
-SPLITS = ['train', 'valid']
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', []),
@@ -96,45 +93,3 @@ def get_class_name_and_tags(form_data):
         tag2 = f'{tag2}_2'
 
     return class_name, tag1, tag2
-
-
-def _get_data_dir(dir_type: str, dataset_path: str, split: Optional[str] = None, subdirs: Optional[List[str]] = None):
-    main_dir = f'{dir_type}_{split}' if split else dir_type
-    subdirs = subdirs or []
-
-    return os.path.join(dataset_path, main_dir, *subdirs)
-
-
-def get_videos_dir(dataset_path, split, label=None):
-    subdirs = [label] if label else None
-    return _get_data_dir('videos', dataset_path, split, subdirs)
-
-
-def get_frames_dir(dataset_path, split, label=None):
-    subdirs = [label] if label else None
-    return _get_data_dir('frames', dataset_path, split, subdirs)
-
-
-def get_features_dir(dataset_path, split, model: Optional[ModelConfig] = None, label=None):
-    subdirs = None
-    if model:
-        subdirs = [model.combined_model_name]
-        if label:
-            subdirs.append(label)
-
-    return _get_data_dir('features', dataset_path, split, subdirs)
-
-
-def get_tags_dir(dataset_path, split, label=None):
-    subdirs = [label] if label else None
-    return _get_data_dir('tags', dataset_path, split, subdirs)
-
-
-def get_logreg_dir(dataset_path, model: Optional[ModelConfig] = None, label=None):
-    subdirs = None
-    if model:
-        subdirs = [model.combined_model_name]
-        if label:
-            subdirs.append(label)
-
-    return _get_data_dir('logreg', dataset_path, subdirs=subdirs)
