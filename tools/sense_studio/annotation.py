@@ -13,6 +13,7 @@ from flask import url_for
 
 from joblib import dump
 from joblib import load
+from natsort import natsorted
 from os.path import join
 from sklearn.linear_model import LogisticRegression
 
@@ -46,6 +47,7 @@ def show_video_list(project, split, label):
 
     videos = os.listdir(frames_dir)
     videos.sort()
+    # videos = natsorted(videos)
 
     tagged_list = set(os.listdir(tags_dir))
     tagged = [f'{video}.json' in tagged_list for video in videos]
