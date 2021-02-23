@@ -179,7 +179,7 @@ def submit_annotation():
     description['time_annotation'] = time_annotation
 
     with open(out_annotation, 'w') as f:
-        json.dump(description, f)
+        json.dump(description, f, indent=2)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('project_details', project=project))

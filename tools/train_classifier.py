@@ -75,7 +75,7 @@ if __name__ == "__main__":
     temporal_training = args['--temporal_training']
     resume = args['--resume']
 
-    saved_files = ["last_classifier.checkpoint", "best_classifier.checkpoint", "label2int.json",
+    saved_files = ["last_classifier.checkpoint", "best_classifier.checkpoint", "config.json", "label2int.json",
                    "confusion_matrix.png", "confusion_matrix.npy"]
     exist_files = []
 
@@ -136,7 +136,7 @@ if __name__ == "__main__":
                      num_timesteps=num_timesteps)
 
     # Find label names
-    label_names = os.listdir(os.path.join(os.path.join(path_in, "videos_train")))
+    label_names = os.listdir(utils.get_videos_dir(path_in, 'train'))
     label_names = [x for x in label_names if not x.startswith('.')]
     label_counting = ['counting_background']
 
@@ -185,6 +185,24 @@ if __name__ == "__main__":
 
     lr_schedule = {0: 0.0001, 40: 0.00001}
     num_epochs = 80
+
+    # Save training config and label2int dictionary
+    config = {
+        'backbone_model_name': selected_config.model_name,
+        'backbone_model_version': selected_config.version,
+        'num_layers_to_finetune': num_layers_to_finetune,
+        'classifier': str(gesture_classifier),
+        'temporal_training': temporal_training,
+        'lr_schedule': lr_schedule,
+        'num_epochs': num_epochs,
+    }
+    with open(os.path.join(path_out, 'config.json'), 'w') as f:
+        json.dump(config, f, indent=2)
+
+    with open(os.path.join(path_out, 'label2int.json'), 'w') as f:
+        json.dump(label2int_temporal_annotation if temporal_training else label2int, f, indent=2)
+
+    # Train model
     best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
                                            label_names, path_out, temporal_annotation_training=temporal_training)
 
@@ -193,8 +211,3 @@ if __name__ == "__main__":
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
     torch.save(best_model_state_dict, os.path.join(path_out, "best_classifier.checkpoint"))
-
-    if temporal_training:
-        json.dump(label2int_temporal_annotation, open(os.path.join(path_out, "label2int.json"), "w"))
-    else:
-        json.dump(label2int, open(os.path.join(path_out, "label2int.json"), "w"))
