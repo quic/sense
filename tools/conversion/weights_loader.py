@@ -1,6 +1,7 @@
 import logging
 
-from sense.loading import load_backbone_weights, load_weights_from_resources
+from sense.loading import load_backbone_weights
+from sense.loading import load_weights_from_resources
 
 
 def load_weights(backbone_ckpt, classifier_ckpt):
