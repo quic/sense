@@ -57,9 +57,23 @@ class ModelConfig:
     def combined_model_name(self):
         return f'{self.model_name}-{self.version}'
 
-    def get_path_weights(self):
+    def get_weights(self):
         model_weights = MODELS[self.model_name][self.version]
-        return {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
+        path_weights = {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
+        path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
+
+        files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
+        if files_exist or running_on_travis():
+            print(f'Weights found:\n{path_weights_string}')
+            weights = {}
+            for name, path in path_weights.items():
+                load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
+                weights[name] = load_fn(path)
+
+            return weights
+        else:
+            print(f'Could not find at least one of the following files:\n{path_weights_string}')
+            return None
 
 
 def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_name=None,
@@ -93,22 +107,12 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
                         f'\tversion={requested_version}')
 
     for model_config in model_config_list:
-        path_weights = model_config.get_path_weights()
-        path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
+        weights = model_config.get_weights()
 
-        files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
-        if files_exist or running_on_travis():
-            print(f'Weights found:\n{path_weights_string}')
-            weights = {}
-            for name, path in path_weights.items():
-                load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
-                weights[name] = load_fn(path)
-
+        if weights is not None:
             return model_config, weights
-        else:
-            print(f'Could not find at least one of the following files:\n{path_weights_string}')
 
-    raise Exception('ERROR - Weights file missing. To download, please go to '
+    raise Exception('ERROR - Weights files missing. To download, please go to '
                     'https://20bn.com/licensing/sdk/evaluation and follow the '
                     'instructions.')
 
