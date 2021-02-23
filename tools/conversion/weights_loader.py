@@ -1,22 +1,20 @@
-import logging
-
+import os
 import torch
 
+from sense.loading import load_backbone_model_from_config
 
-def load_weights(backbone_ckpt, classifier_ckpt):
-    # Load weights and config.
-    logging.info("Loading weights.")
-    weights_backbone = torch.load(backbone_ckpt, map_location="cpu")
-    weights_classifier = torch.load(classifier_ckpt, map_location="cpu")
-    # if some deeper layer have been finetuned, change them in the backbone weights dictionary
-    name_finetuned_layers = set(weights_backbone.keys()).intersection(
-        weights_classifier.keys()
-    )
-    for key in name_finetuned_layers:
-        weights_backbone[key] = weights_classifier.pop(key)
-    weights_full = {**weights_backbone, **weights_classifier}
 
-    for key in weights_full.keys():
-        logging.info(f"{key}: {weights_full[key].shape}")
+def load_custom_classifier_weights(path_in):
+    # Load backbone network according to config file
+    backbone_model_config, backbone_weights = load_backbone_model_from_config(path_in)
 
-    return weights_full
+    # Load custom classifier checkpoint
+    weights_file = os.path.join(path_in, 'best_classifier.checkpoint')
+    classifier_weights = torch.load(weights_file, map_location='cpu')
+
+    all_weights = {
+        'backbone': backbone_weights,
+        'custom_classifier': classifier_weights,
+    }
+
+    return backbone_model_config, all_weights
