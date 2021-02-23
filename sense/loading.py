@@ -162,6 +162,22 @@ def load_backbone_weights(checkpoint_path: str):
         print('Weights are not loaded on Travis.')
 
 
+def update_backbone_weights(backbone_weights: dict, checkpoint: dict):
+    """
+    Update the backbone weights with all matching weights from the given checkpoint. Those weights
+    are then removed from the checkpoint.
+
+    :param backbone_weights:
+        Dictionary of original weights for the backbone network.
+    :param checkpoint:
+        Dictionary of weights from a training checkpoint. Might contain some of the backbone
+        weights, which will be copied over and then removed.
+    """
+    finetuned_layer_names = set(backbone_weights.keys()).intersection(checkpoint.keys())
+    for key in finetuned_layer_names:
+        backbone_weights[key] = checkpoint.pop(key)
+
+
 def build_backbone_network(selected_config: ModelConfig, weights: dict):
     """
     Creates a backbone network and load provided weights, unless Travis is used.

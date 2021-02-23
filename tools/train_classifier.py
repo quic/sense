@@ -43,9 +43,10 @@ from sense.finetuning import extract_features
 from sense.finetuning import generate_data_loader
 from sense.finetuning import set_internal_padding_false
 from sense.finetuning import training_loops
-from sense.loading import get_relevant_weights
 from sense.loading import build_backbone_network
+from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
+from sense.loading import update_backbone_weights
 from sense.utils import clean_pipe_state_dict_key
 from tools import utils
 
@@ -106,9 +107,7 @@ if __name__ == "__main__":
         checkpoint_classifier = torch.load(os.path.join(path_out, 'last_classifier.checkpoint'))
 
         # Update original weights in case some intermediate layers have been finetuned
-        finetuned_layer_names = set(backbone_weights.keys()).intersection(checkpoint_classifier.keys())
-        for key in finetuned_layer_names:
-            backbone_weights[key] = checkpoint_classifier.pop(key)
+        update_backbone_weights(backbone_weights, checkpoint_classifier)
 
     # Load backbone network
     backbone_network = build_backbone_network(selected_config, backbone_weights)
