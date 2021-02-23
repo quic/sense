@@ -47,6 +47,7 @@ from sense.loading import get_relevant_weights
 from sense.loading import build_backbone_network
 from sense.loading import ModelConfig
 from sense.utils import clean_pipe_state_dict_key
+from tools import utils
 
 import sys
 
@@ -131,7 +132,7 @@ if __name__ == "__main__":
         backbone_network.cnn = backbone_network.cnn[0:-num_layers_to_finetune]
 
     # finetune the model
-    extract_features(path_in, backbone_network, num_layers_to_finetune, use_gpu,
+    extract_features(path_in, selected_config, backbone_network, num_layers_to_finetune, use_gpu,
                      num_timesteps=num_timesteps)
 
     # Find label names
@@ -148,17 +149,19 @@ if __name__ == "__main__":
     extractor_stride = backbone_network.num_required_frames_per_layer_padding[0]
 
     # create the data loaders
-    train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}",
-                                        "tags_train", label_names, label2int, label2int_temporal_annotation,
+    features_dir = utils.get_features_dir(path_in, 'train', selected_config, num_layers_to_finetune)
+    tags_dir = utils.get_tags_dir(path_in, 'train')
+    train_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=num_timesteps, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
-    valid_loader = generate_data_loader(path_in, f"features_valid_num_layers_to_finetune={num_layers_to_finetune}",
-                                        "tags_valid", label_names, label2int, label2int_temporal_annotation,
+    features_dir = utils.get_features_dir(path_in, 'valid', selected_config, num_layers_to_finetune)
+    tags_dir = utils.get_tags_dir(path_in, 'valid')
+    valid_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
-    # modeify the network to generate the training network on top of the features
+    # modify the network to generate the training network on top of the features
     if temporal_training:
         num_output = len(label_counting)
     else:

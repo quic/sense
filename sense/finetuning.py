@@ -16,6 +16,7 @@ from os.path import join
 
 from sense.engine import InferenceEngine
 from sense.utils import clean_pipe_state_dict_key
+from tools import utils
 
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
@@ -95,13 +96,11 @@ class FeaturesDataset(torch.utils.data.Dataset):
         return [features, self.labels[idx], temporal_annotation]
 
 
-def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label2int,
+def generate_data_loader(features_dir, tags_dir, label_names, label2int,
                          label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
                          stride=4, path_annotations=None, temporal_annotation_only=False,
                          full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
     # Find pre-computed features and derive corresponding labels
-    tags_dir = os.path.join(dataset_dir, tags_dir)
-    features_dir = os.path.join(dataset_dir, features_dir)
     labels_string = []
     temporal_annotation = []
     if not path_annotations:
@@ -116,21 +115,22 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
     else:
         with open(path_annotations, 'r') as f:
             annotations = json.load(f)
-        features = ['{}/{}/{}.npy'.format(features_dir, entry['label'],
-                                          os.path.splitext(os.path.basename(entry['file']))[0])
+        features = [os.path.join(features_dir,
+                                 entry['label'],
+                                 f'{os.path.splitext(os.path.basename(entry["file"]))[0]}.npy')
                     for entry in annotations]
         labels = [label2int[entry['label']] for entry in annotations]
         labels_string = [entry['label'] for entry in annotations]
 
     # check if annotation exist for each video
     for label, feature in zip(labels_string, features):
-        classe_mapping = {0: "counting_background",
-                          1: f'{label}_position_1',
-                          2: f'{label}_position_2'}
+        class_mapping = {0: "counting_background",
+                         1: f'{label}_position_1',
+                         2: f'{label}_position_2'}
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file):
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
-            annotation = np.array([label2int_temporal_annotation[classe_mapping[y]] for y in annotation])
+            annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
             temporal_annotation.append(annotation)
         else:
             temporal_annotation.append(None)
@@ -256,21 +256,22 @@ def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, 
                              num_timesteps=1, path_frames=path_frames, batch_size=64)
 
 
-def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
+def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1):
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
     # extract features
-    for dataset in ["train", "valid"]:
-        videos_dir = os.path.join(path_in, f"videos_{dataset}")
-        features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layers_finetune}")
+    for split in utils.SPLITS:
+        videos_dir = utils.get_videos_dir(path_in, split)
+        features_dir = utils.get_features_dir(path_in, split, model_config, num_layers_finetune)
         video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
-        print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
+        num_videos = len(video_files)
+        print(f"\nFound {num_videos} videos to process in the {split}-set")
 
         for video_index, video_path in enumerate(video_files):
-            print(f"\rExtract features from video {video_index + 1} / {len(video_files)}",
-                  end="")
+            print(f'\rExtract features from video {video_index + 1} / {num_videos}',
+                  end='' if video_index < (num_videos - 1) else '\n')
             path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
             if os.path.isfile(path_out):
