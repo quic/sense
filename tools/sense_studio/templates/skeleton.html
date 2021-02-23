@@ -22,7 +22,8 @@
             <a href="{{ url_for('projects_overview') }}" class="header item">
                 <img class="logo" src="{{ url_for('static', filename='sense_studio_logo.svg') }}">
             </a>
-            <a href="{{ url_for('projects_overview') }}" class="item">Projects</a>
+            <a href="{{ url_for('projects_overview') }}" class="item">Create Project</a>
+            {% block navigation %}{% endblock navigation %}
         </div>
     </div>
 

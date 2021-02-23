@@ -2,6 +2,10 @@
 
 {% block title %} {{ config.name }} {% endblock %}
 
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock navigation %}
+
 {% block main %}
 <div id="main" class="ui main text container">
     <h1 class="ui header">
@@ -17,7 +21,7 @@
         <i class="file video outline icon"></i>
         Prepare Annotations
     </a>
-    <input type="hidden" id="projectName" value="{{ config.name }}">
+    <input type="hidden" id="projectName" value="{{ project }}">
 
     <div class="ui icon message">
         <i class="info circle icon"></i>
