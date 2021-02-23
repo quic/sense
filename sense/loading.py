@@ -117,6 +117,23 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
                     'instructions.')
 
 
+def load_backbone_model_from_config(checkpoint_path: str) -> Tuple[ModelConfig, dict]:
+    """
+    Load the backbone model that was used in training for the given model checkpoint as indicated in the 'config.json'
+    file. If there is no config file, StridedInflatedEfficientNet-pro will be used per default.
+    """
+    config_file = os.path.join(checkpoint_path, 'config.json')
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as cf:
+            config = json.load(cf)
+            backbone_model_config = ModelConfig(config['backbone_model_name'], config['backbone_model_version'], [])
+    else:
+        # Assume StridedInflatedEfficientNet-pro was used
+        backbone_model_config = ModelConfig('StridedInflatedEfficientNet', 'pro', [])
+
+    return backbone_model_config, backbone_model_config.get_weights()['backbone']
+
+
 def prepend_resources_path(checkpoint_path):
     """
     Prepend the absolute resources path to the provided path.

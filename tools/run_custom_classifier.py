@@ -29,7 +29,7 @@ from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import build_backbone_network
-from sense.loading import ModelConfig
+from sense.loading import load_backbone_model_from_config
 from sense.loading import update_backbone_weights
 
 
@@ -43,17 +43,8 @@ if __name__ == "__main__":
     title = args['--title'] or None
     use_gpu = args['--use_gpu']
 
-    # Load original backbone network according to config file
-    config_file = os.path.join(custom_classifier, 'config.json')
-    if os.path.exists(config_file):
-        with open(config_file, 'r') as f:
-            config = json.load(f)
-            backbone_model_config = ModelConfig(config['backbone_model_name'], config['backbone_model_version'], [])
-    else:
-        # Assume StridedInflatedEfficientNet-pro was used
-        backbone_model_config = ModelConfig('StridedInflatedEfficientNet', 'pro', [])
-
-    backbone_weights = backbone_model_config.get_weights()['backbone']
+    # Load backbone network according to config file
+    backbone_model_config, backbone_weights = load_backbone_model_from_config(custom_classifier)
 
     # Load custom classifier
     checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))
