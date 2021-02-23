@@ -46,8 +46,7 @@ def show_video_list(project, split, label):
     compute_frames_features(inference_engine, split, label, path)
 
     videos = os.listdir(frames_dir)
-    videos.sort()
-    # videos = natsorted(videos)
+    videos = natsorted(videos)
 
     tagged_list = set(os.listdir(tags_dir))
     tagged = [f'{video}.json' in tagged_list for video in videos]
