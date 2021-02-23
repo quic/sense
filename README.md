@@ -288,13 +288,13 @@ models to the TensorFlow Lite format.
 Our models can be converted to TensorFlow Lite using the following script:
 
 ```shell
-python tools/conversion/convert_to_tflite.py --backbone=StridedInflatedEfficientNet --classifier=efficient_net_gesture_recognition --output_name=model
+python tools/conversion/convert_to_tflite.py --backbone_name=StridedInflatedEfficientNet --backbone_version=pro --classifier=gesture_recognition --output_name=model
 ```
 
 If you want to convert a custom classifier, set the classifier name to "custom_classifier", 
 and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.
 ```shell
-python tools/conversion/convert_to_tflite.py --backbone=StridedInflatedEfficientNet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=model
+python tools/conversion/convert_to_tflite.py --classifier=custom_classifier --path_in=/path/to/your/checkpoint/ --output_name=model
 ```
 
 ---
