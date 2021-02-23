@@ -2,8 +2,8 @@ import json
 import os
 import torch
 
+from sense import backbone_networks
 from sense import engine
-from sense import feature_extractors
 
 MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
@@ -19,7 +19,7 @@ def load_feature_extractor():
     global inference_engine
 
     if inference_engine is None:
-        feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+        feature_extractor = backbone_networks.StridedInflatedEfficientNet()
 
         # Remove internal padding for feature extraction and training
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
