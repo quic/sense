@@ -24,12 +24,13 @@ from docopt import docopt
 import torch
 
 import sense.display
-from sense import backbone_networks
 from sense.controller import Controller
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
-from sense.loading import load_backbone_weights
+from sense.loading import build_backbone_network
+from sense.loading import ModelConfig
+from sense.loading import update_backbone_weights
 
 
 if __name__ == "__main__":
@@ -42,19 +43,26 @@ if __name__ == "__main__":
     title = args['--title'] or None
     use_gpu = args['--use_gpu']
 
-    # Load original backbone network
-    backbone_network = backbone_networks.StridedInflatedEfficientNet()
-    checkpoint = load_backbone_weights('backbone/strided_inflated_efficientnet.ckpt')
-    checkpoint = checkpoint or backbone_network.state_dict()  # on Travis, load_backbone_weights returns None
+    # Load original backbone network according to config file
+    config_file = os.path.join(custom_classifier, 'config.json')
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+            backbone_model_config = ModelConfig(config['backbone_model_name'], config['backbone_model_version'], [])
+    else:
+        # Assume StridedInflatedEfficientNet-pro was used
+        backbone_model_config = ModelConfig('StridedInflatedEfficientNet', 'pro', [])
+
+    backbone_weights = backbone_model_config.get_weights()['backbone']
 
     # Load custom classifier
     checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))
+
     # Update original weights in case some intermediate layers have been finetuned
-    name_finetuned_layers = set(checkpoint.keys()).intersection(checkpoint_classifier.keys())
-    for key in name_finetuned_layers:
-        checkpoint[key] = checkpoint_classifier.pop(key)
-    backbone_network.load_state_dict(checkpoint)
-    backbone_network.eval()
+    update_backbone_weights(backbone_weights, checkpoint_classifier)
+
+    # Create backbone network
+    backbone_network = build_backbone_network(backbone_model_config, backbone_weights)
 
     with open(os.path.join(custom_classifier, 'label2int.json')) as file:
         class2int = json.load(file)
