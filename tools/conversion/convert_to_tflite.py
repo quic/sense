@@ -73,7 +73,7 @@ SUPPORTED_CLASSIFIER_CONVERSIONS = {
     "efficient_net_fitness_activity_recognition": {
         "config_file": "tools/conversion/cfg/logistic_regression.cfg",
         "placeholder_values": {"NUM_CLASSES": "81"},
-        "weights_file": MODELS[EFFICIENTNET]['pro'],
+        "weights_file": MODELS[EFFICIENTNET]['pro']['fitness_activity_recognition'],
         "corresponding_backbone": EFFICIENTNET,
     },
     "custom_classifier": {
