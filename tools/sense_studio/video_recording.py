@@ -8,7 +8,8 @@ from flask import jsonify
 from flask import render_template
 from flask import request
 
-from tools.sense_studio.utils import lookup_project_path
+from tools.sense_studio import utils
+
 
 video_recording_bp = Blueprint('video_recording_bp', __name__)
 
@@ -21,8 +22,9 @@ def record_video(project, split, label):
     project = urllib.parse.unquote(project)
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
-    path = lookup_project_path(project)
-    return render_template('video_recording.html', project=project, split=split, label=label, path=path)
+    path = utils.lookup_project_path(project)
+    labels = utils.get_class_names(path)
+    return render_template('video_recording.html', project=project, split=split, label=label, path=path, labels=labels)
 
 
 @video_recording_bp.route('/save-video/<string:project>/<string:split>/<string:label>', methods=['POST'])
@@ -30,7 +32,7 @@ def save_video(project, split, label):
     project = urllib.parse.unquote(project)
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
-    path = lookup_project_path(project)
+    path = utils.lookup_project_path(project)
 
     # Read given video to a file
     input_stream = request.files['video']

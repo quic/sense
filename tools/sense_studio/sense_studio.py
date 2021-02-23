@@ -157,6 +157,7 @@ def project_details(project):
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
     config = utils.load_project_config(path)
+    labels = utils.get_class_names(path)
 
     stats = {}
     for class_name, tags in config['classes'].items():
@@ -169,7 +170,8 @@ def project_details(project):
                 'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
             }
 
-    return render_template('project_details.html', config=config, path=path, stats=stats)
+    return render_template('project_details.html', config=config, path=path, stats=stats, labels=labels,
+                           project=config['name'])
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])

@@ -19,6 +19,7 @@ from sklearn.linear_model import LogisticRegression
 from sense.finetuning import compute_frames_features
 from tools.sense_studio import utils
 
+
 annotation_bp = Blueprint('annotation_bp', __name__)
 
 
@@ -35,6 +36,7 @@ def show_video_list(project, split, label):
     frames_dir = join(path, f"frames_{split}", label)
     tags_dir = join(path, f"tags_{split}", label)
     logreg_dir = join(path, 'logreg', label)
+    labels = utils.get_class_names(path)
 
     os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
@@ -52,7 +54,7 @@ def show_video_list(project, split, label):
 
     video_list = zip(videos, tagged, list(range(len(videos))))
     return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path,
-                           project=project)
+                           project=project, labels=labels)
 
 
 @annotation_bp.route('/prepare-annotation/<string:project>')
@@ -87,6 +89,7 @@ def annotate(project, split, label, idx):
     tags_dir = join(path, f"tags_{split}", label)
     logreg_dir = join(path, 'logreg', label)
 
+    labels = utils.get_class_names(path)
     videos = os.listdir(frames_dir)
     videos.sort()
 
@@ -129,7 +132,8 @@ def annotate(project, split, label, idx):
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx],
-                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos))
+                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos),
+                           labels=labels)
 
 
 @annotation_bp.route('/submit-annotation', methods=['POST'])
