@@ -1,0 +1,66 @@
+{% block navigation %}
+    <a href="{{ url_for('project_details', project=project) }}" class="item">Setup Class</a>
+    <div class="ui simple dropdown item">
+        Video Record
+        <i class="dropdown icon"></i>
+        <div class="menu">
+            <div class="item">
+                <i class="dropdown icon"></i>
+                Train
+                <div class="menu">
+                    {% for label in labels %}
+                        <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train',
+                         label=label) }}" class="item">{{label}}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="item">
+                <i class="dropdown icon"></i>
+                Valid
+                <div class="menu">
+                    {% for label in labels %}
+                        <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid',
+                         label=label) }}" class="item">{{label}}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="ui simple dropdown item">
+        Annotation
+        <i class="dropdown icon"></i>
+        <div class="menu">
+            <div class="item">
+                <i class="dropdown icon"></i>
+                Train
+                <div class="menu">
+                    {% for label in labels %}
+                        <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train',
+                         label=label)}}" class="item">{{label}}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="item">
+                <i class="dropdown icon"></i>
+                Valid
+                <div class="menu">
+                    {% for label in labels %}
+                        <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid',
+                         label=label)}}" class="item">{{label}}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="#" class="item">Train Model</a>
+    <a href="#" class="item">Evaluate Model</a>
+    <div class="ui simple dropdown item">
+        Model Conversion
+        <i class="dropdown icon"></i>
+        <div class="menu">
+            <a href="#" class="item">Android</a>
+            <a href="#" class="item">iOS</a>
+        </div>
+    </div>
+{% endblock navigation %}
