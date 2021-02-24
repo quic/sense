@@ -13,6 +13,7 @@ from flask import url_for
 
 from joblib import dump
 from joblib import load
+from natsort import natsorted
 from os.path import join
 from sklearn.linear_model import LogisticRegression
 
@@ -45,7 +46,7 @@ def show_video_list(project, split, label):
     compute_frames_features(inference_engine, split, label, path)
 
     videos = os.listdir(frames_dir)
-    videos.sort()
+    videos = natsorted(videos)
 
     tagged_list = set(os.listdir(tags_dir))
     tagged = [f'{video}.json' in tagged_list for video in videos]
@@ -105,15 +106,10 @@ def annotate(project, split, label, idx):
     images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
               if utils.is_image_file(image)]
 
-    # Extract image file name (without full path), add indexes, and include class label
-    images = sorted(
-        [
-            # (image index, image file name)
-            (int(os.path.splitext(os.path.basename(image))[0]), os.path.basename(image))
-            for image in images
-        ]
-    )
-    images = [[image, idx, _class] for (idx, image), _class in zip(images, classes)]
+    # Natural sort images, so that they are sorted by number
+    images = natsorted(images)
+    # Extract image file name (without full path) and include class label
+    images = [(os.path.basename(image), _class) for image, _class in zip(images, classes)]
 
     # Load existing annotations
     annotations = []
