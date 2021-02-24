@@ -106,11 +106,10 @@ def annotate(project, split, label, idx):
     images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
               if utils.is_image_file(image)]
 
-    # Natural sort images
+    # Natural sort images, so that they are sorted by number
     images = natsorted(images)
-    # Extract image file name (without full path), add indexes, and include class label
-    images = [[os.path.basename(image), os.path.splitext(os.path.basename(image))[0], _class]
-              for image, _class in zip(images, classes)]
+    # Extract image file name (without full path) and include class label
+    images = [(os.path.basename(image), _class) for image, _class in zip(images, classes)]
 
     # Load existing annotations
     annotations = []
