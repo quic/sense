@@ -157,7 +157,7 @@ def project_details(project):
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
     config = utils.load_project_config(path)
-    labels = utils.get_class_names(path)
+    labels = utils.get_class_labels(path)
 
     stats = {}
     for class_name, tags in config['classes'].items():
@@ -170,8 +170,7 @@ def project_details(project):
                 'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
             }
 
-    return render_template('project_details.html', config=config, path=path, stats=stats, labels=labels,
-                           project=config['name'])
+    return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'])
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
@@ -268,6 +267,15 @@ def add_header(r):
     r.headers["Expires"] = "0"
     r.headers['Cache-Control'] = 'public, max-age=0'
     return r
+
+
+@app.context_processor
+def class_labels_processor():
+    def inject_class_labels(project):
+        path = utils.lookup_project_path(project)
+        labels = utils.get_class_labels(path)
+        return labels
+    return dict(inject_class_labels=inject_class_labels)
 
 
 if __name__ == '__main__':
