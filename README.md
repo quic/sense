@@ -107,9 +107,9 @@ To run inference on your GPU,  another version of PyTorch should be installed (e
 `conda install pytorch torchvision cudatoolkit=10.2 -c pytorch`). 
 See all available install commands [here](https://pytorch.org/).
 
-#### Step 3: Download the Pre-trained Weights
-Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation). Follow the 
-instructions there to create an account and download the weights. Once downloaded, unzip the folder and move the 
+#### Step 3: Download the SenseKit Weights
+Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation), subject to separate terms. 
+Follow the instructions to create an account, agree to evaluation license and download the weights. Once downloaded, unzip the folder and move the 
 folder named `backbone` into `sense/resources`. In the end, your resources folder structure should look like
  this:
 
@@ -120,7 +120,7 @@ resources
 │   └── strided_inflated_mobilenet.ckpt
 ├── fitness_activity_recognition
 │   └── ...
-├── gesture_detection
+├── gesture_recognition
 │   └── ...
 └── ...
 ```
@@ -251,9 +251,7 @@ You can now run it live using the following script:
 PYTHONPATH=./ python tools/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
 ```
 
----
-
-## Advanced Options
+### Advanced Options
 
 You can further improve your model's performance by training on top of temporally annotated data; 
 individually tagged frames that identify the event locally in the video versus treating every frame with the same 
@@ -277,13 +275,13 @@ models to the TensorFlow Lite format.
 Our models can be converted to TensorFlow Lite using the following script:
 
 ```shell
-python tools/conversion/convert_to_tflite.py --backbone=efficientnet --classifier=efficient_net_gesture_control --output_name=model
+python tools/conversion/convert_to_tflite.py --backbone=StridedInflatedEfficientNet --classifier=efficient_net_gesture_recognition --output_name=model
 ```
 
 If you want to convert a custom classifier, set the classifier name to "custom_classifier", 
 and provide the path to the dataset directory used to train the classifier using the "--path_in" argument.
 ```shell
-python tools/conversion/convert_to_tflite.py --backbone=efficientnet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=model
+python tools/conversion/convert_to_tflite.py --backbone=StridedInflatedEfficientNet --classifier=custom_classifier --path_in=/path/to/your/dataset/ --output_name=model
 ```
 
 ---

@@ -8,6 +8,8 @@ Usage:
                             [--path_in=FILENAME]
                             [--path_out=FILENAME]
                             [--title=TITLE]
+                            [--model_name=NAME]
+                            [--model_version=VERSION]
                             [--use_gpu]
   run_calorie_estimation.py (-h | --help)
 
@@ -23,15 +25,28 @@ Options:
   --path_in=FILENAME              Video file to stream from
   --path_out=FILENAME             Video file to stream to
   --title=TITLE                   This adds a title to the window display
+  --model_name=NAME               Name of the model to be used.
+  --model_version=VERSION         Version of the model to be used.
+  --use_gpu                       Whether to run inference on the GPU or not.
 """
 from docopt import docopt
 
 import sense.display
-from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks import calorie_estimation
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.nn_utils import load_weights_from_resources
+from sense.loading import build_backbone_network
+from sense.loading import get_relevant_weights
+from sense.loading import ModelConfig
+
+
+SUPPORTED_MODEL_CONFIGURATIONS = [
+    ModelConfig('StridedInflatedMobileNetV2', 'pro', ['met_converter']),
+    ModelConfig('StridedInflatedEfficientNet', 'pro', ['met_converter']),
+    ModelConfig('StridedInflatedMobileNetV2', 'lite', ['met_converter']),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', ['met_converter']),
+]
+
 
 if __name__ == "__main__":
     # Parse arguments
@@ -40,6 +55,8 @@ if __name__ == "__main__":
     height = float(args['--height'])
     age = float(args['--age'])
     gender = args['--gender'] or None
+    model_name = args['--model_name'] or None
+    model_version = args['--model_version'] or None
     use_gpu = args['--use_gpu']
 
     camera_id = int(args['--camera_id'] or 0)
@@ -47,19 +64,23 @@ if __name__ == "__main__":
     path_out = args['--path_out'] or None
     title = args['--title'] or None
 
-    # Load feature extractor
-    feature_extractor = feature_extractors.StridedInflatedMobileNetV2()
-    feature_extractor.load_weights_from_resources('backbone/strided_inflated_mobilenet.ckpt')
-    feature_extractor.eval()
+    # Load weights
+    selected_config, weights = get_relevant_weights(
+        SUPPORTED_MODEL_CONFIGURATIONS,
+        model_name,
+        model_version
+    )
+
+    # Load backbone network
+    backbone_network = build_backbone_network(selected_config, weights['backbone'])
 
     # Load MET value converter
     met_value_converter = calorie_estimation.METValueMLPConverter()
-    checkpoint = load_weights_from_resources('calorie_estimation/mobilenet_features_met_converter.ckpt')
-    met_value_converter.load_state_dict(checkpoint)
+    met_value_converter.load_state_dict(weights['met_converter'])
     met_value_converter.eval()
 
-    # Concatenate feature extractor and met converter
-    net = Pipe(feature_extractor, met_value_converter)
+    # Concatenate backbone network and met converter
+    net = Pipe(backbone_network, met_value_converter)
 
     post_processors = [
         calorie_estimation.CalorieAccumulator(weight=weight,

@@ -35,7 +35,7 @@ import torch.utils.data
 
 from docopt import docopt
 
-from sense import feature_extractors
+from sense import backbone_networks
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.finetuning import extract_features
@@ -77,8 +77,8 @@ if __name__ == "__main__":
             else:
                 print('Invalid input')
 
-    # Load feature extractor
-    feature_extractor = feature_extractors.StridedInflatedEfficientNet()
+    # Load backbone network
+    backbone_network = backbone_networks.StridedInflatedEfficientNet()
 
     if resume:
         # load the last classifier
@@ -91,29 +91,29 @@ if __name__ == "__main__":
     else:
         checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
 
-    feature_extractor.load_state_dict(checkpoint)
-    feature_extractor.eval()
+    backbone_network.load_state_dict(checkpoint)
+    backbone_network.eval()
 
     # Get the require temporal dimension of feature tensors in order to
     # finetune the provided number of layers
     if num_layers_to_finetune > 0:
-        num_timesteps = feature_extractor.num_required_frames_per_layer.get(-num_layers_to_finetune)
+        num_timesteps = backbone_network.num_required_frames_per_layer.get(-num_layers_to_finetune)
         if not num_timesteps:
             # Remove 1 because we added 0 to temporal_dependencies
-            num_layers = len(feature_extractor.num_required_frames_per_layer) - 1
+            num_layers = len(backbone_network.num_required_frames_per_layer) - 1
             raise IndexError(f'Num of layers to finetune not compatible. '
                              f'Must be an integer between 0 and {num_layers}')
     else:
         num_timesteps = 1
-    minimum_frames = feature_extractor.num_required_frames_per_layer[0]
+    minimum_frames = backbone_network.num_required_frames_per_layer[0]
 
-    # Concatenate feature extractor and met converter
+    # Extract layers to finetune
     if num_layers_to_finetune > 0:
-        fine_tuned_layers = feature_extractor.cnn[-num_layers_to_finetune:]
-        feature_extractor.cnn = feature_extractor.cnn[0:-num_layers_to_finetune]
+        fine_tuned_layers = backbone_network.cnn[-num_layers_to_finetune:]
+        backbone_network.cnn = backbone_network.cnn[0:-num_layers_to_finetune]
 
     # finetune the model
-    extract_features(path_in, feature_extractor, num_layers_to_finetune, use_gpu,
+    extract_features(path_in, backbone_network, num_layers_to_finetune, use_gpu,
                      num_timesteps=num_timesteps)
 
     # Find label names
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     label2int_temporal_annotation = {name: index for index, name in enumerate(label_counting)}
     label2int = {name: index for index, name in enumerate(label_names)}
 
-    extractor_stride = feature_extractor.num_required_frames_per_layer_padding[0]
+    extractor_stride = backbone_network.num_required_frames_per_layer_padding[0]
 
     # create the data loaders
     train_loader = generate_data_loader(path_in, f"features_train_num_layers_to_finetune={num_layers_to_finetune}",
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         num_output = len(label_names)
 
     # modify the network to generate the training network on top of the features
-    gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
+    gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
                                             num_out=num_output,
                                             use_softmax=False)
 

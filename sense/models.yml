@@ -1,0 +1,28 @@
+StridedInflatedEfficientNet:
+
+  lite:
+    backbone: backbone/strided_inflated_efficientnet_lite.ckpt
+    fitness_activity_recognition: fitness_activity_recognition/sien_lite_logreg.ckpt
+    gesture_recognition: gesture_recognition/sien_lite_logreg.ckpt
+    met_converter: calorie_estimation/sien_lite_met_converter.ckpt
+
+  pro:
+    backbone: backbone/strided_inflated_efficientnet.ckpt
+    fitness_activity_recognition: fitness_activity_recognition/sien_logreg.ckpt
+    gesture_recognition: gesture_recognition/sien_logreg.ckpt
+    met_converter: calorie_estimation/sien_met_converter.ckpt
+    rep_counter: fitness_rep_counting/sien_logreg.ckpt
+
+StridedInflatedMobileNetV2:
+
+  lite:
+    backbone: backbone/strided_inflated_mobilenet_lite.ckpt
+    fitness_activity_recognition: fitness_activity_recognition/simn_lite_logreg.ckpt
+    gesture_recognition: gesture_recognition/simn_lite_logreg.ckpt
+    met_converter: calorie_estimation/simn_lite_met_converter.ckpt
+
+  pro:
+    backbone: backbone/strided_inflated_mobilenet.ckpt
+    fitness_activity_recognition: fitness_activity_recognition/simn_logreg.ckpt
+    gesture_recognition: gesture_recognition/simn_logreg.ckpt
+    met_converter: calorie_estimation/simn_met_converter.ckpt

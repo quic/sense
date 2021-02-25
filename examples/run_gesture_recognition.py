@@ -7,6 +7,8 @@ Usage:
                              [--path_in=FILENAME]
                              [--path_out=FILENAME]
                              [--title=TITLE]
+                             [--model_name=NAME]
+                             [--model_version=VERSION]
                              [--use_gpu]
   run_gesture_recognition.py (-h | --help)
 
@@ -14,19 +16,30 @@ Options:
   --path_in=FILENAME         Video file to stream from
   --path_out=FILENAME        Video file to stream to
   --title=TITLE              This adds a title to the window display
+  --model_name=NAME          Name of the model to be used.
+  --model_version=VERSION    Version of the model to be used.
+  --use_gpu                  Whether to run inference on the GPU or not.
 """
 from docopt import docopt
 
 import sense.display
-from sense import feature_extractors
 from sense.controller import Controller
 from sense.downstream_tasks.gesture_recognition import INT2LAB
 from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.nn_utils import load_weights_from_resources
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
+from sense.loading import get_relevant_weights
+from sense.loading import build_backbone_network
+from sense.loading import ModelConfig
 
+
+SUPPORTED_MODEL_CONFIGURATIONS = [
+    ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_recognition']),
+    ModelConfig('StridedInflatedMobileNetV2', 'pro', ['gesture_recognition']),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_recognition']),
+    ModelConfig('StridedInflatedMobileNetV2', 'lite', ['gesture_recognition']),
+]
 
 if __name__ == "__main__":
     # Parse arguments
@@ -35,22 +48,28 @@ if __name__ == "__main__":
     path_in = args['--path_in'] or None
     path_out = args['--path_out'] or None
     title = args['--title'] or None
+    model_name = args['--model_name'] or None
+    model_version = args['--model_version'] or None
     use_gpu = args['--use_gpu']
 
-    # Load feature extractor
-    feature_extractor = feature_extractors.StridedInflatedEfficientNet()
-    feature_extractor.load_weights_from_resources('backbone/strided_inflated_efficientnet.ckpt')
-    feature_extractor.eval()
+    # Load weights
+    selected_config, weights = get_relevant_weights(
+        SUPPORTED_MODEL_CONFIGURATIONS,
+        model_name,
+        model_version
+    )
 
-    # Load a logistic regression classifier
-    gesture_classifier = LogisticRegression(num_in=feature_extractor.feature_dim,
+    # Load backbone network
+    backbone_network = build_backbone_network(selected_config, weights['backbone'])
+
+    # Create a logistic regression classifier
+    gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
                                             num_out=30)
-    checkpoint = load_weights_from_resources('gesture_detection/efficientnet_logistic_regression.ckpt')
-    gesture_classifier.load_state_dict(checkpoint)
+    gesture_classifier.load_state_dict(weights['gesture_recognition'])
     gesture_classifier.eval()
 
-    # Concatenate feature extractor and met converter
-    net = Pipe(feature_extractor, gesture_classifier)
+    # Concatenate backbone network and logistic regression
+    net = Pipe(backbone_network, gesture_classifier)
 
     postprocessor = [
         PostprocessClassificationOutput(INT2LAB, smoothing=4)

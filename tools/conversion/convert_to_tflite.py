@@ -30,6 +30,7 @@ import logging
 from docopt import docopt
 from keras.utils.vis_utils import plot_model as plot
 
+from sense.loading import MODELS
 from tools.conversion.config_loader import load_config
 from tools.conversion.config_loader import finalize_custom_classifier_config
 from tools.conversion.weights_loader import load_weights
@@ -49,10 +50,12 @@ DEFAULT_CONVERSION_PARAMETERS = {
     "use_prelu": False,
 }
 
+EFFICIENTNET = 'StridedInflatedEfficientNet'
+
 SUPPORTED_BACKBONE_CONVERSIONS = {
-    "efficientnet": {
+    EFFICIENTNET: {
         "config_file": "tools/conversion/cfg/efficientnet.cfg",
-        "weights_file": "resources/backbone/strided_inflated_efficientnet.ckpt",
+        "weights_file": MODELS[EFFICIENTNET]['pro']['backbone'],
         "conversion_parameters": {
             **DEFAULT_CONVERSION_PARAMETERS,
             "image_scale": 255.0,
@@ -61,17 +64,17 @@ SUPPORTED_BACKBONE_CONVERSIONS = {
 }
 
 SUPPORTED_CLASSIFIER_CONVERSIONS = {
-    "efficient_net_gesture_control": {
+    "efficient_net_gesture_recognition": {
         "config_file": "tools/conversion/cfg/logistic_regression.cfg",
         "placeholder_values": {"NUM_CLASSES": "30"},
-        "weights_file": "resources/gesture_detection/efficientnet_logistic_regression.ckpt",
-        "corresponding_backbone": "efficientnet",
+        "weights_file": MODELS[EFFICIENTNET]['pro']['gesture_recognition'],
+        "corresponding_backbone": EFFICIENTNET,
     },
     "efficient_net_fitness_activity_recognition": {
         "config_file": "tools/conversion/cfg/logistic_regression.cfg",
         "placeholder_values": {"NUM_CLASSES": "81"},
-        "weights_file": "resources/fitness_activity_recognition/efficientnet_logistic_regression.ckpt",
-        "corresponding_backbone": "efficientnet",
+        "weights_file": MODELS[EFFICIENTNET]['pro']['fitness_activity_recognition'],
+        "corresponding_backbone": EFFICIENTNET,
     },
     "custom_classifier": {
         "config_file": "tools/conversion/cfg/logistic_regression.cfg",
