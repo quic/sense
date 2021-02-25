@@ -181,6 +181,7 @@ def load_backbone_weights(checkpoint_path: str):
         return load_weights_from_resources(checkpoint_path)
     else:
         print('Weights are not loaded on Travis.')
+        return {}
 
 
 def update_backbone_weights(backbone_weights: dict, checkpoint: dict):
