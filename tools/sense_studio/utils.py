@@ -86,7 +86,7 @@ def get_class_name_and_tags(form_data):
     return class_name, tag1, tag2
 
 
-def get_class_names(path):
+def get_class_labels(path):
     """
     Extract class names from the config.
     """
