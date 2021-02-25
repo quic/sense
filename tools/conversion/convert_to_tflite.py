@@ -5,8 +5,7 @@ Author: Mark Todorovich.
 
 
 Usage:
-  convert_to_tflite.py --classifier=CLASSIFIER
-                       --output_name=OUTPUT_NAME
+  convert_to_tflite.py --classifier=CLASSIFIER --output_name=OUTPUT_NAME
                        [--backbone_name=BACKBONE_NAME]
                        [--backbone_version=BACKBONE_VERSION]
                        [--path_in=PATH]
@@ -148,7 +147,7 @@ if __name__ == "__main__":
     if not classifier_settings:
         raise Exception(
             f"Classifier not found: {classifier_name}. Only the following classifiers "
-            f"can be converted: {SUPPORTED_CLASSIFIER_CONVERSIONS.keys()}"
+            f"can be converted: {list(SUPPORTED_CLASSIFIER_CONVERSIONS.keys())}"
         )
 
     if classifier_name == "custom_classifier":
@@ -169,15 +168,15 @@ if __name__ == "__main__":
     if not backbone_settings:
         raise Exception(
             f"Backbone not found: {backbone_name}. Only the following backbones "
-            f"can be converted: {SUPPORTED_BACKBONE_CONVERSIONS.keys()}"
+            f"can be converted: {list(SUPPORTED_BACKBONE_CONVERSIONS.keys())}"
         )
 
     # Merge weights (possibly overwriting backbone weights with finetuned ones from classifier checkpoint)
     weights_full = weights['backbone']
     weights_full.update(weights[classifier_name])
 
-    for key, weight in weights_full.values():
-        logging.info(f"{key}: {weights.shape}")
+    for key, weight in weights_full.items():
+        logging.info(f"{key}: {weight.shape}")
 
     convert(
         backbone_settings,
