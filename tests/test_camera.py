@@ -63,7 +63,7 @@ class TestStop(unittest.TestCase):
 
     def test_stop(self):
         self.stream.stop()
-        assert self.stream._shutdown == True
+        self.assertTrue(self.stream._shutdown)
 
 
 class TestExtractImage(unittest.TestCase):
@@ -91,8 +91,8 @@ class TestRun(unittest.TestCase):
 
     def test_frame_conditions(self):
         self.stream.run()
-        assert self.stream.frames.full() == True
-        assert self.stream._shutdown == True
+        self.assertTrue(self.stream.frames.full())
+        self.assertTrue(self.stream._shutdown)
 
 
 class TestWrite(unittest.TestCase):
@@ -118,7 +118,7 @@ class TestWrite(unittest.TestCase):
         self.videowriter.release()
 
         output_video = cv2.VideoCapture(output_video_path)
-        assert output_video.isOpened() == True
+        self.assertTrue(output_video.isOpened())
 
 
 class TestRelease(unittest.TestCase):
@@ -130,7 +130,7 @@ class TestRelease(unittest.TestCase):
 
     def test_release(self):
         self.videowriter.release()
-        assert self.videowriter.writer.isOpened() == False
+        self.assertFalse(self.videowriter.writer.isOpened())
 
 
 if __name__ == '__main__':
