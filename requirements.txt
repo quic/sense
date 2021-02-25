@@ -10,6 +10,7 @@ Flask                   ==1.1.2       # BSD
 Pillow                  ==8.0.1       # HPND
 ffmpeg-python           ==0.2.0       # GNU-GPL
 simpleaudio             ==1.0.4       # MIT
+natsort                 ==7.1.1       # MIT
 
 # Dependencies needed for converting Pytorch models to tensorflow Lite
 tensorflow              ==2.3.1      # Apache 2.0
