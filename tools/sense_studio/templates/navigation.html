@@ -1,3 +1,4 @@
+{%  set labels = inject_class_labels(project) %}
 <a href="{{ url_for('project_details', project=project) }}" class="item">Project Details</a>
 <div class="ui simple dropdown item">
     Video Recording
@@ -7,7 +8,7 @@
             <i class="dropdown icon"></i>
             Train
             <div class="menu">
-                {% for label in labels %}
+                {% for label in labels  %}
                     <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train',
                      label=label) }}" class="item">{{label}}</a>
                 {% endfor %}
