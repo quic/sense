@@ -157,7 +157,6 @@ def project_details(project):
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
     config = utils.load_project_config(path)
-    labels = utils.get_class_labels(path)
 
     stats = {}
     for class_name, tags in config['classes'].items():

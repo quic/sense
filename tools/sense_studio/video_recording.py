@@ -23,8 +23,7 @@ def record_video(project, split, label):
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
     path = utils.lookup_project_path(project)
-    labels = utils.get_class_names(path)
-    return render_template('video_recording.html', project=project, split=split, label=label, path=path, labels=labels)
+    return render_template('video_recording.html', project=project, split=split, label=label, path=path)
 
 
 @video_recording_bp.route('/save-video/<string:project>/<string:split>/<string:label>', methods=['POST'])

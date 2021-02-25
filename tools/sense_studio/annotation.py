@@ -37,7 +37,7 @@ def show_video_list(project, split, label):
     frames_dir = join(path, f"frames_{split}", label)
     tags_dir = join(path, f"tags_{split}", label)
     logreg_dir = join(path, 'logreg', label)
-    labels = utils.get_class_names(path)
+    labels = utils.get_class_labels(path)
 
     os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
@@ -90,7 +90,6 @@ def annotate(project, split, label, idx):
     tags_dir = join(path, f"tags_{split}", label)
     logreg_dir = join(path, 'logreg', label)
 
-    labels = utils.get_class_names(path)
     videos = os.listdir(frames_dir)
     videos.sort()
 
@@ -128,8 +127,7 @@ def annotate(project, split, label, idx):
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx],
-                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos),
-                           labels=labels)
+                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos))
 
 
 @annotation_bp.route('/submit-annotation', methods=['POST'])
