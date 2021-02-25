@@ -1,0 +1,137 @@
+import unittest
+from unittest.mock import patch
+import sense.camera as camera
+import os
+import cv2
+
+
+class TestGetImage(unittest.TestCase):
+
+    def setUp(self) -> None:
+        cwd = os.getcwd()
+        video_path = os.path.join(cwd, 'tests/resources/test_video.mp4')
+        self.video = camera.VideoSource(filename=video_path)
+
+    @patch('sense.camera.VideoSource.pad_to_square')
+    def test_get_image(self, mock_pad_to_square):
+        cwd = os.getcwd()
+        square_img_path = os.path.join(cwd, 'tests/resources/square_SENSE.png')
+        square_img = cv2.imread(square_img_path)
+        mock_pad_to_square.return_value = square_img
+
+        img, scaled_img = self.video.get_image()
+
+        self.assertTrue(mock_pad_to_square)
+        assert img.shape == scaled_img.shape
+
+
+class TestPadToSquare(unittest.TestCase):
+
+    def setUp(self) -> None:
+        cwd = os.getcwd()
+        video_path = os.path.join(cwd, 'tests/resources/test_video.mp4')
+        self.video = camera.VideoSource(filename=video_path)
+
+    def test_pad_to_square(self):
+        cwd = os.getcwd()
+        img_path = os.path.join(cwd, 'tests/resources/SENSE.png')
+        img = cv2.imread(img_path)
+        max_length = max(img.shape[0:2])
+        new_img = self.video.pad_to_square(img)
+        assert new_img.shape == (max_length, max_length, 3)
+
+
+class TestGetFPS(unittest.TestCase):
+
+    def setUp(self) -> None:
+        cwd = os.getcwd()
+        video_path = os.path.join(cwd, 'tests/resources/test_video.mp4')
+        self.video = camera.VideoSource(filename=video_path)
+
+    def test_fps(self):
+        fps = self.video.get_fps()
+        assert fps == 12.0
+
+
+class TestStop(unittest.TestCase):
+
+    def setUp(self) -> None:
+        cwd = os.getcwd()
+        video_path = os.path.join(cwd, 'tests/resources/test_video.mp4')
+        self.video = camera.VideoSource(filename=video_path)
+        self.stream = camera.VideoStream(video_source=self.video, fps=12.0)
+
+    def test_stop(self):
+        self.stream.stop()
+        assert self.stream._shutdown == True
+
+
+class TestExtractImage(unittest.TestCase):
+
+    def setUp(self) -> None:
+        cwd = os.getcwd()
+        video_path = os.path.join(cwd, 'tests/resources/test_video.mp4')
+        self.video = camera.VideoSource(filename=video_path)
+        self.stream = camera.VideoStream(video_source=self.video, fps=12.0)
+
+    def test_extract_image(self):
+        img_tuple = self.video.get_image()
+        self.stream.frames.put(img_tuple, False)
+        imgs = self.stream.get_image()
+        assert str(type(imgs[0])) == "<class 'numpy.ndarray'>"
+
+
+class TestRun(unittest.TestCase):
+
+    def setUp(self) -> None:
+        cwd = os.getcwd()
+        video_path = os.path.join(cwd, 'tests/resources/test_video.mp4')
+        self.video = camera.VideoSource(filename=video_path)
+        self.stream = camera.VideoStream(video_source=self.video, fps=12.0)
+
+    def test_frame_conditions(self):
+        self.stream.run()
+        assert self.stream.frames.full() == True
+        assert self.stream._shutdown == True
+
+
+class TestWrite(unittest.TestCase):
+
+    def setUp(self) -> None:
+        cwd = os.getcwd()
+        output_video_path = os.path.join(cwd, 'tests/resources/test_writer.mp4')
+        self.videowriter = camera.VideoWriter(path=output_video_path, fps=12.0, resolution=(40, 30))
+
+    def test_write(self):
+        cwd = os.getcwd()
+        input_video_path = os.path.join(cwd, 'tests/resources/test_video.mp4')
+        input_video = cv2.VideoCapture(input_video_path)
+        output_video_path = os.path.join(cwd, 'tests/resources/test_writer.mp4')
+
+        while True:
+            ret, frame = input_video.read()
+            self.videowriter.write(frame)
+            if not ret:
+                break
+
+        input_video.release()
+        self.videowriter.release()
+
+        output_video = cv2.VideoCapture(output_video_path)
+        assert output_video.isOpened() == True
+
+
+class TestRelease(unittest.TestCase):
+
+    def setUp(self) -> None:
+        cwd = os.getcwd()
+        output_video_path = os.path.join(cwd, 'tests/resources/test_writer.mp4')
+        self.videowriter = camera.VideoWriter(path=output_video_path, fps=12.0, resolution=(40, 30))
+
+    def test_release(self):
+        self.videowriter.release()
+        assert self.videowriter.writer.isOpened() == False
+
+
+if __name__ == '__main__':
+    unittest.main()
