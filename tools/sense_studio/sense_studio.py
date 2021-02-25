@@ -5,6 +5,13 @@ Web app for maintaining all of your video datasets:
 - Record new videos (coming soon)
 - Temporally annotate your videos with custom tags
 - Train custom models using strong backbone networks (coming soon)
+
+Usage:
+    sense_studio.py [--use_gpu]
+    sense_studio.py (-h | --help)
+
+Options:
+    --use_gpu  Flag to indicate whether to use GPU
 """
 
 import datetime
@@ -12,6 +19,7 @@ import glob
 import os
 import urllib
 
+from docopt import docopt
 from flask import Flask
 from flask import jsonify
 from flask import redirect
@@ -157,6 +165,7 @@ def project_details(project):
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
     config = utils.load_project_config(path)
+    use_gpu = int(utils.get_gpu_status())
 
     stats = {}
     for class_name, tags in config['classes'].items():
@@ -169,7 +178,7 @@ def project_details(project):
                 'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
             }
 
-    return render_template('project_details.html', config=config, path=path, stats=stats)
+    return render_template('project_details.html', config=config, path=path, stats=stats, use_gpu=use_gpu)
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
@@ -195,6 +204,18 @@ def add_class(project):
 
         if not os.path.exists(class_dir):
             os.mkdir(class_dir)
+
+    return redirect(url_for("project_details", project=project))
+
+
+@app.route('/toggle-gpu/<string:project>/<int:current_status>', methods=['GET'])
+def toggle_gpu(project, current_status):
+    """
+    Switch GPU status using toggle button (cannot be changed once the inference_engine object is
+    created inside 'annotation.py' -> 'load_feature_extractor').
+    """
+    project = urllib.parse.unquote(project)
+    utils.toggle_gpu_status(status=not current_status)
 
     return redirect(url_for("project_details", project=project))
 
@@ -269,4 +290,6 @@ def add_header(r):
 
 
 if __name__ == '__main__':
+    args = docopt(__doc__)
+    utils.USE_GPU = args['--use_gpu'] or False
     app.run(debug=True)

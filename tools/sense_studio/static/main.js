@@ -224,3 +224,24 @@ function editClass(index, shouldEdit) {
         classEdit.hide();
     }
 }
+
+
+function initGpuOption(gpuStatus) {
+    console.log('Init GPU --- Status : ' + gpuStatus.toString());
+    let gpuInput = document.getElementById(`gpuInput`);
+    let gpuButton = document.getElementById(`gpuButton`);
+
+    if (gpuStatus == 0) {
+        console.log('Inside FALSE');
+        gpuInput.removeAttribute('checked');
+        gpuButton.innerHTML = "Not using GPU";
+        gpuButton.classList.remove('green');
+        gpuButton.classList.add('red');
+    } else {
+        console.log('Inside TRUE');
+        gpuInput.setAttribute('checked', 'checked');
+        gpuButton.innerHTML = "Using GPU";
+        gpuButton.classList.remove('red');
+        gpuButton.classList.add('green');
+    }
+}

@@ -12,10 +12,12 @@ PROJECT_CONFIG_FILE = 'project_config.json'
 
 SPLITS = ['train', 'valid']
 
+USE_GPU = False
+
 inference_engine = None
 
 
-def load_feature_extractor():
+def load_feature_extractor(use_gpu=USE_GPU):
     global inference_engine
 
     if inference_engine is None:
@@ -27,7 +29,7 @@ def load_feature_extractor():
         feature_extractor.eval()
 
         # Create Inference Engine
-        inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
+        inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=use_gpu)
 
     return inference_engine
 
@@ -84,3 +86,13 @@ def get_class_name_and_tags(form_data):
         tag2 = f'{tag2}_2'
 
     return class_name, tag1, tag2
+
+
+def get_gpu_status():
+    global USE_GPU
+    return USE_GPU
+
+
+def toggle_gpu_status(status):
+    global USE_GPU
+    USE_GPU = True if status else False

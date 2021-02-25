@@ -4,6 +4,17 @@
 
 {% block main %}
 <div id="main" class="ui main text container">
+    <div class="ui segment right floated">
+        <a class="ui toggle checkbox hashoverpopup" id="useGpuDiv"
+           data-content="This change will remain in effect until the end of this session. Cannot undo this change once annotations are prepared!"
+           href="{{ url_for('toggle_gpu', project=config.name, current_status=use_gpu) }}">
+            <input type="checkbox" id="gpuInput">
+            <label>Use GPU</label>
+        </a>
+    </div>
+    <div class="ui button hashoverpopup blue" id="gpuButton" data-content="Current GPU status of your this session (to change this, restart your session).">
+        Using GPU
+    </div>
     <h1 class="ui header">
         {{ config.name }}
         <div class="sub header">
@@ -181,4 +192,10 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    initGpuOption({{ use_gpu }});
+</script>
 {% endblock %}

@@ -41,7 +41,7 @@ def show_video_list(project, split, label):
     os.makedirs(tags_dir, exist_ok=True)
 
     # load feature extractor
-    inference_engine = utils.load_feature_extractor()
+    inference_engine = utils.load_feature_extractor(use_gpu=utils.get_gpu_status())
     # compute the features and frames missing.
     compute_frames_features(inference_engine, split, label, path)
 
@@ -65,7 +65,7 @@ def prepare_annotation(project):
     path = utils.lookup_project_path(project)
 
     # load feature extractor
-    inference_engine = utils.load_feature_extractor()
+    inference_engine = utils.load_feature_extractor(use_gpu=utils.get_gpu_status())
     for split in utils.SPLITS:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(path, f'videos_{split}')):
@@ -91,7 +91,7 @@ def annotate(project, split, label, idx):
     videos = os.listdir(frames_dir)
     videos.sort()
 
-    features = np.load(join(features_dir, videos[idx] + ".npy"))
+    features = np.load(join(features_dir, f'{videos[idx]}.npy'))
     features = features.mean(axis=(2, 3))
 
     # Load logistic regression model if available
@@ -103,7 +103,7 @@ def annotate(project, split, label, idx):
         classes = [-1] * len(features)
 
     # The list of images in the folder
-    images = [image for image in glob.glob(join(frames_dir, videos[idx] + '/*'))
+    images = [image for image in glob.glob(join(frames_dir, f'{videos[idx]}/*'))
               if utils.is_image_file(image)]
 
     # Natural sort images, so that they are sorted by number
