@@ -33,6 +33,7 @@ Options:
   --resume                       Initialize weights from the last saved checkpoint and restart training
   --overwrite                    Allow overwriting existing checkpoint files in the output folder (path_out)
 """
+import datetime
 import json
 import os
 import torch.utils.data
@@ -198,6 +199,8 @@ if __name__ == "__main__":
         'temporal_training': temporal_training,
         'lr_schedule': lr_schedule,
         'num_epochs': num_epochs,
+        'start_time': str(datetime.datetime.now()),
+        'end_time': '',
     }
     with open(os.path.join(path_out, 'config.json'), 'w') as f:
         json.dump(config, f, indent=2)
@@ -214,3 +217,7 @@ if __name__ == "__main__":
         best_model_state_dict = {clean_pipe_state_dict_key(key): value
                                  for key, value in best_model_state_dict.items()}
     torch.save(best_model_state_dict, os.path.join(path_out, "best_classifier.checkpoint"))
+
+    config['end_time'] = str(datetime.datetime.now())
+    with open(os.path.join(path_out, 'config.json'), 'w') as f:
+        json.dump(config, f, indent=2)
