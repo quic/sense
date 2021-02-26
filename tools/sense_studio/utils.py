@@ -14,22 +14,17 @@ SPLITS = ['train', 'valid']
 
 USE_GPU = False
 
-inference_engine = None
-
 
 def load_feature_extractor(use_gpu=USE_GPU):
-    global inference_engine
+    feature_extractor = backbone_networks.StridedInflatedEfficientNet()
 
-    if inference_engine is None:
-        feature_extractor = backbone_networks.StridedInflatedEfficientNet()
+    # Remove internal padding for feature extraction and training
+    checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+    feature_extractor.load_state_dict(checkpoint)
+    feature_extractor.eval()
 
-        # Remove internal padding for feature extraction and training
-        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
-        feature_extractor.load_state_dict(checkpoint)
-        feature_extractor.eval()
-
-        # Create Inference Engine
-        inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=use_gpu)
+    # Create Inference Engine
+    inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=use_gpu)
 
     return inference_engine
 
