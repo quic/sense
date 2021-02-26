@@ -229,16 +229,13 @@ function editClass(index, shouldEdit) {
 function initGpuOption(gpuStatus) {
     let gpuInput = document.getElementById(`gpuInput`);
     let gpuDiv = document.getElementById(`useGpuDiv`);
-    let gpuLabel = document.getElementById(`gpuLabel`);
 
     if (gpuStatus == 0) {
         gpuInput.removeAttribute('checked');
-        gpuLabel.innerHTML = "Not using GPU";
         gpuDiv.classList.remove('green');
         gpuDiv.classList.add('red');
     } else {
         gpuInput.setAttribute('checked', 'checked');
-        gpuLabel.innerHTML = "Using GPU";
         gpuDiv.classList.remove('red');
         gpuDiv.classList.add('green');
     }
