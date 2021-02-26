@@ -161,7 +161,7 @@ if __name__ == "__main__":
                                         num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
-    # modify the network to generate the training network on top of the features
+    # Modify the network to generate the training network on top of the features
     if temporal_training:
         num_output = len(label_counting)
     else:
