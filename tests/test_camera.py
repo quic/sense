@@ -37,7 +37,7 @@ class TestVideoSource(unittest.TestCase):
         assert fps == 12.0
 
 
-class VideoStream(unittest.TestCase):
+class TestVideoStream(unittest.TestCase):
 
     def setUp(self) -> None:
         cwd = os.getcwd()
@@ -61,7 +61,7 @@ class VideoStream(unittest.TestCase):
         self.assertTrue(self.stream._shutdown)
 
 
-class VideoWriter(unittest.TestCase):
+class TestVideoWriter(unittest.TestCase):
 
     def setUp(self) -> None:
         cwd = os.getcwd()
