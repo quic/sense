@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     extractor_stride = backbone_network.num_required_frames_per_layer_padding[0]
 
-    # create the data loaders
+    # Create the data loaders
     features_dir = utils.get_features_dir(path_in, 'train', selected_config, num_layers_to_finetune)
     tags_dir = utils.get_tags_dir(path_in, 'train')
     train_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
