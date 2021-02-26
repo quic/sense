@@ -291,5 +291,5 @@ def add_header(r):
 
 if __name__ == '__main__':
     args = docopt(__doc__)
-    utils.USE_GPU = args['--use_gpu'] or False
+    utils.toggle_gpu_status(args['--use_gpu'] or False)
     app.run(debug=True)
