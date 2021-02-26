@@ -51,11 +51,9 @@ class ModelConfig:
 
         self.model_name = model_name
         self.version = version
-        self.feature_converters = feature_converters
+        self.combined_model_name = f'{self.model_name}-{self.version}'
 
-    @property
-    def combined_model_name(self):
-        return f'{self.model_name}-{self.version}'
+        self.feature_converters = feature_converters
 
     def get_weights(self):
         model_weights = MODELS[self.model_name][self.version]
