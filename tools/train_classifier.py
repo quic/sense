@@ -191,8 +191,8 @@ if __name__ == "__main__":
 
     # Save training config and label2int dictionary
     config = {
-        'backbone_model_name': selected_config.model_name,
-        'backbone_model_version': selected_config.version,
+        'backbone_name': selected_config.model_name,
+        'backbone_version': selected_config.version,
         'num_layers_to_finetune': num_layers_to_finetune,
         'classifier': str(gesture_classifier),
         'temporal_training': temporal_training,

@@ -124,7 +124,7 @@ def load_backbone_model_from_config(checkpoint_path: str) -> Tuple[ModelConfig, 
     if os.path.exists(config_file):
         with open(config_file, 'r') as cf:
             config = json.load(cf)
-            backbone_model_config = ModelConfig(config['backbone_model_name'], config['backbone_model_version'], [])
+            backbone_model_config = ModelConfig(config['backbone_name'], config['backbone_version'], [])
     else:
         # Assume StridedInflatedEfficientNet-pro was used
         backbone_model_config = ModelConfig('StridedInflatedEfficientNet', 'pro', [])
