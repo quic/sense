@@ -12,7 +12,6 @@ from PIL import Image
 from sense import camera
 from sense import engine
 from sklearn.metrics import confusion_matrix
-from os.path import join
 
 from sense.engine import InferenceEngine
 from sense.utils import clean_pipe_state_dict_key
@@ -108,7 +107,7 @@ def generate_data_loader(features_dir, tags_dir, label_names, label2int,
         features = []
         labels = []
         for label in label_names:
-            feature_temp = glob.glob(join(features_dir, label, '*.npy'))
+            feature_temp = glob.glob(os.path.join(features_dir, label, '*.npy'))
             features += feature_temp
             labels += [label2int[label]] * len(feature_temp)
             labels_string += [label] * len(feature_temp)
@@ -240,15 +239,15 @@ def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, 
     os.makedirs(frames_dir, exist_ok=True)
 
     # Loop through all videos for the given class-label
-    videos = glob.glob(join(videos_dir, '*.mp4'))
+    videos = glob.glob(os.path.join(videos_dir, '*.mp4'))
     num_videos = len(videos)
     for idx, video_path in enumerate(videos):
         print(f'\r  {videos_dir}  -->  Processing video {idx + 1} / {num_videos}',
               end='' if idx < (num_videos - 1) else '\n')
 
         video_name = os.path.basename(video_path).replace('.mp4', '')
-        path_frames = join(frames_dir, video_name)
-        path_features = join(features_dir, f'{video_name}.npy')
+        path_frames = os.path.join(frames_dir, video_name)
+        path_features = os.path.join(features_dir, f'{video_name}.npy')
 
         if not os.path.isfile(path_features):
             os.makedirs(path_frames, exist_ok=True)
