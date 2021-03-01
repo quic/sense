@@ -268,12 +268,15 @@ def add_header(r):
     return r
 
 
+# This context processor will inject a method into templates,
+# Which can be invoked like an ordinary method in HTML templates.
+# E.g. check navigation.html: line 1-2
 @app.context_processor
 def class_labels_processor():
     def inject_class_labels(project):
         path = utils.lookup_project_path(project)
-        labels = utils.get_class_labels(path)
-        return labels
+        class_labels = utils.get_class_labels(path)
+        return class_labels
     return dict(inject_class_labels=inject_class_labels)
 
 
