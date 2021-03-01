@@ -34,7 +34,7 @@
             Train
             <div class="menu">
                 {% for label in class_labels %}
-                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{label}}</a>
+                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{ label }}</a>
                 {% endfor %}
             </div>
         </div>
@@ -43,7 +43,7 @@
             Valid
             <div class="menu">
                 {% for label in class_labels %}
-                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{label}}</a>
+                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{ label }}</a>
                 {% endfor %}
             </div>
         </div>
