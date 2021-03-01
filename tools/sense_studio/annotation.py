@@ -37,7 +37,6 @@ def show_video_list(project, split, label):
     frames_dir = join(path, f"frames_{split}", label)
     tags_dir = join(path, f"tags_{split}", label)
     logreg_dir = join(path, 'logreg', label)
-    labels = utils.get_class_labels(path)
 
     os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
@@ -55,7 +54,7 @@ def show_video_list(project, split, label):
 
     video_list = zip(videos, tagged, list(range(len(videos))))
     return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path,
-                           project=project, labels=labels)
+                           project=project)
 
 
 @annotation_bp.route('/prepare-annotation/<string:project>')
