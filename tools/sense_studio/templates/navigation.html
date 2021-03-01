@@ -1,0 +1,66 @@
+<!-- The method injected by context processor is called here to get the class labels. -->
+{%  set class_labels = inject_class_labels(project) %}
+<a href="{{ url_for('project_details', project=project) }}" class="item">Project Details</a>
+<div class="ui simple dropdown item">
+    Video Recording
+    <i class="dropdown icon"></i>
+    <div class="menu">
+        <div class="item">
+            <i class="dropdown icon"></i>
+            Train
+            <div class="menu">
+                {% for label in class_labels  %}
+                    <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">{{ label }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="item">
+            <i class="dropdown icon"></i>
+            Valid
+            <div class="menu">
+                {% for label in class_labels %}
+                    <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">{{ label }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="ui simple dropdown item">
+    Annotation
+    <i class="dropdown icon"></i>
+    <div class="menu">
+        <div class="item">
+            <i class="dropdown icon"></i>
+            Train
+            <div class="menu">
+                {% for label in class_labels %}
+                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{ label }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="item">
+            <i class="dropdown icon"></i>
+            Valid
+            <div class="menu">
+                {% for label in class_labels %}
+                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{ label }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<a href="javascript:void(0)" class="item hashoverpopup"
+   data-html="<h5>Coming Soon! For now, run this script:</h5> <code>sense/tools/train_classifier.py</code>"
+   data-position="bottom center" data-variation="very wide">
+    Training
+</a>
+<a href="javascript:void(0)" class="item hashoverpopup"
+   data-html="<h5>Coming Soon! For now, run this script:</h5> <code>sense/tools/run_custom_classifier.py</code>"
+   data-position="bottom center" data-variation="very wide">
+    Testing
+</a>
+<a href="javascript:void(0)" class="item hashoverpopup"
+   data-html="<h5>Coming Soon! For now, run this script:</h5> <code>sense/tools/conversion/convert_to_tflite.py</code>"
+   data-position="bottom center" data-variation="very wide">
+    Conversion
+</a>

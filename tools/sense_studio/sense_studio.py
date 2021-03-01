@@ -178,7 +178,8 @@ def project_details(project):
                 'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
             }
 
-    return render_template('project_details.html', config=config, path=path, stats=stats, use_gpu=use_gpu)
+    return render_template('project_details.html', config=config, path=path, stats=stats,
+                           project=config['name'], use_gpu=use_gpu)
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
@@ -287,6 +288,20 @@ def add_header(r):
     r.headers["Expires"] = "0"
     r.headers['Cache-Control'] = 'public, max-age=0'
     return r
+
+
+@app.context_processor
+def class_labels_processor():
+    """
+    This context processor will inject a method into templates,
+    which can be invoked like an ordinary method in HTML templates.
+    E.g. check navigation.html: line 1-2
+    """
+    def inject_class_labels(project):
+        path = utils.lookup_project_path(project)
+        class_labels = utils.get_class_labels(path)
+        return class_labels
+    return dict(inject_class_labels=inject_class_labels)
 
 
 if __name__ == '__main__':

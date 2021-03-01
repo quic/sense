@@ -83,6 +83,14 @@ def get_class_name_and_tags(form_data):
     return class_name, tag1, tag2
 
 
+def get_class_labels(path):
+    """
+    Extract class names from the config.
+    """
+    config = load_project_config(path)
+    return config['classes'].keys()
+
+
 def get_gpu_status():
     global USE_GPU
     return USE_GPU
