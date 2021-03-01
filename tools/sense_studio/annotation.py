@@ -20,6 +20,7 @@ from sklearn.linear_model import LogisticRegression
 from sense.finetuning import compute_frames_features
 from tools.sense_studio import utils
 
+
 annotation_bp = Blueprint('annotation_bp', __name__)
 
 

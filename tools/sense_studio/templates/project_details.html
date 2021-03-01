@@ -1,23 +1,27 @@
 {% extends 'skeleton.html' %}
 
-{% block title %} {{ config.name }} {% endblock %}
+{% block title %} {{ project }} {% endblock %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock navigation %}
 
 {% block main %}
 <div id="main" class="ui main text container">
     <h1 class="ui header">
-        {{ config.name }}
+        {{ project }}
         <div class="sub header">
             <i class="folder open icon"></i>
             {{ path }}
         </div>
     </h1>
     <a class="ui icon button hashoverpopup" onclick="loading(this);"
-       href="{{ url_for('annotation_bp.prepare_annotation', project=config.name) }}"
+       href="{{ url_for('annotation_bp.prepare_annotation', project=project) }}"
        data-content="Prepare required files for all classes">
         <i class="file video outline icon"></i>
         Prepare Annotations
     </a>
-    <input type="hidden" id="projectName" value="{{ config.name }}">
+    <input type="hidden" id="projectName" value="{{ project }}">
 
     <div class="ui icon message">
         <i class="info circle icon"></i>
@@ -70,11 +74,11 @@
                     <div class="ui segment">
                         <h5>Train: {{ stats[class].train.total }} ({{ stats[class].train.tagged }} annotated)</h5>
                         <div class="ui buttons">
-                            <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=config.name, split='train', label=class) }}">
+                            <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=config.name, split='train', label=class) }}">
+                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
                                 <i class="edit icon"></i>
                                 Annotate
                             </a>
@@ -84,11 +88,11 @@
                     <div class="ui segment">
                         <h5>Valid: {{ stats[class].valid.total }} ({{ stats[class].valid.tagged }} annotated)</h5>
                         <div class="ui buttons">
-                            <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=config.name, split='valid', label=class) }}">
+                            <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=config.name, split='valid', label=class) }}">
+                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
                                 <i class="edit icon"></i>
                                 Annotate
                             </a>
@@ -99,7 +103,7 @@
         </div>
 
         <form class="ui form card class-card display-hidden" id="classEdit{{ loop.index }}" method="POST"
-              action="{{ url_for('edit_class', project=config.name, class_name=class) }}">
+              action="{{ url_for('edit_class', project=project, class_name=class) }}">
             <div class="content">
                 <div class="field">
                     <div class="ui left icon input">
@@ -141,7 +145,7 @@
                     Remove class from the local config.
                     No data will be deleted.
                 </p>
-                <a class="ui red icon button" href="{{ url_for('remove_class', project=config.name, class_name=class) }}">
+                <a class="ui red icon button" href="{{ url_for('remove_class', project=project, class_name=class) }}">
                     <i class="trash alternate outline icon"></i>
                     Delete Class
                 </a>
@@ -149,7 +153,7 @@
         </form>
         {% endfor %}
 
-        <form class="ui form card class-card" method="POST" action="{{ url_for('add_class', project=config.name) }}">
+        <form class="ui form card class-card" method="POST" action="{{ url_for('add_class', project=project) }}">
             <div class="content">
                 <div class="field">
                     <div class="ui left icon input">
