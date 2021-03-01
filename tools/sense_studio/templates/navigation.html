@@ -1,3 +1,4 @@
+<!-- The method injected by context processor is called here to get the class labels. -->
 {%  set class_labels = inject_class_labels(project) %}
 <a href="{{ url_for('project_details', project=project) }}" class="item">Project Details</a>
 <div class="ui simple dropdown item">
@@ -9,8 +10,7 @@
             Train
             <div class="menu">
                 {% for label in class_labels  %}
-                    <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train',
-                     label=label) }}" class="item">{{label}}</a>
+                    <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">{{ label }}</a>
                 {% endfor %}
             </div>
         </div>
@@ -19,12 +19,10 @@
             Valid
             <div class="menu">
                 {% for label in class_labels %}
-                    <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid',
-                     label=label) }}" class="item">{{label}}</a>
+                    <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">{{ label }}</a>
                 {% endfor %}
             </div>
         </div>
-
     </div>
 </div>
 <div class="ui simple dropdown item">
@@ -36,8 +34,7 @@
             Train
             <div class="menu">
                 {% for label in class_labels %}
-                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train',
-                     label=label)}}" class="item">{{label}}</a>
+                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{label}}</a>
                 {% endfor %}
             </div>
         </div>
@@ -46,8 +43,7 @@
             Valid
             <div class="menu">
                 {% for label in class_labels %}
-                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid',
-                     label=label)}}" class="item">{{label}}</a>
+                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{label}}</a>
                 {% endfor %}
             </div>
         </div>
