@@ -22,7 +22,7 @@ def load_feature_extractor(project_path):
     feature_extractor.eval()
 
     # Create Inference Engine
-    use_gpu = get_gpu_status(project_path)
+    use_gpu = get_toggle_button_status(project_path, 'use_gpu')
     inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=use_gpu)
 
     return inference_engine
@@ -90,17 +90,19 @@ def get_class_labels(path):
     return config['classes'].keys()
 
 
-def get_gpu_status(path):
+def get_toggle_button_status(path, button_name):
     config = load_project_config(path)
-    return config.get('use_gpu', False)
+    return config.get(button_name, False)
 
 
-def toggle_gpu_status(path):
+def set_toggle_button_status(path, new_status, button_name):
     config = load_project_config(path)
-    current_status = config.get('use_gpu', False)
-    new_status = not current_status
-
-    config['use_gpu'] = new_status
+    config[button_name] = new_status
     write_project_config(path, config)
 
+
+def toggle_button_status(path, button_name):
+    current_status = get_toggle_button_status(path, button_name)
+    new_status = not current_status
+    set_toggle_button_status(path, new_status, button_name)
     return new_status
