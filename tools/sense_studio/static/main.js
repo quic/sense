@@ -247,26 +247,22 @@ function toggleMakeProjectTemporal(path, project, button_name) {
     let editClassTagsDiv = document.getElementsByClassName('content editClassTags');
     let addClassTagsDiv = document.getElementsByClassName('content addClassTags')[0];
 
+    let displayStyle = 'none';
+
     if (response.project_temporal) {
         makeProjectTemporal.setAttribute('checked', 'checked');
+        displayStyle = 'block';
 
-        // Show tags on project details page
-        for (let i=0; i < classTagsDiv.length; i++){
-            classTagsDiv[i].style.display = 'block';
-            editClassTagsDiv[i].style.display = 'block';
-        }
-        addClassTagsDiv.style.display = 'block';
     } else {
         makeProjectTemporal.removeAttribute('checked');
-
-        // Hide tags on project details page
-        for (let i=0; i < classTagsDiv.length; i++){
-            classTagsDiv[i].style.display = 'none';
-            editClassTagsDiv[i].style.display = 'none';
-        }
-        addClassTagsDiv.style.display = 'none';
     }
 
+    // Show/Hide tags on project details page
+    for (let i=0; i < classTagsDiv.length; i++){
+        classTagsDiv[i].style.display = displayStyle;
+        editClassTagsDiv[i].style.display = displayStyle;
+    }
+    addClassTagsDiv.style.display = displayStyle;
     // Redirect back to project details page (It will refresh the page).
     location.href = '/project/' + project;
 
