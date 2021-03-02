@@ -12,9 +12,17 @@
         <h3 class="ui header center aligned">Settings</h3>
         <div class="ui toggle checkbox hashoverpopup"
            data-content="Should GPU be used for computing features?"
-           onclick="toggleGPU('{{ path }}');">
+           onclick="toggleGPU('{{ path }}', 'use_gpu');">
             <input type="checkbox" id="gpuInput" {% if config.use_gpu %} checked="checked" {% endif %}>
             <label>Use GPU</label>
+        </div>
+        <br/>
+        <br/>
+        <div class="ui toggle checkbox hashoverpopup"
+           data-content="Do you want to make project temporal?"
+           onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}', 'project_temporal');">
+            <input type="checkbox" id="makeProjectTemporal" {% if config.project_temporal %} checked="checked" {% endif %}>
+            <label>Make Project Temporal</label>
         </div>
     </div>
     <h1 class="ui header">
@@ -61,21 +69,23 @@
                     </a>
                 </div>
             </div>
-            <div class="content">
-                <h4>Tags</h4>
-                <div class="ui list">
-                    {% for tag in tags %}
-                    <div class="item">
-                        <i class="tag icon"></i>
-                        <div class="content">
-                            <div class="description">
-                                {{ tag }}
+            {% if config.project_temporal %}
+                <div class="content classTags" >
+                    <h4>Tags</h4>
+                    <div class="ui list">
+                        {% for tag in tags %}
+                        <div class="item">
+                            <i class="tag icon"></i>
+                            <div class="content">
+                                <div class="description">
+                                    {{ tag }}
+                                </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
+            {% endif %}
             <div class="content">
                 <h4>Videos</h4>
 
@@ -121,22 +131,24 @@
                     </div>
                 </div>
             </div>
-            <div class="content">
-                <h4>Tags</h4>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" />
+            {% if config.project_temporal %}
+                <div class="content editClassTags">
+                    <h4>Tags</h4>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="tag icon"></i>
+                            <input type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" />
+                        </div>
                     </div>
-                </div>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" />
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="tag icon"></i>
+                            <input type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" />
+                        </div>
                     </div>
+                    <div class="ui error message"></div>
                 </div>
-                <div class="ui error message"></div>
-            </div>
+            {% endif %}
             <button class="ui bottom attached button" type="button" onclick="editClass('{{ loop.index }}', false)">
                 <i class="close icon"></i>
                 Cancel
@@ -171,7 +183,7 @@
                     </div>
                 </div>
             </div>
-            <div class="content">
+            <div class="content addClassTags" {% if not config.project_temporal %} style="display: none;" {% endif %} >
                 <h4>Tags</h4>
                 <div class="field">
                     <div class="ui left icon input">
