@@ -43,7 +43,7 @@ def show_video_list(project, split, label):
     os.makedirs(tags_dir, exist_ok=True)
 
     # load feature extractor
-    inference_engine = utils.load_feature_extractor(use_gpu=utils.get_gpu_status())
+    inference_engine = utils.load_feature_extractor()
     # compute the features and frames missing.
     compute_frames_features(inference_engine, split, label, path)
 
@@ -67,7 +67,7 @@ def prepare_annotation(project):
     path = utils.lookup_project_path(project)
 
     # load feature extractor
-    inference_engine = utils.load_feature_extractor(use_gpu=utils.get_gpu_status())
+    inference_engine = utils.load_feature_extractor()
     for split in utils.SPLITS:
         print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
         for label in os.listdir(join(path, f'videos_{split}')):

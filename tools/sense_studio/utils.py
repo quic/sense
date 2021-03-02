@@ -15,7 +15,7 @@ SPLITS = ['train', 'valid']
 USE_GPU = False
 
 
-def load_feature_extractor(use_gpu=USE_GPU):
+def load_feature_extractor():
     feature_extractor = backbone_networks.StridedInflatedEfficientNet()
 
     # Remove internal padding for feature extraction and training
@@ -24,6 +24,7 @@ def load_feature_extractor(use_gpu=USE_GPU):
     feature_extractor.eval()
 
     # Create Inference Engine
+    use_gpu = get_gpu_status()
     inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=use_gpu)
 
     return inference_engine
