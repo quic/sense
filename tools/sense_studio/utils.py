@@ -97,6 +97,6 @@ def get_gpu_status():
     return USE_GPU
 
 
-def toggle_gpu_status(status):
+def toggle_gpu_status():
     global USE_GPU
-    USE_GPU = True if status else False
+    USE_GPU = not USE_GPU

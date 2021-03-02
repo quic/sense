@@ -201,16 +201,17 @@ def add_class(project):
     return redirect(url_for("project_details", project=project))
 
 
-@app.route('/toggle-gpu/<string:project>/<int:current_status>', methods=['GET'])
-def toggle_gpu(project, current_status):
+@app.route('/toggle-gpu', methods=['POST'])
+def toggle_gpu():
     """
-    Switch GPU status using toggle button (cannot be changed once the inference_engine object is
-    created inside 'annotation.py' -> 'load_feature_extractor').
+    Switch GPU status using toggle button.
     """
-    project = urllib.parse.unquote(project)
-    utils.toggle_gpu_status(status=not current_status)
+    data = request.json
+    project = data['project']
 
-    return redirect(url_for("project_details", project=project))
+    utils.toggle_gpu_status()
+
+    return jsonify(use_gpu=utils.get_gpu_status())
 
 
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])

@@ -226,17 +226,13 @@ function editClass(index, shouldEdit) {
 }
 
 
-function initGpuOption(gpuStatus) {
-    let gpuInput = document.getElementById(`gpuInput`);
-    let gpuDiv = document.getElementById(`useGpuDiv`);
+function toggleGPU(project) {
+    let gpuInput = document.getElementById('gpuInput');
+    response = syncRequest('/toggle-gpu', {project: project});
 
-    if (gpuStatus == 0) {
-        gpuInput.removeAttribute('checked');
-        gpuDiv.classList.remove('green');
-        gpuDiv.classList.add('red');
-    } else {
+    if (response.use_gpu) {
         gpuInput.setAttribute('checked', 'checked');
-        gpuDiv.classList.remove('red');
-        gpuDiv.classList.add('green');
+    } else {
+        gpuInput.removeAttribute('checked');
     }
 }

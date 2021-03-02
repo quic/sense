@@ -8,13 +8,14 @@
 
 {% block main %}
 <div id="main" class="ui main text container">
-    <div class="ui segment right floated" id="useGpuDiv">
-        <a class="ui toggle checkbox hashoverpopup red" id="gpuOption"
-           data-content="Click to toggle using GPU for preparing annotations"
-           href="{{ url_for('toggle_gpu', project=project, current_status=use_gpu) }}">
-            <input type="checkbox" id="gpuInput">
-            <label>Using GPU</label>
-        </a>
+    <div class="ui segment right floated">
+        <h4 class="ui header">Settings</h4>
+        <div class="ui toggle checkbox hashoverpopup"
+           data-content="Should GPU be used for computing features?"
+           onclick="toggleGPU('{{ project }}');">
+            <input type="checkbox" id="gpuInput" {% if use_gpu %} checked="checked" {% endif %}>
+            <label>Use GPU</label>
+        </div>
     </div>
     <h1 class="ui header">
         {{ project }}
@@ -193,10 +194,4 @@
         </form>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    initGpuOption({{ use_gpu }});
-</script>
 {% endblock %}
