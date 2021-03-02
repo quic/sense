@@ -24,11 +24,12 @@ Options:
 
 import os
 import time
+from os.path import join
 
 import cv2
-from docopt import docopt
-from os.path import join
 import simpleaudio as sa
+from docopt import docopt
+
 
 FONT = cv2.FONT_HERSHEY_PLAIN
 _shutdown = False
@@ -123,7 +124,7 @@ def _capture_video(video_duration=0., record=False):
         fps = 16 if calculated_fps <= 16 else calculated_fps
 
         if record and not skip and not _shutdown:
-            out = cv2.VideoWriter(os.path.join(path_out, file), 0x7634706d, fps, frame_size)
+            out = cv2.VideoWriter(join(path_out, file), 0x7634706d, fps, frame_size)
             for frame in frames:
                 out.write(frame)
             out.release()
