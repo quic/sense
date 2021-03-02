@@ -5,13 +5,6 @@ Web app for maintaining all of your video datasets:
 - Record new videos (coming soon)
 - Temporally annotate your videos with custom tags
 - Train custom models using strong backbone networks (coming soon)
-
-Usage:
-    sense_studio.py [--use_gpu]
-    sense_studio.py (-h | --help)
-
-Options:
-    --use_gpu  Flag to indicate whether to use GPU
 """
 
 import datetime
@@ -19,7 +12,6 @@ import glob
 import os
 import urllib
 
-from docopt import docopt
 from flask import Flask
 from flask import jsonify
 from flask import redirect
@@ -305,6 +297,4 @@ def class_labels_processor():
 
 
 if __name__ == '__main__':
-    args = docopt(__doc__)
-    utils.toggle_gpu_status(args['--use_gpu'] or False)
     app.run(debug=True)
