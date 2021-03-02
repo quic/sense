@@ -224,3 +224,15 @@ function editClass(index, shouldEdit) {
         classEdit.hide();
     }
 }
+
+
+function toggleGPU(path) {
+    let gpuInput = document.getElementById('gpuInput');
+    response = syncRequest('/toggle-gpu', {path: path});
+
+    if (response.use_gpu) {
+        gpuInput.setAttribute('checked', 'checked');
+    } else {
+        gpuInput.removeAttribute('checked');
+    }
+}

@@ -14,11 +14,13 @@ from flask import url_for
 from joblib import dump
 from joblib import load
 from natsort import natsorted
+from natsort import ns
 from sklearn.linear_model import LogisticRegression
 
 from sense.finetuning import compute_frames_features
 from tools import utils
 from tools.sense_studio import utils as studio_utils
+
 
 annotation_bp = Blueprint('annotation_bp', __name__)
 
@@ -35,7 +37,7 @@ def show_video_list(project, split, label):
     label = urllib.parse.unquote(label)
 
     # load feature extractor
-    inference_engine, model_config = studio_utils.load_feature_extractor()
+    inference_engine, model_config = studio_utils.load_feature_extractor(path)
 
     videos_dir = utils.get_videos_dir(path, split, label)
     frames_dir = utils.get_frames_dir(path, split, label)
@@ -53,7 +55,7 @@ def show_video_list(project, split, label):
                             features_dir=features_dir)
 
     videos = os.listdir(frames_dir)
-    videos = natsorted(videos)
+    videos = natsorted(videos, alg=ns.IC)
 
     tagged_list = set(os.listdir(tags_dir))
     tagged = [f'{video}.json' in tagged_list for video in videos]
@@ -72,8 +74,7 @@ def prepare_annotation(project):
     dataset_path = studio_utils.lookup_project_path(project)
 
     # load feature extractor
-    inference_engine, model_config = studio_utils.load_feature_extractor()
-
+    inference_engine, model_config = studio_utils.load_feature_extractor(dataset_path)
     for split in utils.SPLITS:
         print(f'\n\tPreparing videos in the {split}-set')
 
@@ -110,7 +111,7 @@ def annotate(project, split, label, idx):
     videos = os.listdir(frames_dir)
     videos.sort()
 
-    features = np.load(os.path.join(features_dir, videos[idx] + ".npy"))
+    features = np.load(os.path.join(features_dir, f'{videos[idx]}.npy'))
     features = features.mean(axis=(2, 3))
 
     # Load logistic regression model if available
@@ -122,11 +123,11 @@ def annotate(project, split, label, idx):
         classes = [-1] * len(features)
 
     # The list of images in the folder
-    images = [image for image in glob.glob(os.path.join(frames_dir, videos[idx] + '/*'))
+    images = [image for image in glob.glob(os.path.join(frames_dir, videos[idx], '*'))
               if studio_utils.is_image_file(image)]
 
     # Natural sort images, so that they are sorted by number
-    images = natsorted(images)
+    images = natsorted(images, alg=ns.IC)
     # Extract image file name (without full path) and include class label
     images = [(os.path.basename(image), _class) for image, _class in zip(images, classes)]
 

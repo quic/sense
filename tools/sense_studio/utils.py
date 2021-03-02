@@ -1,8 +1,6 @@
 import json
 import os
 
-from typing import Optional
-
 from sense.engine import InferenceEngine
 from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
@@ -20,23 +18,17 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
 ]
 
-inference_engine: Optional[InferenceEngine] = None
-model_config: Optional[ModelConfig] = None
 
+def load_feature_extractor(project_path):
+    # Load weights
+    model_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
 
-def load_feature_extractor():
-    global inference_engine
-    global model_config
+    # Setup backbone network
+    backbone_network = build_backbone_network(model_config, weights['backbone'])
 
-    if inference_engine is None:
-        # Load weights
-        model_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
-
-        # Setup backbone network
-        backbone_network = build_backbone_network(model_config, weights['backbone'])
-
-        # Create Inference Engine
-        inference_engine = InferenceEngine(backbone_network, use_gpu=True)
+    # Create Inference Engine
+    use_gpu = get_gpu_status(project_path)
+    inference_engine = InferenceEngine(backbone_network, use_gpu=use_gpu)
 
     return inference_engine, model_config
 
@@ -93,3 +85,27 @@ def get_class_name_and_tags(form_data):
         tag2 = f'{tag2}_2'
 
     return class_name, tag1, tag2
+
+
+def get_class_labels(path):
+    """
+    Extract class names from the config.
+    """
+    config = load_project_config(path)
+    return config['classes'].keys()
+
+
+def get_gpu_status(path):
+    config = load_project_config(path)
+    return config.get('use_gpu', False)
+
+
+def toggle_gpu_status(path):
+    config = load_project_config(path)
+    current_status = config.get('use_gpu', False)
+    new_status = not current_status
+
+    config['use_gpu'] = new_status
+    write_project_config(path, config)
+
+    return new_status

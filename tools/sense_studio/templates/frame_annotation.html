@@ -2,10 +2,14 @@
 
 {% block title %} Annotate Frames {% endblock %}
 
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock navigation %}
+
 {% block main %}
 <div id="main" class="ui main container">
     <h1 class="ui header">Annotate Frames</h1>
-    <h2 class="ui header">Video: {{video_name}}</h2>
+    <h2 class="ui header">Video: {{ video_name }}</h2>
     <div class="flex-container">
         {% if idx > 0 %}
             <a class="ui left floated button mt mb" href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx-1) }}">
