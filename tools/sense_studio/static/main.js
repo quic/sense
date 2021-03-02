@@ -226,13 +226,48 @@ function editClass(index, shouldEdit) {
 }
 
 
-function toggleGPU(path) {
+function toggleGPU(path, button_name) {
     let gpuInput = document.getElementById('gpuInput');
-    response = syncRequest('/toggle-gpu', {path: path});
+    response = syncRequest('/toggle-gpu', {path, button_name});
 
     if (response.use_gpu) {
         gpuInput.setAttribute('checked', 'checked');
     } else {
         gpuInput.removeAttribute('checked');
     }
+}
+
+
+function toggleMakeProjectTemporal(path, project, button_name) {
+    let makeProjectTemporal = document.getElementById('makeProjectTemporal');
+    response = syncRequest('/toggle-make-project-temporal', {path, button_name});
+
+    // Get all tags related divs
+    let classTagsDiv = document.getElementsByClassName('content classTags');
+    let editClassTagsDiv = document.getElementsByClassName('content editClassTags');
+    let addClassTagsDiv = document.getElementsByClassName('content addClassTags')[0];
+
+    if (response.project_temporal) {
+        makeProjectTemporal.setAttribute('checked', 'checked');
+
+        // Show tags on project details page
+        for (let i=0; i < classTagsDiv.length; i++){
+            classTagsDiv[i].style.display = 'block';
+            editClassTagsDiv[i].style.display = 'block';
+        }
+        addClassTagsDiv.style.display = 'block';
+    } else {
+        makeProjectTemporal.removeAttribute('checked');
+
+        // Hide tags on project details page
+        for (let i=0; i < classTagsDiv.length; i++){
+            classTagsDiv[i].style.display = 'none';
+            editClassTagsDiv[i].style.display = 'none';
+        }
+        addClassTagsDiv.style.display = 'none';
+    }
+
+    // Redirect back to project details page (It will refresh the page).
+    location.href = '/project/' + project;
+
 }
