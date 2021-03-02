@@ -105,7 +105,7 @@ def annotate(project, split, label, idx):
         classes = [-1] * len(features)
 
     # The list of images in the folder
-    images = [image for image in glob.glob(join(frames_dir, f'{videos[idx]}/*'))
+    images = [image for image in glob.glob(join(frames_dir, videos[idx], '*'))
               if utils.is_image_file(image)]
 
     # Natural sort images, so that they are sorted by number
