@@ -199,6 +199,19 @@ def add_class(project):
     return redirect(url_for("project_details", project=project))
 
 
+@app.route('/toggle-gpu', methods=['POST'])
+def toggle_gpu():
+    """
+    Switch GPU status using toggle button.
+    """
+    data = request.json
+    path = data['path']
+
+    use_gpu = utils.toggle_gpu_status(path)
+
+    return jsonify(use_gpu=use_gpu)
+
+
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
 def edit_class(project, class_name):
     """

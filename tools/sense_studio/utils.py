@@ -12,22 +12,18 @@ PROJECT_CONFIG_FILE = 'project_config.json'
 
 SPLITS = ['train', 'valid']
 
-inference_engine = None
 
+def load_feature_extractor(project_path):
+    feature_extractor = backbone_networks.StridedInflatedEfficientNet()
 
-def load_feature_extractor():
-    global inference_engine
+    # Remove internal padding for feature extraction and training
+    checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
+    feature_extractor.load_state_dict(checkpoint)
+    feature_extractor.eval()
 
-    if inference_engine is None:
-        feature_extractor = backbone_networks.StridedInflatedEfficientNet()
-
-        # Remove internal padding for feature extraction and training
-        checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
-        feature_extractor.load_state_dict(checkpoint)
-        feature_extractor.eval()
-
-        # Create Inference Engine
-        inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=True)
+    # Create Inference Engine
+    use_gpu = get_gpu_status(project_path)
+    inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=use_gpu)
 
     return inference_engine
 
@@ -92,3 +88,19 @@ def get_class_labels(path):
     """
     config = load_project_config(path)
     return config['classes'].keys()
+
+
+def get_gpu_status(path):
+    config = load_project_config(path)
+    return config.get('use_gpu', False)
+
+
+def toggle_gpu_status(path):
+    config = load_project_config(path)
+    current_status = config.get('use_gpu', False)
+    new_status = not current_status
+
+    config['use_gpu'] = new_status
+    write_project_config(path, config)
+
+    return new_status
