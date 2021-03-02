@@ -157,7 +157,6 @@ def project_details(project):
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
     config = utils.load_project_config(path)
-    use_gpu = int(utils.get_gpu_status())
 
     stats = {}
     for class_name, tags in config['classes'].items():
@@ -170,8 +169,7 @@ def project_details(project):
                 'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
             }
 
-    return render_template('project_details.html', config=config, path=path, stats=stats,
-                           project=config['name'], use_gpu=use_gpu)
+    return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'])
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
@@ -207,11 +205,11 @@ def toggle_gpu():
     Switch GPU status using toggle button.
     """
     data = request.json
-    project = data['project']
+    path = data['path']
 
-    utils.toggle_gpu_status()
+    use_gpu = utils.toggle_gpu_status(path)
 
-    return jsonify(use_gpu=utils.get_gpu_status())
+    return jsonify(use_gpu=use_gpu)
 
 
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])

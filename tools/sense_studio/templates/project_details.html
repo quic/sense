@@ -12,8 +12,8 @@
         <h4 class="ui header">Settings</h4>
         <div class="ui toggle checkbox hashoverpopup"
            data-content="Should GPU be used for computing features?"
-           onclick="toggleGPU('{{ project }}');">
-            <input type="checkbox" id="gpuInput" {% if use_gpu %} checked="checked" {% endif %}>
+           onclick="toggleGPU('{{ path }}');">
+            <input type="checkbox" id="gpuInput" {% if config.use_gpu %} checked="checked" {% endif %}>
             <label>Use GPU</label>
         </div>
     </div>

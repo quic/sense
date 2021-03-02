@@ -12,10 +12,8 @@ PROJECT_CONFIG_FILE = 'project_config.json'
 
 SPLITS = ['train', 'valid']
 
-USE_GPU = False
 
-
-def load_feature_extractor():
+def load_feature_extractor(project_path):
     feature_extractor = backbone_networks.StridedInflatedEfficientNet()
 
     # Remove internal padding for feature extraction and training
@@ -24,7 +22,7 @@ def load_feature_extractor():
     feature_extractor.eval()
 
     # Create Inference Engine
-    use_gpu = get_gpu_status()
+    use_gpu = get_gpu_status(project_path)
     inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=use_gpu)
 
     return inference_engine
@@ -92,11 +90,17 @@ def get_class_labels(path):
     return config['classes'].keys()
 
 
-def get_gpu_status():
-    global USE_GPU
-    return USE_GPU
+def get_gpu_status(path):
+    config = load_project_config(path)
+    return config.get('use_gpu', False)
 
 
-def toggle_gpu_status():
-    global USE_GPU
-    USE_GPU = not USE_GPU
+def toggle_gpu_status(path):
+    config = load_project_config(path)
+    current_status = config.get('use_gpu', False)
+    new_status = not current_status
+
+    config['use_gpu'] = new_status
+    write_project_config(path, config)
+
+    return new_status

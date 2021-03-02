@@ -226,9 +226,9 @@ function editClass(index, shouldEdit) {
 }
 
 
-function toggleGPU(project) {
+function toggleGPU(path) {
     let gpuInput = document.getElementById('gpuInput');
-    response = syncRequest('/toggle-gpu', {project: project});
+    response = syncRequest('/toggle-gpu', {path: path});
 
     if (response.use_gpu) {
         gpuInput.setAttribute('checked', 'checked');
