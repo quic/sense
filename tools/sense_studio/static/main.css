@@ -70,12 +70,3 @@ a {
 .flex-filler {
     flex: 1;
 }
-
-.displayTags {
-    display: none;
-}
-
-.hiddenButton {
-    visibility: hidden;
-    display: none;
-}
