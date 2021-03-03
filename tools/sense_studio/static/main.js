@@ -246,12 +246,16 @@ function toggleMakeProjectTemporal(path, project, button_name) {
     let classTagsDiv = document.getElementsByClassName('classTags');
     let editClassTagsDiv = document.getElementsByClassName('editClassTags');
     let addClassTagsDiv = document.getElementsByClassName('addClassTags');
-    let annotateButtons = document.getElementsByClassName('ui icon button annotate');
+    let annotateButtons = document.getElementsByClassName('annotate');
+    let navbarAnnotateDiv = document.getElementById('navbarAnnotate');
+    let annotatedTextSpan = document.getElementsByClassName('annotatedText');
     let displayStyle = 'none';
+    let visibilityStyle = 'hidden';
 
     if (response.button_status) {
         makeProjectTemporal.setAttribute('checked', 'checked');
         displayStyle = 'block';
+        visibilityStyle = 'visible';
 
     } else {
         makeProjectTemporal.removeAttribute('checked');
@@ -259,8 +263,11 @@ function toggleMakeProjectTemporal(path, project, button_name) {
 
     // Show/Hide annotate buttons
      for (let i=0; i < annotateButtons.length; i++){
+        annotateButtons[i].style.visibility = visibilityStyle;
         annotateButtons[i].style.display = displayStyle;
-        annotateButtons[i].style.visibility = 'visible';
+
+        annotatedTextSpan[i].style.visibility = visibilityStyle;
+        annotatedTextSpan[i].style.display = 'inline';
     }
 
     // Show/Hide tags on project details page
@@ -270,7 +277,10 @@ function toggleMakeProjectTemporal(path, project, button_name) {
     }
     addClassTagsDiv[0].style.display = displayStyle;
 
-    // Redirect back to project details page (It will refresh the page).
-//    location.href = '/project/' + project;
-
+    // Show/Hide annotation button on navigation bar
+    if (response.button_status){
+        navbarAnnotateDiv.style.display = 'flex';
+    } else{
+        navbarAnnotateDiv.style.display = 'none';
+    }
 }
