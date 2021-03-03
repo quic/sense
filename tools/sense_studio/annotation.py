@@ -20,7 +20,7 @@ from sklearn.linear_model import LogisticRegression
 from sense import SPLITS
 from sense.finetuning import compute_frames_features
 from tools import directories
-from tools.sense_studio import utils as studio_utils
+from tools.sense_studio import utils
 
 
 annotation_bp = Blueprint('annotation_bp', __name__)
@@ -33,12 +33,12 @@ def show_video_list(project, split, label):
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
     project = urllib.parse.unquote(project)
-    path = studio_utils.lookup_project_path(project)
+    path = utils.lookup_project_path(project)
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
 
     # load feature extractor
-    inference_engine, model_config = studio_utils.load_feature_extractor(path)
+    inference_engine, model_config = utils.load_feature_extractor(path)
 
     videos_dir = directories.get_videos_dir(path, split, label)
     frames_dir = directories.get_frames_dir(path, split, label)
@@ -72,10 +72,10 @@ def prepare_annotation(project):
     Prepare all files needed for annotating the videos in the given project.
     """
     project = urllib.parse.unquote(project)
-    dataset_path = studio_utils.lookup_project_path(project)
+    dataset_path = utils.lookup_project_path(project)
 
     # load feature extractor
-    inference_engine, model_config = studio_utils.load_feature_extractor(dataset_path)
+    inference_engine, model_config = utils.load_feature_extractor(dataset_path)
     for split in SPLITS:
         print(f'\n\tPreparing videos in the {split}-set')
 
@@ -98,11 +98,11 @@ def annotate(project, split, label, idx):
     For the given class label, show all frames for annotating the selected video.
     """
     project = urllib.parse.unquote(project)
-    path = studio_utils.lookup_project_path(project)
+    path = utils.lookup_project_path(project)
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
 
-    _, model_config = studio_utils.load_feature_extractor()
+    _, model_config = utils.load_feature_extractor(path)
 
     frames_dir = directories.get_frames_dir(path, split, label)
     features_dir = directories.get_features_dir(path, split, model_config, label=label)
@@ -125,7 +125,7 @@ def annotate(project, split, label, idx):
 
     # The list of images in the folder
     images = [image for image in glob.glob(os.path.join(frames_dir, videos[idx], '*'))
-              if studio_utils.is_image_file(image)]
+              if utils.is_image_file(image)]
 
     # Natural sort images, so that they are sorted by number
     images = natsorted(images, alg=ns.IC)
@@ -141,7 +141,7 @@ def annotate(project, split, label, idx):
             annotations = data['time_annotation']
 
     # Read tags from config
-    config = studio_utils.load_project_config(path)
+    config = utils.load_project_config(path)
     tags = config['classes'][label]
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
@@ -197,7 +197,7 @@ def train_logreg():
     split = data['split']
     label = data['label']
 
-    _, model_config = studio_utils.load_feature_extractor()
+    _, model_config = utils.load_feature_extractor(path)
 
     features_dir = directories.get_features_dir(path, split, model_config, label=label)
     tags_dir = directories.get_tags_dir(path, split, label)
@@ -260,6 +260,6 @@ def download_file(project, split, label, video_name, img_file):
     """
     Load an image from the given path.
     """
-    dataset_path = studio_utils.lookup_project_path(project)
+    dataset_path = utils.lookup_project_path(project)
     img_dir = os.path.join(directories.get_frames_dir(dataset_path, split, label), video_name)
     return send_from_directory(img_dir, img_file, as_attachment=True)

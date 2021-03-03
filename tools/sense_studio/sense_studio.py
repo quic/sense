@@ -21,7 +21,7 @@ from flask import url_for
 
 from sense import SPLITS
 from tools import directories
-from tools.sense_studio import utils as studio_utils
+from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
 from tools.sense_studio.video_recording import video_recording_bp
 
@@ -38,7 +38,7 @@ def projects_overview():
     Home page of SenseStudio. Show the overview of all registered projects and check if their
     locations are still valid.
     """
-    projects = studio_utils.load_project_overview_config()
+    projects = utils.load_project_overview_config()
 
     # Check if project paths still exist
     for name, project in projects.items():
@@ -52,7 +52,7 @@ def projects_list():
     """
     Provide the current list of projects to external callers.
     """
-    projects = studio_utils.load_project_overview_config()
+    projects = utils.load_project_overview_config()
     return jsonify(projects)
 
 
@@ -63,10 +63,10 @@ def project_config():
     """
     data = request.json
     name = data['name']
-    path = studio_utils.lookup_project_path(name)
+    path = utils.lookup_project_path(name)
 
     # Get config
-    config = studio_utils.load_project_config(path)
+    config = utils.load_project_config(path)
     return jsonify(config)
 
 
@@ -76,11 +76,11 @@ def remove_project(name):
     Remove a given project from the config file and reload the overview page.
     """
     name = urllib.parse.unquote(name)
-    projects = studio_utils.load_project_overview_config()
+    projects = utils.load_project_overview_config()
 
     del projects[name]
 
-    studio_utils.write_project_overview_config(projects)
+    utils.write_project_overview_config(projects)
 
     return redirect(url_for('projects_overview'))
 
@@ -116,7 +116,7 @@ def setup_project():
     # Update project config
     try:
         # Check for existing config file
-        config = studio_utils.load_project_config(path)
+        config = utils.load_project_config(path)
         old_name = config['name']
         config['name'] = name
     except FileNotFoundError:
@@ -128,7 +128,7 @@ def setup_project():
         }
         old_name = None
 
-    studio_utils.write_project_config(path, config)
+    utils.write_project_config(path, config)
 
     # Setup directory structure
     for split in SPLITS:
@@ -137,7 +137,7 @@ def setup_project():
             os.mkdir(videos_dir)
 
     # Update overall projects config file
-    projects = studio_utils.load_project_overview_config()
+    projects = utils.load_project_overview_config()
 
     if old_name and old_name in projects:
         del projects[old_name]
@@ -146,7 +146,7 @@ def setup_project():
         'path': path,
     }
 
-    studio_utils.write_project_overview_config(projects)
+    utils.write_project_overview_config(projects)
 
     return redirect(url_for('project_details', project=name))
 
@@ -157,8 +157,8 @@ def project_details(project):
     Show the details for the selected project.
     """
     project = urllib.parse.unquote(project)
-    path = studio_utils.lookup_project_path(project)
-    config = studio_utils.load_project_config(path)
+    path = utils.lookup_project_path(project)
+    config = utils.load_project_config(path)
 
     stats = {}
     for class_name, tags in config['classes'].items():
@@ -180,15 +180,15 @@ def add_class(project):
     Add a new class to the given project.
     """
     project = urllib.parse.unquote(project)
-    path = studio_utils.lookup_project_path(project)
+    path = utils.lookup_project_path(project)
 
     # Get class name and tags
-    class_name, tag1, tag2 = studio_utils.get_class_name_and_tags(request.form)
+    class_name, tag1, tag2 = utils.get_class_name_and_tags(request.form)
 
     # Update project config
-    config = studio_utils.load_project_config(path)
+    config = utils.load_project_config(path)
     config['classes'][class_name] = [tag1, tag2]
-    studio_utils.write_project_config(path, config)
+    utils.write_project_config(path, config)
 
     # Setup directory structure
     for split in SPLITS:
@@ -208,7 +208,7 @@ def toggle_gpu():
     data = request.json
     path = data['path']
 
-    use_gpu = directories.toggle_gpu_status(path)
+    use_gpu = utils.toggle_gpu_status(path)
 
     return jsonify(use_gpu=use_gpu)
 
@@ -220,16 +220,16 @@ def edit_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-    path = studio_utils.lookup_project_path(project)
+    path = utils.lookup_project_path(project)
 
     # Get new class name and tags
-    new_class_name, new_tag1, new_tag2 = studio_utils.get_class_name_and_tags(request.form)
+    new_class_name, new_tag1, new_tag2 = utils.get_class_name_and_tags(request.form)
 
     # Update project config
-    config = studio_utils.load_project_config(path)
+    config = utils.load_project_config(path)
     del config['classes'][class_name]
     config['classes'][new_class_name] = [new_tag1, new_tag2]
-    studio_utils.write_project_config(path, config)
+    utils.write_project_config(path, config)
 
     # Update directory names
     data_dirs = []
@@ -267,12 +267,12 @@ def remove_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-    path = studio_utils.lookup_project_path(project)
+    path = utils.lookup_project_path(project)
 
     # Update project config
-    config = studio_utils.load_project_config(path)
+    config = utils.load_project_config(path)
     del config['classes'][class_name]
-    studio_utils.write_project_config(path, config)
+    utils.write_project_config(path, config)
 
     return redirect(url_for("project_details", project=project))
 
@@ -298,8 +298,8 @@ def class_labels_processor():
     E.g. check navigation.html: line 1-2
     """
     def inject_class_labels(project):
-        path = directories.lookup_project_path(project)
-        class_labels = directories.get_class_labels(path)
+        path = utils.lookup_project_path(project)
+        class_labels = utils.get_class_labels(path)
         return class_labels
     return dict(inject_class_labels=inject_class_labels)
 
