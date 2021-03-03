@@ -20,9 +20,9 @@
         <br/>
         <div class="ui toggle checkbox hashoverpopup"
            data-content="Do you want to make project temporal?"
-           onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}', 'project_temporal');">
-            <input type="checkbox" id="makeProjectTemporal" {% if config.project_temporal %} checked="checked" {% endif %}>
-            <label>Make Project Temporal</label>
+           onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}', 'temporal');">
+            <input type="checkbox" id="makeProjectTemporal" {% if config.temporal %} checked="checked" {% endif %}>
+            <label>Use Temporal Annotations</label>
         </div>
     </div>
     <h1 class="ui header">
@@ -69,7 +69,7 @@
                     </a>
                 </div>
             </div>
-            {% if config.project_temporal %}
+            {% if config.temporal %}
                 <div class="content classTags" >
                     <h4>Tags</h4>
                     <div class="ui list">
@@ -97,10 +97,12 @@
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
-                                <i class="edit icon"></i>
-                                Annotate
-                            </a>
+                            {% if config.temporal %}
+                                <a class="ui icon button annotate" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
+                                    <i class="edit icon"></i>
+                                    Annotate
+                                </a>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -111,10 +113,12 @@
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            <a class="ui icon button" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
-                                <i class="edit icon"></i>
-                                Annotate
-                            </a>
+                            {% if config.temporal %}
+                                <a class="ui icon button annotate" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
+                                    <i class="edit icon"></i>
+                                    Annotate
+                                </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -131,7 +135,7 @@
                     </div>
                 </div>
             </div>
-            {% if config.project_temporal %}
+            {% if config.temporal %}
                 <div class="content editClassTags">
                     <h4>Tags</h4>
                     <div class="field">
@@ -183,7 +187,7 @@
                     </div>
                 </div>
             </div>
-            <div class="content addClassTags" {% if not config.project_temporal %} style="display: none;" {% endif %} >
+            <div class="content addClassTags displayTags">
                 <h4>Tags</h4>
                 <div class="field">
                     <div class="ui left icon input">
