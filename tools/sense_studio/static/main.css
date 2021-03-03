@@ -70,3 +70,7 @@ a {
 .flex-filler {
     flex: 1;
 }
+
+.displayTags {
+    display: none;
+}
