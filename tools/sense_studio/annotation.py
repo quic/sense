@@ -18,7 +18,7 @@ from natsort import ns
 from sklearn.linear_model import LogisticRegression
 
 from sense.finetuning import compute_frames_features
-from tools import utils
+from tools import directories
 from tools.sense_studio import utils as studio_utils
 
 
@@ -39,11 +39,11 @@ def show_video_list(project, split, label):
     # load feature extractor
     inference_engine, model_config = studio_utils.load_feature_extractor(path)
 
-    videos_dir = utils.get_videos_dir(path, split, label)
-    frames_dir = utils.get_frames_dir(path, split, label)
-    features_dir = utils.get_features_dir(path, split, model_config, label=label)
-    tags_dir = utils.get_tags_dir(path, split, label)
-    logreg_dir = utils.get_logreg_dir(path, model_config, label)
+    videos_dir = directories.get_videos_dir(path, split, label)
+    frames_dir = directories.get_frames_dir(path, split, label)
+    features_dir = directories.get_features_dir(path, split, model_config, label=label)
+    tags_dir = directories.get_tags_dir(path, split, label)
+    logreg_dir = directories.get_logreg_dir(path, model_config, label)
 
     os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
@@ -75,13 +75,13 @@ def prepare_annotation(project):
 
     # load feature extractor
     inference_engine, model_config = studio_utils.load_feature_extractor(dataset_path)
-    for split in utils.SPLITS:
+    for split in directories.SPLITS:
         print(f'\n\tPreparing videos in the {split}-set')
 
-        for label in os.listdir(utils.get_videos_dir(dataset_path, split)):
-            videos_dir = utils.get_videos_dir(dataset_path, split, label)
-            frames_dir = utils.get_frames_dir(dataset_path, split, label)
-            features_dir = utils.get_features_dir(dataset_path, split, model_config, label=label)
+        for label in os.listdir(directories.get_videos_dir(dataset_path, split)):
+            videos_dir = directories.get_videos_dir(dataset_path, split, label)
+            frames_dir = directories.get_frames_dir(dataset_path, split, label)
+            features_dir = directories.get_features_dir(dataset_path, split, model_config, label=label)
 
             compute_frames_features(inference_engine=inference_engine,
                                     videos_dir=videos_dir,
@@ -103,10 +103,10 @@ def annotate(project, split, label, idx):
 
     _, model_config = studio_utils.load_feature_extractor()
 
-    frames_dir = utils.get_frames_dir(path, split, label)
-    features_dir = utils.get_features_dir(path, split, model_config, label=label)
-    tags_dir = utils.get_tags_dir(path, split, label)
-    logreg_dir = utils.get_logreg_dir(path, model_config, label)
+    frames_dir = directories.get_frames_dir(path, split, label)
+    features_dir = directories.get_features_dir(path, split, model_config, label=label)
+    tags_dir = directories.get_tags_dir(path, split, label)
+    logreg_dir = directories.get_logreg_dir(path, model_config, label)
 
     videos = os.listdir(frames_dir)
     videos.sort()
@@ -163,8 +163,8 @@ def submit_annotation():
     video = data['video']
     next_frame_idx = idx + 1
 
-    frames_dir = utils.get_frames_dir(path, split, label)
-    tags_dir = utils.get_tags_dir(path, split, label)
+    frames_dir = directories.get_frames_dir(path, split, label)
+    tags_dir = directories.get_tags_dir(path, split, label)
     description = {'file': f'{video}.mp4', 'fps': fps}
 
     out_annotation = os.path.join(tags_dir, f'{video}.json')
@@ -198,9 +198,9 @@ def train_logreg():
 
     _, model_config = studio_utils.load_feature_extractor()
 
-    features_dir = utils.get_features_dir(path, split, model_config, label=label)
-    tags_dir = utils.get_tags_dir(path, split, label)
-    logreg_dir = utils.get_logreg_dir(path, model_config, label)
+    features_dir = directories.get_features_dir(path, split, model_config, label=label)
+    tags_dir = directories.get_tags_dir(path, split, label)
+    logreg_dir = directories.get_logreg_dir(path, model_config, label)
     logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
 
     annotations = os.listdir(tags_dir)
@@ -260,5 +260,5 @@ def download_file(project, split, label, video_name, img_file):
     Load an image from the given path.
     """
     dataset_path = studio_utils.lookup_project_path(project)
-    img_dir = os.path.join(utils.get_frames_dir(dataset_path, split, label), video_name)
+    img_dir = os.path.join(directories.get_frames_dir(dataset_path, split, label), video_name)
     return send_from_directory(img_dir, img_file, as_attachment=True)

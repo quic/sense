@@ -19,7 +19,7 @@ from flask import render_template
 from flask import request
 from flask import url_for
 
-from tools import utils
+from tools import directories
 from tools.sense_studio import utils as studio_utils
 from tools.sense_studio.annotation import annotation_bp
 from tools.sense_studio.video_recording import video_recording_bp
@@ -130,8 +130,8 @@ def setup_project():
     studio_utils.write_project_config(path, config)
 
     # Setup directory structure
-    for split in utils.SPLITS:
-        videos_dir = utils.get_videos_dir(path, split)
+    for split in directories.SPLITS:
+        videos_dir = directories.get_videos_dir(path, split)
         if not os.path.exists(videos_dir):
             os.mkdir(videos_dir)
 
@@ -162,9 +162,9 @@ def project_details(project):
     stats = {}
     for class_name, tags in config['classes'].items():
         stats[class_name] = {}
-        for split in utils.SPLITS:
-            videos_dir = utils.get_videos_dir(path, split, class_name)
-            tags_dir = utils.get_tags_dir(path, split, class_name)
+        for split in directories.SPLITS:
+            videos_dir = directories.get_videos_dir(path, split, class_name)
+            tags_dir = directories.get_tags_dir(path, split, class_name)
             stats[class_name][split] = {
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
@@ -190,8 +190,8 @@ def add_class(project):
     studio_utils.write_project_config(path, config)
 
     # Setup directory structure
-    for split in utils.SPLITS:
-        videos_dir = utils.get_videos_dir(path, split, class_name)
+    for split in directories.SPLITS:
+        videos_dir = directories.get_videos_dir(path, split, class_name)
 
         if not os.path.exists(videos_dir):
             os.mkdir(videos_dir)
@@ -207,7 +207,7 @@ def toggle_gpu():
     data = request.json
     path = data['path']
 
-    use_gpu = utils.toggle_gpu_status(path)
+    use_gpu = directories.toggle_gpu_status(path)
 
     return jsonify(use_gpu=use_gpu)
 
@@ -232,21 +232,21 @@ def edit_class(project, class_name):
 
     # Update directory names
     data_dirs = []
-    for split in utils.SPLITS:
+    for split in directories.SPLITS:
         data_dirs.extend([
-            utils.get_videos_dir(path, split),
-            utils.get_frames_dir(path, split),
-            utils.get_tags_dir(path, split),
+            directories.get_videos_dir(path, split),
+            directories.get_frames_dir(path, split),
+            directories.get_tags_dir(path, split),
         ])
 
         # Feature directories follow the format <dataset_dir>/<split>/<model>/<num_layers_to_finetune>/<label>
-        features_dir = utils.get_features_dir(path, split)
+        features_dir = directories.get_features_dir(path, split)
         model_dirs = [os.path.join(features_dir, model_dir) for model_dir in os.listdir(features_dir)]
         data_dirs.extend([os.path.join(model_dir, tuned_layers)
                           for model_dir in model_dirs
                           for tuned_layers in os.listdir(model_dir)])
 
-    logreg_dir = utils.get_logreg_dir(path)
+    logreg_dir = directories.get_logreg_dir(path)
     data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
 
     for base_dir in data_dirs:
@@ -297,8 +297,8 @@ def class_labels_processor():
     E.g. check navigation.html: line 1-2
     """
     def inject_class_labels(project):
-        path = utils.lookup_project_path(project)
-        class_labels = utils.get_class_labels(path)
+        path = directories.lookup_project_path(project)
+        class_labels = directories.get_class_labels(path)
         return class_labels
     return dict(inject_class_labels=inject_class_labels)
 

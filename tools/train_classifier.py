@@ -51,7 +51,7 @@ from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
 from sense.loading import update_backbone_weights
 from sense.utils import clean_pipe_state_dict_key
-from tools import utils
+from tools import directories
 
 import sys
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
                      num_timesteps=num_timesteps)
 
     # Find label names
-    label_names = os.listdir(utils.get_videos_dir(path_in, 'train'))
+    label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
     label_names = [x for x in label_names if not x.startswith('.')]
     label_counting = ['counting_background']
 
@@ -150,14 +150,14 @@ if __name__ == "__main__":
     extractor_stride = backbone_network.num_required_frames_per_layer_padding[0]
 
     # Create the data loaders
-    features_dir = utils.get_features_dir(path_in, 'train', selected_config, num_layers_to_finetune)
-    tags_dir = utils.get_tags_dir(path_in, 'train')
+    features_dir = directories.get_features_dir(path_in, 'train', selected_config, num_layers_to_finetune)
+    tags_dir = directories.get_tags_dir(path_in, 'train')
     train_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=num_timesteps, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
 
-    features_dir = utils.get_features_dir(path_in, 'valid', selected_config, num_layers_to_finetune)
-    tags_dir = utils.get_tags_dir(path_in, 'valid')
+    features_dir = directories.get_features_dir(path_in, 'valid', selected_config, num_layers_to_finetune)
+    tags_dir = directories.get_tags_dir(path_in, 'valid')
     valid_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
