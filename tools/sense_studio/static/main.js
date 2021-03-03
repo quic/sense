@@ -245,7 +245,7 @@ function toggleMakeProjectTemporal(path, project, button_name) {
     // Get all tags related divs
     let classTagsDiv = document.getElementsByClassName('classTags');
     let editClassTagsDiv = document.getElementsByClassName('editClassTags');
-    let addClassTagsDiv = document.getElementsByClassName('addClassTags')[0];
+    let addClassTagsDiv = document.getElementsByClassName('addClassTags');
     let annotateButtons = document.getElementsByClassName('ui icon button annotate');
     let displayStyle = 'none';
 
@@ -257,8 +257,10 @@ function toggleMakeProjectTemporal(path, project, button_name) {
         makeProjectTemporal.removeAttribute('checked');
     }
 
+    // Show/Hide annotate buttons
      for (let i=0; i < annotateButtons.length; i++){
         annotateButtons[i].style.display = displayStyle;
+        annotateButtons[i].style.visibility = 'visible';
     }
 
     // Show/Hide tags on project details page
@@ -266,7 +268,7 @@ function toggleMakeProjectTemporal(path, project, button_name) {
         classTagsDiv[i].style.display = displayStyle;
         editClassTagsDiv[i].style.display = displayStyle;
     }
-    addClassTagsDiv.style.display = displayStyle;
+    addClassTagsDiv[0].style.display = displayStyle;
 
     // Redirect back to project details page (It will refresh the page).
 //    location.href = '/project/' + project;

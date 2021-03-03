@@ -69,26 +69,23 @@
                     </a>
                 </div>
             </div>
-            {% if config.temporal %}
-                <div class="content classTags" >
-                    <h4>Tags</h4>
-                    <div class="ui list">
-                        {% for tag in tags %}
-                        <div class="item">
-                            <i class="tag icon"></i>
-                            <div class="content">
-                                <div class="description">
-                                    {{ tag }}
-                                </div>
+            <div class="content classTags {{ 'displayTags' if not config.temporal }}" >
+                <h4>Tags</h4>
+                <div class="ui list">
+                    {% for tag in tags %}
+                    <div class="item">
+                        <i class="tag icon"></i>
+                        <div class="content">
+                            <div class="description">
+                                {{ tag }}
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
+                    {% endfor %}
                 </div>
-            {% endif %}
+            </div>
             <div class="content">
                 <h4>Videos</h4>
-
                 <div class="ui segments">
                     <div class="ui segment">
                         <h5>Train: {{ stats[class].train.total }} ({{ stats[class].train.tagged }} annotated)</h5>
@@ -97,15 +94,12 @@
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            {% if config.temporal %}
-                                <a class="ui icon button annotate" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
-                                    <i class="edit icon"></i>
-                                    Annotate
-                                </a>
-                            {% endif %}
+                            <a class="ui icon button annotate {{ 'hiddenButton' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
+                                <i class="edit icon"></i>
+                                Annotate
+                            </a>
                         </div>
                     </div>
-
                     <div class="ui segment">
                         <h5>Valid: {{ stats[class].valid.total }} ({{ stats[class].valid.tagged }} annotated)</h5>
                         <div class="ui buttons">
@@ -113,12 +107,10 @@
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            {% if config.temporal %}
-                                <a class="ui icon button annotate" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
-                                    <i class="edit icon"></i>
-                                    Annotate
-                                </a>
-                            {% endif %}
+                            <a class="ui icon button annotate {{ 'hiddenButton' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
+                                <i class="edit icon"></i>
+                                Annotate
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -135,24 +127,22 @@
                     </div>
                 </div>
             </div>
-            {% if config.temporal %}
-                <div class="content editClassTags">
-                    <h4>Tags</h4>
-                    <div class="field">
-                        <div class="ui left icon input">
-                            <i class="tag icon"></i>
-                            <input type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" />
-                        </div>
+            <div class="content editClassTags {{ 'displayTags' if not config.temporal }}">
+                <h4>Tags</h4>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="tag icon"></i>
+                        <input type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" />
                     </div>
-                    <div class="field">
-                        <div class="ui left icon input">
-                            <i class="tag icon"></i>
-                            <input type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" />
-                        </div>
-                    </div>
-                    <div class="ui error message"></div>
                 </div>
-            {% endif %}
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="tag icon"></i>
+                        <input type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" />
+                    </div>
+                </div>
+                <div class="ui error message"></div>
+            </div>
             <button class="ui bottom attached button" type="button" onclick="editClass('{{ loop.index }}', false)">
                 <i class="close icon"></i>
                 Cancel

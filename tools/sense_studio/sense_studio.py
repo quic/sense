@@ -294,6 +294,7 @@ def class_labels_processor():
         path = utils.lookup_project_path(project)
         class_labels = utils.get_class_labels(path)
         return class_labels
+
     return dict(inject_class_labels=inject_class_labels)
 
 

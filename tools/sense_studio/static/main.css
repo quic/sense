@@ -74,3 +74,8 @@ a {
 .displayTags {
     display: none;
 }
+
+.hiddenButton {
+    visibility:hidden;
+    display:none;
+}
