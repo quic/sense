@@ -1,13 +1,13 @@
-import os
 import unittest
 from unittest.mock import patch
 
 import cv2
+import numpy as np
+from pathlib import Path
 
 import sense.camera as camera
 
-cwd = os.getcwd()
-video_path = os.path.join(cwd, 'tests/resources/test_video.mp4')
+video_path = str(Path('tests/resources/test_video.mp4').resolve())
 
 
 class TestVideoSource(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestVideoSource(unittest.TestCase):
 
     @patch('sense.camera.VideoSource.pad_to_square')
     def test_get_image(self, mock_pad_to_square):
-        square_img_path = os.path.join(cwd, 'tests/resources/square_SENSE.png')
+        square_img_path = str(Path('tests/resources/square_SENSE.png').resolve())
         square_img = cv2.imread(square_img_path)
         mock_pad_to_square.return_value = square_img
         img, scaled_img = self.video.get_image()
@@ -25,7 +25,7 @@ class TestVideoSource(unittest.TestCase):
         assert img.shape == scaled_img.shape
 
     def test_pad_to_square(self):
-        img_path = os.path.join(cwd, 'tests/resources/SENSE.png')
+        img_path = str(Path('tests/resources/SENSE.png').resolve())
         img = cv2.imread(img_path)
         max_length = max(img.shape[0:2])
         new_img = self.video.pad_to_square(img)
@@ -50,7 +50,7 @@ class TestVideoStream(unittest.TestCase):
         img_tuple = self.video.get_image()
         self.stream.frames.put(img_tuple, False)
         imgs = self.stream.get_image()
-        assert str(type(imgs[0])) == "<class 'numpy.ndarray'>"
+        assert type(imgs[0]) == np.ndarray
 
     def test_frame_conditions(self):
         self.stream.run()
@@ -61,7 +61,7 @@ class TestVideoStream(unittest.TestCase):
 class TestVideoWriter(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.output_video_path = os.path.join(cwd, 'tests/resources/test_writer.mp4')
+        self.output_video_path = str(Path('tests/resources/test_writer.mp4').resolve())
         self.videowriter = camera.VideoWriter(path=self.output_video_path, fps=12.0, resolution=(40, 30))
 
     def test_write(self):
