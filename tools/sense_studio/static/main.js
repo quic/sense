@@ -100,7 +100,7 @@ $(document).ready(function () {
     $('.message .close').on('click', function() {
         $(this).closest('.message').transition('fade');
     });
-;
+
 });
 
 
@@ -228,9 +228,9 @@ function editClass(index, shouldEdit) {
 
 function toggleGPU(path, button_name) {
     let gpuInput = document.getElementById('gpuInput');
-    response = syncRequest('/toggle-gpu', {path, button_name});
+    response = syncRequest('/toggle-project-setting', {path, button_name});
 
-    if (response.use_gpu) {
+    if (response.button_status) {
         gpuInput.setAttribute('checked', 'checked');
     } else {
         gpuInput.removeAttribute('checked');
@@ -240,21 +240,25 @@ function toggleGPU(path, button_name) {
 
 function toggleMakeProjectTemporal(path, project, button_name) {
     let makeProjectTemporal = document.getElementById('makeProjectTemporal');
-    response = syncRequest('/toggle-make-project-temporal', {path, button_name});
+    response = syncRequest('/toggle-project-setting', {path, button_name});
 
     // Get all tags related divs
-    let classTagsDiv = document.getElementsByClassName('content classTags');
-    let editClassTagsDiv = document.getElementsByClassName('content editClassTags');
-    let addClassTagsDiv = document.getElementsByClassName('content addClassTags')[0];
-
+    let classTagsDiv = document.getElementsByClassName('classTags');
+    let editClassTagsDiv = document.getElementsByClassName('editClassTags');
+    let addClassTagsDiv = document.getElementsByClassName('addClassTags')[0];
+    let annotateButtons = document.getElementsByClassName('ui icon button annotate');
     let displayStyle = 'none';
 
-    if (response.project_temporal) {
+    if (response.button_status) {
         makeProjectTemporal.setAttribute('checked', 'checked');
         displayStyle = 'block';
 
     } else {
         makeProjectTemporal.removeAttribute('checked');
+    }
+
+     for (let i=0; i < annotateButtons.length; i++){
+        annotateButtons[i].style.display = displayStyle;
     }
 
     // Show/Hide tags on project details page
@@ -263,7 +267,8 @@ function toggleMakeProjectTemporal(path, project, button_name) {
         editClassTagsDiv[i].style.display = displayStyle;
     }
     addClassTagsDiv.style.display = displayStyle;
+
     // Redirect back to project details page (It will refresh the page).
-    location.href = '/project/' + project;
+//    location.href = '/project/' + project;
 
 }
