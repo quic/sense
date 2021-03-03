@@ -101,7 +101,7 @@ def set_toggle_button_status(path, new_status, button_name):
     write_project_config(path, config)
 
 
-def toggle_button_status(path, button_name):
+def get_project_status(path, button_name):
     current_status = get_toggle_button_status(path, button_name)
     new_status = not current_status
     set_toggle_button_status(path, new_status, button_name)

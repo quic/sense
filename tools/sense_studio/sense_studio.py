@@ -123,8 +123,8 @@ def setup_project():
             'name': name,
             'date_created': datetime.date.today().isoformat(),
             'classes': {},
-            'use_gpu': True,
-            'project_temporal': True
+            'use_gpu': False,
+            'temporal': True
         }
         old_name = None
 
@@ -201,30 +201,17 @@ def add_class(project):
     return redirect(url_for("project_details", project=project))
 
 
-@app.route('/toggle-gpu', methods=['POST'])
-def toggle_gpu():
+@app.route('/toggle-project-setting', methods=['POST'])
+def toggle_project_setting():
     """
-    Switch GPU status using toggle button.
-    """
-    data = request.json
-    path = data['path']
-    button_name = data['button_name']
-    use_gpu = utils.toggle_button_status(path, button_name)
-
-    return jsonify(use_gpu=use_gpu)
-
-
-@app.route('/toggle-make-project-temporal', methods=['POST'])
-def toggle_make_project_temporal():
-    """
-    Make project temporal using toggle button.
+    Switch project setting to make project temporal and/or use GPU.
     """
     data = request.json
     path = data['path']
     button_name = data['button_name']
-    project_temporal = utils.toggle_button_status(path, button_name)
+    button_status = utils.get_project_status(path, button_name)
 
-    return jsonify(project_temporal=project_temporal)
+    return jsonify(button_status=button_status)
 
 
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
