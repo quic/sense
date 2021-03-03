@@ -121,7 +121,7 @@ def convert(backbone_settings, classifier_settings, weights_full, output_name, p
     export_keras_to_tflite(keras_file, tflite_file)
 
     if fake_weights:
-        logging.warning(
+        logging.error(
             "************************* Warning!! ***************************\n"
             "Weights in checkpoint did not match weights required by network\n"
             "Fake weights were generated where they were needed!!!!!!!!!!!!!\n"
