@@ -19,6 +19,7 @@ from flask import render_template
 from flask import request
 from flask import url_for
 
+from sense import SPLITS
 from tools import directories
 from tools.sense_studio import utils as studio_utils
 from tools.sense_studio.annotation import annotation_bp
@@ -130,7 +131,7 @@ def setup_project():
     studio_utils.write_project_config(path, config)
 
     # Setup directory structure
-    for split in directories.SPLITS:
+    for split in SPLITS:
         videos_dir = directories.get_videos_dir(path, split)
         if not os.path.exists(videos_dir):
             os.mkdir(videos_dir)
@@ -162,7 +163,7 @@ def project_details(project):
     stats = {}
     for class_name, tags in config['classes'].items():
         stats[class_name] = {}
-        for split in directories.SPLITS:
+        for split in SPLITS:
             videos_dir = directories.get_videos_dir(path, split, class_name)
             tags_dir = directories.get_tags_dir(path, split, class_name)
             stats[class_name][split] = {
@@ -190,7 +191,7 @@ def add_class(project):
     studio_utils.write_project_config(path, config)
 
     # Setup directory structure
-    for split in directories.SPLITS:
+    for split in SPLITS:
         videos_dir = directories.get_videos_dir(path, split, class_name)
 
         if not os.path.exists(videos_dir):
@@ -232,7 +233,7 @@ def edit_class(project, class_name):
 
     # Update directory names
     data_dirs = []
-    for split in directories.SPLITS:
+    for split in SPLITS:
         data_dirs.extend([
             directories.get_videos_dir(path, split),
             directories.get_frames_dir(path, split),

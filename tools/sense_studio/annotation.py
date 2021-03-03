@@ -17,6 +17,7 @@ from natsort import natsorted
 from natsort import ns
 from sklearn.linear_model import LogisticRegression
 
+from sense import SPLITS
 from sense.finetuning import compute_frames_features
 from tools import directories
 from tools.sense_studio import utils as studio_utils
@@ -75,7 +76,7 @@ def prepare_annotation(project):
 
     # load feature extractor
     inference_engine, model_config = studio_utils.load_feature_extractor(dataset_path)
-    for split in directories.SPLITS:
+    for split in SPLITS:
         print(f'\n\tPreparing videos in the {split}-set')
 
         for label in os.listdir(directories.get_videos_dir(dataset_path, split)):

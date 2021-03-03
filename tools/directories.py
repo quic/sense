@@ -5,8 +5,6 @@ from typing import Optional
 
 from sense.loading import ModelConfig
 
-SPLITS = ['train', 'valid']
-
 
 def _get_data_dir(dir_type: str, dataset_path: str, split: Optional[str] = None, subdirs: Optional[List[str]] = None):
     main_dir = f'{dir_type}_{split}' if split else dir_type

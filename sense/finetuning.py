@@ -1,18 +1,19 @@
 import glob
 import itertools
 import json
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+from PIL import Image
+from sklearn.metrics import confusion_matrix
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from PIL import Image
 from sense import camera
 from sense import engine
-from sklearn.metrics import confusion_matrix
-
+from sense import SPLITS
 from sense.engine import InferenceEngine
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
@@ -260,7 +261,7 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
     # extract features
-    for split in directories.SPLITS:
+    for split in SPLITS:
         videos_dir = directories.get_videos_dir(path_in, split)
         features_dir = directories.get_features_dir(path_in, split, model_config, num_layers_finetune)
         video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
