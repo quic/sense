@@ -69,7 +69,7 @@
                     </a>
                 </div>
             </div>
-            <div class="content classTags {{ 'displayTags' if not config.temporal }}" >
+            <div class="content classTags {{ 'display-hidden' if not config.temporal }}" >
                 <h4>Tags</h4>
                 <div class="ui list">
                     {% for tag in tags %}
@@ -88,26 +88,26 @@
                 <h4>Videos</h4>
                 <div class="ui segments">
                     <div class="ui segment">
-                        <h5>Train: {{ stats[class].train.total }} ({{ stats[class].train.tagged }} annotated)</h5>
+                        <h5>Train: {{ stats[class].train.total }} <span class="annotatedText {{ 'display-hidden' if not config.temporal }}">({{ stats[class].train.tagged }} annotated)</span></h5>
                         <div class="ui buttons">
                             <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            <a class="ui icon button annotate {{ 'hiddenButton' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
+                            <a class="ui icon button annotate {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
                                 <i class="edit icon"></i>
                                 Annotate
                             </a>
                         </div>
                     </div>
                     <div class="ui segment">
-                        <h5>Valid: {{ stats[class].valid.total }} ({{ stats[class].valid.tagged }} annotated)</h5>
+                        <h5>Valid: {{ stats[class].valid.total }} <span class="annotatedText {{ 'display-hidden' if not config.temporal }}">({{ stats[class].valid.tagged }} annotated)</span></h5>
                         <div class="ui buttons">
                             <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
                                 <i class="record icon"></i>
                                 Record
                             </a>
-                            <a class="ui icon button annotate {{ 'hiddenButton' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
+                            <a class="ui icon button annotate {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
                                 <i class="edit icon"></i>
                                 Annotate
                             </a>
@@ -127,7 +127,7 @@
                     </div>
                 </div>
             </div>
-            <div class="content editClassTags {{ 'displayTags' if not config.temporal }}">
+            <div class="content editClassTags {{ 'display-hidden' if not config.temporal }}">
                 <h4>Tags</h4>
                 <div class="field">
                     <div class="ui left icon input">
@@ -177,7 +177,7 @@
                     </div>
                 </div>
             </div>
-            <div class="content addClassTags {{ 'displayTags' if not config.temporal }}">
+            <div class="content addClassTags {{ 'display-hidden' if not config.temporal }}">
                 <h4>Tags</h4>
                 <div class="field">
                     <div class="ui left icon input">
