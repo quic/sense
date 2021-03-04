@@ -230,7 +230,7 @@ function toggleGPU(path) {
     let gpuInput = document.getElementById('gpuInput');
     response = syncRequest('/toggle-project-setting', {path, 'use_gpu'});
 
-    if (response.button_status) {
+    if (response.status) {
         gpuInput.setAttribute('checked', 'checked');
     } else {
         gpuInput.removeAttribute('checked');
@@ -252,7 +252,7 @@ function toggleMakeProjectTemporal(path, project) {
     let displayStyle = 'none';
     let visibilityStyle = 'hidden';
 
-    if (response.button_status) {
+    if (response.status) {
         makeProjectTemporal.setAttribute('checked', 'checked');
         displayStyle = 'block';
         visibilityStyle = 'visible';
@@ -278,7 +278,7 @@ function toggleMakeProjectTemporal(path, project) {
     addClassTagsDiv[0].style.display = displayStyle;
 
     // Show/Hide annotation button on navigation bar
-    if (response.button_status){
+    if (response.status){
         navbarAnnotateDiv.style.display = 'flex';
     } else{
         navbarAnnotateDiv.style.display = 'none';

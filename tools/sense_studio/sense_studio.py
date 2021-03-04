@@ -204,14 +204,14 @@ def add_class(project):
 @app.route('/toggle-project-setting', methods=['POST'])
 def toggle_project_setting():
     """
-    Switch project setting to make project temporal and/or use GPU.
+    Toggle boolean project setting.
     """
     data = request.json
     path = data['path']
-    button_name = data['button_name']
-    button_status = utils.get_project_status(path, button_name)
+    setting = data['setting']
+    new_status = utils.toggle_project_setting(path, setting)
 
-    return jsonify(button_status=button_status)
+    return jsonify(status=new_status)
 
 
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
