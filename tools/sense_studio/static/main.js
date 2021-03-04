@@ -230,7 +230,7 @@ function toggleGPU(path) {
     let gpuInput = document.getElementById('gpuInput');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
 
-    if (response.status) {
+    if (response.setting_status) {
         gpuInput.setAttribute('checked', 'checked');
     } else {
         gpuInput.removeAttribute('checked');
@@ -243,7 +243,7 @@ function toggleMakeProjectTemporal(path, project) {
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
 
     // Show/hide all temporal-related elements
-    if (response.status) {
+    if (response.setting_status) {
         makeProjectTemporal.setAttribute('checked', 'checked');
         $('.temporal').show();
     } else {

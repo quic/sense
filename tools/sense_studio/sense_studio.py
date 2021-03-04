@@ -211,7 +211,7 @@ def toggle_project_setting():
     setting = data['setting']
     new_status = utils.toggle_project_setting(path, setting)
 
-    return jsonify(status=new_status)
+    return jsonify(setting_status=new_status)
 
 
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
@@ -297,7 +297,8 @@ def context_processors():
 
     def inject_temporal_status(project):
         path = utils.lookup_project_path(project)
-        return utils.get_project_setting(path, 'temporal')
+        temporal_status = utils.get_project_setting(path, 'temporal')
+        return temporal_status
 
     return dict(inject_class_labels=inject_class_labels, inject_temporal_status=inject_temporal_status)
 
