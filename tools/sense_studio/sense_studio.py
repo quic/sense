@@ -297,8 +297,7 @@ def context_processors():
 
     def inject_temporal_status(project):
         path = utils.lookup_project_path(project)
-        config = utils.load_project_config(path)
-        return config['temporal']
+        return utils.get_project_setting(path, 'temporal')
 
     return dict(inject_class_labels=inject_class_labels, inject_temporal_status=inject_temporal_status)
 
