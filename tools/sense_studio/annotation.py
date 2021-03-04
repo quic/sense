@@ -236,5 +236,5 @@ def download_file(project, split, label, video_name, img_file):
     """
     Load an image from the given path.
     """
-    img_dir = utils.lookup_project_path(project) + f'/frames_{split}/{label}/{video_name}'
+    img_dir = join(utils.lookup_project_path(project), f'frames_{split}', label, video_name)
     return send_from_directory(img_dir, img_file, as_attachment=True)
