@@ -3,21 +3,21 @@ from unittest.mock import patch
 
 import cv2
 import numpy as np
-from pathlib import Path
+import os
 
 import sense.camera as camera
 
-video_path = str(Path('tests/resources/test_video.mp4').resolve())
+VIDEO_PATH = os.path.join(os.getcwd(), 'tests', 'resources', 'test_video.mp4')
 
 
 class TestVideoSource(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.video = camera.VideoSource(filename=video_path)
+        self.video = camera.VideoSource(filename=VIDEO_PATH)
 
     @patch('sense.camera.VideoSource.pad_to_square')
     def test_get_image(self, mock_pad_to_square):
-        square_img_path = str(Path('tests/resources/square_SENSE.png').resolve())
+        square_img_path = os.path.join(os.getcwd(), 'tests', 'resources', 'square_SENSE.png')
         square_img = cv2.imread(square_img_path)
         mock_pad_to_square.return_value = square_img
         img, scaled_img = self.video.get_image()
@@ -25,7 +25,7 @@ class TestVideoSource(unittest.TestCase):
         assert img.shape == scaled_img.shape
 
     def test_pad_to_square(self):
-        img_path = str(Path('tests/resources/SENSE.png').resolve())
+        img_path = os.path.join(os.getcwd(), 'tests', 'resources', 'SENSE.png')
         img = cv2.imread(img_path)
         max_length = max(img.shape[0:2])
         new_img = self.video.pad_to_square(img)
@@ -39,7 +39,7 @@ class TestVideoSource(unittest.TestCase):
 class TestVideoStream(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.video = camera.VideoSource(filename=video_path)
+        self.video = camera.VideoSource(filename=VIDEO_PATH)
         self.stream = camera.VideoStream(video_source=self.video, fps=12.0)
 
     def test_stop(self):
@@ -61,11 +61,11 @@ class TestVideoStream(unittest.TestCase):
 class TestVideoWriter(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.output_video_path = str(Path('tests/resources/test_writer.mp4').resolve())
+        self.output_video_path = os.path.join(os.getcwd(), 'tests', 'resources', 'test_writer.mp4')
         self.videowriter = camera.VideoWriter(path=self.output_video_path, fps=12.0, resolution=(40, 30))
 
     def test_write(self):
-        input_video_path = video_path
+        input_video_path = VIDEO_PATH
         input_video = cv2.VideoCapture(input_video_path)
         output_video_path = self.output_video_path
 
