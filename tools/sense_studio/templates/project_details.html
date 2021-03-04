@@ -12,7 +12,7 @@
         <h3 class="ui header center aligned">Settings</h3>
         <div class="ui toggle checkbox hashoverpopup"
            data-content="Should GPU be used for computing features?"
-           onclick="toggleGPU('{{ path }}', 'use_gpu');">
+           onclick="toggleGPU('{{ path }}');">
             <input type="checkbox" id="gpuInput" {% if config.use_gpu %} checked="checked" {% endif %}>
             <label>Use GPU</label>
         </div>
@@ -20,7 +20,7 @@
         <br/>
         <div class="ui toggle checkbox hashoverpopup"
            data-content="Do you want to use temporal annotations?"
-           onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}', 'temporal');">
+           onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
             <input type="checkbox" id="makeProjectTemporal" {% if config.temporal %} checked="checked" {% endif %}>
             <label>Use Temporal Annotations</label>
         </div>
