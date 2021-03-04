@@ -250,12 +250,10 @@ function toggleMakeProjectTemporal(path, project) {
     let navbarAnnotateDiv = document.getElementById('navbarAnnotate');
     let annotatedTextSpan = document.getElementsByClassName('annotatedText');
     let displayStyle = 'none';
-    let visibilityStyle = 'hidden';
 
     if (response.status) {
         makeProjectTemporal.setAttribute('checked', 'checked');
         displayStyle = 'block';
-        visibilityStyle = 'visible';
 
     } else {
         makeProjectTemporal.removeAttribute('checked');
@@ -263,10 +261,8 @@ function toggleMakeProjectTemporal(path, project) {
 
     // Show/Hide annotate buttons
      for (let i=0; i < annotateButtons.length; i++){
-        annotateButtons[i].style.visibility = visibilityStyle;
         annotateButtons[i].style.display = displayStyle;
 
-        annotatedTextSpan[i].style.visibility = visibilityStyle;
         annotatedTextSpan[i].style.display = 'inline';
     }
 
