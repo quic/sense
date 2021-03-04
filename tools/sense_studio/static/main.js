@@ -242,41 +242,12 @@ function toggleMakeProjectTemporal(path, project) {
     let makeProjectTemporal = document.getElementById('makeProjectTemporal');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
 
-    // Get all tags related divs
-    let classTagsDiv = document.getElementsByClassName('classTags');
-    let editClassTagsDiv = document.getElementsByClassName('editClassTags');
-    let addClassTagsDiv = document.getElementsByClassName('addClassTags');
-    let annotateButtons = document.getElementsByClassName('annotate');
-    let navbarAnnotateDiv = document.getElementById('navbarAnnotate');
-    let annotatedTextSpan = document.getElementsByClassName('annotatedText');
-    let displayStyle = 'none';
-
+    // Show/hide all temporal-related elements
     if (response.status) {
         makeProjectTemporal.setAttribute('checked', 'checked');
-        displayStyle = 'block';
-
+        $('.temporal').show();
     } else {
         makeProjectTemporal.removeAttribute('checked');
-    }
-
-    // Show/Hide annotate buttons
-     for (let i=0; i < annotateButtons.length; i++){
-        annotateButtons[i].style.display = displayStyle;
-
-        annotatedTextSpan[i].style.display = 'inline';
-    }
-
-    // Show/Hide tags on project details page
-    for (let i=0; i < classTagsDiv.length; i++){
-        classTagsDiv[i].style.display = displayStyle;
-        editClassTagsDiv[i].style.display = displayStyle;
-    }
-    addClassTagsDiv[0].style.display = displayStyle;
-
-    // Show/Hide annotation button on navigation bar
-    if (response.status){
-        navbarAnnotateDiv.style.display = 'flex';
-    } else{
-        navbarAnnotateDiv.style.display = 'none';
+        $('.temporal').hide();
     }
 }

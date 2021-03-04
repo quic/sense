@@ -19,7 +19,7 @@
         <br/>
         <br/>
         <div class="ui toggle checkbox hashoverpopup"
-           data-content="Do you want to use temporal annotations?"
+           data-content="Do you want to tag your video with frame-wise temporal annotations?"
            onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
             <input type="checkbox" id="makeProjectTemporal" {% if config.temporal %} checked="checked" {% endif %}>
             <label>Use Temporal Annotations</label>
@@ -69,7 +69,7 @@
                     </a>
                 </div>
             </div>
-            <div class="content classTags {{ 'display-hidden' if not config.temporal }}" >
+            <div class="content temporal {{ 'display-hidden' if not config.temporal }}" >
                 <h4>Tags</h4>
                 <div class="ui list">
                     {% for tag in tags %}
@@ -88,30 +88,26 @@
                 <h4>Videos</h4>
                 <div class="ui segments">
                     <div class="ui segment">
-                        <h5>Train: {{ stats[class].train.total }} <span class="annotatedText {{ 'display-hidden' if not config.temporal }}">({{ stats[class].train.tagged }} annotated)</span></h5>
-                        <div class="ui buttons">
-                            <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
-                                <i class="record icon"></i>
-                                Record
-                            </a>
-                            <a class="ui icon button annotate {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
-                                <i class="edit icon"></i>
-                                Annotate
-                            </a>
-                        </div>
+                        <h5>Train: {{ stats[class].train.total }} <span class="temporal {{ 'display-hidden' if not config.temporal }}">({{ stats[class].train.tagged }} annotated)</span></h5>
+                        <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
+                            <i class="record icon"></i>
+                            Record
+                        </a>
+                        <a class="ui icon button temporal {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
+                            <i class="edit icon"></i>
+                            Annotate
+                        </a>
                     </div>
                     <div class="ui segment">
-                        <h5>Valid: {{ stats[class].valid.total }} <span class="annotatedText {{ 'display-hidden' if not config.temporal }}">({{ stats[class].valid.tagged }} annotated)</span></h5>
-                        <div class="ui buttons">
-                            <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
-                                <i class="record icon"></i>
-                                Record
-                            </a>
-                            <a class="ui icon button annotate {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
-                                <i class="edit icon"></i>
-                                Annotate
-                            </a>
-                        </div>
+                        <h5>Valid: {{ stats[class].valid.total }} <span class="temporal {{ 'display-hidden' if not config.temporal }}">({{ stats[class].valid.tagged }} annotated)</span></h5>
+                        <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
+                            <i class="record icon"></i>
+                            Record
+                        </a>
+                        <a class="ui icon button temporal {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
+                            <i class="edit icon"></i>
+                            Annotate
+                        </a>
                     </div>
                 </div>
             </div>
@@ -127,7 +123,7 @@
                     </div>
                 </div>
             </div>
-            <div class="content editClassTags {{ 'display-hidden' if not config.temporal }}">
+            <div class="content temporal {{ 'display-hidden' if not config.temporal }}">
                 <h4>Tags</h4>
                 <div class="field">
                     <div class="ui left icon input">
@@ -177,7 +173,7 @@
                     </div>
                 </div>
             </div>
-            <div class="content addClassTags {{ 'display-hidden' if not config.temporal }}">
+            <div class="content temporal {{ 'display-hidden' if not config.temporal }}">
                 <h4>Tags</h4>
                 <div class="field">
                     <div class="ui left icon input">
