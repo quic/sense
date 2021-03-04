@@ -124,7 +124,7 @@ def setup_project():
             'date_created': datetime.date.today().isoformat(),
             'classes': {},
             'use_gpu': False,
-            'temporal': True
+            'temporal': False,
         }
         old_name = None
 
