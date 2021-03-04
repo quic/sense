@@ -124,9 +124,10 @@ def annotate(project, split, label, idx):
     # Read tags from config
     config = utils.load_project_config(path)
     tags = config['classes'][label]
+    show_logreg = config.get('show_logreg', False)
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
-                           n_images=len(images), video_name=videos[idx],
+                           n_images=len(images), video_name=videos[idx], show_logreg=show_logreg,
                            split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos))
 
 
@@ -161,7 +162,9 @@ def submit_annotation():
         json.dump(description, f)
 
     # Automatic re-training of the logistic regression model
-    train_logreg(path, split, label)
+    config = utils.load_project_config(path)
+    if config.get('show_logreg', False):
+        train_logreg(path, split, label)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('project_details', project=project))

@@ -251,3 +251,18 @@ function toggleMakeProjectTemporal(path) {
         $('.temporal').hide();
     }
 }
+
+
+function toggleShowPredictions(path) {
+    let logregInput = document.getElementById('logregInput');
+    response = syncRequest('/toggle-project-setting', {path: path, setting: 'show_logreg'});
+
+    // Show/hide all LogReg prediction-labels
+    if (response.setting_status) {
+        logregInput.setAttribute('checked', 'checked');
+        $('.logreg-predictions').show();
+    } else {
+        logregInput.removeAttribute('checked');
+        $('.logreg-predictions').hide();
+    }
+}

@@ -125,6 +125,7 @@ def setup_project():
             'classes': {},
             'use_gpu': False,
             'temporal': False,
+            'show_logreg': False,
         }
         old_name = None
 
@@ -295,12 +296,25 @@ def context_processors():
         class_labels = utils.get_class_labels(path)
         return class_labels
 
+    def inject_gpu_status(project):
+        path = utils.lookup_project_path(project)
+        use_gpu = utils.get_project_setting(path, 'use_gpu')
+        return use_gpu
+
     def inject_temporal_status(project):
         path = utils.lookup_project_path(project)
         temporal_status = utils.get_project_setting(path, 'temporal')
         return temporal_status
 
-    return dict(inject_class_labels=inject_class_labels, inject_temporal_status=inject_temporal_status)
+    def inject_logreg_status(project):
+        path = utils.lookup_project_path(project)
+        show_logreg = utils.get_project_setting(path, 'show_logreg')
+        return show_logreg
+
+    return dict(inject_class_labels=inject_class_labels,
+                inject_gpu_status=inject_gpu_status,
+                inject_temporal_status=inject_temporal_status,
+                inject_logreg_status=inject_logreg_status)
 
 
 if __name__ == '__main__':

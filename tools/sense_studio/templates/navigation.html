@@ -1,6 +1,8 @@
 <!-- The method injected by context processor is called here to get the class labels. -->
 {% set class_labels = inject_class_labels(project) %}
+{% set gpu_status = inject_gpu_status(project) %}
 {% set temporal_status = inject_temporal_status(project) %}
+{% set show_logreg = inject_logreg_status(project) %}
 <a href="{{ url_for('project_details', project=project) }}" class="item">Project Details</a>
 <div class="ui simple dropdown item">
     Video Recording
@@ -73,3 +75,33 @@
    data-position="bottom center" data-variation="very wide">
     Conversion
 </a>
+<div class="ui simple dropdown item right floated"
+   data-variation="wide"
+   data-position="bottom center">
+    <i class=""></i>
+    Settings
+    <i class="dropdown icon"></i>
+    <div class="menu">
+        <div class="ui toggle checkbox hashoverpopup item"
+           data-content="Should GPU be used for computing features?"
+           data-position="left center">
+            <input type="checkbox" id="gpuInput" {% if gpu_status %} checked="checked" {% endif %}
+               onclick="toggleGPU('{{ path }}');">
+            <label>Use GPU</label>
+        </div>
+        <div class="ui toggle checkbox hashoverpopup item"
+           data-content="Do you want to tag your video with frame-wise temporal annotations?"
+           data-position="left center">
+            <input type="checkbox" id="makeProjectTemporal" {% if temporal_status %} checked="checked" {% endif %}
+               onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
+            <label>Use Temporal Annotations</label>
+        </div>
+        <div class="ui toggle checkbox item"
+           data-content="Show LogReg model outputs on given temporal annotations?"
+           data-position="left center">
+            <input type="checkbox" id="logregInput" {% if show_logreg %} checked="checked" {% endif %}
+               onclick="toggleShowPredictions('{{ path }}');">
+            <label>Show Predictions</label>
+        </div>
+    </div>
+</div>

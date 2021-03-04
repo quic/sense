@@ -8,14 +8,6 @@
 
 {% block main %}
 <div id="main" class="ui main container">
-    <div class="ui segment right floated">
-        <h3 class="ui header center aligned">Settings</h3>
-        <div class="ui toggle checkbox hashoverpopup"
-           data-content="Show LogReg model outputs on given temporal annotations?">
-            <input type="checkbox" id="logregInput">
-            <label>Show Predictions</label>
-        </div>
-    </div>
     <h1 class="ui header">Annotate Frames</h1>
     <h2 class="ui header">Video: {{ video_name }}</h2>
     <div class="flex-container">
@@ -49,37 +41,39 @@
                     <div class="image">
                         <img src="{{ url_for('annotation_bp.download_file', project=project, split=split, label=label, video_name=video_name, img_file=img) }}">
                     </div>
-                    <div class="content">
-                        {% if pred_class == 0 %}
-                            <div class="ui large grey label prediction-label">
-                                Background
-                                <div class="detail">
-                                    predicted
+                    <div class="content center aligned ">
+                        <div class="logreg-predictions {{ 'display-hidden' if not show_logreg }}">
+                            {% if pred_class == 0 %}
+                                <div class="ui large grey label prediction-label fluid">
+                                    Background
+                                    <div class="detail">
+                                        predicted
+                                    </div>
                                 </div>
-                            </div>
-                        {% elif pred_class == 1 %}
-                            <div class="ui large blue label prediction-label">
-                                {{ tags[0] }}
-                                <div class="detail">
-                                    predicted
+                            {% elif pred_class == 1 %}
+                                <div class="ui large blue label prediction-label fluid">
+                                    {{ tags[0] }}
+                                    <div class="detail">
+                                        predicted
+                                    </div>
                                 </div>
-                            </div>
-                        {% elif pred_class == 2 %}
-                            <div class="ui large green label prediction-label">
-                                {{ tags[1] }}
-                                <div class="detail">
-                                    predicted
+                            {% elif pred_class == 2 %}
+                                <div class="ui large green label prediction-label fluid">
+                                    {{ tags[1] }}
+                                    <div class="detail">
+                                        predicted
+                                    </div>
                                 </div>
-                            </div>
-                        {% endif %}
+                            {% endif %}
+                        </div>
                         <div class="ui vertical buttons">
-                            <button type="button" class="ui grey button" id="{{ loop.index0 }}_tag0" onclick="assignTag({{ loop.index0 }}, 0);">
+                            <button type="button" class="ui grey button fluid" id="{{ loop.index0 }}_tag0" onclick="assignTag({{ loop.index0 }}, 0);">
                                 Background
                             </button>
-                            <button type="button" class="ui button" id="{{ loop.index0 }}_tag1" onclick="assignTag({{ loop.index0 }}, 1);">
+                            <button type="button" class="ui button fluid" id="{{ loop.index0 }}_tag1" onclick="assignTag({{ loop.index0 }}, 1);">
                                 {{ tags[0] }}
                             </button>
-                            <button type="button" class="ui button" id="{{ loop.index0 }}_tag2" onclick="assignTag({{ loop.index0 }}, 2);">
+                            <button type="button" class="ui button fluid" id="{{ loop.index0 }}_tag2" onclick="assignTag({{ loop.index0 }}, 2);">
                                 {{ tags[1] }}
                             </button>
                         </div>
