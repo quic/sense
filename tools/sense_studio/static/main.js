@@ -238,7 +238,7 @@ function toggleGPU(path) {
 }
 
 
-function toggleMakeProjectTemporal(path, project) {
+function toggleMakeProjectTemporal(path) {
     let makeProjectTemporal = document.getElementById('makeProjectTemporal');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
 
