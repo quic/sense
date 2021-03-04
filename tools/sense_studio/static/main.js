@@ -228,7 +228,7 @@ function editClass(index, shouldEdit) {
 
 function toggleGPU(path) {
     let gpuInput = document.getElementById('gpuInput');
-    response = syncRequest('/toggle-project-setting', {path, 'use_gpu'});
+    response = syncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
 
     if (response.status) {
         gpuInput.setAttribute('checked', 'checked');
@@ -240,7 +240,7 @@ function toggleGPU(path) {
 
 function toggleMakeProjectTemporal(path, project) {
     let makeProjectTemporal = document.getElementById('makeProjectTemporal');
-    response = syncRequest('/toggle-project-setting', {path, 'temporal'});
+    response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
 
     // Get all tags related divs
     let classTagsDiv = document.getElementsByClassName('classTags');
