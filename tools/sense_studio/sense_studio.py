@@ -123,6 +123,8 @@ def setup_project():
             'name': name,
             'date_created': datetime.date.today().isoformat(),
             'classes': {},
+            'use_gpu': False,
+            'temporal': False,
         }
         old_name = None
 
@@ -199,17 +201,17 @@ def add_class(project):
     return redirect(url_for("project_details", project=project))
 
 
-@app.route('/toggle-gpu', methods=['POST'])
-def toggle_gpu():
+@app.route('/toggle-project-setting', methods=['POST'])
+def toggle_project_setting():
     """
-    Switch GPU status using toggle button.
+    Toggle boolean project setting.
     """
     data = request.json
     path = data['path']
+    setting = data['setting']
+    new_status = utils.toggle_project_setting(path, setting)
 
-    use_gpu = utils.toggle_gpu_status(path)
-
-    return jsonify(use_gpu=use_gpu)
+    return jsonify(setting_status=new_status)
 
 
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
@@ -282,9 +284,9 @@ def add_header(r):
 
 
 @app.context_processor
-def class_labels_processor():
+def context_processors():
     """
-    This context processor will inject a method into templates,
+    This context processor will inject methods into templates,
     which can be invoked like an ordinary method in HTML templates.
     E.g. check navigation.html: line 1-2
     """
@@ -292,7 +294,13 @@ def class_labels_processor():
         path = utils.lookup_project_path(project)
         class_labels = utils.get_class_labels(path)
         return class_labels
-    return dict(inject_class_labels=inject_class_labels)
+
+    def inject_temporal_status(project):
+        path = utils.lookup_project_path(project)
+        temporal_status = utils.get_project_setting(path, 'temporal')
+        return temporal_status
+
+    return dict(inject_class_labels=inject_class_labels, inject_temporal_status=inject_temporal_status)
 
 
 if __name__ == '__main__':
