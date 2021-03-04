@@ -160,23 +160,19 @@ def submit_annotation():
     with open(out_annotation, 'w') as f:
         json.dump(description, f)
 
+    # Automatic re-training of the logistic regression model
+    train_logreg(path, split, label)
+
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('project_details', project=project))
 
     return redirect(url_for('.annotate', split=split, label=label, project=project, idx=next_frame_idx))
 
 
-@annotation_bp.route('/train-logreg', methods=['POST'])
-def train_logreg():
+def train_logreg(path, split, label):
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
     """
-    data = request.form  # a multi-dict containing POST data
-    idx = int(data['idx'])
-    path = data['path']
-    project = data['project']
-    split = data['split']
-    label = data['label']
 
     tags_dir = join(path, f"tags_{split}", label)
     features_dir = join(path, f"features_{split}", label)
@@ -230,8 +226,6 @@ def train_logreg():
             logreg = LogisticRegression(C=0.1, class_weight=class_weight)
             logreg.fit(X, y)
             dump(logreg, logreg_path)
-
-    return redirect(url_for('.annotate', split=split, label=label, project=project, idx=idx))
 
 
 @annotation_bp.route('/uploads/<string:project>/<string:split>/<string:label>/<string:video_name>/<string:img_file>')
