@@ -55,32 +55,10 @@ def load_config(backbone_settings, classifier_settings):
     return cfg_parser
 
 
-def finalize_custom_classifier_config(classifier_settings, path_in, backbone_name):
-    # if custom classifier, fill the classifier settings with arguments
-    if not path_in:
-        raise ValueError(
-            "You have to provide the directory used to train the custom classifier"
-        )
-
-    weights_file = os.path.join(path_in, "classifier.checkpoint")
-    if not os.path.isfile(weights_file):
-        raise EnvironmentError(
-            f'Missing weights: "classifier.checkpoint" file was not found in {path_in}'
-        )
-
+def finalize_custom_classifier_config(classifier_settings, path_in):
+    # Infer number of classes from label2int file
     lab2int_file = os.path.join(path_in, "label2int.json")
-    if not os.path.isfile(lab2int_file):
-        raise EnvironmentError(
-            f'Missing label mapping: "label2int.json" file was not found in {path_in}'
-        )
-    try:
-        with open(lab2int_file, "r") as f:
-            num_classes = np.max(list(json.load(f).values())) + 1
-    except Exception as e:
-        raise ValueError(f'Error while parsing "label2int.json"')
+    with open(lab2int_file, "r") as f:
+        num_classes = np.max(list(json.load(f).values())) + 1
 
-    classifier_settings["corresponding_backbone"] = backbone_name
-    classifier_settings["weights_file"] = weights_file
     classifier_settings["placeholder_values"]["NUM_CLASSES"] = str(num_classes)
-
-    return classifier_settings
