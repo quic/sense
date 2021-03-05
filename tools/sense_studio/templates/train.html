@@ -7,7 +7,38 @@
 {% endblock navigation %}
 
 {% block main %}
-
-
+<div id="main" class="ui main text container">
+    <h1 class="ui header">
+        Train Model
+    </h1>
+    <form class="ui form" action="{{ url_for('.train_model') }}" method="post">
+        <input type="hidden" name="project" value="{{ project }}">
+        <div class="two fields wide">
+            <div class="field">
+                <label>Choose Model</label>
+                <select class="ui fluid dropdown" name="model" required>
+                    <option value="0" selected>Efficientnet-1.8.3</option>
+                    <option value="1">Mobilenet</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Number of layers to finetune</label>
+                <input type="number" name="layers" min="5" value="5">
+            </div>
+        </div>
+        <div class="two fields wide">
+            <div class="field">
+                <label>Epochs</label>
+                <input type="number" name="epochs" min="80" value="80">
+            </div>
+            <div class="field">
+                <label>Output folder</label>
+                <input type="text" name="outputFolder" placeholder="Folder Name">
+            </div>
+        </div>
+      <button class="ui button" type="submit" tabindex="0">Train model</button>
+    </form>
+    <h1>{{ text }}</h1>
+</div>
 
 {% endblock main %}
