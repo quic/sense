@@ -289,32 +289,13 @@ def context_processors():
     """
     This context processor will inject methods into templates,
     which can be invoked like an ordinary method in HTML templates.
-    E.g. check navigation.html: line 1-2
+    E.g. {% set project_config = inject_project_config(project) %}
     """
-    def inject_class_labels(project):
+    def inject_project_config(project):
         path = utils.lookup_project_path(project)
-        class_labels = utils.get_class_labels(path)
-        return class_labels
+        return utils.load_project_config(path)
 
-    def inject_gpu_status(project):
-        path = utils.lookup_project_path(project)
-        use_gpu = utils.get_project_setting(path, 'use_gpu')
-        return use_gpu
-
-    def inject_temporal_status(project):
-        path = utils.lookup_project_path(project)
-        temporal_status = utils.get_project_setting(path, 'temporal')
-        return temporal_status
-
-    def inject_logreg_status(project):
-        path = utils.lookup_project_path(project)
-        show_logreg = utils.get_project_setting(path, 'show_logreg')
-        return show_logreg
-
-    return dict(inject_class_labels=inject_class_labels,
-                inject_gpu_status=inject_gpu_status,
-                inject_temporal_status=inject_temporal_status,
-                inject_logreg_status=inject_logreg_status)
+    return dict(inject_project_config=inject_project_config)
 
 
 if __name__ == '__main__':

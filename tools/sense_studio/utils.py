@@ -82,14 +82,6 @@ def get_class_name_and_tags(form_data):
     return class_name, tag1, tag2
 
 
-def get_class_labels(path):
-    """
-    Extract class names from the config.
-    """
-    config = load_project_config(path)
-    return config['classes'].keys()
-
-
 def get_project_setting(path, setting):
     config = load_project_config(path)
     return config.get(setting, False)
