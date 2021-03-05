@@ -166,7 +166,7 @@ def submit_annotation():
         train_logreg(path, split, label)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
-        return redirect(url_for('project_details', project=project))
+        return redirect(url_for('.show_video_list', project=project, split=split, label=label))
 
     return redirect(url_for('.annotate', split=split, label=label, project=project, idx=next_frame_idx))
 
