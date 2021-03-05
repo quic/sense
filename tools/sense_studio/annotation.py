@@ -162,8 +162,7 @@ def submit_annotation():
         json.dump(description, f)
 
     # Automatic re-training of the logistic regression model
-    config = utils.load_project_config(path)
-    if config.get('show_logreg', False):
+    if utils.get_project_setting(path, 'show_logreg'):
         train_logreg(path, split, label)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
