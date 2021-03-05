@@ -1,51 +1,60 @@
 <!-- The method injected by context processor is called here to get the class labels. -->
-{%  set class_labels = inject_class_labels(project) %}
+{% set class_labels = inject_class_labels(project) %}
+{% set temporal_status = inject_temporal_status(project) %}
 <a href="{{ url_for('project_details', project=project) }}" class="item">Project Details</a>
 <div class="ui simple dropdown item">
     Video Recording
     <i class="dropdown icon"></i>
     <div class="menu">
         <div class="item">
-            <i class="dropdown icon"></i>
             Train
-            <div class="menu">
-                {% for label in class_labels  %}
-                    <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">{{ label }}</a>
-                {% endfor %}
-            </div>
+            {% if class_labels %}
+                <i class="dropdown icon"></i>
+                <div class="menu">
+                    {% for label in class_labels  %}
+                        <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">{{ label }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
         <div class="item">
-            <i class="dropdown icon"></i>
             Valid
-            <div class="menu">
-                {% for label in class_labels %}
-                    <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">{{ label }}</a>
-                {% endfor %}
-            </div>
+            {% if class_labels %}
+                <i class="dropdown icon"></i>
+                <div class="menu">
+                    {% for label in class_labels %}
+                        <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">{{ label }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
-<div class="ui simple dropdown item">
+<div class="ui simple dropdown item temporal {{ 'display-hidden' if not temporal_status }}">
     Annotation
     <i class="dropdown icon"></i>
     <div class="menu">
         <div class="item">
-            <i class="dropdown icon"></i>
             Train
-            <div class="menu">
-                {% for label in class_labels %}
-                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{ label }}</a>
-                {% endfor %}
-            </div>
+            {% if class_labels %}
+                <i class="dropdown icon"></i>
+                <div class="menu">
+                    {% for label in class_labels %}
+                        <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{ label }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
         <div class="item">
-            <i class="dropdown icon"></i>
             Valid
-            <div class="menu">
-                {% for label in class_labels %}
-                    <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{ label }}</a>
-                {% endfor %}
-            </div>
+            {% if class_labels %}
+                <i class="dropdown icon"></i>
+                <div class="menu">
+                    {% for label in class_labels %}
+                        <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{ label }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
