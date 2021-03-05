@@ -93,8 +93,8 @@
                onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
             <label>Use Temporal Annotations</label>
         </div>
-        <div class="ui toggle checkbox item"
-           data-content="Show LogReg model outputs on given temporal annotations?"
+        <div class="ui toggle checkbox hashoverpopup item"
+           data-content="Train a simple logistic regression model live on temporal annotations and show current predictions?"
            data-position="left center">
             <input type="checkbox" id="logregInput" {% if project_config.show_logreg %} checked="checked" {% endif %}
                onclick="toggleShowPredictions('{{ path }}');">
