@@ -102,3 +102,49 @@ class ExerciceSpecificRepCounter:
             if classif_output[self.inverse_mapping[self.position0]] > self.threshold:
                 self.position = 0
                 self.count += 1
+
+
+class TwoPositionsRepCounter(PostProcessor):
+
+    def __init__(self, mapping, position0, position1, threshold0, threshold1, out_key, **kwargs):
+        super().__init__(**kwargs)
+        self.threshold0 = threshold0
+        self.threshold1 = threshold1
+        self.position0 = mapping[position0]
+        self.position1 = mapping[position1]
+        self.count = 0
+        self.position = 0
+        self.out_key = out_key
+
+    def postprocess(self, classif_output):
+        if classif_output is not None:
+            if self.position == 0:
+                if classif_output[self.position1] > self.threshold1:
+                    self.position = 1
+            else:
+                if classif_output[self.position0] > self.threshold0:
+                    self.position = 0
+                    self.count += 1
+
+        return {self.out_key: self.count}
+
+
+class OnePositionRepCounter(PostProcessor):
+
+    def __init__(self, mapping, position, threshold, out_key, **kwargs):
+        super().__init__(**kwargs)
+        self.threshold = threshold
+        self.position = mapping[position]
+        self.count = 0
+        self.active = False
+        self.out_key = out_key
+
+    def postprocess(self, classif_output):
+        if classif_output is not None:
+            if self.active and classif_output[self.position] < self.threshold:
+                self.active = False
+            elif not self.active and classif_output[self.position] > self.threshold:
+                self.active = True
+                self.count += 1
+
+        return {self.out_key: self.count}

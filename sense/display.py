@@ -145,6 +145,162 @@ class DisplayRepCounts(BaseDisplay):
         return img
 
 
+class DisplayGraph(BaseDisplay):
+    """
+    Display visual graph for predictions from the neural network.
+    """
+    def __init__(self, thresholds: Dict[str, float], classes: List[str], base_class: str, **kwargs):
+        super().__init__(**kwargs)
+        self.thresholds = thresholds
+        self.classes = classes
+        self.base_class = base_class
+
+    def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
+        _threshold = self.thresholds[self.classes[0]]
+        t_line = int(_threshold * 60)
+        h, w, _ = img.shape
+
+        ########################
+        # START display window #
+        ########################
+
+        # cv2.rectangle(img,
+        #               (w - 400, h - 80),
+        #               (w - 220, h - 20),
+        #               (0, 0, 0),
+        #               cv2.FILLED)
+        # for i in range(10):
+        #     div = i * 6
+        #     cv2.line(img,
+        #              (w - 400, h - 20 - div),
+        #              (w - 220, h - 20 - div),
+        #              (31, 31, 31))
+        # cv2.line(img,
+        #          (w - 400, h - 20 - t_line),
+        #          (w - 220, h - 20 - t_line),
+        #          (255, 127, 0))
+        # results = [display_data['sorted_predictions'][i][1] for cname in self.classes
+        #            for i in range(len(display_data['sorted_predictions']))
+        #            if display_data['sorted_predictions'][i][0] == cname]
+        # y_val = int(results[1] * 60)
+        # line2_color = (0, 0, 255)
+        # if y_val >= t_line:
+        #     line2_color = (0, 255, 0)
+        # cv2.line(img,
+        #          (w - 400, h - 20 - y_val),
+        #          (w - 220, h - 20 - y_val),
+        #          line2_color,
+        #          1)
+        # cv2.rectangle(img,
+        #               (w - 400, h - 80),
+        #               (w - 220, h - 20),
+        #               (255, 255, 255))
+        # cv2.putText(img, "(START)", (w - 350, h - 5),
+        #             cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1, cv2.LINE_AA)
+
+        ######################
+        # END display window #
+        ######################
+
+        # Display black-filled rectangle
+        cv2.rectangle(img,
+                      (w - 200, h - 80),
+                      (w - 20, h - 20),
+                      (0, 0, 0),
+                      cv2.FILLED)
+
+        # Display individual line divisions
+        for i in range(10):
+            div = i * 6
+            cv2.line(img,
+                     (w - 200, h - 20 - div),
+                     (w - 20, h - 20 - div),
+                     (31, 31, 31))
+
+        # Display threshold line
+        cv2.line(img,
+                 (w - 200, h - 20 - t_line),
+                 (w - 20, h - 20 - t_line),
+                 (255, 127, 0))
+        results = [display_data['sorted_predictions'][i][1] for cname in self.classes
+                   for i in range(len(display_data['sorted_predictions']))
+                   if display_data['sorted_predictions'][i][0] == cname]
+        y_val = int(results[0] * 60)
+        line1_color = (0, 0, 255)
+        if y_val >= t_line:
+            line1_color = (0, 255, 0)
+
+        # Display output line
+        cv2.line(img,
+                 (w - 200, h - 20 - y_val),
+                 (w - 20, h - 20 - y_val),
+                 line1_color,
+                 1)
+
+        # Display white-border rectangle
+        cv2.rectangle(img,
+                      (w - 200, h - 80),
+                      (w - 20, h - 20),
+                      (255, 255, 255))
+
+        # Display Class Names
+        cv2.putText(img, f"{self.base_class}", (w - 250, h - 5),
+                    cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1, cv2.LINE_AA)
+        # cv2.putText(img, "END", (w - 200, h - 85),
+        #             cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1, cv2.LINE_AA)
+
+        return img
+
+
+class DisplayProbBar(BaseDisplay):
+    def __init__(self, keys):
+        super().__init__()
+        self.keys = keys
+
+    def display(self, img, display_data):
+        x, y, w, h = 2, 2, img.shape[1] - 2, 200
+        sub_img = img[y:y + h, x:x + w]
+        white_rect = np.ones(sub_img.shape, dtype=np.uint8) * 0
+        res = cv2.addWeighted(sub_img, 0.5, white_rect, 0.5, 1.0)
+        img[y:y + h, x:x + w] = res
+
+        for index, key in enumerate(self.keys):
+            y_pos = 20 * (index + 1) + self.y_offset
+            size = cv2.getTextSize(key.replace('counting - ', '').replace('=end', ''), FONT, 1, 1)[0]
+            text_x = (img.shape[1] - size[0])
+            x_pos = text_x - (img.shape[1])//2
+            x_offset = img.shape[1] // 2 + 20
+            results = [display_data['sorted_predictions'][i][1]
+                       for i in range(len(display_data['sorted_predictions']))
+                       if display_data['sorted_predictions'][i][0] == key]
+            put_text(img, f"{key.replace('counting - ', '').replace('=end', '')} : ", (x_pos, y_pos))
+            cv2.line(img, (x_offset, y_pos - 5),
+                     (x_offset + int(200*results[0]), y_pos - 5),
+                     (0, 255, 0), 10, cv2.LINE_AA)
+        return img
+
+
+class DisplayRepCounts2(BaseDisplay):
+
+    lateral_offset = DisplayMETandCalories.lateral_offset
+
+    def __init__(self, keys, y_offset=60):
+        super().__init__(y_offset)
+        self.keys = keys
+
+    def display(self, img, display_data):
+        x, y, w, h = 2, 2, img.shape[1] - 2, 200
+        sub_img = img[y:y + h, x:x + w]
+        white_rect = np.ones(sub_img.shape, dtype=np.uint8) * 0
+        res = cv2.addWeighted(sub_img, 0.5, white_rect, 0.5, 1.0)
+        img[y:y + h, x:x + w] = res
+
+        for index, key in enumerate(self.keys):
+            y_pos = 20 * (index + 1) + self.y_offset
+            put_text(img, f'{key}: {display_data[key]}', (10 + self.lateral_offset, y_pos))
+        return img
+
+
 class DisplayFPS(BaseDisplay):
     """
     Display camera fps and inference engine fps on debug window.
@@ -358,7 +514,7 @@ class DisplayResults:
 
         # Add title on top
         if self.title:
-            img = cv2.copyMakeBorder(img, 50, 0, 0, 0, cv2.BORDER_CONSTANT)
+            img = cv2.copyMakeBorder(img, 200, 0, 0, 0, cv2.BORDER_CONSTANT)
             textsize = cv2.getTextSize(self.title, FONT, 1, 2)[0]
             middle = int((img.shape[1] - textsize[0]) / 2)
             put_text(img, self.title, (middle, 20))

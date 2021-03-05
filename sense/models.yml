@@ -10,6 +10,7 @@ StridedInflatedEfficientNet:
     backbone: backbone/strided_inflated_efficientnet.ckpt
     fitness_activity_recognition: fitness_activity_recognition/sien_logreg.ckpt
     gesture_recognition: gesture_recognition/sien_logreg.ckpt
+    gesture_reactive: gesture_recognition/sien_reactive_logreg.ckpt
     met_converter: calorie_estimation/sien_met_converter.ckpt
     rep_counter: fitness_rep_counting/sien_logreg.ckpt
 
