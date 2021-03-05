@@ -22,12 +22,14 @@ from flask import url_for
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
 from tools.sense_studio.video_recording import video_recording_bp
+from tools.sense_studio.train_module import train_bp
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
 
 app.register_blueprint(annotation_bp, url_prefix='/annotation')
 app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
+app.register_blueprint(train_bp, url_prefix='/training')
 
 
 @app.route('/')
