@@ -58,7 +58,7 @@ if __name__ == "__main__":
     model_name = args['--model_name'] or None
     model_version = args['--model_version'] or None
     use_gpu = args['--use_gpu']
-    class_names = args['--class_names'] or 'thumb_up,thumb_down,background'
+    class_names = args['--class_names'] or 'thumb_up,thumb_down'
     classes_chosen = args['--choose']
 
     classes = []
@@ -141,9 +141,9 @@ if __name__ == "__main__":
         display_ops.append(sense.display.DisplayRepCounts2(keys=[cname for cname in classes], y_offset=0))
 
     if options == "Probability Bar":
-        display_ops.append(sense.display.DisplayProbBar(keys=[cname for cname in classes]))
+        display_ops.append(sense.display.DisplayProbBar(keys=[cname for cname in classes], thresholds=LAB_THRESHOLDS))
 
-    classes.append('counting - background')
+    # classes.append('counting - background')
 
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops, window_size=(720, 1280))
 

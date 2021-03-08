@@ -253,9 +253,10 @@ class DisplayGraph(BaseDisplay):
 
 
 class DisplayProbBar(BaseDisplay):
-    def __init__(self, keys):
+    def __init__(self, keys: List[str], thresholds: Dict[str, float]):
         super().__init__()
         self.keys = keys
+        self.thresholds = thresholds
 
     def display(self, img, display_data):
         x, y, w, h = 2, 2, img.shape[1] - 2, 200
@@ -273,10 +274,16 @@ class DisplayProbBar(BaseDisplay):
             results = [display_data['sorted_predictions'][i][1]
                        for i in range(len(display_data['sorted_predictions']))
                        if display_data['sorted_predictions'][i][0] == key]
+            bar_color = (0, 128, 0)
+            if results[0] > self.thresholds[key]:
+                bar_color = (0, 255, 0)
             put_text(img, f"{key.replace('counting - ', '').replace('=end', '')} : ", (x_pos, y_pos))
+            x_new_pos = x_offset + int(200*results[0])
             cv2.line(img, (x_offset, y_pos - 5),
-                     (x_offset + int(200*results[0]), y_pos - 5),
-                     (0, 255, 0), 10, cv2.LINE_AA)
+                     (x_new_pos, y_pos - 5),
+                     bar_color, 10, cv2.LINE_AA)
+            probs = int(results[0] * 100) / 100
+            put_text(img, f"{probs}", (x_new_pos + 10, y_pos))
         return img
 
 
