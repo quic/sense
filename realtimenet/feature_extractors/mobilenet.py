@@ -190,9 +190,13 @@ class StridedInflatedMobileNetV2(nn.Module):
         return self.cnn(video)
 
     def preprocess(self, clip):
+        MEAN = np.array([0.485, 0.456, 0.406]).reshape((3, 1, 1, 1))
+        STD = np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1, 1))
+
         clip = clip[:, :, :, ::-1].copy()
         clip /= 255.
         clip = clip.transpose(0, 1, 4, 2, 3)
+        clip = ((clip - MEAN) / STD).astype(np.float32)
         clip = torch.Tensor(clip).float()
         return clip[0]
 
