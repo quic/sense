@@ -64,9 +64,10 @@ if __name__ == "__main__":
     feature_extractor = feature_extractors.StridedInflatedEfficientNet()
     # remove internal padding for feature extraction and training
     feature_extractor.apply(set_internal_padding_false)
-    name = 'strided_inflated_efficientnet_free'
-    checkpoint = torch.load(f'resources/backbone/{name}.ckpt')
-    feature_extractor.load_state_dict(checkpoint)
+    name = 'model'
+    checkpoint = torch.load(f'resources/backbone/{name}.checkpoint')
+    checkpoint = {k.replace('module.', ''): v for k, v in checkpoint.items()}
+    feature_extractor.load_state_dict(checkpoint, strict=False)
     feature_extractor.eval()
 
     # Get the require temporal dimension of feature tensors in order to

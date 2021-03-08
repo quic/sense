@@ -190,8 +190,8 @@ class StridedInflatedMobileNetV2(nn.Module):
         return self.cnn(video)
 
     def preprocess(self, clip):
-        MEAN = np.array([0.485, 0.456, 0.406]).reshape((3, 1, 1, 1))
-        STD = np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1, 1))
+        MEAN = np.array([0.485, 0.456, 0.406]).reshape((1, 1, 3, 1, 1))
+        STD = np.array([0.229, 0.224, 0.225]).reshape((1, 1, 3, 1, 1))
 
         clip = clip[:, :, :, ::-1].copy()
         clip /= 255.
