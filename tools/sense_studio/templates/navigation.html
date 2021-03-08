@@ -1,7 +1,7 @@
 <!-- The method injected by context processor is called here to get the project config. -->
 {% set project_config = inject_project_config(project) %}
-<a href="{{ url_for('project_details', project=project) }}" class="item">Project Details</a>
-<div class="ui simple dropdown item">
+<a href="{{ url_for('project_details', project=project) }}" class="uk-navbar-item">Project Details</a>
+<div class="uk-navbar-item">
     Video Recording
     <i class="dropdown icon"></i>
     <div class="menu">
@@ -29,7 +29,7 @@
         </div>
     </div>
 </div>
-<div class="ui simple dropdown item temporal {{ 'display-hidden' if not project_config.temporal }}">
+<div class="uk-navbar-item temporal {{ 'display-hidden' if not project_config.temporal }}">
     Annotation
     <i class="dropdown icon"></i>
     <div class="menu">
@@ -57,22 +57,22 @@
         </div>
     </div>
 </div>
-<a href="javascript:void(0)" class="item hashoverpopup"
+<a href="javascript:void(0)" class="uk-navbar-item hashoverpopup"
    data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/train_classifier.py</code>"
    data-position="bottom center" data-variation="very wide">
     Training
 </a>
-<a href="javascript:void(0)" class="item hashoverpopup"
+<a href="javascript:void(0)" class="uk-navbar-item hashoverpopup"
    data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/run_custom_classifier.py</code>"
    data-position="bottom center" data-variation="very wide">
     Testing
 </a>
-<a href="javascript:void(0)" class="item hashoverpopup"
+<a href="javascript:void(0)" class="uk-navbar-item hashoverpopup"
    data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/conversion/convert_to_tflite.py</code>"
    data-position="bottom center" data-variation="very wide">
     Conversion
 </a>
-<div class="ui simple dropdown item right floated"
+<div class="uk-navbar-item right floated"
    data-variation="wide"
    data-position="bottom center">
     <i class=""></i>

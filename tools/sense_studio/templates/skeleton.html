@@ -8,6 +8,8 @@
 
     <link rel="shortcut icon" href="{{ url_for('static', filename='sense_favicon.png') }}">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.6.17/dist/css/uikit.min.css" />
+
 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Merienda One">
 	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Port Lligat Slab">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
@@ -17,14 +19,20 @@
 </head>
 <body>
 
-    <div class="ui fixed menu">
-        <div class="ui container">
-            <a href="{{ url_for('projects_overview') }}" class="header item">
-                <img class="logo" src="{{ url_for('static', filename='sense_studio_logo.svg') }}">
-            </a>
-            <a href="{{ url_for('projects_overview') }}" class="item">Projects</a>
-            {% block navigation %}{% endblock navigation %}
-        </div>
+    <div class="uk-container">
+        <nav class="uk-navbar-container uk-navbar-transparent" uk-navbar>
+            <div class="uk-navbar-left">
+                <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item uk-logo">
+                    Some Text
+                    <img src="{{ url_for('static', filename='sense_studio_logo.svg') }}">
+                </a>
+
+                <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item">Projects</a>
+
+                {% block navigation %}{% endblock navigation %}
+
+            </div>
+        </nav>
     </div>
 
     {# the error messages are displayed then the success messages #}
@@ -54,6 +62,9 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.6.17/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.6.17/dist/js/uikit-icons.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
