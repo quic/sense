@@ -90,7 +90,7 @@
            data-content="Do you want to tag your video with frame-wise temporal annotations?"
            data-position="left center">
             <input type="checkbox" id="makeProjectTemporal" {% if project_config.temporal %} checked="checked" {% endif %}
-               onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
+               onclick="toggleMakeProjectTemporal('{{ path }}');">
             <label>Use Temporal Annotations</label>
         </div>
         <div class="ui toggle checkbox hashoverpopup item"
