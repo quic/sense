@@ -12,6 +12,8 @@ PROJECT_CONFIG_FILE = 'project_config.json'
 
 SPLITS = ['train', 'valid']
 
+BACKBONE_MODELS_DIR = 'resources/backbone/'
+
 
 def load_feature_extractor(project_path):
     feature_extractor = backbone_networks.StridedInflatedEfficientNet()

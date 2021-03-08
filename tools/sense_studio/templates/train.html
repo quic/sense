@@ -17,8 +17,13 @@
             <div class="field">
                 <label>Choose Model</label>
                 <select class="ui fluid dropdown" name="model" required>
-                    <option value="0" selected>Efficientnet-1.8.3</option>
-                    <option value="1">Mobilenet</option>
+                    {% if models %}
+                        {% for model in models %}
+                            <option value="{{ model }}">{{ model }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="">No models to select</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="field">
@@ -37,6 +42,7 @@
             </div>
         </div>
       <button class="ui button" type="submit" tabindex="0">Train model</button>
+      <button class="ui button" type="reset" tabindex="1">Cancel</button>
     </form>
     <h1>{{ text }}</h1>
 </div>
