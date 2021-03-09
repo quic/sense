@@ -13,6 +13,7 @@
     </h1>
     <form class="ui form" action="{{ url_for('.train_model') }}" method="post">
         <input type="hidden" name="project" value="{{ project }}">
+        <input type="hidden" name="models" value="{{ models }}">
         <div class="two fields wide">
             <div class="field">
                 <label>Choose Model</label>
@@ -42,9 +43,15 @@
             </div>
         </div>
       <button class="ui button" type="submit" tabindex="0">Train model</button>
-      <button class="ui button" type="reset" tabindex="1">Cancel</button>
+      <button class="ui button" type="submit" tabindex="1" formaction="{{ url_for('.cancel_training') }}">Cancel</button>
     </form>
-    <h1>{{ text }}</h1>
+    <div class="ui segment" style="overflow: auto; height:500px; scroll:auto; background-color:black; color:white;">
+<!--        <h3> Training model...</h3>-->
+        <h4>
+            {% for log in logs %}
+                {{ log }} <br />
+            {% endfor %}
+        </h4>
+    </div>
 </div>
-
-{% endblock main %}
+{% endblock %}
