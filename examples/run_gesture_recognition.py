@@ -29,9 +29,12 @@ from PyInquirer import prompt
 
 import sense.display
 from sense.controller import Controller
-from sense.downstream_tasks.gesture_recognition import INT2LAB
-from sense.downstream_tasks.gesture_recognition import LAB2INT
-from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS
+from sense.downstream_tasks.gesture_recognition import INT2LAB_reactive
+from sense.downstream_tasks.gesture_recognition import INT2LAB_reactive9
+from sense.downstream_tasks.gesture_recognition import LAB2INT_reactive
+from sense.downstream_tasks.gesture_recognition import LAB2INT_reactive9
+from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS_reactive
+from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS_reactive9
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
@@ -43,6 +46,7 @@ from sense.loading import ModelConfig
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_reactive']),
+    ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo', ['gesture_reactive']),
     ModelConfig('StridedInflatedMobileNetV2', 'pro', ['gesture_recognition']),
     ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_recognition']),
     ModelConfig('StridedInflatedMobileNetV2', 'lite', ['gesture_recognition']),
@@ -60,6 +64,29 @@ if __name__ == "__main__":
     use_gpu = args['--use_gpu']
     class_names = args['--class_names'] or 'thumb_up,thumb_down'
     classes_chosen = args['--choose']
+
+    answer_model_select = prompt({
+        'type': 'list',
+        'name': 'model_select',
+        'message': 'Select the model to use for testing',
+        'choices': [
+            'Baseline',
+            'Fine-tuned',
+        ],
+    })
+
+    model_select = answer_model_select['model_select']
+
+    LAB2INT = LAB2INT_reactive
+    INT2LAB = INT2LAB_reactive
+    LAB_THRESHOLDS = LAB_THRESHOLDS_reactive
+    dict_name = 'gesture_reactive'
+
+    if model_select == "Fine-tuned":
+        LAB2INT = LAB2INT_reactive9
+        INT2LAB = INT2LAB_reactive9
+        LAB_THRESHOLDS = LAB_THRESHOLDS_reactive9
+        model_version = 'reactive_gesture_demo'
 
     classes = []
     if classes_chosen:
