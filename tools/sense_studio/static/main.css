@@ -70,3 +70,11 @@ a {
 .flex-filler {
     flex: 1;
 }
+
+.console {
+    overflow: auto;
+    height:500px;
+    scroll:auto;
+    background-color:black;
+    color:white;
+}
