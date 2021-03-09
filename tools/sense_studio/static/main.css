@@ -6,6 +6,14 @@ a {
     color: inherit;
 }
 
+.navbar-logo {
+    width: 100px;
+}
+
+.footer-logo {
+    width: 150px;
+}
+
 .ui.menu .item img.logo {
     margin-right: 1.5em;
     height: 4em;

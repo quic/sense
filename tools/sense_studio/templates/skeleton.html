@@ -22,9 +22,8 @@
     <div class="uk-container">
         <nav class="uk-navbar-container uk-navbar-transparent" uk-navbar>
             <div class="uk-navbar-left">
-                <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item uk-logo">
-                    Some Text
-                    <img src="{{ url_for('static', filename='sense_studio_logo.svg') }}">
+                <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item">
+                    <img class="navbar-logo" src="{{ url_for('static', filename='sense_studio_logo.svg') }}">
                 </a>
 
                 <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item">Projects</a>
@@ -50,18 +49,20 @@
 
     {% block main %}{% endblock %}
 
-    <div class="ui vertical footer segment">
-        <div class="ui center aligned container">
-            <img src="{{ url_for('static', filename='sense_studio_logo.svg') }}" class="ui centered small image">
-            <div class="ui horizontal small divided link list">
-                <a class="item" href="https://github.com/TwentyBN/sense">
-                    <i class="github icon"></i>
+    <footer class="uk-section uk-padding-remove-bottom">
+        <div class="uk-container uk-text-center">
+            <img src="{{ url_for('static', filename='sense_studio_logo.svg') }}" class="footer-logo">
+
+            <div class="uk-padding">
+                <a class="" href="https://github.com/TwentyBN/sense">
+                    <span uk-icon="icon: github"></span>
                     Github
                 </a>
-                <a class="item" href="https://20bn.com/">TwentyBN</a>
+                |
+                <a class="" href="https://20bn.com/">TwentyBN</a>
             </div>
         </div>
-    </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.6.17/dist/js/uikit.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.6.17/dist/js/uikit-icons.min.js"></script>
