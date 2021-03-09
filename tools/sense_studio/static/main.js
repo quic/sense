@@ -101,6 +101,11 @@ $(document).ready(function () {
         $(this).closest('.message').transition('fade');
     });
 
+     $('.train').addClass('display-hidden');
+
+    $('.trainModel').on('click', function() {
+        $('.train').removeClass('display-hidden');
+    })
 });
 
 
