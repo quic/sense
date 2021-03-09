@@ -5,7 +5,7 @@ import urllib
 import time
 
 import flask
-from flask import Blueprint, url_for
+from flask import Blueprint
 from flask import render_template
 from flask import request
 from flask import current_app
@@ -37,12 +37,23 @@ def stream_template(template_name, **context):
 @train_bp.route('/train-model', methods=['POST'])
 def train_model():
     data = request.form
+    project = data['project']
+    model = data['model']
+    num_layers_to_finetune = data['layersToFinetune']
+    path_out = data['outputFolder']
 
-    cmd = "python tools/train_classifier.py --path_in=dataset/SoccerSkills --num_layers_to_finetune=9 --use_gpu --overwrite"
-    cmd_split = shlex.split(cmd)
+    path = utils.lookup_project_path(project)
+    config = utils.load_project_config(path)
+
+    train_classifier = ["python tools/train_classifier.py", f"--path_in={project}/",
+                        f"--num_layers_to_finetune={num_layers_to_finetune}", "--use_gpu" if config['use_gpu'] else "",
+                        f"--path_out={path_out} --overwrite"]
+
+    train_classifier = ' '.join(train_classifier)
+    train_classifier = shlex.split(train_classifier)
 
     global PROCESS
-    PROCESS = subprocess.Popen(cmd_split, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    PROCESS = subprocess.Popen(train_classifier, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def generate():
         while True:
@@ -51,7 +62,6 @@ def train_model():
                 PROCESS.terminate()
                 break
             if output:
-                # print(output.decode())
                 time.sleep(0.1)
                 yield output.decode().strip() + '\n'
 
@@ -66,4 +76,4 @@ def cancel_training():
     global PROCESS
     PROCESS.terminate()
 
-    return render_template('train.html', project=data['project'], logs=["Training Cancelled"])
+    return render_template('train.html', project=data['project'], models=data['models'], logs=["Training Cancelled"])
