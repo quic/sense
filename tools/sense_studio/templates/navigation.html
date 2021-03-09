@@ -1,104 +1,141 @@
 <!-- The method injected by context processor is called here to get the project config. -->
 {% set project_config = inject_project_config(project) %}
-<a href="{{ url_for('project_details', project=project) }}" class="uk-navbar-item">Project Details</a>
-<div class="uk-navbar-item">
-    Video Recording
-    <i class="dropdown icon"></i>
-    <div class="menu">
-        <div class="item">
-            Train
-            {% if project_config.classes %}
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    {% for label in project_config.classes  %}
-                        <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">{{ label }}</a>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        <div class="item">
-            Valid
-            {% if project_config.classes %}
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    {% for label in project_config.classes %}
-                        <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">{{ label }}</a>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-<div class="uk-navbar-item temporal {{ 'display-hidden' if not project_config.temporal }}">
-    Annotation
-    <i class="dropdown icon"></i>
-    <div class="menu">
-        <div class="item">
-            Train
-            {% if project_config.classes %}
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    {% for label in project_config.classes %}
-                        <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{ label }}</a>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        <div class="item">
-            Valid
-            {% if project_config.classes %}
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    {% for label in project_config.classes %}
-                        <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{ label }}</a>
-                    {% endfor %}
-                </div>
-            {% endif %}
+
+<li>
+    <a href="{{ url_for('project_details', project=project) }}" class="uk-navbar-item">Project Details</a>
+</li>
+
+<li>
+    <a href="#">Video Recording</a>
+    <div class="uk-navbar-dropdown uk-navbar-dropdown-width-2">
+        <div class="uk-navbar-dropdown-grid uk-child-width-1-2" uk-grid>
+            <div>
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li class="uk-nav-header">Train</li>
+                    {% if project_config.classes %}
+                        {% for label in project_config.classes  %}
+                            <li>
+                                <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">
+                                    {{ label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+            <div>
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li class="uk-nav-header">Valid</li>
+                    {% if project_config.classes %}
+                        {% for label in project_config.classes %}
+                            <li>
+                                <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">
+                                    {{ label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
         </div>
     </div>
-</div>
-<a href="javascript:void(0)" class="uk-navbar-item hashoverpopup"
-   data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/train_classifier.py</code>"
-   data-position="bottom center" data-variation="very wide">
-    Training
-</a>
-<a href="javascript:void(0)" class="uk-navbar-item hashoverpopup"
-   data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/run_custom_classifier.py</code>"
-   data-position="bottom center" data-variation="very wide">
-    Testing
-</a>
-<a href="javascript:void(0)" class="uk-navbar-item hashoverpopup"
-   data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/conversion/convert_to_tflite.py</code>"
-   data-position="bottom center" data-variation="very wide">
-    Conversion
-</a>
-<div class="uk-navbar-item right floated"
-   data-variation="wide"
-   data-position="bottom center">
-    <i class=""></i>
-    Settings
-    <i class="dropdown icon"></i>
-    <div class="menu">
-        <div class="ui toggle checkbox hashoverpopup item"
-           data-content="Should GPU be used for computing features?"
-           data-position="left center">
-            <input type="checkbox" id="gpuInput" {% if project_config.use_gpu %} checked="checked" {% endif %}
-               onclick="toggleGPU('{{ path }}');">
-            <label>Use GPU</label>
-        </div>
-        <div class="ui toggle checkbox hashoverpopup item"
-           data-content="Do you want to tag your video with frame-wise temporal annotations?"
-           data-position="left center">
-            <input type="checkbox" id="makeProjectTemporal" {% if project_config.temporal %} checked="checked" {% endif %}
-               onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
-            <label>Use Temporal Annotations</label>
-        </div>
-        <div class="ui toggle checkbox hashoverpopup item"
-           data-content="Train a simple logistic regression model live on temporal annotations and show current predictions?"
-           data-position="left center">
-            <input type="checkbox" id="logregInput" {% if project_config.show_logreg %} checked="checked" {% endif %}
-               onclick="toggleShowPredictions('{{ path }}');">
-            <label>Show Predictions</label>
+</li>
+
+<li class="temporal {{ 'display-hidden' if not project_config.temporal }}">
+    <a href="#">Annotation</a>
+    <div class="uk-navbar-dropdown uk-navbar-dropdown-width-2">
+        <div class="uk-navbar-dropdown-grid uk-child-width-1-2" uk-grid>
+            <div>
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li class="uk-nav-header">Train</li>
+                    {% if project_config.classes %}
+                        {% for label in project_config.classes  %}
+                            <li>
+                                <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">
+                                    {{ label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+            <div>
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li class="uk-nav-header">Valid</li>
+                    {% if project_config.classes %}
+                        {% for label in project_config.classes %}
+                            <li>
+                                <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">
+                                    {{ label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
         </div>
     </div>
+</li>
+
+<li>
+    <a href="javascript:void(0)" class="hashoverpopup"
+       data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/train_classifier.py</code>"
+       data-position="bottom center" data-variation="very wide">
+        Training
+    </a>
+</li>
+
+<li>
+    <a href="javascript:void(0)" class="hashoverpopup"
+       data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/run_custom_classifier.py</code>"
+       data-position="bottom center" data-variation="very wide">
+        Testing
+    </a>
+</li>
+
+<li>
+    <a href="javascript:void(0)" class="hashoverpopup"
+       data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/conversion/convert_to_tflite.py</code>"
+       data-position="bottom center" data-variation="very wide">
+        Conversion
+    </a>
+</li>
+
+<div class="uk-navbar-right">
+    <ul class="uk-navbar-nav">
+        <li>
+            <a href="#">Settings</a>
+            <div class="uk-navbar-dropdown">
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li>
+                        <div class="ui toggle checkbox hashoverpopup item"
+                           data-content="Should GPU be used for computing features?"
+                           data-position="left center">
+                            <input type="checkbox" id="gpuInput" {% if project_config.use_gpu %} checked="checked" {% endif %}
+                               onclick="toggleGPU('{{ path }}');">
+                            <label>Use GPU</label>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="ui toggle checkbox hashoverpopup item"
+                           data-content="Do you want to tag your video with frame-wise temporal annotations?"
+                           data-position="left center">
+                            <input type="checkbox" id="makeProjectTemporal" {% if project_config.temporal %} checked="checked" {% endif %}
+                               onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
+                            <label>Use Temporal Annotations</label>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="ui toggle checkbox hashoverpopup item"
+                           data-content="Train a simple logistic regression model live on temporal annotations and show current predictions?"
+                           data-position="left center">
+                            <input type="checkbox" id="logregInput" {% if project_config.show_logreg %} checked="checked" {% endif %}
+                               onclick="toggleShowPredictions('{{ path }}');">
+                            <label>Show Predictions</label>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </li>
+    </ul>
 </div>

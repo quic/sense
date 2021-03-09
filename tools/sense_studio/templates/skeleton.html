@@ -22,14 +22,20 @@
     <div class="uk-container">
         <nav class="uk-navbar-container uk-navbar-transparent" uk-navbar>
             <div class="uk-navbar-left">
-                <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item">
-                    <img class="navbar-logo" src="{{ url_for('static', filename='sense_studio_logo.svg') }}">
-                </a>
+                <ul class="uk-navbar-nav">
+                    <li>
+                        <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item">
+                            <img class="navbar-logo" src="{{ url_for('static', filename='sense_studio_logo.svg') }}">
+                        </a>
+                    </li>
 
-                <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item">Projects</a>
+                    <li>
+                        <a href="{{ url_for('projects_overview') }}" class="uk-navbar-item">Projects</a>
+                    </li>
 
-                {% block navigation %}{% endblock navigation %}
+                    {% block navigation %}{% endblock navigation %}
 
+                </ul>
             </div>
         </nav>
     </div>
