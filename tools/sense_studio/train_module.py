@@ -1,18 +1,20 @@
-import glob
 import os
 import subprocess
 import shlex
 import urllib
+import time
 
 import flask
-from flask import Blueprint
-from flask import jsonify
+from flask import Blueprint, url_for
 from flask import render_template
 from flask import request
-
+from flask import current_app
+from flask import stream_with_context
 from tools.sense_studio import utils
 
 train_bp = Blueprint('train_bp', __name__)
+
+PROCESS = None
 
 
 @train_bp.route('/<string:project>', methods=['GET'])
@@ -24,25 +26,44 @@ def training_page(project):
     return render_template('train.html', project=project, models=models)
 
 
+def stream_template(template_name, **context):
+    # Ref: https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/
+    current_app.update_template_context(context)
+    t = current_app.jinja_env.get_template(template_name)
+    rv = t.stream(context)
+    return rv
+
+
 @train_bp.route('/train-model', methods=['POST'])
 def train_model():
     data = request.form
-    # print(data)
-    return flask.Response(get_terminal_logs(), mimetype='text/html')
-    # return render_template('train.html', project=data['project'], text="Model Training")
-    # return "Done"
 
-
-def get_terminal_logs():
-    cmd = "PYTHONPATH=./ python tools/train_classifier.py --path_in=dataset/SoccerSkills --num_layers_to_finetune=9"
+    cmd = "python tools/train_classifier.py --path_in=dataset/SoccerSkills --num_layers_to_finetune=9 --use_gpu --overwrite"
     cmd_split = shlex.split(cmd)
-    process = subprocess.Popen(cmd_split, stdout=subprocess.PIPE, shell=True)
-    print("here")
 
-    for line in iter(process.stdout.readline, ''):
-        if line:
-            print(line)
-            yield line.decode()
+    global PROCESS
+    PROCESS = subprocess.Popen(cmd_split, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    # print(process.stdout.readlines())
-    # rc = process.poll()
+    def generate():
+        while True:
+            output = PROCESS.stdout.readline()
+            if output == b'' and PROCESS.poll() is not None:
+                PROCESS.terminate()
+                break
+            if output:
+                # print(output.decode())
+                time.sleep(0.1)
+                yield output.decode().strip() + '\n'
+
+    return flask.Response(stream_with_context(stream_template('train.html', project=data['project'],
+                                                              models=data['models'], logs=generate())))
+
+
+@train_bp.route('/cancel-training', methods=['POST'])
+def cancel_training():
+    data = request.form
+
+    global PROCESS
+    PROCESS.terminate()
+
+    return render_template('train.html', project=data['project'], logs=["Training Cancelled"])
