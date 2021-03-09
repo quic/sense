@@ -282,20 +282,21 @@ class DisplayProbBar(BaseDisplay):
             cv2.line(img, (x_offset, y_pos - 5),
                      (x_new_pos, y_pos - 5),
                      bar_color, 10, cv2.LINE_AA)
-            probs = int(results[0] * 100) / 100
-            put_text(img, f"{probs}", (x_new_pos + 10, y_pos))
+            proba = int(results[0] * 10) / 10
+            put_text(img, f"{proba}", (x_new_pos + 10, y_pos))
+
         return img
 
 
 class DisplayRepCounts2(BaseDisplay):
-
-    lateral_offset = DisplayMETandCalories.lateral_offset
 
     def __init__(self, keys, y_offset=60):
         super().__init__(y_offset)
         self.keys = keys
 
     def display(self, img, display_data):
+
+        # Put a translucent box behind text for better visibility
         x, y, w, h = 2, 2, img.shape[1] - 2, 200
         sub_img = img[y:y + h, x:x + w]
         white_rect = np.ones(sub_img.shape, dtype=np.uint8) * 0
@@ -304,7 +305,10 @@ class DisplayRepCounts2(BaseDisplay):
 
         for index, key in enumerate(self.keys):
             y_pos = 20 * (index + 1) + self.y_offset
-            put_text(img, f'{key}: {display_data[key]}', (10 + self.lateral_offset, y_pos))
+            size = cv2.getTextSize(key, FONT, 1, 1)[0]
+            x_pos = (img.shape[1] - size[0]) - 50
+            put_text(img, f'{key}: {display_data[key]}', (x_pos, y_pos))
+
         return img
 
 

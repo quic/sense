@@ -63,7 +63,7 @@ if __name__ == "__main__":
     model_version = args['--model_version'] or None
     use_gpu = args['--use_gpu']
     class_names = args['--class_names'] or 'thumb_up,thumb_down'
-    classes_chosen = args['--choose']
+    choose = args['--choose']
 
     answer_model_select = prompt({
         'type': 'list',
@@ -89,23 +89,22 @@ if __name__ == "__main__":
         model_version = 'reactive_gesture_demo'
 
     classes = []
-    if classes_chosen:
+    if choose:
         answer_classes = prompt({
             'type': 'checkbox',
             'name': 'classes_chosen',
             'message': 'Choose the classes to test:',
-            'choices': [{'name': key} for key in LAB2INT.keys() if key.endswith("=end")],
+            'choices': [{'name': key.split('=')[0]} for key in LAB2INT.keys() if key.endswith("=end")],
         })
 
-        classes = answer_classes['classes_chosen']
+        classes = [f"{key}=end" for key in answer_classes['classes_chosen']]
 
-    if not classes_chosen or len(classes) == 0:
+    if not choose or len(classes) == 0:
         _classes = class_names.split(',')
         prefix = 'counting - '
         suffix_start = '=start'
         suffix_end = '=end'
 
-        # classes = [prefix + cname + suffix for suffix in [suffix_end, suffix_start] for cname in classes]
         classes = [prefix + cname + suffix_end for cname in _classes]
 
     answer_options = prompt({
@@ -159,7 +158,7 @@ if __name__ == "__main__":
         sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
         sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS,
                                               border_size=border_size if not title else border_size + 50),
-        sense.display.DisplayGraph(thresholds=LAB_THRESHOLDS, classes=classes, base_class=classes[0]),
+        # sense.display.DisplayGraph(thresholds=LAB_THRESHOLDS, classes=classes, base_class=classes[0]),
     ]
 
     if options == "Rep Counts":
@@ -169,8 +168,6 @@ if __name__ == "__main__":
 
     if options == "Probability Bar":
         display_ops.append(sense.display.DisplayProbBar(keys=[cname for cname in classes], thresholds=LAB_THRESHOLDS))
-
-    # classes.append('counting - background')
 
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops, window_size=(720, 1280))
 

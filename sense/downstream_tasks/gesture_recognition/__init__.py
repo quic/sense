@@ -178,23 +178,23 @@ LAB2INT_reactive9 = {
 INT2LAB_reactive9 = {value: key for key, value in LAB2INT_reactive9.items()}
 
 LAB_THRESHOLDS_reactive9 = {
-    "counting - clockwise_rotation=end": 0.5,
+    "counting - clockwise_rotation=end": 0.5,                   # Doesn't activate
     "counting - clockwise_rotation=start": 0.2,
-    "counting - counter-clockwise_rotation=end": 0.5,
+    "counting - counter-clockwise_rotation=end": 0.5,           # Doesn't activate
     "counting - counter-clockwise_rotation=start": 0.2,
-    "counting - draw_clockwise_rotation=end": 0.5,
-    "counting - draw_clockwise_rotation=start": 0.2,
-    "counting - draw_counter-clockwise_rotation=end": 0.5,
-    "counting - draw_counter-clockwise_rotation=start": 0.2,
-    "counting - invalid_gesture=end": 0.5,
+    "counting - draw_clockwise_rotation=end": 0.1,              # Very low activation
+    "counting - draw_clockwise_rotation=start": 0.1,
+    "counting - draw_counter-clockwise_rotation=end": 0.2,      # Low activation
+    "counting - draw_counter-clockwise_rotation=start": 0.1,
+    "counting - invalid_gesture=end": 0.5,                      # Unknown gesture? Different from background?
     "counting - invalid_gesture=start": 0.2,
-    "counting - swipe_down=end": 0.4,
+    "counting - swipe_down=end": 0.3,
     "counting - swipe_down=start": 0.2,
     "counting - swipe_left_=end": 0.4,
     "counting - swipe_left_=start": 0.2,
     "counting - swipe_right_=end": 0.4,
     "counting - swipe_right_=start": 0.2,
-    "counting - swipe_up=end": 0.4,
+    "counting - swipe_up=end": 0.5,
     "counting - swipe_up=start": 0.2,
     "counting - thumb_down=end": 0.4,
     "counting - thumb_down=start": 0.2,
@@ -204,5 +204,5 @@ LAB_THRESHOLDS_reactive9 = {
     "counting - zoom_in_with_full_hand=start": 0.2,
     "counting - zoom_out_with_full_hand=end": 0.4,
     "counting - zoom_out_with_full_hand=start": 0.2,
-    "counting - background": 0.9
+    "counting - background": 0.8
 }
