@@ -10,6 +10,7 @@ from flask import render_template
 from flask import request
 from flask import current_app
 from flask import stream_with_context
+
 from tools.sense_studio import utils
 
 train_bp = Blueprint('train_bp', __name__)
@@ -38,14 +39,17 @@ def stream_template(template_name, **context):
 def train_model():
     data = request.form
     project = data['project']
-    model = data['model']
-    num_layers_to_finetune = data['layersToFinetune']
-    path_out = data['outputFolder']
+    num_layers_to_finetune = data['layers-to-finetune']
+    path_out = os.path.join(project, data['output-folder'])
+
+    models = None
+    if os.path.exists(utils.BACKBONE_MODELS_DIR):
+        models = os.listdir(utils.BACKBONE_MODELS_DIR)
 
     path = utils.lookup_project_path(project)
     config = utils.load_project_config(path)
 
-    train_classifier = ["python tools/train_classifier.py", f"--path_in={project}/",
+    train_classifier = ["python tools/train_classifier.py", f"--path_in={project}",
                         f"--num_layers_to_finetune={num_layers_to_finetune}", "--use_gpu" if config['use_gpu'] else "",
                         f"--path_out={path_out} --overwrite"]
 
@@ -66,14 +70,17 @@ def train_model():
                 yield output.decode().strip() + '\n'
 
     return flask.Response(stream_with_context(stream_template('train.html', project=data['project'],
-                                                              models=data['models'], logs=generate())))
+                                                              models=models, logs=generate())))
 
 
 @train_bp.route('/cancel-training', methods=['POST'])
 def cancel_training():
     data = request.form
+    models = None
+    if os.path.exists(utils.BACKBONE_MODELS_DIR):
+        models = os.listdir(utils.BACKBONE_MODELS_DIR)
 
     global PROCESS
     PROCESS.terminate()
 
-    return render_template('train.html', project=data['project'], models=data['models'], logs=["Training Cancelled"])
+    return render_template('train.html', project=data['project'], models=models, logs=["Training Cancelled"])
