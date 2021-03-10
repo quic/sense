@@ -1,33 +1,38 @@
 import json
 import os
-import torch
 
-from sense import backbone_networks
-from sense import engine
+from sense.engine import InferenceEngine
+from sense.loading import build_backbone_network
+from sense.loading import get_relevant_weights
+from sense.loading import ModelConfig
 
 MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
 
-SPLITS = ['train', 'valid']
+SUPPORTED_MODEL_CONFIGURATIONS = [
+    ModelConfig('StridedInflatedEfficientNet', 'pro', []),
+    ModelConfig('StridedInflatedMobileNetV2', 'pro', []),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', []),
+    ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
+]
 
 BACKBONE_MODELS_DIR = 'resources/backbone/'
 
 
 def load_feature_extractor(project_path):
-    feature_extractor = backbone_networks.StridedInflatedEfficientNet()
+    # Load weights
+    model_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
 
-    # Remove internal padding for feature extraction and training
-    checkpoint = torch.load('resources/backbone/strided_inflated_efficientnet.ckpt')
-    feature_extractor.load_state_dict(checkpoint)
-    feature_extractor.eval()
+    # Setup backbone network
+    backbone_network = build_backbone_network(model_config, weights['backbone'])
 
     # Create Inference Engine
     use_gpu = get_project_setting(project_path, 'use_gpu')
-    inference_engine = engine.InferenceEngine(feature_extractor, use_gpu=use_gpu)
+    inference_engine = InferenceEngine(backbone_network, use_gpu=use_gpu)
 
-    return inference_engine
+    return inference_engine, model_config
 
 
 def is_image_file(filename):
