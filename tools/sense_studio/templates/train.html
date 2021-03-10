@@ -29,7 +29,7 @@
             </div>
             <div class="field">
                 <label>Number of layers to finetune</label>
-                <input type="number" name="layersToFinetune" min="5" value="5">
+                <input type="number" name="layers-to-finetune" min="5" value="5">
             </div>
         </div>
         <div class="two fields wide">
@@ -39,13 +39,13 @@
             </div>
             <div class="field">
                 <label>Output folder</label>
-                <input type="text" name="outputFolder" placeholder="Folder Name" required>
+                <input type="text" name="output-folder" placeholder="Folder Name" required>
             </div>
         </div>
       <button class="ui button" type="submit" tabindex="0">Train model</button>
       <button class="ui button" type="submit" tabindex="1" formaction="{{ url_for('.cancel_training') }}">Cancel</button>
     </form>
-    <div class="ui segment console">
+    <div class="ui segment" style=" overflow: auto; height: 500px; scroll: auto; background-color: black; color: white;">
         <h3> Training model...</h3>
         <h4>
             {% for log in logs %}
