@@ -5,6 +5,7 @@ from sense.engine import InferenceEngine
 from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
+from sense.loading import MODELS
 
 MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
@@ -18,7 +19,7 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
 ]
 
-BACKBONE_MODELS_DIR = 'resources/backbone/'
+BACKBONE_MODELS = list(MODELS.keys())
 
 
 def load_feature_extractor(project_path):

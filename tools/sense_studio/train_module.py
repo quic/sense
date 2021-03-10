@@ -21,10 +21,7 @@ PROCESS = None
 @train_bp.route('/<string:project>', methods=['GET'])
 def training_page(project):
     project = urllib.parse.unquote(project)
-    models = None
-    if os.path.exists(utils.BACKBONE_MODELS_DIR):
-        models = os.listdir(utils.BACKBONE_MODELS_DIR)
-    return render_template('train.html', project=project, models=models)
+    return render_template('train.html', project=project, models=utils.BACKBONE_MODELS)
 
 
 def stream_template(template_name, **context):
@@ -39,19 +36,18 @@ def stream_template(template_name, **context):
 def train_model():
     data = request.form
     project = data['project']
-    num_layers_to_finetune = data['layers-to-finetune']
-    path_out = os.path.join(project, data['output-folder'])
-
-    models = None
-    if os.path.exists(utils.BACKBONE_MODELS_DIR):
-        models = os.listdir(utils.BACKBONE_MODELS_DIR)
-
+    num_layers_to_finetune = data['layers_to_finetune']
+    path_out = data['output_folder']
+    model_name = data['model_name']
     path = utils.lookup_project_path(project)
     config = utils.load_project_config(path)
 
-    train_classifier = ["python tools/train_classifier.py", f"--path_in={project}",
-                        f"--num_layers_to_finetune={num_layers_to_finetune}", "--use_gpu" if config['use_gpu'] else "",
-                        f"--path_out={path_out} --overwrite"]
+    train_classifier = ["python tools/train_classifier.py", f"--path_in=/home/twentybn/Code/sense/dataset/{project}",
+                        f"--num_layers_to_finetune={num_layers_to_finetune}",
+                        "--use_gpu" if config['use_gpu'] else "",
+                        f"--path_out={path_out}" if path_out else "",
+                        f"--model_name={model_name}" if model_name else "",
+                        "--overwrite"]
 
     train_classifier = ' '.join(train_classifier)
     train_classifier = shlex.split(train_classifier)
@@ -70,17 +66,17 @@ def train_model():
                 yield output.decode().strip() + '\n'
 
     return flask.Response(stream_with_context(stream_template('train.html', project=data['project'],
-                                                              models=models, logs=generate())))
+                                                              models=utils.BACKBONE_MODELS, logs=generate())))
 
 
 @train_bp.route('/cancel-training', methods=['POST'])
 def cancel_training():
     data = request.form
-    models = None
-    if os.path.exists(utils.BACKBONE_MODELS_DIR):
-        models = os.listdir(utils.BACKBONE_MODELS_DIR)
 
     global PROCESS
-    PROCESS.terminate()
-
-    return render_template('train.html', project=data['project'], models=models, logs=["Training Cancelled"])
+    if PROCESS:
+        PROCESS.terminate()
+        log = "Training Cancelled."
+    else:
+        log = "No Training Process Running to Terminate."
+    return render_template('train.html', project=data['project'], models=utils.BACKBONE_MODELS, logs=[log])
