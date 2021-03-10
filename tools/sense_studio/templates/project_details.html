@@ -11,34 +11,36 @@
 {% endblock settings %}
 
 {% block main %}
-<div id="main" class="ui main text container">
-    <h1 class="ui header">
-        {{ project }}
-        <div class="sub header">
-            <i class="folder open icon"></i>
-            {{ path }}
-        </div>
-    </h1>
-    <a class="ui icon button hashoverpopup" onclick="loading(this);"
+<div class="uk-container uk-container-small">
+    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">{{ project }}</h1>
+    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+        <span uk-icon="icon: folder"></span>
+        {{ path }}
+    </div>
+
+    <a class="uk-button uk-button-default temporal {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);"
        href="{{ url_for('annotation_bp.prepare_annotation', project=project) }}"
-       data-content="Prepare required files for all classes">
-        <i class="file video outline icon"></i>
+       uk-tooltip="Prepare required files for all classes">
+        <span uk-icon="icon: album"></span>
         Prepare Annotations
     </a>
+
     <input type="hidden" id="projectName" value="{{ project }}">
 
-    <div class="ui icon message">
-        <i class="info circle icon"></i>
-        <i class="close icon"></i>
-        <div class="content">
-            <div class="header">
-                Classes and Tags?
+    <div uk-alert>
+        <a class="uk-alert-close" uk-close></a>
+        <div class="uk-grid-match" uk-grid>
+            <div class="uk-width-auto">
+                <span class="uk-margin-small-left uk-margin-auto-vertical" uk-icon="icon: info; ratio: 2"></span>
             </div>
-            <p>
-                Each video will have exactly one class label.
-                Tags can be used for temporally annotating single frames out of a video with more specific labels,
-                which later enable you to perform tasks such as counting certain actions.
-            </p>
+            <div class="uk-width-expand">
+                <h3>Classes and Tags?</h3>
+                <p>
+                    Each video will have exactly one class label.
+                    Tags can be used for temporally annotating single frames out of a video with more specific labels,
+                    which later enable you to perform tasks such as counting certain actions.
+                </p>
+            </div>
         </div>
     </div>
 
