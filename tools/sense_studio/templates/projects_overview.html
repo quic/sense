@@ -3,93 +3,87 @@
 {% block title %} Projects {% endblock %}
 
 {% block main %}
-<div id="main" class="ui main text container grid">
-    <h1 class="ui header">Projects</h1>
-    <div class="row">
-        <div class="centered ui cards">
-            {% for name, project in projects.items() %}
-            <form class="ui form card update-project-card" method="POST" action="{{ url_for('setup_project') }}">
-                <input type="hidden" name="projectName" value="{{ name }}">
-                <div class="content">
-                    <div class="header">
-                        {{ name }}
-                        <a class="right floated hasclickpopup">
-                             <i class="trash alternate outline icon"></i>
-                        </a>
-                        <div class="ui popup transition hidden">
-                            <p>
-                                Remove project from the local config.
-                                No data will be deleted.
-                            </p>
-                            <a class="ui red icon button" href="{{ url_for('remove_project', name=name) }}">
-                                <i class="trash alternate outline icon"></i>
-                                Remove Project
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="content">
-                    <div class="description">
-                        {% if project.exists %}
-                            <i class="folder open icon"></i>
-                            {{ project.path }}
-                        {% else %}
-                            <div class="ui yellow message">
-                                <div class="content">
-                                    <i class="exclamation triangle icon"></i>
-                                    This path no longer exists.
-                                </div>
-                            </div>
-                            <div class="field">
-                                <div class="ui left icon input search path-search">
-                                    <i class="folder open icon"></i>
-                                    <input class="prompt" type="text" name="path" placeholder="/path/to/project" value="{{ project.path }}" autocomplete="off" />
-                                    <div id="pathSuggestions{{ loop.index }}" class="results">
-                                        <!-- Filled automatically -->
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="ui error message"></div>
-                </div>
-                {% if project.exists %}
-                    <a class="ui bottom attached icon button" href="{{ url_for('project_details', project=name) }}">
-                        <i class="hand point right outline icon"></i>
-                        Open
-                    </a>
-                {% else %}
-                    <button class="ui bottom attached button" type="submit">
-                        <i class="download icon"></i>
-                        Save New Location
-                    </button>
-                {% endif %}
-            </form>
-            {% endfor %}
+<div class="uk-container uk-container-small">
+    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-medium-bottom">Projects</h1>
 
-            <form class="ui form card" id="newProjectCard" method="POST" action="{{ url_for('setup_project') }}">
-                <div class="content">
-                    <div class="field">
-                        <div class="ui left icon input">
-                            <i class="id card outline icon"></i>
-                            <input type="text" name="projectName" placeholder="Project Name" />
+    <div class="uk-flex-center" uk-grid>
+        {% for name, project in projects.items() %}
+        <div>
+            <form class="uk-card uk-card-default uk-width-medium update-project-card" method="POST" action="{{ url_for('setup_project') }}">
+                <input type="hidden" name="projectName" value="{{ name }}">
+
+                <div class="uk-card-header">
+                    <div uk-grid>
+                        <div class="uk-width-expand">
+                            <h3 class="uk-card-title uk-float-left">{{ name }}</h3>
+                        </div>
+                        <div class="uk-width-auto">
+                            <a href="#" uk-icon="icon: trash; ratio: 1.1"></a>
+                            <div uk-dropdown="mode: click; pos:bottom-justify">
+                                <p>
+                                    Remove project from the local config.
+                                    No data will be deleted.
+                                </p>
+                                <a class="uk-button uk-button-danger" href="{{ url_for('remove_project', name=name) }}">
+                                    <span uk-icon="icon: trash"></span>
+                                    Remove
+                                </a>
+                            </div>
                         </div>
                     </div>
-                    <div class="field">
-                        <div class="ui left icon input search path-search">
-                            <i class="folder open icon"></i>
-                            <input class="prompt" type="text" name="path" placeholder="/path/to/project" autocomplete="off" />
-                            <div id="pathSuggestions" class="results">
+                </div>
+
+                <div class="uk-card-body">
+                    {% if project.exists %}
+                        <span uk-icon="icon: folder"></span>
+                        {{ project.path }}
+
+                        <a class="uk-button uk-button-default uk-margin-top uk-width-1-1" href="{{ url_for('project_details', project=name) }}">
+                            <span uk-icon="icon: chevron-right"></span>
+                            Open
+                        </a>
+
+                    {% else %}
+                        <div class="uk-alert-warning" uk-alert>
+                            <span uk-icon="icon: warning"></span>
+                            This path no longer exists.
+                        </div>
+                        <div class="uk-inline">
+                            <span class="uk-form-icon" uk-icon="icon: folder"></span>
+                            <input class="uk-input" type="text" name="path" placeholder="/path/to/project" value="{{ project.path }}" autocomplete="off">
+                            <div id="pathSuggestions{{ loop.index }}" class="results">
                                 <!-- Filled automatically -->
                             </div>
                         </div>
-                    </div>
-                    <div class="ui error message"></div>
+                        <button class="uk-button uk-button-default uk-margin-top uk-width-1-1" type="submit">
+                            <span uk-icon="icon: check"></span>
+                            Save New Location
+                        </button>
+                    {% endif %}
                 </div>
-                <button class="ui bottom attached button" type="submit">
-                    <i class="file outline icon"></i>
-                    Create / Import Project
-                </button>
+            </form>
+        </div>
+        {% endfor %}
+
+        <div>
+            <form class="uk-card uk-card-default uk-width-medium" id="newProjectCard" method="POST" action="{{ url_for('setup_project') }}">
+                <div class="uk-card-body">
+                    <div class="uk-inline">
+                        <span class="uk-form-icon" uk-icon="icon: home"></span>
+                        <input class="uk-input" type="text" name="projectName" placeholder="Project Name">
+                    </div>
+                    <div class="uk-inline uk-margin">
+                        <span class="uk-form-icon" uk-icon="icon: folder"></span>
+                        <input class="uk-input" type="text" name="path" placeholder="/path/to/project" autocomplete="off">
+                        <div id="pathSuggestions" class="results">
+                            <!-- Filled automatically -->
+                        </div>
+                    </div>
+                    <button class="uk-button uk-button-default uk-width-1-1" type="submit">
+                        <span uk-icon="icon: file-edit"></span>
+                        Create / Import
+                    </button>
+                </div>
             </form>
         </div>
     </div>
