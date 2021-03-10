@@ -230,11 +230,7 @@ function toggleGPU(path) {
     let gpuInput = document.getElementById('gpuInput');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
 
-    if (response.setting_status) {
-        gpuInput.setAttribute('checked', 'checked');
-    } else {
-        gpuInput.removeAttribute('checked');
-    }
+    gpuInput.checked = response.setting_status;
 }
 
 
@@ -242,12 +238,12 @@ function toggleMakeProjectTemporal(path) {
     let makeProjectTemporal = document.getElementById('makeProjectTemporal');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
 
+    makeProjectTemporal.checked = response.setting_status;
+
     // Show/hide all temporal-related elements
     if (response.setting_status) {
-        makeProjectTemporal.setAttribute('checked', 'checked');
         $('.temporal').show();
     } else {
-        makeProjectTemporal.removeAttribute('checked');
         $('.temporal').hide();
     }
 }
@@ -257,12 +253,12 @@ function toggleShowPredictions(path) {
     let logregInput = document.getElementById('logregInput');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'show_logreg'});
 
+    logregInput.checked = response.setting_status;
+
     // Show/hide all LogReg prediction-labels
     if (response.setting_status) {
-        logregInput.setAttribute('checked', 'checked');
         $('.logreg-predictions').show();
     } else {
-        logregInput.removeAttribute('checked');
         $('.logreg-predictions').hide();
     }
 }
