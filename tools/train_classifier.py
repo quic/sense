@@ -190,7 +190,7 @@ if __name__ == "__main__":
     if use_gpu:
         net = net.cuda()
 
-    lr_schedule = {0: 0.0001, int(epochs/2): 0.00001}
+    lr_schedule = {0: 0.0001, int(epochs / 2): 0.00001}
     num_epochs = epochs
 
     # Save training config and label2int dictionary

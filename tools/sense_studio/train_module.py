@@ -21,7 +21,7 @@ PROCESS = None
 @train_bp.route('/<string:project>', methods=['GET'])
 def training_page(project):
     project = urllib.parse.unquote(project)
-    return render_template('train.html', project=project, models=utils.BACKBONE_MODELS)
+    return render_template('train.html', project=project, models=utils.BACKBONE_MODELS, is_disabled=False)
 
 
 def stream_template(template_name, **context):
@@ -53,7 +53,7 @@ def train_model():
     train_classifier = shlex.split(train_classifier)
 
     global PROCESS
-    PROCESS = subprocess.Popen(train_classifier, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    PROCESS = subprocess.Popen(train_classifier, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
     def generate():
         while True:
@@ -65,7 +65,7 @@ def train_model():
                 time.sleep(0.1)
                 yield output.decode().strip() + '\n'
 
-    return flask.Response(stream_with_context(stream_template('train.html', project=data['project'],
+    return flask.Response(stream_with_context(stream_template('train.html', project=data['project'], is_disabled=True,
                                                               models=utils.BACKBONE_MODELS, logs=generate())))
 
 
@@ -76,7 +76,9 @@ def cancel_training():
     global PROCESS
     if PROCESS:
         PROCESS.terminate()
+        PROCESS = None
         log = "Training Cancelled."
     else:
         log = "No Training Process Running to Terminate."
-    return render_template('train.html', project=data['project'], models=utils.BACKBONE_MODELS, logs=[log])
+    return render_template('train.html', project=data['project'], models=utils.BACKBONE_MODELS, is_disabled=False,
+                           logs=[log])

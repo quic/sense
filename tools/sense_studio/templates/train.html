@@ -46,10 +46,13 @@
                 <input type="text" name="output_folder" placeholder="Folder Name">
             </div>
         </div>
-      <button class="ui button" id="trainModel" type="submit" tabindex="0" onclick="disableTrainModel()">Train model</button>
-      <button class="ui button" type="submit" tabindex="1"  onclick="enableTrainModel()" formaction="{{ url_for('.cancel_training') }}">Cancel</button>
+      <button class="ui button" id="trainModel" type="submit" tabindex="0" {% if is_disabled %} disabled="disabled" {% endif %}>Train model</button>
+      <button class="ui button" type="submit" tabindex="1" formaction="{{ url_for('.cancel_training') }}">Cancel</button>
     </form>
     <div class="ui segment train-console">
+        {% if is_disabled %}
+            <h4 class="font-style">Training Model...</h4>
+        {% endif %}
         <h4 class="font-style">
             {% for log in logs %}
                 {{ log }} <br />
