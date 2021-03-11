@@ -259,7 +259,8 @@ class DisplayProbBar(BaseDisplay):
         self.thresholds = thresholds
 
     def display(self, img, display_data):
-        x, y, w, h = 2, 2, img.shape[1] - 2, 200
+        # Put a translucent box behind text for better visibility
+        x, y, w, h = img.shape[1] // 2, 2, img.shape[1] // 2, 300
         sub_img = img[y:y + h, x:x + w]
         white_rect = np.ones(sub_img.shape, dtype=np.uint8) * 0
         res = cv2.addWeighted(sub_img, 0.5, white_rect, 0.5, 1.0)
@@ -269,8 +270,9 @@ class DisplayProbBar(BaseDisplay):
             y_pos = 20 * (index + 1) + self.y_offset
             size = cv2.getTextSize(key.replace('counting - ', '').replace('=end', ''), FONT, 1, 1)[0]
             text_x = (img.shape[1] - size[0])
-            x_pos = text_x - (img.shape[1])//2
-            x_offset = img.shape[1] // 2 + 20
+            # x_pos = text_x - (img.shape[1])//2
+            x_pos = text_x - img.shape[1] // 3 + 120
+            x_offset = (2 * img.shape[1]) // 3 + 150
             results = [display_data['sorted_predictions'][i][1]
                        for i in range(len(display_data['sorted_predictions']))
                        if display_data['sorted_predictions'][i][0] == key]
@@ -295,9 +297,8 @@ class DisplayRepCounts2(BaseDisplay):
         self.keys = keys
 
     def display(self, img, display_data):
-
         # Put a translucent box behind text for better visibility
-        x, y, w, h = 2, 2, img.shape[1] - 2, 200
+        x, y, w, h = 3 * img.shape[1] // 5, 2, 2 * img.shape[1] // 5, 300
         sub_img = img[y:y + h, x:x + w]
         white_rect = np.ones(sub_img.shape, dtype=np.uint8) * 0
         res = cv2.addWeighted(sub_img, 0.5, white_rect, 0.5, 1.0)

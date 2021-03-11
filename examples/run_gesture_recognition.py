@@ -12,6 +12,7 @@ Usage:
                              [--use_gpu]
                              [--class_names=CLASS_NAMES]
                              [--choose]
+                             [--choose_all]
   run_gesture_recognition.py (-h | --help)
 
 Options:
@@ -23,6 +24,7 @@ Options:
   --use_gpu                  Whether to run inference on the GPU or not.
   --class_names=CLASS_NAMES  Specific class-names to visualise/test
   --choose                   Choose classes from a list
+  --choose_all              Select all classes for testing
 """
 from docopt import docopt
 from PyInquirer import prompt
@@ -64,6 +66,7 @@ if __name__ == "__main__":
     use_gpu = args['--use_gpu']
     class_names = args['--class_names'] or 'thumb_up,thumb_down'
     choose = args['--choose']
+    choose_all = args['--choose_all']
 
     answer_model_select = prompt({
         'type': 'list',
@@ -99,13 +102,16 @@ if __name__ == "__main__":
 
         classes = [f"{key}=end" for key in answer_classes['classes_chosen']]
 
-    if not choose or len(classes) == 0:
+    if not choose and not choose_all or len(classes) == 0:
         _classes = class_names.split(',')
         prefix = 'counting - '
         suffix_start = '=start'
         suffix_end = '=end'
 
         classes = [prefix + cname + suffix_end for cname in _classes]
+
+    if choose_all:
+        classes = [key for key in LAB2INT.keys() if key.endswith('=end')]
 
     answer_options = prompt({
         'type': 'list',
@@ -155,9 +161,9 @@ if __name__ == "__main__":
     display_ops = [
         sense.display.DisplayFPS(expected_camera_fps=net.fps,
                                  expected_inference_fps=net.fps / net.step_size),
-        sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
-        sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS,
-                                              border_size=border_size if not title else border_size + 50),
+        # sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
+        # sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS,
+        #                                       border_size=border_size if not title else border_size + 50),
         # sense.display.DisplayGraph(thresholds=LAB_THRESHOLDS, classes=classes, base_class=classes[0]),
     ]
 
@@ -167,6 +173,7 @@ if __name__ == "__main__":
         display_ops.append(sense.display.DisplayRepCounts2(keys=[cname for cname in classes], y_offset=0))
 
     if options == "Probability Bar":
+        classes.append('counting - background')
         display_ops.append(sense.display.DisplayProbBar(keys=[cname for cname in classes], thresholds=LAB_THRESHOLDS))
 
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops, window_size=(720, 1280))
