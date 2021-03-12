@@ -124,10 +124,9 @@ def annotate(project, split, label, idx):
     # Read tags from config
     config = utils.load_project_config(path)
     tags = config['classes'][label]
-    show_logreg = config.get('show_logreg', False)
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
-                           n_images=len(images), video_name=videos[idx], show_logreg=show_logreg,
+                           n_images=len(images), video_name=videos[idx], project_config=config,
                            split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos))
 
 

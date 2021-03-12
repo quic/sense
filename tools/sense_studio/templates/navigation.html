@@ -72,33 +72,3 @@
    data-position="bottom center" data-variation="very wide">
     Conversion
 </a>
-<div class="ui simple dropdown item right floated"
-   data-variation="wide"
-   data-position="bottom center">
-    <i class=""></i>
-    Settings
-    <i class="dropdown icon"></i>
-    <div class="menu">
-        <div class="ui toggle checkbox hashoverpopup item"
-           data-content="Should GPU be used for computing features?"
-           data-position="left center">
-            <input type="checkbox" id="gpuInput" {% if project_config.use_gpu %} checked="checked" {% endif %}
-               onclick="toggleGPU('{{ path }}');">
-            <label>Use GPU</label>
-        </div>
-        <div class="ui toggle checkbox hashoverpopup item"
-           data-content="Do you want to tag your video with frame-wise temporal annotations?"
-           data-position="left center">
-            <input type="checkbox" id="makeProjectTemporal" {% if project_config.temporal %} checked="checked" {% endif %}
-               onclick="toggleMakeProjectTemporal('{{ path }}');">
-            <label>Use Temporal Annotations</label>
-        </div>
-        <div class="ui toggle checkbox hashoverpopup item"
-           data-content="Train a simple logistic regression model live on temporal annotations and show current predictions?"
-           data-position="left center">
-            <input type="checkbox" id="logregInput" {% if project_config.show_logreg %} checked="checked" {% endif %}
-               onclick="toggleShowPredictions('{{ path }}');">
-            <label>Show Predictions</label>
-        </div>
-    </div>
-</div>
