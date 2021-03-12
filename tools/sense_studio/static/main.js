@@ -213,38 +213,42 @@ function initTagButtons(annotations) {
 
 
 function editClass(index, shouldEdit) {
-    let classShow = $(`#classShow${index}`);
-    let classEdit = $(`#classEdit${index}`);
+    let classShow = document.getElementById(`classShow${index}`);
+    let classEdit = document.getElementById(`classEdit${index}`);
 
     if (shouldEdit) {
-        classShow.hide();
-        classEdit.show();
+        classShow.classList.add('uk-hidden');
+        classEdit.classList.remove('uk-hidden');
     } else {
-        classShow.show();
-        classEdit.hide();
+        classShow.classList.remove('uk-hidden');
+        classEdit.classList.add('uk-hidden');
     }
 }
 
 
 function toggleGPU(path) {
-    let gpuInput = document.getElementById('gpuInput');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
 
+    let gpuInput = document.getElementById('gpuInput');
     gpuInput.checked = response.setting_status;
 }
 
 
 function toggleMakeProjectTemporal(path) {
-    let makeProjectTemporal = document.getElementById('makeProjectTemporal');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
+
+    let makeProjectTemporal = document.getElementById('makeProjectTemporal');
+    let temporalElements = document.getElementsByClassName('temporal');
 
     makeProjectTemporal.checked = response.setting_status;
 
     // Show/hide all temporal-related elements
-    if (response.setting_status) {
-        $('.temporal').show();
-    } else {
-        $('.temporal').hide();
+    for (element of temporalElements) {
+        if (response.setting_status) {
+            element.classList.remove('uk-hidden');
+        } else {
+            element.classList.add('uk-hidden');
+        }
     }
 }
 
