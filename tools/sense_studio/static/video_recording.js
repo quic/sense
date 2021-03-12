@@ -1,32 +1,4 @@
 
-function increase(inputID) {
-    let element = document.getElementById(inputID);
-    let value = parseInt(element.value);
-
-    if (isNaN(value)) {
-        value = 1;
-    } else {
-        value++;
-    }
-
-    element.value = value;
-}
-
-
-function decrease(inputID, minValue) {
-    let element = document.getElementById(inputID);
-    let value = parseInt(element.value);
-
-    if (isNaN(value)) {
-        value = 1;
-    } else if (value > minValue) {
-        value--;
-    }
-
-    element.value = value;
-}
-
-
 function recordVideo(url) {
     document.getElementById('recordVideoButton').classList.add('disabled');
     navigator.mediaDevices.getUserMedia({ audio: false, video: true })
@@ -36,37 +8,26 @@ function recordVideo(url) {
 
 function displayOverlay(text, mode) {
     let overlay = document.getElementById('textOverlay');
-    let container = document.getElementById('videoContainer');
 
     // Update overlay text
     overlay.innerHTML = text;
 
-    // Update overlay visibility
-    if (text !== '') {
-        overlay.classList.remove('hidden');
-    } else {
-        overlay.classList.add('hidden');
-    }
+    // Make overlay visible
+    overlay.classList.remove('uk-hidden');
 
     // Update overlay color
-    if (mode === 'saved') {
-        overlay.classList.add('green');
-        overlay.classList.remove('red');
-    } else if (mode === 'error') {
-        overlay.classList.remove('green');
-        overlay.classList.add('red');
-    } else {
-        overlay.classList.remove('green');
-        overlay.classList.remove('red');
-    }
-
-    // Update container color
     if (mode === 'recording') {
-        container.classList.add('red');
-        container.classList.add('inverted');
+        overlay.classList.remove('uk-text-success');
+        overlay.classList.add('uk-text-danger');
+    } else if (mode === 'saved') {
+        overlay.classList.add('uk-text-success');
+        overlay.classList.remove('uk-text-danger');
+    } else if (mode === 'error') {
+        overlay.classList.remove('uk-text-success');
+        overlay.classList.add('uk-text-danger');
     } else {
-        container.classList.remove('red');
-        container.classList.remove('inverted');
+        overlay.classList.remove('uk-text-success');
+        overlay.classList.remove('uk-text-danger');
     }
 }
 
@@ -101,7 +62,7 @@ function startRecording(stream, recordingDuration, url) {
     // Show countdown
     for (const seconds of Array(recordingDuration).keys()) {
         const countdown = recordingDuration - seconds;
-        setTimeout(displayOverlay, seconds * 1000, countdown, 'recording');
+        setTimeout(displayOverlay, seconds * 1000, `Recording: ${countdown}`, 'recording');
     }
 
     // Stop recording
@@ -115,7 +76,7 @@ function stopRecording(mediaRecorder) {
         track.stop();
     });
 
-    displayOverlay('', false);
+    displayOverlay('Saving', 'saving');
     document.getElementById('recordVideoButton').classList.remove('disabled');
 }
 

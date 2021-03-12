@@ -15,23 +15,12 @@ a {
     width: 150px;
 }
 
-.ui.menu .item img.logo {
-    margin-right: 1.5em;
-    height: 4em;
-    width: auto;
-}
-
 .main.container {
     margin-top: 7em;
 }
 
 .right-floated {
     float: right;
-}
-
-.ui.footer.segment {
-    margin: 5em 0em 0em;
-    padding: 2em 0em;
 }
 
 .ui.button.mt {
@@ -46,30 +35,12 @@ a {
     margin-bottom: 0.5em;
 }
 
-.video-container {
-    position: relative;
-}
-
-.video-container video {
-    position:relative;
-    z-index:0;
-    border-radius: inherit;
+video {
+    width: 640px;
+    height: 480px;
     transform: rotateY(180deg);
     -webkit-transform: rotateY(180deg); /* Safari and Chrome */
     -moz-transform: rotateY(180deg); /* Firefox */
-}
-
-#textOverlay {
-    position: absolute;
-    margin-top: 30px;
-    margin-left: 30px;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    opacity: 0.7;
-    line-height: 1em;
-    padding: 0.2em 0.3em;
-    font-size: 50px;
 }
 
 .flex-container {
