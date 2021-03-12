@@ -1,6 +1,6 @@
 {% extends 'skeleton.html' %}
 
-{% block title %} {{ project }} {% endblock %}
+{% block title %} Training {% endblock %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
@@ -10,15 +10,19 @@
 <div id="main" class="ui main text container">
     <h1 class="ui header">
         Train Model
+        <div class="sub header">
+            <i class="folder open icon"></i> {{ path }}
+        </div>
     </h1>
     <form class="ui form" action="{{ url_for('.train_model') }}" method="post">
         <input type="hidden" name="project" value="{{ project }}">
+        <input type="hidden" name="path" value="{{ path }}">
         <div class="two fields wide">
             <div class="field">
-                <label>Choose Model</label>
+                <label>Backbone Model</label>
                 <div class="ui selection dropdown train">
+                   {% if models %}
                     <input type="hidden" name="model_name" value="{{ models[0] }}">
-                    {% if models %}
                         <div class="default text">Select Model</div>
                         <i class="dropdown icon"></i>
                         <div class="menu">
@@ -39,21 +43,21 @@
         <div class="two fields wide">
             <div class="field train">
                 <label>Epochs</label>
-                <input type="number" name="epochs" min="80" value="80">
+                <input type="number" name="epochs" min="2" value="2">
             </div>
             <div class="field train">
                 <label>Output folder</label>
                 <input type="text" name="output_folder" placeholder="Folder Name">
             </div>
         </div>
-      <button class="ui button" id="trainModel" type="submit" tabindex="0" {% if is_disabled %} disabled="disabled" {% endif %}>Train model</button>
+      <button class="ui button {{ 'disabled' if is_disabled }}" id="trainModel" type="submit" tabindex="0" >Train model</button>
       <button class="ui button" type="submit" tabindex="1" formaction="{{ url_for('.cancel_training') }}">Cancel</button>
     </form>
     <div class="ui segment train-console">
         {% if is_disabled %}
-            <h4 class="font-style">Training Model...</h4>
+            <h4 class="monospace-font">Training Model...</h4>
         {% endif %}
-        <h4 class="font-style">
+        <h4 class="monospace-font">
             {% for log in logs %}
                 {{ log }} <br />
             {% endfor %}

@@ -1,27 +1,29 @@
 import os
 import subprocess
 import shlex
-import urllib
 import time
+import urllib
 
 import flask
 from flask import Blueprint
+from flask import current_app
 from flask import render_template
 from flask import request
-from flask import current_app
+from flask import send_from_directory
 from flask import stream_with_context
 
 from tools.sense_studio import utils
 
-train_bp = Blueprint('train_bp', __name__)
+training_bp = Blueprint('training_bp', __name__)
 
 PROCESS = None
 
 
-@train_bp.route('/<string:project>', methods=['GET'])
+@training_bp.route('/<string:project>', methods=['GET'])
 def training_page(project):
     project = urllib.parse.unquote(project)
-    return render_template('train.html', project=project, models=utils.BACKBONE_MODELS, is_disabled=False)
+    path = utils.lookup_project_path(project)
+    return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS, is_disabled=False)
 
 
 def stream_template(template_name, **context):
@@ -32,21 +34,25 @@ def stream_template(template_name, **context):
     return rv
 
 
-@train_bp.route('/train-model', methods=['POST'])
+@training_bp.route('/train-model', methods=['POST'])
 def train_model():
     data = request.form
     project = data['project']
+    path = data['path']
     num_layers_to_finetune = data['layers_to_finetune']
     path_out = data['output_folder']
     model_name = data['model_name']
-    path = utils.lookup_project_path(project)
+    epochs = data['epochs']
     config = utils.load_project_config(path)
 
-    train_classifier = ["python tools/train_classifier.py", f"--path_in=/home/twentybn/Code/sense/dataset/{project}",
+    is_disabled = True
+
+    train_classifier = ["python tools/train_classifier.py", f"--path_in={project}",
                         f"--num_layers_to_finetune={num_layers_to_finetune}",
                         "--use_gpu" if config['use_gpu'] else "",
                         f"--path_out={path_out}" if path_out else "",
                         f"--model_name={model_name}" if model_name else "",
+                        f"--epochs={epochs}",
                         "--overwrite"]
 
     train_classifier = ' '.join(train_classifier)
@@ -55,7 +61,7 @@ def train_model():
     global PROCESS
     PROCESS = subprocess.Popen(train_classifier, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
-    def generate():
+    def get_training_logs():
         while True:
             output = PROCESS.stdout.readline()
             if output == b'' and PROCESS.poll() is not None:
@@ -65,14 +71,17 @@ def train_model():
                 time.sleep(0.1)
                 yield output.decode().strip() + '\n'
 
-    return flask.Response(stream_with_context(stream_template('train.html', project=data['project'], is_disabled=True,
-                                                              models=utils.BACKBONE_MODELS, logs=generate())))
+    return flask.Response(stream_with_context(stream_template('training.html', project=project, path=path,
+                                                              is_disabled=is_disabled,
+                                                              models=utils.BACKBONE_MODELS,
+                                                              logs=get_training_logs())))
 
 
-@train_bp.route('/cancel-training', methods=['POST'])
+@training_bp.route('/cancel-training', methods=['POST'])
 def cancel_training():
     data = request.form
-
+    project = data['project']
+    path = data['path']
     global PROCESS
     if PROCESS:
         PROCESS.terminate()
@@ -80,5 +89,14 @@ def cancel_training():
         log = "Training Cancelled."
     else:
         log = "No Training Process Running to Terminate."
-    return render_template('train.html', project=data['project'], models=utils.BACKBONE_MODELS, is_disabled=False,
+    return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS, is_disabled=False,
                            logs=[log])
+
+
+# @training_bp.route('/confusion-matrix/<string:project>/', methods=['GET'])
+# def get_confusion_matrix(project):
+#     img_path = os.path.join(os.getcwd(), 'dataset/', project)
+#
+#     if os.path.exists(os.path.join(img_path, 'confusion_matrix.png')):
+#         return send_from_directory(img_path, 'confusion_matrix.png', as_attachment=True)
+#     return None
