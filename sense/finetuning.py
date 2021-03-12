@@ -12,7 +12,6 @@ from PIL import Image
 from sense import camera
 from sense import engine
 from sklearn.metrics import confusion_matrix
-from os.path import join
 
 from sense.utils import clean_pipe_state_dict_key
 
@@ -108,7 +107,7 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
         features = []
         labels = []
         for label in label_names:
-            feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
+            feature_temp = glob.glob(os.path.join(f'{features_dir}', label, '*.npy'))
             features += feature_temp
             labels += [label2int[label]] * len(feature_temp)
             labels_string += [label] * len(feature_temp)
@@ -139,7 +138,7 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
         labels = [x for x, y in zip(labels, temporal_annotation) if y is not None]
         temporal_annotation = [x for x in temporal_annotation if x is not None]
 
-    # Build dataloader
+    # Build data-loader
     dataset = FeaturesDataset(features, labels, temporal_annotation,
                               num_timesteps=num_timesteps, stride=stride,
                               full_network_minimum_frames=full_network_minimum_frames)
@@ -164,7 +163,7 @@ def uniform_frame_sample(video, sample_rate):
 
 def compute_features(video_path, path_out, inference_engine, num_timesteps=1, path_frames=None,
                      batch_size=None):
-    video_source = camera.VideoSource(camera_id=None,
+    video_source = camera.VideoSource(camera_id=0,
                                       size=inference_engine.expected_frame_size,
                                       filename=video_path)
     video_fps = video_source.get_fps()
@@ -191,17 +190,17 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
     # Inference
     clip = frames[None].astype(np.float32)
 
-    # Run the model on padded frames in order to remove the state in the current model comming
+    # Run the model on padded frames in order to remove the state in the current model coming
     # from the previous video.
     pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
 
     # Depending on the number of layers we finetune, we keep the number of features from padding
-    # equal to the temporal dependancy of the model.
-    temporal_dependancy_features = np.array(pre_features)[-num_timesteps:]
+    # equal to the temporal dependency of the model.
+    temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
 
     # predictions of the actual video frames
     predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
-    predictions = np.concatenate([temporal_dependancy_features, predictions], axis=0)
+    predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
     features = np.array(predictions)
     os.makedirs(os.path.dirname(path_out), exist_ok=True)
     np.save(path_out, features)
@@ -222,20 +221,20 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
 
 def compute_frames_features(inference_engine, split, label, dataset_path):
     # Get data-set from path, given split and label
-    folder = join(dataset_path, f'videos_{split}', label)
+    folder = os.path.join(dataset_path, f'videos_{split}', label)
 
     # Create features and frames folders for the given split and label
-    features_folder = join(dataset_path, f'features_{split}', label)
-    frames_folder = join(dataset_path, f'frames_{split}', label)
+    features_folder = os.path.join(dataset_path, f'features_{split}', label)
+    frames_folder = os.path.join(dataset_path, f'frames_{split}', label)
     os.makedirs(features_folder, exist_ok=True)
     os.makedirs(frames_folder, exist_ok=True)
 
     # Loop through all videos for the given class-label
-    videos = glob.glob(folder + '/*.mp4')
+    videos = glob.glob(os.path.join(folder, '*.mp4'))
     for e, video_path in enumerate(videos):
         print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
-        path_frames = join(frames_folder, os.path.basename(video_path).replace(".mp4", ""))
-        path_features = join(features_folder, os.path.basename(video_path).replace(".mp4", ".npy"))
+        path_frames = os.path.join(frames_folder, os.path.basename(video_path).replace(".mp4", ""))
+        path_features = os.path.join(features_folder, os.path.basename(video_path).replace(".mp4", ".npy"))
         if not os.path.isfile(path_features):
             os.makedirs(path_frames, exist_ok=True)
             compute_features(video_path, path_features, inference_engine,
