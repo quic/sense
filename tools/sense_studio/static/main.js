@@ -95,8 +95,6 @@ $(document).ready(function () {
 
     $('.hashoverpopup').popup();
 
-    $('.display-hidden').hide();
-
     $('.message .close').on('click', function() {
         $(this).closest('.message').transition('fade');
     });
@@ -254,15 +252,19 @@ function toggleMakeProjectTemporal(path) {
 
 
 function toggleShowPredictions(path) {
-    let logregInput = document.getElementById('logregInput');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'show_logreg'});
+
+    let logregInput = document.getElementById('logregInput');
+    let logregElements = document.getElementsByClassName('logreg-predictions');
 
     logregInput.checked = response.setting_status;
 
     // Show/hide all LogReg prediction-labels
-    if (response.setting_status) {
-        $('.logreg-predictions').show();
-    } else {
-        $('.logreg-predictions').hide();
+    for (element of logregElements) {
+        if (response.setting_status) {
+            element.classList.remove('uk-hidden');
+        } else {
+            element.classList.add('uk-hidden');
+        }
     }
 }

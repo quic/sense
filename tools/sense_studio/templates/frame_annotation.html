@@ -46,7 +46,7 @@
                         <img src="{{ url_for('annotation_bp.download_file', project=project, split=split, label=label, video_name=video_name, img_file=img) }}">
                     </div>
                     <div class="content center aligned ">
-                        <div class="logreg-predictions {{ 'display-hidden' if not show_logreg }}">
+                        <div class="logreg-predictions {{ 'uk-hidden' if not show_logreg }}">
                             {% if pred_class == 0 %}
                                 <div class="ui large grey label prediction-label fluid">
                                     Background
