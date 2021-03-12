@@ -11,7 +11,7 @@
 {% endblock settings %}
 
 {% block main %}
-<div class="uk-container uk-container-small">
+<div class="uk-container">
     <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">{{ project }}</h1>
     <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
         <span uk-icon="icon: folder"></span>
@@ -29,7 +29,7 @@
 
     <div uk-alert>
         <a class="uk-alert-close" uk-close></a>
-        <div class="uk-grid-match" uk-grid>
+        <div class="uk-grid-match uk-grid-small" uk-grid>
             <div class="uk-width-auto">
                 <span class="uk-margin-small-left uk-margin-auto-vertical" uk-icon="icon: info; ratio: 2"></span>
             </div>
@@ -44,57 +44,70 @@
         </div>
     </div>
 
-    <h3 class="ui header">Classes</h3>
-    <div class="ui centered cards">
+    <h1>Classes</h1>
+    <div class="uk-child-width-1-2@s uk-child-width-1-3@m" uk-grid>
         {% for class, tags in config.classes.items() %}
-        <div class="card" id="classShow{{ loop.index }}">
-            <div class="content">
-                <div class="header">
-                    <span>
-                        {{ class }}
-                    </span>
-                    <a class="right floated" onclick="editClass('{{ loop.index }}', true)">
-                         <i class="edit icon"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="content temporal {{ 'display-hidden' if not config.temporal }}" >
-                <h4>Tags</h4>
-                <div class="ui list">
-                    {% for tag in tags %}
-                    <div class="item">
-                        <i class="tag icon"></i>
-                        <div class="content">
-                            <div class="description">
-                                {{ tag }}
-                            </div>
+        <div>
+            <div class="uk-card uk-card-default uk-card-hover" id="classShow{{ loop.index }}">
+                <div class="uk-card-header">
+                    <div uk-grid>
+                        <div class="uk-width-expand">
+                            <h3 class="uk-card-title uk-float-left">{{ class }}</h3>
+                        </div>
+                        <div class="uk-width-auto">
+                            <a href="#" uk-icon="icon: file-edit; ratio: 1.1" onclick="editClass('{{ loop.index }}', true)"></a>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
-            <div class="content">
-                <h4>Videos</h4>
-                <div class="ui segments">
-                    <div class="ui segment">
-                        <h5>Train: {{ stats[class].train.total }} <span class="temporal {{ 'display-hidden' if not config.temporal }}">({{ stats[class].train.tagged }} annotated)</span></h5>
-                        <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
-                            <i class="record icon"></i>
+
+                <div class="uk-card-body temporal {{ 'display-hidden' if not config.temporal }}" >
+                    <h4>Tags</h4>
+                    <ul class="uk-list">
+                        {% for tag in tags %}
+                        <li>
+                            <span uk-icon="icon: tag"></span>
+                            {{ tag }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="uk-card-footer">
+                    <h4>Videos</h4>
+                    <h5>
+                        Train: {{ stats[class].train.total }}
+                        <span class="temporal {{ 'display-hidden' if not config.temporal }}">
+                            ({{ stats[class].train.tagged }} annotated)
+                        </span>
+                    </h5>
+                    <div class="uk-button-group">
+                        <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
+                            <span uk-icon="icon: video-camera"></span>
                             Record
                         </a>
-                        <a class="ui icon button temporal {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
-                            <i class="edit icon"></i>
+                        <a class="uk-button uk-button-default temporal {{ 'display-hidden' if not config.temporal }}"
+                           onclick="loading(this);"
+                           href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
+                            <span uk-icon="icon: file-edit"></span>
                             Annotate
                         </a>
                     </div>
-                    <div class="ui segment">
-                        <h5>Valid: {{ stats[class].valid.total }} <span class="temporal {{ 'display-hidden' if not config.temporal }}">({{ stats[class].valid.tagged }} annotated)</span></h5>
-                        <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
-                            <i class="record icon"></i>
+
+                    <h5>
+                        Valid: {{ stats[class].valid.total }}
+                        <span class="temporal {{ 'display-hidden' if not config.temporal }}">
+                            ({{ stats[class].valid.tagged }} annotated)
+                        </span>
+                    </h5>
+                    <div class="uk-button-group">
+                        <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
+                            <span uk-icon="icon: video-camera"></span>
                             Record
                         </a>
-                        <a class="ui icon button temporal {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
-                            <i class="edit icon"></i>
+                        <a class="uk-button uk-button-default temporal {{ 'display-hidden' if not config.temporal }}"
+                           onclick="loading(this);"
+                           href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
+                            <span uk-icon="icon: file-edit"></span>
                             Annotate
                         </a>
                     </div>
@@ -102,87 +115,85 @@
             </div>
         </div>
 
-        <form class="ui form card class-card display-hidden" id="classEdit{{ loop.index }}" method="POST"
-              action="{{ url_for('edit_class', project=project, class_name=class) }}">
-            <div class="content">
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="eye icon"></i>
-                        <input type="text" name="className" placeholder="Class Name" value="{{ class }}" />
+        <div>
+            <form class="uk-card uk-card-default uk-card-hover class-card display-hidden" id="classEdit{{ loop.index }}" method="POST"
+                  action="{{ url_for('edit_class', project=project, class_name=class) }}">
+                <div class="uk-card-header">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                        <input class="uk-input" type="text" name="className" placeholder="Class Name" value="{{ class }}" >
                     </div>
                 </div>
-            </div>
-            <div class="content temporal {{ 'display-hidden' if not config.temporal }}">
-                <h4>Tags</h4>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" />
+
+                <div class="uk-card-body temporal {{ 'display-hidden' if not config.temporal }}">
+                    <h4>Tags</h4>
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                        <input class="uk-input" type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" >
+                    </div>
+                    <div class="uk-inline uk-width-1-1 uk-margin-top">
+                        <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                        <input class="uk-input" type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" >
                     </div>
                 </div>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" />
+
+                <div class="uk-card-footer">
+                    <button class="uk-button uk-button-default uk-width-1-1" type="button" onclick="editClass('{{ loop.index }}', false)">
+                        <span uk-icon="icon: close"></span>
+                        Cancel
+                    </button>
+                    <button class="uk-button uk-button-default uk-width-1-1 uk-margin" type="submit">
+                        <span uk-icon="icon: check"></span>
+                        Save Changes
+                    </button>
+                    <button class="uk-button uk-button-default uk-width-1-1" type="button">
+                        <span uk-icon="icon: trash"></span>
+                        Delete Class
+                    </button>
+                    <div uk-dropdown="mode: click; pos:bottom-justify">
+                        <p>
+                            Remove class from the local config.
+                            No data will be deleted.
+                        </p>
+                        <a class="uk-button uk-button-danger" href="{{ url_for('remove_class', project=project, class_name=class) }}">
+                            <span uk-icon="icon: trash"></span>
+                            Delete Class
+                        </a>
                     </div>
                 </div>
-                <div class="ui error message"></div>
-            </div>
-            <button class="ui bottom attached button" type="button" onclick="editClass('{{ loop.index }}', false)">
-                <i class="close icon"></i>
-                Cancel
-            </button>
-            <button class="ui bottom attached button" type="submit">
-                <i class="download icon"></i>
-                Save Changes
-            </button>
-            <button class="ui bottom attached button hasclickpopup" type="button">
-                <i class="trash alternate outline icon"></i>
-                Delete Class
-            </button>
-            <div class="ui popup transition hidden">
-                <p>
-                    Remove class from the local config.
-                    No data will be deleted.
-                </p>
-                <a class="ui red icon button" href="{{ url_for('remove_class', project=project, class_name=class) }}">
-                    <i class="trash alternate outline icon"></i>
-                    Delete Class
-                </a>
-            </div>
-        </form>
+            </form>
+        </div>
         {% endfor %}
 
-        <form class="ui form card class-card" method="POST" action="{{ url_for('add_class', project=project) }}">
-            <div class="content">
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="eye icon"></i>
-                        <input type="text" name="className" placeholder="Class Name" />
+        <div>
+            <form class="uk-card uk-card-default uk-card-hover class-card" method="POST" action="{{ url_for('add_class', project=project) }}">
+                <div class="uk-card-header">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                        <input class="uk-input" type="text" name="className" placeholder="Class Name">
                     </div>
                 </div>
-            </div>
-            <div class="content temporal {{ 'display-hidden' if not config.temporal }}">
-                <h4>Tags</h4>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag1" placeholder="Tag 1" />
+
+                <div class="uk-card-body temporal {{ 'display-hidden' if not config.temporal }}">
+                    <h4>Tags</h4>
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                        <input class="uk-input" type="text" name="tag1" placeholder="Tag 1">
+                    </div>
+                    <div class="uk-inline uk-width-1-1 uk-margin-top">
+                        <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                        <input class="uk-input" type="text" name="tag2" placeholder="Tag 2">
                     </div>
                 </div>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag2" placeholder="Tag 2" />
-                    </div>
+
+                <div class="uk-card-footer">
+                    <button class="uk-button uk-button-default uk-width-1-1" type="submit">
+                        <span uk-icon="icon: plus"></span>
+                        Add New Class
+                    </button>
                 </div>
-                <div class="ui error message"></div>
-            </div>
-            <button class="ui bottom attached button" type="submit">
-                <i class="plus icon"></i>
-                Add New Class
-            </button>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
