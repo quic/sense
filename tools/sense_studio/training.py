@@ -40,8 +40,10 @@ def train_model():
     project = data['project']
     path = data['path']
     num_layers_to_finetune = data['layers_to_finetune']
-    path_out = data['output_folder']
+    path_out = os.path.join(path, data['output_folder'])
     model_name = data['model_name']
+    model_version = model_name.split('-')[1]
+    model_name = model_name.split('-')[0]
     epochs = data['epochs']
     config = utils.load_project_config(path)
 
@@ -52,6 +54,7 @@ def train_model():
                         "--use_gpu" if config['use_gpu'] else "",
                         f"--path_out={path_out}" if path_out else "",
                         f"--model_name={model_name}" if model_name else "",
+                        f"--model_version={model_version}" if model_version else "",
                         f"--epochs={epochs}",
                         "--overwrite"]
 
