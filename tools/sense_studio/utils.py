@@ -3,11 +3,13 @@ import numpy as np
 import os
 
 from joblib import dump
+from sklearn.linear_model import LogisticRegression
+
 from sense.engine import InferenceEngine
 from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
-from sklearn.linear_model import LogisticRegression
+from tools import directories
 
 MODULE_DIR = os.path.dirname(__file__)
 PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
@@ -110,9 +112,11 @@ def train_logreg(path, split, label):
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
     """
-    tags_dir = os.path.join(path, f"tags_{split}", label)
-    features_dir = os.path.join(path, f"features_{split}", label)
-    logreg_dir = os.path.join(path, 'logreg', label)
+    _, model_config = load_feature_extractor(path)
+
+    features_dir = directories.get_features_dir(path, split, model_config, label=label)
+    tags_dir = directories.get_tags_dir(path, split, label)
+    logreg_dir = directories.get_logreg_dir(path, model_config, label)
     logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
 
     annotations = os.listdir(tags_dir)
