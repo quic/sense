@@ -162,7 +162,7 @@ def uniform_frame_sample(video, sample_rate):
 
 
 def compute_features(video_path, path_out, inference_engine, num_timesteps=1, path_frames=None,
-                     batch_size=None):
+                     batch_size=None, with_features=False):
     video_source = camera.VideoSource(camera_id=0,
                                       size=inference_engine.expected_frame_size,
                                       filename=video_path)
@@ -187,23 +187,24 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
     frames = np.pad(frames, ((frames_to_add, 0), (0, 0), (0, 0), (0, 0)),
                     mode='edge')
 
-    # Inference
-    clip = frames[None].astype(np.float32)
+    if with_features:
+        # Inference
+        clip = frames[None].astype(np.float32)
 
-    # Run the model on padded frames in order to remove the state in the current model coming
-    # from the previous video.
-    pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
+        # Run the model on padded frames in order to remove the state in the current model coming
+        # from the previous video.
+        pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
 
-    # Depending on the number of layers we finetune, we keep the number of features from padding
-    # equal to the temporal dependency of the model.
-    temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
+        # Depending on the number of layers we finetune, we keep the number of features from padding
+        # equal to the temporal dependency of the model.
+        temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
 
-    # predictions of the actual video frames
-    predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
-    predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
-    features = np.array(predictions)
-    os.makedirs(os.path.dirname(path_out), exist_ok=True)
-    np.save(path_out, features)
+        # predictions of the actual video frames
+        predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
+        predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
+        features = np.array(predictions)
+        os.makedirs(os.path.dirname(path_out), exist_ok=True)
+        np.save(path_out, features)
 
     if path_frames is not None:
         os.makedirs(os.path.dirname(path_frames), exist_ok=True)
@@ -219,7 +220,7 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
                 os.path.join(path_frames, str(e) + '.jpg'), quality=50)
 
 
-def compute_frames_features(inference_engine, split, label, dataset_path):
+def compute_frames_features(inference_engine, split, label, dataset_path, with_features=False):
     # Get data-set from path, given split and label
     folder = os.path.join(dataset_path, f'videos_{split}', label)
 
@@ -238,7 +239,8 @@ def compute_frames_features(inference_engine, split, label, dataset_path):
         if not os.path.isfile(path_features):
             os.makedirs(path_frames, exist_ok=True)
             compute_features(video_path, path_features, inference_engine,
-                             num_timesteps=1, path_frames=path_frames, batch_size=64)
+                             num_timesteps=1, path_frames=path_frames, batch_size=64,
+                             with_features=with_features)
 
 
 def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
@@ -263,7 +265,8 @@ def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1
             else:
                 # Read all frames
                 compute_features(video_path, path_out, inference_engine,
-                                 num_timesteps=num_timesteps, path_frames=None, batch_size=16)
+                                 num_timesteps=num_timesteps, path_frames=None, batch_size=16,
+                                 with_features=True)
 
         print('\n')
 

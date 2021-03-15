@@ -90,20 +90,19 @@ def annotate(project, split, label, idx):
     videos = os.listdir(frames_dir)
     videos.sort()
 
-    features = np.load(join(features_dir, f'{videos[idx]}.npy'))
-    features = features.mean(axis=(2, 3))
-
-    # Load logistic regression model if available
-    logreg_path = join(logreg_dir, 'logreg.joblib')
-    if os.path.isfile(logreg_path):
-        logreg = load(logreg_path)
-        classes = list(logreg.predict(features))
-    else:
-        classes = [-1] * len(features)
-
     # The list of images in the folder
     images = [image for image in glob.glob(join(frames_dir, videos[idx], '*'))
               if utils.is_image_file(image)]
+
+    # Load logistic regression model if available
+    logreg_path = join(logreg_dir, 'logreg.joblib')
+    features_path = join(features_dir, f'{videos[idx]}.npy')
+    if os.path.isfile(logreg_path) and os.path.isfile(features_path):
+        logreg = load(logreg_path)
+        features = np.load(features_path).mean(axis=(2, 3))
+        classes = list(logreg.predict(features))
+    else:
+        classes = [-1] * len(images)
 
     # Natural sort images, so that they are sorted by number
     images = natsorted(images, alg=ns.IC)
@@ -159,6 +158,8 @@ def submit_annotation():
 
     # Automatic re-training of the logistic regression model
     if utils.get_project_setting(path, 'show_logreg'):
+        inference_engine = utils.load_feature_extractor(path)
+        compute_frames_features(inference_engine, split, label, path, with_features=True)
         utils.train_logreg(path, split, label)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):

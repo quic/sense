@@ -19,6 +19,7 @@ from flask import render_template
 from flask import request
 from flask import url_for
 
+from sense.finetuning import compute_frames_features
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
 from tools.sense_studio.video_recording import video_recording_bp
@@ -215,6 +216,8 @@ def toggle_project_setting():
     if setting == 'show_logreg' and new_status:
         split = data['split']
         label = data['label']
+        inference_engine = utils.load_feature_extractor(path)
+        compute_frames_features(inference_engine, split, label, path, with_features=True)
         utils.train_logreg(path=path, split=split, label=label)
 
     return jsonify(setting_status=new_status)
