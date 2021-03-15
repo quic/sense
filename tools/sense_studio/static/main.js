@@ -180,11 +180,12 @@ function loading(element) {
 }
 
 
-let tagColors = [
-    'grey',
-    'blue',
-    'green'
-];
+// TODO: Tag colors still need to be adapted
+const buttonClasses = [
+    'uk-button-primary',
+    'uk-button-secondary',
+    'uk-button-danger',
+]
 
 
 function assignTag(frameIdx, selectedTagIdx) {
@@ -195,9 +196,9 @@ function assignTag(frameIdx, selectedTagIdx) {
         let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
 
         if (tagIdx == selectedTagIdx) {
-            button.classList.add(tagColors[tagIdx]);
+            button.classList.add(buttonClasses[tagIdx]);
         } else {
-            button.classList.remove(tagColors[tagIdx]);
+            button.classList.remove(buttonClasses[tagIdx]);
         }
     }
 }
