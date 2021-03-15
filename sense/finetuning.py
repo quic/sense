@@ -1,19 +1,22 @@
 import glob
 import itertools
 import json
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
 from PIL import Image
-from sense import camera
-from sense import engine
 from sklearn.metrics import confusion_matrix
 
+from sense import camera
+from sense import engine
+from sense import SPLITS
+from sense.engine import InferenceEngine
 from sense.utils import clean_pipe_state_dict_key
+from tools import directories
 
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
@@ -93,13 +96,11 @@ class FeaturesDataset(torch.utils.data.Dataset):
         return [features, self.labels[idx], temporal_annotation]
 
 
-def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label2int,
+def generate_data_loader(features_dir, tags_dir, label_names, label2int,
                          label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
                          stride=4, path_annotations=None, temporal_annotation_only=False,
                          full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
     # Find pre-computed features and derive corresponding labels
-    tags_dir = os.path.join(dataset_dir, tags_dir)
-    features_dir = os.path.join(dataset_dir, features_dir)
     labels_string = []
     temporal_annotation = []
     if not path_annotations:
@@ -107,28 +108,29 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
         features = []
         labels = []
         for label in label_names:
-            feature_temp = glob.glob(os.path.join(f'{features_dir}', label, '*.npy'))
+            feature_temp = glob.glob(os.path.join(features_dir, label, '*.npy'))
             features += feature_temp
             labels += [label2int[label]] * len(feature_temp)
             labels_string += [label] * len(feature_temp)
     else:
         with open(path_annotations, 'r') as f:
             annotations = json.load(f)
-        features = ['{}/{}/{}.npy'.format(features_dir, entry['label'],
-                                          os.path.splitext(os.path.basename(entry['file']))[0])
+        features = [os.path.join(features_dir,
+                                 entry['label'],
+                                 f'{os.path.splitext(os.path.basename(entry["file"]))[0]}.npy')
                     for entry in annotations]
         labels = [label2int[entry['label']] for entry in annotations]
         labels_string = [entry['label'] for entry in annotations]
 
     # check if annotation exist for each video
     for label, feature in zip(labels_string, features):
-        classe_mapping = {0: "counting_background",
-                          1: f'{label}_position_1', 2:
-                              f'{label}_position_2'}
+        class_mapping = {0: "counting_background",
+                         1: f'{label}_position_1',
+                         2: f'{label}_position_2'}
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file):
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
-            annotation = np.array([label2int_temporal_annotation[classe_mapping[y]] for y in annotation])
+            annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
             temporal_annotation.append(annotation)
         else:
             temporal_annotation.append(None)
@@ -163,8 +165,7 @@ def uniform_frame_sample(video, sample_rate):
 
 def compute_features(video_path, path_out, inference_engine, num_timesteps=1, path_frames=None,
                      batch_size=None, with_features=False):
-    video_source = camera.VideoSource(camera_id=0,
-                                      size=inference_engine.expected_frame_size,
+    video_source = camera.VideoSource(size=inference_engine.expected_frame_size,
                                       filename=video_path)
     video_fps = video_source.get_fps()
     frames = []
@@ -199,7 +200,7 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
         # equal to the temporal dependency of the model.
         temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
 
-        # predictions of the actual video frames
+    # predictions of the actual video frames
         predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
         predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
         features = np.array(predictions)
@@ -217,25 +218,42 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
 
         for e, frame in enumerate(frames_to_save):
             Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
-                os.path.join(path_frames, str(e) + '.jpg'), quality=50)
+                os.path.join(path_frames, f'{e}.jpg'), quality=50)
 
 
-def compute_frames_features(inference_engine, split, label, dataset_path, with_features=False):
-    # Get data-set from path, given split and label
-    folder = os.path.join(dataset_path, f'videos_{split}', label)
+def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, frames_dir: str, features_dir: str,
+                            with_features: bool):
+    """
+    Split the videos in the given directory into frames and compute features on each frame.
+    Results are stored in the given directories for frames and features.
 
-    # Create features and frames folders for the given split and label
-    features_folder = os.path.join(dataset_path, f'features_{split}', label)
-    frames_folder = os.path.join(dataset_path, f'frames_{split}', label)
-    os.makedirs(features_folder, exist_ok=True)
-    os.makedirs(frames_folder, exist_ok=True)
+    :param inference_engine:
+        Initialized InferenceEngine that can be used for computing the features.
+    :param videos_dir:
+        Directory where the videos are stored.
+    :param frames_dir:
+        Directory where frames should be stored. One sub-directory will be created per video with extracted frames as
+        numbered .jpg files in there.
+    :param features_dir:
+        Directory where computed features should be stored. One .npy file will be created per video.
+    :param with_features:
+        Whether to extract features from frames using logreg or not.
+    """
+    # Create features and frames folders
+    os.makedirs(features_dir, exist_ok=True)
+    os.makedirs(frames_dir, exist_ok=True)
 
     # Loop through all videos for the given class-label
-    videos = glob.glob(os.path.join(folder, '*.mp4'))
-    for e, video_path in enumerate(videos):
-        print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
-        path_frames = os.path.join(frames_folder, os.path.basename(video_path).replace(".mp4", ""))
-        path_features = os.path.join(features_folder, os.path.basename(video_path).replace(".mp4", ".npy"))
+    videos = glob.glob(os.path.join(videos_dir, '*.mp4'))
+    num_videos = len(videos)
+    for idx, video_path in enumerate(videos):
+        print(f'\r  {videos_dir}  -->  Processing video {idx + 1} / {num_videos}',
+              end='' if idx < (num_videos - 1) else '\n')
+
+        video_name = os.path.basename(video_path).replace('.mp4', '')
+        path_frames = os.path.join(frames_dir, video_name)
+        path_features = os.path.join(features_dir, f'{video_name}.npy')
+
         if not os.path.isfile(path_features):
             os.makedirs(path_frames, exist_ok=True)
             compute_features(video_path, path_features, inference_engine,
@@ -243,21 +261,22 @@ def compute_frames_features(inference_engine, split, label, dataset_path, with_f
                              with_features=with_features)
 
 
-def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
+def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1):
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
     # extract features
-    for dataset in ["train", "valid"]:
-        videos_dir = os.path.join(path_in, f"videos_{dataset}")
-        features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layers_finetune}")
+    for split in SPLITS:
+        videos_dir = directories.get_videos_dir(path_in, split)
+        features_dir = directories.get_features_dir(path_in, split, model_config, num_layers_finetune)
         video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
-        print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
+        num_videos = len(video_files)
+        print(f"\nFound {num_videos} videos to process in the {split}-set")
 
         for video_index, video_path in enumerate(video_files):
-            print(f"\rExtract features from video {video_index + 1} / {len(video_files)}",
-                  end="")
+            print(f'\rExtract features from video {video_index + 1} / {num_videos}',
+                  end='' if video_index < (num_videos - 1) else '\n')
             path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
             if os.path.isfile(path_out):

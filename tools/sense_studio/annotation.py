@@ -3,7 +3,6 @@ import json
 import numpy as np
 import os
 import urllib
-from os.path import join
 
 from flask import Blueprint
 from flask import redirect
@@ -15,7 +14,9 @@ from joblib import load
 from natsort import natsorted
 from natsort import ns
 
+from sense import SPLITS
 from sense.finetuning import compute_frames_features
+from tools import directories
 from tools.sense_studio import utils
 
 
@@ -32,17 +33,24 @@ def show_video_list(project, split, label):
     path = utils.lookup_project_path(project)
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
-    frames_dir = join(path, f"frames_{split}", label)
-    tags_dir = join(path, f"tags_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
+
+    # load feature extractor
+    inference_engine, model_config = utils.load_feature_extractor(path)
+
+    videos_dir = directories.get_videos_dir(path, split, label)
+    frames_dir = directories.get_frames_dir(path, split, label)
+    features_dir = directories.get_features_dir(path, split, model_config, label=label)
+    tags_dir = directories.get_tags_dir(path, split, label)
+    logreg_dir = directories.get_logreg_dir(path, model_config, label)
 
     os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
 
-    # load feature extractor
-    inference_engine = utils.load_feature_extractor(path)
-    # compute the features and frames missing.
-    compute_frames_features(inference_engine, split, label, path)
+    # compute the features and frames missing
+    compute_frames_features(inference_engine=inference_engine,
+                            videos_dir=videos_dir,
+                            frames_dir=frames_dir,
+                            features_dir=features_dir)
 
     videos = os.listdir(frames_dir)
     videos = natsorted(videos, alg=ns.IC)
@@ -61,14 +69,22 @@ def prepare_annotation(project):
     Prepare all files needed for annotating the videos in the given project.
     """
     project = urllib.parse.unquote(project)
-    path = utils.lookup_project_path(project)
+    dataset_path = utils.lookup_project_path(project)
 
     # load feature extractor
-    inference_engine = utils.load_feature_extractor(path)
-    for split in utils.SPLITS:
-        print("\n" + "-" * 10 + f"Preparing videos in the {split}-set" + "-" * 10)
-        for label in os.listdir(join(path, f'videos_{split}')):
-            compute_frames_features(inference_engine, split, label, path)
+    inference_engine, model_config = utils.load_feature_extractor(dataset_path)
+    for split in SPLITS:
+        print(f'\n\tPreparing videos in the {split}-set')
+
+        for label in os.listdir(directories.get_videos_dir(dataset_path, split)):
+            videos_dir = directories.get_videos_dir(dataset_path, split, label)
+            frames_dir = directories.get_frames_dir(dataset_path, split, label)
+            features_dir = directories.get_features_dir(dataset_path, split, model_config, label=label)
+
+            compute_frames_features(inference_engine=inference_engine,
+                                    videos_dir=videos_dir,
+                                    frames_dir=frames_dir,
+                                    features_dir=features_dir)
 
     return redirect(url_for("project_details", project=project))
 
@@ -82,24 +98,27 @@ def annotate(project, split, label, idx):
     path = utils.lookup_project_path(project)
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
-    frames_dir = join(path, f"frames_{split}", label)
-    features_dir = join(path, f"features_{split}", label)
-    tags_dir = join(path, f"tags_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
+
+    _, model_config = utils.load_feature_extractor(path)
+
+    frames_dir = directories.get_frames_dir(path, split, label)
+    features_dir = directories.get_features_dir(path, split, model_config, label=label)
+    tags_dir = directories.get_tags_dir(path, split, label)
+    logreg_dir = directories.get_logreg_dir(path, model_config, label)
 
     videos = os.listdir(frames_dir)
     videos.sort()
 
     # The list of images in the folder
-    images = [image for image in glob.glob(join(frames_dir, videos[idx], '*'))
+    images = [image for image in glob.glob(os.path.join(frames_dir, videos[idx], '*'))
               if utils.is_image_file(image)]
 
     # Load logistic regression model if available
-    logreg_path = join(logreg_dir, 'logreg.joblib')
-    features_path = join(features_dir, f'{videos[idx]}.npy')
+    logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
+    features_path = os.path.join(features_dir, f'{videos[idx]}.npy')
     if os.path.isfile(logreg_path) and os.path.isfile(features_path):
         logreg = load(logreg_path)
-        features = np.load(features_path).mean(axis=(2, 3))
+        features = np.load(os.path.join(features_dir, f'{videos[idx]}.npy')).mean(axis=(2, 3))
         classes = list(logreg.predict(features))
     else:
         classes = [-1] * len(images)
@@ -111,7 +130,7 @@ def annotate(project, split, label, idx):
 
     # Load existing annotations
     annotations = []
-    annotations_file = join(tags_dir, f'{videos[idx]}.json')
+    annotations_file = os.path.join(tags_dir, f'{videos[idx]}.json')
     if os.path.exists(annotations_file):
         with open(annotations_file, 'r') as f:
             data = json.load(f)
@@ -141,11 +160,11 @@ def submit_annotation():
     video = data['video']
     next_frame_idx = idx + 1
 
-    tags_dir = join(path, f"tags_{split}", label)
-    frames_dir = join(path, f"frames_{split}", label)
-    description = {'file': video + ".mp4", 'fps': fps}
+    frames_dir = directories.get_frames_dir(path, split, label)
+    tags_dir = directories.get_tags_dir(path, split, label)
+    description = {'file': f'{video}.mp4', 'fps': fps}
 
-    out_annotation = os.path.join(tags_dir, video + ".json")
+    out_annotation = os.path.join(tags_dir, f'{video}.json')
     time_annotation = []
 
     for frame_idx in range(int(data['n_images'])):
@@ -154,7 +173,7 @@ def submit_annotation():
     description['time_annotation'] = time_annotation
 
     with open(out_annotation, 'w') as f:
-        json.dump(description, f)
+        json.dump(description, f, indent=2)
 
     # Automatic re-training of the logistic regression model
     if utils.get_project_setting(path, 'show_logreg'):
@@ -173,5 +192,6 @@ def download_file(project, split, label, video_name, img_file):
     """
     Load an image from the given path.
     """
-    img_dir = join(utils.lookup_project_path(project), f'frames_{split}', label, video_name)
+    dataset_path = utils.lookup_project_path(project)
+    img_dir = os.path.join(directories.get_frames_dir(dataset_path, split, label), video_name)
     return send_from_directory(img_dir, img_file, as_attachment=True)

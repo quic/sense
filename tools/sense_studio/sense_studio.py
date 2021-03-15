@@ -19,7 +19,9 @@ from flask import render_template
 from flask import request
 from flask import url_for
 
+from sense import SPLITS
 from sense.finetuning import compute_frames_features
+from tools import directories
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
 from tools.sense_studio.video_recording import video_recording_bp
@@ -133,8 +135,8 @@ def setup_project():
     utils.write_project_config(path, config)
 
     # Setup directory structure
-    for split in utils.SPLITS:
-        videos_dir = os.path.join(path, f'videos_{split}')
+    for split in SPLITS:
+        videos_dir = directories.get_videos_dir(path, split)
         if not os.path.exists(videos_dir):
             os.mkdir(videos_dir)
 
@@ -165,12 +167,12 @@ def project_details(project):
     stats = {}
     for class_name, tags in config['classes'].items():
         stats[class_name] = {}
-        for split in utils.SPLITS:
-            videos_path = os.path.join(path, f'videos_{split}', class_name)
-            tags_path = os.path.join(path, f'tags_{split}', class_name)
+        for split in SPLITS:
+            videos_dir = directories.get_videos_dir(path, split, class_name)
+            tags_dir = directories.get_tags_dir(path, split, class_name)
             stats[class_name][split] = {
-                'total': len(os.listdir(videos_path)),
-                'tagged': len(os.listdir(tags_path)) if os.path.exists(tags_path) else 0,
+                'total': len(os.listdir(videos_dir)),
+                'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
             }
 
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'])
@@ -193,12 +195,11 @@ def add_class(project):
     utils.write_project_config(path, config)
 
     # Setup directory structure
-    for split in utils.SPLITS:
-        videos_dir = os.path.join(path, f'videos_{split}')
-        class_dir = os.path.join(videos_dir, class_name)
+    for split in SPLITS:
+        videos_dir = directories.get_videos_dir(path, split, class_name)
 
-        if not os.path.exists(class_dir):
-            os.mkdir(class_dir)
+        if not os.path.exists(videos_dir):
+            os.mkdir(videos_dir)
 
     return redirect(url_for("project_details", project=project))
 
@@ -242,24 +243,32 @@ def edit_class(project, class_name):
     utils.write_project_config(path, config)
 
     # Update directory names
-    prefixes = ['videos', 'features', 'frames', 'tags']
-    for split in utils.SPLITS:
-        for prefix in prefixes:
-            main_dir = os.path.join(path, f'{prefix}_{split}')
-            class_dir = os.path.join(main_dir, class_name)
+    data_dirs = []
+    for split in SPLITS:
+        data_dirs.extend([
+            directories.get_videos_dir(path, split),
+            directories.get_frames_dir(path, split),
+            directories.get_tags_dir(path, split),
+        ])
 
-            if os.path.exists(class_dir):
-                new_class_dir = os.path.join(main_dir, new_class_name)
-                os.rename(class_dir, new_class_dir)
+        # Feature directories follow the format <dataset_dir>/<split>/<model>/<num_layers_to_finetune>/<label>
+        features_dir = directories.get_features_dir(path, split)
+        model_dirs = [os.path.join(features_dir, model_dir) for model_dir in os.listdir(features_dir)]
+        data_dirs.extend([os.path.join(model_dir, tuned_layers)
+                          for model_dir in model_dirs
+                          for tuned_layers in os.listdir(model_dir)])
 
-    logreg_dir = os.path.join(path, 'logreg')
-    class_dir = os.path.join(logreg_dir, class_name)
+    logreg_dir = directories.get_logreg_dir(path)
+    data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
 
-    if os.path.exists(class_dir):
-        new_class_dir = os.path.join(logreg_dir, new_class_name)
-        os.rename(class_dir, new_class_dir)
+    for base_dir in data_dirs:
+        class_dir = os.path.join(base_dir, class_name)
 
-    return redirect(url_for("project_details", project=project))
+        if os.path.exists(class_dir):
+            new_class_dir = os.path.join(base_dir, new_class_name)
+            os.rename(class_dir, new_class_dir)
+
+    return redirect(url_for('project_details', project=project))
 
 
 @app.route('/remove-class/<string:project>/<string:class_name>')
