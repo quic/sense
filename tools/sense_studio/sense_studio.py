@@ -212,6 +212,11 @@ def toggle_project_setting():
     setting = data['setting']
     new_status = utils.toggle_project_setting(path, setting)
 
+    if setting == 'show_logreg' and new_status:
+        split = data['split']
+        label = data['label']
+        utils.train_logreg(path=path, split=split, label=label)
+
     return jsonify(setting_status=new_status)
 
 

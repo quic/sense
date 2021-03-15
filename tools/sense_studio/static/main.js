@@ -253,9 +253,9 @@ function toggleMakeProjectTemporal(path) {
 }
 
 
-function toggleShowPredictions(path) {
+function toggleShowPredictions(path, split, label) {
     let logregInput = document.getElementById('logregInput');
-    response = syncRequest('/toggle-project-setting', {path: path, setting: 'show_logreg'});
+    response = syncRequest('/toggle-project-setting', {path: path, setting: 'show_logreg', split: split, label: label});
 
     // Show/hide all LogReg prediction-labels
     if (response.setting_status) {

@@ -3,6 +3,7 @@ import json
 import numpy as np
 import os
 import urllib
+from os.path import join
 
 from flask import Blueprint
 from flask import redirect
@@ -10,13 +11,9 @@ from flask import render_template
 from flask import request
 from flask import send_from_directory
 from flask import url_for
-
-from joblib import dump
 from joblib import load
 from natsort import natsorted
 from natsort import ns
-from os.path import join
-from sklearn.linear_model import LogisticRegression
 
 from sense.finetuning import compute_frames_features
 from tools.sense_studio import utils
@@ -162,71 +159,12 @@ def submit_annotation():
 
     # Automatic re-training of the logistic regression model
     if utils.get_project_setting(path, 'show_logreg'):
-        train_logreg(path, split, label)
+        utils.train_logreg(path, split, label)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('.show_video_list', project=project, split=split, label=label))
 
     return redirect(url_for('.annotate', split=split, label=label, project=project, idx=next_frame_idx))
-
-
-def train_logreg(path, split, label):
-    """
-    (Re-)Train a logistic regression model on all annotations that have been submitted so far.
-    """
-
-    tags_dir = join(path, f"tags_{split}", label)
-    features_dir = join(path, f"features_{split}", label)
-    logreg_dir = join(path, 'logreg', label)
-    logreg_path = join(logreg_dir, 'logreg.joblib')
-
-    annotations = os.listdir(tags_dir)
-    class_weight = {0: 0.5}
-
-    if annotations:
-        features = [join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-        annotations = [join(tags_dir, x) for x in annotations]
-        X = []
-        y = []
-
-        for feature in features:
-            feature = np.load(feature)
-
-            for f in feature:
-                X.append(f.mean(axis=(1, 2)))
-
-        for annotation in annotations:
-            with open(annotation, 'r') as f:
-                annotation = json.load(f)['time_annotation']
-
-            pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
-
-            if len(pos1) > 0:
-                class_weight.update({1: 2})
-
-                for p in pos1:
-                    if p + 1 < len(annotation):
-                        annotation[p + 1] = 1
-
-            pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
-
-            if len(pos1) > 0:
-                class_weight.update({2: 2})
-
-                for p in pos1:
-                    if p + 1 < len(annotation):
-                        annotation[p + 1] = 2
-
-            for a in annotation:
-                y.append(a)
-
-        X = np.array(X)
-        y = np.array(y)
-
-        if len(class_weight) > 1:
-            logreg = LogisticRegression(C=0.1, class_weight=class_weight)
-            logreg.fit(X, y)
-            dump(logreg, logreg_path)
 
 
 @annotation_bp.route('/uploads/<string:project>/<string:split>/<string:label>/<string:video_name>/<string:img_file>')

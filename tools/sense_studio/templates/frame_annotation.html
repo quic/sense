@@ -14,7 +14,7 @@
            data-content="Train a simple logistic regression model live on temporal annotations and show current predictions?"
            data-position="left center">
             <input type="checkbox" id="logregInput" {% if project_config.show_logreg %} checked="checked" {% endif %}
-               onclick="toggleShowPredictions('{{ path }}');">
+               onclick="toggleShowPredictions('{{ path }}', '{{ split }}', '{{ label }}');">
             <label>Show Predictions</label>
         </div>
     </div>
