@@ -66,9 +66,11 @@ def train_model():
 
     def get_training_logs():
         while True:
+            global PROCESS
             output = PROCESS.stdout.readline()
             if output == b'' and PROCESS.poll() is not None:
                 PROCESS.terminate()
+                PROCESS = None
                 break
             if output:
                 time.sleep(0.1)
