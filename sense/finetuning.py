@@ -163,8 +163,8 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
-def compute_features(video_path, path_out, inference_engine, num_timesteps=1, path_frames=None,
-                     batch_size=None, with_features=False):
+def compute_features(video_path, path_out, inference_engine, with_features, num_timesteps=1, path_frames=None,
+                     batch_size=None):
     video_source = camera.VideoSource(size=inference_engine.expected_frame_size,
                                       filename=video_path)
     video_fps = video_source.get_fps()
@@ -200,7 +200,7 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
         # equal to the temporal dependency of the model.
         temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
 
-    # predictions of the actual video frames
+        # predictions of the actual video frames
         predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
         predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
         features = np.array(predictions)
@@ -222,7 +222,7 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
 
 
 def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, frames_dir: str, features_dir: str,
-                            with_features: bool):
+                            with_features: bool = True):
     """
     Split the videos in the given directory into frames and compute features on each frame.
     Results are stored in the given directories for frames and features.
@@ -256,9 +256,8 @@ def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, 
 
         if not os.path.isfile(path_features):
             os.makedirs(path_frames, exist_ok=True)
-            compute_features(video_path, path_features, inference_engine,
-                             num_timesteps=1, path_frames=path_frames, batch_size=64,
-                             with_features=with_features)
+            compute_features(video_path, path_features, inference_engine, with_features,
+                             num_timesteps=1, path_frames=path_frames, batch_size=64)
 
 
 def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1):
@@ -283,9 +282,8 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
                 print("\n\tSkipped - feature was already precomputed.")
             else:
                 # Read all frames
-                compute_features(video_path, path_out, inference_engine,
-                                 num_timesteps=num_timesteps, path_frames=None, batch_size=16,
-                                 with_features=True)
+                compute_features(video_path, path_out, inference_engine, with_features=True,
+                                 num_timesteps=num_timesteps, path_frames=None, batch_size=16)
 
         print('\n')
 

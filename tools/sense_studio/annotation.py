@@ -84,7 +84,8 @@ def prepare_annotation(project):
             compute_frames_features(inference_engine=inference_engine,
                                     videos_dir=videos_dir,
                                     frames_dir=frames_dir,
-                                    features_dir=features_dir)
+                                    features_dir=features_dir,
+                                    with_features=False)
 
     return redirect(url_for("project_details", project=project))
 
@@ -178,7 +179,7 @@ def submit_annotation():
     # Automatic re-training of the logistic regression model
     if utils.get_project_setting(path, 'show_logreg'):
         inference_engine = utils.load_feature_extractor(path)
-        compute_frames_features(inference_engine, split, label, path, with_features=True)
+        compute_frames_features(inference_engine, split, label, path)
         utils.train_logreg(path, split, label)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
