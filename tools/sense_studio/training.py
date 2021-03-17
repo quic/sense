@@ -38,49 +38,40 @@ def training_page(project):
 @training_bp.route('/train-model', methods=['POST'])
 def train_model():
     data = request.form
-    data_sent = {}
+    training_args = {}
     project = data['project']
     path = data['path']
     config = utils.load_project_config(path)
-    data_sent['path_in'] = path
-    data_sent['num_layers_to_finetune'] = int(data['layers_to_finetune'])
-    data_sent['path_out'] = os.path.join(path, data['output_folder'] or "checkpoints")
+    training_args['path_in'] = path
+    training_args['num_layers_to_finetune'] = int(data['layers_to_finetune'])
+    training_args['path_out'] = os.path.join(path, data['output_folder'] or "checkpoints")
     model_name = data['model_name']
-    data_sent['model_version'] = model_name.split('-')[1]
-    data_sent['model_name'] = model_name.split('-')[0]
-    data_sent['epochs'] = int(data['epochs'])
-    data_sent['use_gpu'] = config['use_gpu']
-    log_path = os.path.join(data_sent['path_out'], str(os.getpid()) + ".out")
-    # project = data['project']
-    # path = data['path']
-    # num_layers_to_finetune = data['layers_to_finetune']
-    # path_out = os.path.join(path, data['output_folder'] or "checkpoints")
-    # model_name = data['model_name']
-    # model_version = model_name.split('-')[1]
-    # model_name = model_name.split('-')[0]
-    # epochs = data['epochs']
+    training_args['model_version'] = model_name.split('-')[1]
+    training_args['model_name'] = model_name.split('-')[0]
+    training_args['epochs'] = int(data['epochs'])
+    training_args['use_gpu'] = config['use_gpu']
+
+    # TODO: Had this because was thinking to write terminal logs into file and read from it.
+    log_path = os.path.join(training_args['path_out'], str(os.getpid()) + ".out")
 
     is_disabled = True
     global PROCESS
-    PROCESS = Process(target=training_model, kwargs=data_sent)
+    PROCESS = Process(target=training_model, kwargs=training_args)
     PROCESS.start()
 
     def get_training_logs():
         global PROCESS
         count = 0
+        # TODO: Get the stdout (terminal prints) from the running PROCESS.
         while PROCESS.is_alive():
             time.sleep(0.1)
             count += 1
             yield "Yashesh: " + str(count)
         else:
+            # TODO: This is_disabled assignment is not working and still in progress.
             is_disabled = False
             PROCESS.terminate()
             PROCESS = None
-
-    # return flask.Response(stream_with_context(stream_template('training.html', project=data['project'], path=path,
-    #                                                           is_disabled=is_disabled,
-    #                                                           models=utils.BACKBONE_MODELS,
-    #                                                           logs=get_training_logs())))
 
     return render_template('training.html', project=project, path=path,
                             is_disabled=is_disabled,
