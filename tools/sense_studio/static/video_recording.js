@@ -9,6 +9,7 @@ function increase(inputID) {
     } else {
         value++;
         setDefaultButton.classList.remove('disabled');
+        setDefaultButton.innerHTML = "Save as default"
     }
 
     element.value = value;
@@ -25,6 +26,7 @@ function decrease(inputID, minValue) {
     } else if (value > minValue) {
         value--;
         setDefaultButton.classList.remove('disabled');
+        setDefaultButton.innerHTML = "Save as default"
     }
 
     element.value = value;
