@@ -251,3 +251,14 @@ function toggleMakeProjectTemporal(path) {
         $('.temporal').hide();
     }
 }
+
+
+function setTimerDefault(path) {
+    let setDefaultButton = document.getElementById('setDefaultButton');
+    let countdownDuration = parseInt(document.getElementById('countdown').value);
+    let recordingDuration = parseInt(document.getElementById('duration').value);
+
+    setDefaultButton.classList.add('disabled');
+
+    response = syncRequest('/set-timer-default', {path: path, countdown: countdownDuration, duration: recordingDuration});
+}

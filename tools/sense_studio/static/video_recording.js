@@ -1,5 +1,6 @@
 
 function increase(inputID) {
+    let setDefaultButton = document.getElementById('setDefaultButton');
     let element = document.getElementById(inputID);
     let value = parseInt(element.value);
 
@@ -7,6 +8,7 @@ function increase(inputID) {
         value = 1;
     } else {
         value++;
+        setDefaultButton.classList.remove('disabled');
     }
 
     element.value = value;
@@ -14,6 +16,7 @@ function increase(inputID) {
 
 
 function decrease(inputID, minValue) {
+    let setDefaultButton = document.getElementById('setDefaultButton');
     let element = document.getElementById(inputID);
     let value = parseInt(element.value);
 
@@ -21,6 +24,7 @@ function decrease(inputID, minValue) {
         value = 1;
     } else if (value > minValue) {
         value--;
+        setDefaultButton.classList.remove('disabled');
     }
 
     element.value = value;

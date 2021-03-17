@@ -127,6 +127,10 @@ def setup_project():
             'classes': {},
             'use_gpu': False,
             'temporal': False,
+            'video_recording': {
+                'countdown': 3,
+                'duration': 5,
+            },
         }
         old_name = None
 
@@ -310,6 +314,18 @@ def context_processors():
         return temporal_status
 
     return dict(inject_class_labels=inject_class_labels, inject_temporal_status=inject_temporal_status)
+
+
+@app.route('/set-timer-default', methods=['POST'])
+def set_timer_default():
+    data = request.json
+    path = data['path']
+    countdown = int(data['countdown'])
+    duration = int(data['duration'])
+
+    utils.set_timer_default(path, countdown, duration)
+
+    return jsonify(status=True)
 
 
 if __name__ == '__main__':
