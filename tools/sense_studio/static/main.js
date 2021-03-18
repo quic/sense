@@ -261,5 +261,5 @@ function setTimerDefault(path) {
     setDefaultButton.classList.add('disabled');
     setDefaultButton.innerHTML = "Saved";
 
-    response = syncRequest('/set-timer-default', {path: path, countdown: countdownDuration, duration: recordingDuration});
+    response = syncRequest('/set-timer-default', {path: path, countdown: countdownDuration, recording: recordingDuration});
 }

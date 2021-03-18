@@ -129,7 +129,7 @@ def setup_project():
             'temporal': False,
             'video_recording': {
                 'countdown': 3,
-                'duration': 5,
+                'recording': 5,
             },
         }
         old_name = None
@@ -321,9 +321,9 @@ def set_timer_default():
     data = request.json
     path = data['path']
     countdown = int(data['countdown'])
-    duration = int(data['duration'])
+    recording = int(data['recording'])
 
-    utils.set_timer_default(path, countdown, duration)
+    utils.set_timer_default(path, countdown, recording)
 
     return jsonify(status=True)
 

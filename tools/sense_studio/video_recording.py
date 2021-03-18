@@ -24,10 +24,10 @@ def record_video(project, split, label):
     label = urllib.parse.unquote(label)
     path = utils.lookup_project_path(project)
 
-    countdown, duration = utils.get_timer_default(path)
+    countdown, recording = utils.get_timer_default(path)
 
     return render_template('video_recording.html', project=project, split=split, label=label, path=path,
-                           countdown=countdown, duration=duration)
+                           countdown=countdown, recording=recording)
 
 
 @video_recording_bp.route('/save-video/<string:project>/<string:split>/<string:label>', methods=['POST'])
