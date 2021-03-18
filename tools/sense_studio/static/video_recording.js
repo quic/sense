@@ -75,6 +75,12 @@ function setupRecording(stream, url) {
     let player = document.getElementById('player');
     player.srcObject = stream;
 
+    response = syncRequest('/video-recording/ffmpeg-check', null)
+    if (!response.ffmpeg_installed) {
+        displayOverlay('Please install ffmpeg!', 'error');
+        return;
+    }
+
     let countdownDuration = parseInt(document.getElementById('countdown').value)
     let recordingDuration = parseInt(document.getElementById('duration').value)
 
