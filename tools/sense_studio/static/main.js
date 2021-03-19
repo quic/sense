@@ -1,5 +1,36 @@
-
+// Ref: https://github.com/miguelgrinberg/Flask-SocketIO-Chat/blob/master/app/templates/chat.html
+var socket;
 $(document).ready(function () {
+
+    let project = $('#project').val();
+    let output_folder = $('#output_folder').val();
+
+    socket = io.connect('http://' + document.domain + ':' + location.port + '/train-model');
+    socket.on('connect', function() {
+        socket.emit('training_logs', {status: 'Socket Connected', project: project});
+    });
+
+    socket.on('status', function(message) {
+        console.log(message.status);
+    });
+
+    socket.on('training_logs', function(message) {
+        $("#terminal").children().append(`<p class='monospace-font'><b>${message.log}</b></p>`);
+        $('#terminal').scrollTop($('#terminal')[0].scrollHeight);
+    });
+
+    socket.on('success', function(message) {
+        if (message.status === 'Complete') {
+            socket.disconnect();
+            console.log('Socket Disconnected');
+
+            $('#btn-train').removeClass('disabled');
+            $('#btn-cancel-train').addClass('disabled');
+            $('#confusion-matrix').append(`<img src=${message.img_path}/${output_folder} alt='Confusion matrix' />`);
+            $('#confusion-matrix').show();
+        }
+    });
+
     $('.path-search').search({
         apiSettings: {
             response: function (e) {
@@ -252,18 +283,4 @@ function toggleMakeProjectTemporal(path) {
         makeProjectTemporal.removeAttribute('checked');
         $('.temporal').hide();
     }
-}
-
-// TODO: Not Working Properly (Needs investigation)
-function disableTrainModel() {
-    let trainModel = document.getElementById('trainModel');
-    trainModel.setAttribute('disabled', 'disabled');
-    $('.train-console').show();
-}
-
-// TODO: Not Working Properly (Needs investigation)
-function enableTrainModel() {
-    let trainModel = document.getElementById('trainModel');
-    trainModel.removeAttribute('disabled', 'disabled');
-    $('.train-console').show();
 }
