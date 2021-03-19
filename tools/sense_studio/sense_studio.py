@@ -129,6 +129,10 @@ def setup_project():
             'use_gpu': False,
             'temporal': False,
             'show_logreg': False,
+            'video_recording': {
+                'countdown': 3,
+                'recording': 5,
+            },
         }
         old_name = None
 
@@ -313,6 +317,18 @@ def context_processors():
         return utils.load_project_config(path)
 
     return dict(inject_project_config=inject_project_config)
+
+
+@app.route('/set-timer-default', methods=['POST'])
+def set_timer_default():
+    data = request.json
+    path = data['path']
+    countdown = int(data['countdown'])
+    recording = int(data['recording'])
+
+    utils.set_timer_default(path, countdown, recording)
+
+    return jsonify(status=True)
 
 
 if __name__ == '__main__':

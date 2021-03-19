@@ -166,3 +166,24 @@ def train_logreg(path, split, label):
             logreg = LogisticRegression(C=0.1, class_weight=class_weight)
             logreg.fit(x, y)
             dump(logreg, logreg_path)
+
+
+def get_timer_default(path):
+    """Get the default countdown and recording duration (in seconds) for video-recording."""
+    config = load_project_config(path)
+    countdown = config.get('video_recording', {}).get('countdown', 3)
+    duration = config.get('video_recording', {}).get('recording', 5)
+
+    return countdown, duration
+
+
+def set_timer_default(path, countdown, recording):
+    """Set the new default countdown and recording duration (in seconds) for video-recording."""
+    config = load_project_config(path)
+    video_recording = config.get('video_recording', {})
+
+    video_recording['countdown'] = countdown
+    video_recording['recording'] = recording
+    config['video_recording'] = video_recording
+
+    write_project_config(path, config)

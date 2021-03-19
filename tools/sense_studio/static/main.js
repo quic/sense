@@ -266,3 +266,15 @@ function toggleShowPredictions(path, split, label) {
         $('.logreg-predictions').hide();
     }
 }
+
+
+function setTimerDefault(path) {
+    let setDefaultButton = document.getElementById('setDefaultButton');
+    let countdownDuration = parseInt(document.getElementById('countdown').value);
+    let recordingDuration = parseInt(document.getElementById('duration').value);
+
+    setDefaultButton.classList.add('disabled');
+    setDefaultButton.innerHTML = "Saved";
+
+    response = syncRequest('/set-timer-default', {path: path, countdown: countdownDuration, recording: recordingDuration});
+}

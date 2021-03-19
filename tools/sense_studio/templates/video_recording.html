@@ -24,7 +24,7 @@
                 <label>Countdown</label>
                 <div class="ui action left icon input">
                     <i class="stopwatch icon"></i>
-                    <input type="text" value="3" id="countdown"/>
+                    <input type="text" value="{{ countdown }}" id="countdown"/>
                     <div class="ui icon button" onclick="decrease('countdown', 0);">
                         <i class="minus icon"></i>
                     </div>
@@ -37,7 +37,7 @@
                 <label>Duration</label>
                 <div class="ui action left icon input">
                     <i class="hourglass icon"></i>
-                    <input type="text" value="5" id="duration"/>
+                    <input type="text" value="{{ recording }}" id="duration"/>
                     <div class="ui icon button" onclick="decrease('duration', 1);">
                         <i class="minus icon"></i>
                     </div>
@@ -45,6 +45,11 @@
                         <i class="plus icon"></i>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="field">
+            <div class="ui small button disabled" id="setDefaultButton" onclick="setTimerDefault('{{ path }}');">
+                Save as defaults
             </div>
         </div>
         <div class="ui primary icon button" id="recordVideoButton"
