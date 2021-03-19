@@ -10,6 +10,8 @@ function increase(inputID) {
     }
 
     element.value = value;
+
+    enableSetDefaultsButton();
 }
 
 
@@ -24,6 +26,15 @@ function decrease(inputID, minValue) {
     }
 
     element.value = value;
+
+    enableSetDefaultsButton();
+}
+
+
+function enableSetDefaultsButton() {
+    let setDefaultButton = document.getElementById('setDefaultButton');
+    setDefaultButton.classList.remove('disabled');
+    setDefaultButton.innerHTML = "Save as defaults"
 }
 
 
