@@ -15,8 +15,8 @@
         </div>
     </h1>
     <form class="ui form" action="{{ url_for('.train_model') }}" method="post">
-        <input type="hidden" name="project" value="{{ project }}">
-        <input type="hidden" name="path" value="{{ path }}">
+        <input type="hidden" id="project" name="project" value="{{ project }}">
+        <input type="hidden" id="path" name="path" value="{{ path }}">
         <div class="two fields wide">
             <div class="field">
                 <label>Backbone Model</label>
@@ -51,22 +51,16 @@
                     <div class="ui label">
                         {{ project }}/
                     </div>
-                    <input type="text" name="output_folder" placeholder="Folder Name">
+                    <input id="output_folder" type="text" name="output_folder" value="{{ output_folder }}" placeholder="Folder Name" autocomplete="off" required>
                 </div>
             </div>
         </div>
-      <button class="ui button {{ 'disabled' if is_disabled }}" id="trainModel" type="submit" tabindex="0" >Train model</button>
-      <button class="ui button" type="submit" tabindex="1" formaction="{{ url_for('.cancel_training') }}">Cancel</button>
+      <button class="ui button {{ 'disabled' if is_disabled }}" id="btn-train" type="submit" tabindex="0" >Train model</button>
+      <button class="ui button {{ 'disabled' if not is_disabled }}" id="btn-cancel-train" type="submit" tabindex="1" formaction="{{ url_for('.cancel_training') }}">Cancel</button>
     </form>
-    <div class="ui segment train-console">
-        {% if is_disabled %}
-            <h4 class="monospace-font">Training Model...</h4>
-        {% endif %}
-        <h4 class="monospace-font">
-            {% for log in logs %}
-                {{ log }} <br />
-            {% endfor %}
-        </h4>
+    <div id="terminal" class="ui segment train-console">
+          <p class="monospace-font"><b>{{ message }}</b></p>
     </div>
+    <div id="confusion-matrix" class="ui huge image"></div>
 </div>
 {% endblock %}
