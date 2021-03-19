@@ -29,7 +29,7 @@ function decrease(inputID, minValue) {
 
 function recordVideo(url) {
     // check if ffmpeg is installed
-    response = syncRequest('/video-recording/ffmpeg-check', null)
+    response = sendGetRequest('/video-recording/ffmpeg-check', null)
     if (!response.ffmpeg_installed) {
         displayOverlay('Please install ffmpeg!', 'error');
         return;

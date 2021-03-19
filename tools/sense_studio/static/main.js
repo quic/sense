@@ -161,6 +161,22 @@ function syncRequest(url, data) {
 }
 
 
+function sendGetRequest(url, data) {
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.open('GET', url, false);
+    xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+    if (data) {
+        xhttp.send(JSON.stringify(data));
+    } else {
+        xhttp.send();
+    }
+
+    return JSON.parse(xhttp.responseText);
+}
+
+
 function getProjects() {
     return syncRequest('/projects-list', null);
 }
