@@ -17,7 +17,6 @@ video_recording_bp = Blueprint('video_recording_bp', __name__)
 
 @video_recording_bp.route('/ffmpeg-check', methods=['POST'])
 def check_ffmpeg():
-
     ffmpeg_installed = importlib.util.find_spec('ffmpeg')
     return jsonify(ffmpeg_installed=ffmpeg_installed is not None)
 
