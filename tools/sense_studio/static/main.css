@@ -81,3 +81,6 @@ a {
     font-family: "Ubuntu Mono", monospace;
 }
 
+#confusion-matrix {
+    display: none;
+}
