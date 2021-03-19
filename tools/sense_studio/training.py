@@ -41,15 +41,19 @@ def train_model():
     model_version = model_name.split('-')[1]
     model_name = model_name.split('-')[0]
     path_out = os.path.join(path, output_folder, 'checkpoints')
-    os.makedirs(path_out, exist_ok=True)
+    path_annotations_train = os.path.join(path, 'tags_train')
+    path_annotations_valid = os.path.join(path, 'tags_valid')
 
     train_classifier = ["python tools/train_classifier.py", f"--path_in={path}",
                         f"--num_layers_to_finetune={num_layers_to_finetune}",
-                        "--use_gpu" if config['use_gpu'] else "",
                         f"--path_out={path_out}" if path_out else "",
                         f"--model_name={model_name}" if model_name else "",
                         f"--model_version={model_version}" if model_version else "",
                         f"--epochs={epochs}",
+                        f"--path_annotations_train={path_annotations_train}" if config['temporal'] else "",
+                        f"--path_annotations_valid={path_annotations_valid}" if config['temporal'] else "",
+                        "--use_gpu" if config['use_gpu'] else "",
+                        f"--temporal_training" if config['temporal'] else "",
                         "--overwrite"]
 
     train_classifier = ' '.join(train_classifier)
@@ -82,16 +86,28 @@ def send_training_logs(msg):
     global train_process
     if train_process:
         while True:
-            output = train_process.stdout.readline()
-            if output == b'' and train_process.poll() is not None:
+            errors = train_process.stderr.readlines()
+            if errors:
+                for error in errors:
+                    time.sleep(0.1)
+                    emit('training_logs', {'log': error.decode().strip() + '\n'})
                 train_process.terminate()
                 train_process = None
                 break
-            if output:
-                time.sleep(0.1)
-                emit('training_logs', {'log': output.decode().strip() + '\n'})
-        img_path = url_for('training_bp.confusion_matrix', project=msg['project'])
-        emit('success', {'status': 'Complete', 'img_path': img_path})
+            else:
+                output = train_process.stdout.readline()
+                if output == b'' and train_process.poll() is not None:
+                    train_process.terminate()
+                    train_process = None
+                    break
+                if output:
+                    time.sleep(0.1)
+                    emit('training_logs', {'log': output.decode().strip() + '\n'})
+        if not errors:
+            img_path = url_for('training_bp.confusion_matrix', project=msg['project'])
+            emit('success', {'status': 'Complete', 'img_path': img_path})
+        else:
+            emit('failed', {'status': 'Failed'})
     else:
         emit('status', msg)
 

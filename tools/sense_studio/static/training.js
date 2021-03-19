@@ -30,4 +30,14 @@ $(document).ready(function () {
             $('#confusion-matrix').show();
         }
     });
+
+    socket.on('failed', function(message) {
+        if (message.status === 'Failed') {
+            socket.disconnect();
+            console.log('Socket Disconnected');
+
+            $('#btn-train').removeClass('disabled');
+            $('#btn-cancel-train').addClass('disabled');
+        }
+    });
 });
