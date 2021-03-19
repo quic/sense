@@ -2,6 +2,7 @@ import glob
 import os
 import subprocess
 import urllib
+import importlib
 
 from flask import Blueprint
 from flask import jsonify
@@ -16,10 +17,9 @@ video_recording_bp = Blueprint('video_recording_bp', __name__)
 
 @video_recording_bp.route('/ffmpeg-check', methods=['POST'])
 def check_ffmpeg():
-    # TODO: Check if ffmpeg is installed
-    ffmpeg_installed = False
 
-    return jsonify(ffmpeg_installed=ffmpeg_installed)
+    ffmpeg_installed = importlib.util.find_spec('ffmpeg')
+    return jsonify(ffmpeg_installed=ffmpeg_installed is not None)
 
 
 @video_recording_bp.route('/record-video/<string:project>/<string:split>/<string:label>')
