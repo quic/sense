@@ -36,8 +36,8 @@ def train_model():
     output_folder = data['output_folder']
     model_name = data['model_name']
     epochs = data['epochs']
-    config = utils.load_project_config(path)
 
+    config = utils.load_project_config(path)
     model_version = model_name.split('-')[1]
     model_name = model_name.split('-')[0]
     path_out = os.path.join(path, output_folder, 'checkpoints')

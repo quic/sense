@@ -64,3 +64,7 @@
     <div id="confusion-matrix" class="ui huge image"></div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='training.js') }}"></script>
+{% endblock %}
