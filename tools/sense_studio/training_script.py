@@ -10,8 +10,6 @@ Usage:
                        [--epochs=NUM]
                        [--use_gpu]
                        [--path_out=PATH]
-                       [--path_annotations_train=PATH]
-                       [--path_annotations_valid=PATH]
                        [--temporal_training]
                        [--resume]
                        [--overwrite]
@@ -68,6 +66,7 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 
 def training_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
                    use_gpu=True, overwrite=True, temporal_training=None, resume=False):
+    os.makedirs(path_out, exist_ok=True)
 
     # Check for existing files
     saved_files = ["last_classifier.checkpoint", "best_classifier.checkpoint", "config.json", "label2int.json",
@@ -114,7 +113,6 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
                              f'Must be an integer between 0 and {num_layers}')
     else:
         num_timesteps = 1
-    minimum_frames = backbone_network.num_required_frames_per_layer[0]
 
     # Extract layers to finetune
     if num_layers_to_finetune > 0:
@@ -215,19 +213,26 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
 if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
-    path_in = args['--path_in']
-    path_out = args['--path_out'] or os.path.join(path_in, "checkpoints")
-    os.makedirs(path_out, exist_ok=True)
-    use_gpu = args['--use_gpu']
-    path_annotations_train = args['--path_annotations_train'] or None
-    path_annotations_valid = args['--path_annotations_valid'] or None
-    model_name = args['--model_name'] or None
-    model_version = args['--model_version'] or None
-    num_layers_to_finetune = int(args['--num_layers_to_finetune'])
-    epochs = int(args['--epochs'])
-    temporal_training = args['--temporal_training']
-    resume = args['--resume']
-    overwrite = args['--overwrite']
+    _path_in = args['--path_in']
+    _path_out = args['--path_out'] or os.path.join(_path_in, "checkpoints")
+    _use_gpu = args['--use_gpu']
+    _model_name = args['--model_name'] or None
+    _model_version = args['--model_version'] or None
+    _num_layers_to_finetune = int(args['--num_layers_to_finetune'])
+    _epochs = int(args['--epochs'])
+    _temporal_training = args['--temporal_training']
+    _resume = args['--resume']
+    _overwrite = args['--overwrite']
 
-    training_model(path_in, path_out, use_gpu, path_annotations_train, path_annotations_valid, model_name, model_version,
-                num_layers_to_finetune, epochs, temporal_training, resume, overwrite)
+    training_model(
+        path_in=_path_in,
+        path_out=_path_out,
+        model_name=_model_name,
+        model_version=_model_version,
+        num_layers_to_finetune=_num_layers_to_finetune,
+        epochs=_epochs,
+        use_gpu=_use_gpu,
+        overwrite=_overwrite,
+        temporal_training=_temporal_training,
+        resume=_resume,
+    )

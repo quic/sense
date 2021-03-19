@@ -1,19 +1,11 @@
-import io
 import os
-import subprocess
-import shlex
 import time
 import urllib
 from multiprocessing import Process
-import sys
 
-import flask
 from flask import Blueprint
-from flask import current_app
 from flask import render_template
 from flask import request
-from flask import send_from_directory
-from flask import stream_with_context
 
 from tools.sense_studio import utils
 from tools.sense_studio.training_script import training_model
@@ -38,25 +30,27 @@ def training_page(project):
 @training_bp.route('/train-model', methods=['POST'])
 def train_model():
     data = request.form
-    training_args = {}
     project = data['project']
     path = data['path']
     config = utils.load_project_config(path)
-    training_args['path_in'] = path
-    training_args['num_layers_to_finetune'] = int(data['layers_to_finetune'])
-    training_args['path_out'] = os.path.join(path, data['output_folder'] or "checkpoints")
-    model_name = data['model_name']
-    training_args['model_version'] = model_name.split('-')[1]
-    training_args['model_name'] = model_name.split('-')[0]
-    training_args['epochs'] = int(data['epochs'])
-    training_args['use_gpu'] = config['use_gpu']
+    model_name, model_version = data['model_name'].split('-')
+
+    training_kwargs = {
+        'path_in': path,
+        'num_layers_to_finetune': int(data['layers_to_finetune']),
+        'path_out': os.path.join(path, data['output_folder'] or "checkpoints"),
+        'model_version': model_version,
+        'model_name': model_name,
+        'epochs': int(data['epochs']),
+        'use_gpu': config['use_gpu'],
+    }
 
     # TODO: Had this because was thinking to write terminal logs into file and read from it.
-    log_path = os.path.join(training_args['path_out'], str(os.getpid()) + ".out")
+    log_path = os.path.join(training_kwargs['path_out'], str(os.getpid()) + ".out")
 
     is_disabled = True
     global PROCESS
-    PROCESS = Process(target=training_model, kwargs=training_args)
+    PROCESS = Process(target=training_model, kwargs=training_kwargs)
     PROCESS.start()
 
     def get_training_logs():
@@ -74,9 +68,9 @@ def train_model():
             PROCESS = None
 
     return render_template('training.html', project=project, path=path,
-                            is_disabled=is_disabled,
-                            models=utils.BACKBONE_MODELS,
-                            logs=get_training_logs())
+                           is_disabled=is_disabled,
+                           models=utils.BACKBONE_MODELS,
+                           logs=get_training_logs())
 
 
 @training_bp.route('/cancel-training', methods=['POST'])
