@@ -61,9 +61,13 @@ def show_video_list(project, split, label):
     tagged_list = set(os.listdir(tags_dir))
     tagged = [f'{video}.json' in tagged_list for video in videos]
 
+    num_videos = len(videos)
+    num_tagged = len(tagged_list)
+    num_untagged = num_videos - num_tagged
+
     video_list = zip(videos, tagged, list(range(len(videos))))
     return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path,
-                           project=project)
+                           project=project, num_videos=num_videos, num_tagged=num_tagged, num_untagged=num_untagged)
 
 
 @annotation_bp.route('/prepare-annotation/<string:project>')
