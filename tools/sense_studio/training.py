@@ -1,8 +1,10 @@
 import os
 import time
 import urllib
+import multiprocessing
 from multiprocessing import Process
 from multiprocessing import Queue
+
 
 from flask import Blueprint
 from flask import render_template
@@ -35,6 +37,9 @@ def train_model():
     path_annotations_train = os.path.join(path, 'tags_train')
     path_annotations_valid = os.path.join(path, 'tags_valid')
 
+    # TODO: Check if it is needed if go with 'spawn' type
+    # ctx = multiprocessing.get_context('spawn')
+
     global queue
     queue = Queue()
     global queue_error
@@ -50,9 +55,9 @@ def train_model():
         'use_gpu': config['use_gpu'],
         'logging': queue,
         'errors': queue_error,
-        'temporal_training': config['temporal'],
-        'path_annotations_train': path_annotations_train,
-        'path_annotations_valid': path_annotations_valid
+        # 'temporal_training': config['temporal'],
+        # 'path_annotations_train': path_annotations_train,
+        # 'path_annotations_valid': path_annotations_valid
     }
 
     is_disabled = True
@@ -65,31 +70,16 @@ def train_model():
         global queue
         global queue_error
         while True:
-            error = queue_error.get()
-            if queue_error.empty() and not PROCESS.is_alive():
-                print('IN ERROR break')
+            output = queue.get()
+            if queue.empty() and not PROCESS.is_alive():
                 PROCESS.terminate()
                 PROCESS = None
                 queue.close()
                 queue_error.close()
                 break
-            if error:
+            if output:
                 time.sleep(0.1)
-                # emit('training_logs', {'log': error.decode().strip() + '\n'})
-                print(error)
-                yield error
-            else:
-                output = queue.get()
-                if queue.empty() and not PROCESS.is_alive():
-                    print('IN OP break')
-                    PROCESS.terminate()
-                    PROCESS = None
-                    queue.close()
-                    queue_error.close()
-                    break
-                if output:
-                    time.sleep(0.1)
-                    yield output + '\n'
+                yield output + '\n'
 
     return render_template('training.html', project=project, path=path,
                            is_disabled=is_disabled,

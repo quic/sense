@@ -279,6 +279,7 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
             path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
             if os.path.isfile(path_out):
+                print("\n\tSkipped - feature was already precomputed.")
                 if logging:
                     logging.put("\n\tSkipped - feature was already precomputed.")
             else:

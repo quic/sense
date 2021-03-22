@@ -112,8 +112,9 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
         if not num_timesteps:
             # Remove 1 because we added 0 to temporal_dependencies
             num_layers = len(backbone_network.num_required_frames_per_layer) - 1
-            errors.put(f'Num of layers to finetune not compatible. '
-                       f'Must be an integer between 0 and {num_layers}')
+            if errors:
+                errors.put(f'Num of layers to finetune not compatible. '
+                           f'Must be an integer between 0 and {num_layers}')
             raise IndexError(f'Num of layers to finetune not compatible. '
                              f'Must be an integer between 0 and {num_layers}')
     else:
