@@ -84,17 +84,22 @@ def cancel_training():
 @socketio.on('training_logs', namespace='/train-model')
 def send_training_logs(msg):
     global train_process
+    errors = []
     if train_process:
         while True:
+            if not train_process:
+                break
             errors = train_process.stderr.readlines()
             if errors:
                 for error in errors:
                     time.sleep(0.1)
-                    emit('training_logs', {'log': error.decode().strip() + '\n'})
+                    emit('training_logs', {'log': error.decode() + '\n'})
                 train_process.terminate()
                 train_process = None
                 break
             else:
+                if not train_process:
+                    break
                 output = train_process.stdout.readline()
                 if output == b'' and train_process.poll() is not None:
                     train_process.terminate()
@@ -102,7 +107,7 @@ def send_training_logs(msg):
                     break
                 if output:
                     time.sleep(0.1)
-                    emit('training_logs', {'log': output.decode().strip() + '\n'})
+                    emit('training_logs', {'log': output.decode() + '\n'})
         if not errors:
             img_path = url_for('training_bp.confusion_matrix', project=msg['project'])
             emit('success', {'status': 'Complete', 'img_path': img_path})
