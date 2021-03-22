@@ -12,6 +12,7 @@ import glob
 import os
 import urllib
 
+from flask import Flask
 from flask import jsonify
 from flask import redirect
 from flask import render_template
@@ -21,10 +22,21 @@ from sense import SPLITS
 from tools import directories
 from tools.sense_studio import utils
 
-from tools.sense_studio import init_app
 from tools.sense_studio import socketio
+from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.training import training_bp
+from tools.sense_studio.video_recording import video_recording_bp
 
-app = init_app(debug=True)
+
+app = Flask(__name__)
+app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
+app.debug = True
+
+app.register_blueprint(annotation_bp, url_prefix='/annotation')
+app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
+app.register_blueprint(training_bp, url_prefix='/training')
+
+socketio.init_app(app)
 
 
 @app.route('/')
