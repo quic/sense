@@ -65,7 +65,8 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 
 
 def training_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
-                   use_gpu=True, overwrite=True, temporal_training=None, resume=False):
+                   use_gpu=True, overwrite=True, temporal_training=None, path_annotations_train=None,
+                   path_annotations_valid=None, resume=False, logging=None, errors=None):
     os.makedirs(path_out, exist_ok=True)
 
     # Check for existing files
@@ -88,7 +89,9 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
     selected_config, weights = get_relevant_weights(
         SUPPORTED_MODEL_CONFIGURATIONS,
         model_name,
-        model_version
+        model_version,
+        logging,
+        errors
     )
     backbone_weights = weights['backbone']
 
@@ -109,6 +112,8 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
         if not num_timesteps:
             # Remove 1 because we added 0 to temporal_dependencies
             num_layers = len(backbone_network.num_required_frames_per_layer) - 1
+            errors.put(f'Num of layers to finetune not compatible. '
+                       f'Must be an integer between 0 and {num_layers}')
             raise IndexError(f'Num of layers to finetune not compatible. '
                              f'Must be an integer between 0 and {num_layers}')
     else:
@@ -121,7 +126,7 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
 
     # finetune the model
     extract_features(path_in, selected_config, backbone_network, num_layers_to_finetune, use_gpu,
-                     num_timesteps=num_timesteps)
+                     num_timesteps=num_timesteps, logging=logging)
 
     # Find label names
     label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
@@ -197,7 +202,8 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
 
     # Train model
     best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
-                                           label_names, path_out, temporal_annotation_training=temporal_training)
+                                           label_names, path_out, temporal_annotation_training=temporal_training,
+                                           logging=logging)
 
     # Save best model
     if isinstance(net, Pipe):
@@ -216,6 +222,8 @@ if __name__ == "__main__":
     _path_in = args['--path_in']
     _path_out = args['--path_out'] or os.path.join(_path_in, "checkpoints")
     _use_gpu = args['--use_gpu']
+    _path_annotations_train = args['--path_annotations_train'] or None
+    _path_annotations_valid = args['--path_annotations_valid'] or None
     _model_name = args['--model_name'] or None
     _model_version = args['--model_version'] or None
     _num_layers_to_finetune = int(args['--num_layers_to_finetune'])
@@ -234,5 +242,8 @@ if __name__ == "__main__":
         use_gpu=_use_gpu,
         overwrite=_overwrite,
         temporal_training=_temporal_training,
+        path_annotations_train=_path_annotations_train,
+        path_annotations_valid=_path_annotations_valid,
         resume=_resume,
+
     )

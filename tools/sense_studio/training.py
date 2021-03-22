@@ -2,6 +2,7 @@ import os
 import time
 import urllib
 from multiprocessing import Process
+from multiprocessing import Queue
 
 from flask import Blueprint
 from flask import render_template
@@ -13,6 +14,8 @@ from tools.sense_studio.training_script import training_model
 training_bp = Blueprint('training_bp', __name__)
 
 PROCESS = None
+queue = None
+queue_error = None
 
 
 @training_bp.route('/<string:project>', methods=['GET'])
@@ -22,11 +25,6 @@ def training_page(project):
     return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS, is_disabled=False)
 
 
-# def training_model_helper(log_path, **kwargs):
-#     sys.stdout = open(log_path, "w")
-#     training_model(**kwargs)
-
-
 @training_bp.route('/train-model', methods=['POST'])
 def train_model():
     data = request.form
@@ -34,6 +32,13 @@ def train_model():
     path = data['path']
     config = utils.load_project_config(path)
     model_name, model_version = data['model_name'].split('-')
+    path_annotations_train = os.path.join(path, 'tags_train')
+    path_annotations_valid = os.path.join(path, 'tags_valid')
+
+    global queue
+    queue = Queue()
+    global queue_error
+    queue_error = Queue()
 
     training_kwargs = {
         'path_in': path,
@@ -43,10 +48,12 @@ def train_model():
         'model_name': model_name,
         'epochs': int(data['epochs']),
         'use_gpu': config['use_gpu'],
+        'logging': queue,
+        'errors': queue_error,
+        'temporal_training': config['temporal'],
+        'path_annotations_train': path_annotations_train,
+        'path_annotations_valid': path_annotations_valid
     }
-
-    # TODO: Had this because was thinking to write terminal logs into file and read from it.
-    log_path = os.path.join(training_kwargs['path_out'], str(os.getpid()) + ".out")
 
     is_disabled = True
     global PROCESS
@@ -55,17 +62,34 @@ def train_model():
 
     def get_training_logs():
         global PROCESS
-        count = 0
-        # TODO: Get the stdout (terminal prints) from the running PROCESS.
-        while PROCESS.is_alive():
-            time.sleep(0.1)
-            count += 1
-            yield "Yashesh: " + str(count)
-        else:
-            # TODO: This is_disabled assignment is not working and still in progress.
-            is_disabled = False
-            PROCESS.terminate()
-            PROCESS = None
+        global queue
+        global queue_error
+        while True:
+            error = queue_error.get()
+            if queue_error.empty() and not PROCESS.is_alive():
+                print('IN ERROR break')
+                PROCESS.terminate()
+                PROCESS = None
+                queue.close()
+                queue_error.close()
+                break
+            if error:
+                time.sleep(0.1)
+                # emit('training_logs', {'log': error.decode().strip() + '\n'})
+                print(error)
+                yield error
+            else:
+                output = queue.get()
+                if queue.empty() and not PROCESS.is_alive():
+                    print('IN OP break')
+                    PROCESS.terminate()
+                    PROCESS = None
+                    queue.close()
+                    queue_error.close()
+                    break
+                if output:
+                    time.sleep(0.1)
+                    yield output + '\n'
 
     return render_template('training.html', project=project, path=path,
                            is_disabled=is_disabled,

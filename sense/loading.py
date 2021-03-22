@@ -55,7 +55,7 @@ class ModelConfig:
 
         self.feature_converters = feature_converters
 
-    def get_weights(self):
+    def get_weights(self, logging=None, errors=None):
         model_weights = MODELS[self.model_name][self.version]
         path_weights = {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
         path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
@@ -63,6 +63,8 @@ class ModelConfig:
         files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
         if files_exist or running_on_travis():
             print(f'Weights found:\n{path_weights_string}')
+            if logging:
+                logging.put(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
                 load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
@@ -71,11 +73,13 @@ class ModelConfig:
             return weights
         else:
             print(f'Could not find at least one of the following files:\n{path_weights_string}')
+            if errors:
+                errors.put(f'Could not find at least one of the following files:\n{path_weights_string}')
             return None
 
 
 def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_name=None,
-                         requested_version=None) -> Optional[Tuple[ModelConfig, dict]]:
+                         requested_version=None, logging=None, errors=None) -> Optional[Tuple[ModelConfig, dict]]:
     """
     Returns the model weights for the appropriate backbone and classifier head based on
     a list of compatible model configs. The first available config is returned.
@@ -86,6 +90,10 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         Name of a specific model to use (i.e. StridedInflatedEfficientNet or StridedInflatedMobileNetV2)
     :param requested_version:
         Version of the model to use (i.e. pro or lite)
+    :param logging:
+        Queue to save output print statements (for multiprocessing in sense_studio)
+    :param errors:
+        Queue to save error print statements (for multiprocessing in sense_studio)
     :return:
         First available model config and dictionary of model weights
     """
@@ -100,12 +108,16 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
 
     # Check if not empty
     if not model_config_list:
+        if errors:
+            errors.put(f'Could not find a model configuration matching requested parameters:\n'
+                       f'\tmodel_name={requested_model_name}\n'
+                       f'\tversion={requested_version}')
         raise Exception(f'Could not find a model configuration matching requested parameters:\n'
                         f'\tmodel_name={requested_model_name}\n'
                         f'\tversion={requested_version}')
 
     for model_config in model_config_list:
-        weights = model_config.get_weights()
+        weights = model_config.get_weights(logging, errors)
 
         if weights is not None:
             return model_config, weights
