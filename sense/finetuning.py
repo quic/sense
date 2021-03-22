@@ -320,7 +320,8 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                                                                                       valid_loss, valid_top1))
         if logging:
             logging.put('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss,
-                                                                                    train_top1, valid_loss, valid_top1))
+                                                                                                train_top1, valid_loss,
+                                                                                                valid_top1))
 
         if not temporal_annotation_training:
             if valid_top1 > best_top1:
