@@ -1,4 +1,3 @@
-// Ref: https://github.com/miguelgrinberg/Flask-SocketIO-Chat/blob/master/app/templates/chat.html
 var socket;
 $(document).ready(function () {
 
