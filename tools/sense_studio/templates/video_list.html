@@ -113,14 +113,58 @@
 <!--    </div>-->
 
     <div uk-filter="target: .js-filter">
-        <div class="uk-text-center">
-            <ul class="uk-subnav uk-subnav-pill uk-align-right">
-                <li class="uk-text-large uk-text-bolder uk-margin">Filter</li>
-                <li uk-filter-control><a href="#">All</a></li>
-                <li uk-filter-control=".video-tagged"><a href="#">Tagged</a></li>
-                <li uk-filter-control=".video-untagged"><a href="#">Untagged</a></li>
-            </ul>
+        <div class="uk-flex uk-flex-center">
+            <div class="uk-text-center uk-width-auto">
+                <ul class="uk-subnav uk-subnav-pill">
+                    <li class="uk-text-large uk-text-bold uk-margin">Filter</li>
+                    <li uk-filter-control><a href="#">All</a></li>
+                    <li uk-filter-control=".video-tagged"><a href="#">Tagged</a></li>
+                    <li uk-filter-control=".video-untagged"><a href="#">Untagged</a></li>
+                </ul>
+            </div>
         </div>
+        <table class="uk-box-shadow-large uk-background-muted uk-table uk-table-small uk-width-auto uk-text-medium uk-align-right">
+            <tr>
+                <td class="uk-text-bold">Total</td>
+                <td class="uk-text-right uk-text-light">{{ num_videos }}</td>
+            </tr>
+            <tr>
+                <td class="uk-text-bold">Tagged</td>
+                <td class="uk-text-right uk-text-light">{{ num_tagged }}</td>
+            </tr>
+            <tr>
+                <td class="uk-text-bold">Untagged</td>
+                <td class="uk-text-right uk-text-light">{{ num_untagged }}</td>
+            </tr>
+        </table>
+<!--        <div class="uk-align-right uk-grid-collapse" uk-grid>-->
+<!--            <div class="uk-flex uk-flex-center">-->
+<!--                <div class="uk-text-center uk-width-auto">-->
+<!--                    <ul class="uk-subnav uk-subnav-pill">-->
+<!--                        <li class="uk-text-large uk-text-bold uk-margin">Filter</li>-->
+<!--                        <li uk-filter-control><a href="#">All</a></li>-->
+<!--                        <li uk-filter-control=".video-tagged"><a href="#">Tagged</a></li>-->
+<!--                        <li uk-filter-control=".video-untagged"><a href="#">Untagged</a></li>-->
+<!--                    </ul>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="uk-flex uk-flex-center">-->
+<!--                <table class="uk-box-shadow-large uk-background-muted uk-table uk-table-small uk-width-auto uk-text-medium">-->
+<!--                    <tr>-->
+<!--                        <td class="uk-text-bold">Total</td>-->
+<!--                        <td class="uk-text-right uk-text-light">{{ num_videos }}</td>-->
+<!--                    </tr>-->
+<!--                    <tr>-->
+<!--                        <td class="uk-text-bold">Tagged</td>-->
+<!--                        <td class="uk-text-right uk-text-light">{{ num_tagged }}</td>-->
+<!--                    </tr>-->
+<!--                    <tr>-->
+<!--                        <td class="uk-text-bold">Untagged</td>-->
+<!--                        <td class="uk-text-right uk-text-light">{{ num_untagged }}</td>-->
+<!--                    </tr>-->
+<!--                </table>-->
+<!--            </div>-->
+<!--        </div>-->
         <div class="js-filter uk-grid-small uk-child-width-1-1" uk-grid>
             {% for video, tagged, id in video_list %}
             <div class="{{ 'video-tagged' if tagged else 'video-untagged' }}">
