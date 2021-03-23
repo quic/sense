@@ -18,58 +18,6 @@ $(document).ready(function () {
         cache: false
     });
 
-    $('.update-project-card').form({
-        fields: {
-            path: {
-                rules: [
-                    {
-                        type   : 'regExp',
-                        value  : /^\/.*/,
-                        prompt : 'Please enter an absolute path (starting with a "/")'
-                    },
-                    {
-                        type   : 'notExistingPath',
-                        prompt : 'The chosen directory doesn\'t exist'
-                    },
-                    {
-                        type   : 'uniquePath',
-                        prompt : 'Another project is already initialized in this location'
-                    }
-                ]
-            }
-        }
-    });
-
-    $('#newProjectCard').form({
-        fields: {
-            projectName: {
-                rules: [
-                    {
-                        type   : 'empty',
-                        prompt : 'Please enter a project name'
-                    },
-                    {
-                        type   : 'uniqueProjectName',
-                        prompt : 'The chosen project name already exists'
-                    }
-                ]
-            },
-            path: {
-                rules: [
-                    {
-                        type   : 'regExp',
-                        value  : /^\/.*/,
-                        prompt : 'Please enter an absolute path (starting with a "/")'
-                    },
-                    {
-                        type   : 'uniquePath',
-                        prompt : 'Another project is already initialized in this location'
-                    }
-                ]
-            }
-        }
-    });
-
     $('.class-card').form({
         fields: {
             className: {
@@ -87,52 +35,93 @@ $(document).ready(function () {
         }
     });
 
-    $('.hasclickpopup').popup({
-        inline: true,
-        on: 'click',
-        position: 'bottom right',
-    });
-
-    $('.hashoverpopup').popup();
-
-    $('.message .close').on('click', function() {
-        $(this).closest('.message').transition('fade');
-    });
-
 });
 
 
-$.fn.form.settings.rules.uniqueProjectName = function (projectName) {
-    let projects = getProjects();
-    let projectNames = Object.keys(projects);
-    return !projectNames.includes(projectName);
-}
+function setFormWarning(label, input, text) {
+    label.innerHTML = text;
 
-
-$.fn.form.settings.rules.existingPath = function (projectPath) {
-    let response = browseDirectory(projectPath);
-    return !response.path_exists;
-}
-
-
-$.fn.form.settings.rules.notExistingPath = function (projectPath) {
-    if (projectPath) {
-        let response = browseDirectory(projectPath);
-        return response.path_exists;
+    if (text === '') {
+        input.classList.remove('uk-form-danger');
     } else {
-        return true;
+        input.classList.add('uk-form-danger');
     }
 }
 
 
-$.fn.form.settings.rules.uniquePath = function (projectPath) {
-    let projects = getProjects();
-    for (project of Object.values(projects)) {
-        if (project.path === projectPath) {
-            return false;
-        }
+function editNewProject() {
+    let newProjectNameInput = document.getElementById('newProjectName');
+    let newProjectNameLabel = document.getElementById('newProjectNameLabel');
+    let newProjectPathInput = document.getElementById('newProjectPath');
+    let newProjectPathLabel = document.getElementById('newProjectPathLabel');
+    let createProjectButton = document.getElementById('createProject');
+    let fullPathDiv = document.getElementById('fullPath');
+
+    let newProjectName = newProjectNameInput.value;
+    let newProjectPath = newProjectPathInput.value;
+
+    let directoriesResponse = browseDirectory(newProjectPath, newProjectName);
+    fullPathDiv.innerHTML = directoriesResponse.full_project_path;
+
+    let disabled = false;
+
+    // Check that project name is filled, unique and not yet present in directory
+    if (newProjectName === '') {
+        setFormWarning(newProjectNameLabel, newProjectNameInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.project_name_unique) {
+        setFormWarning(newProjectNameLabel, newProjectNameInput, 'This project name is already used');
+        disabled = true;
+    } else if (directoriesResponse.full_path_exists) {
+        setFormWarning(newProjectNameLabel, newProjectNameInput,
+                       'A directory with this name already exists in the chosen location');
+        disabled = true;
+    } else {
+        setFormWarning(newProjectNameLabel, newProjectNameInput, '');
     }
-    return true;
+
+    // Check that project path is filled and exists
+    if (newProjectPath === '') {
+        setFormWarning(newProjectPathLabel, newProjectPathInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(newProjectPathLabel, newProjectPathInput, 'This path does not exist');
+        disabled = true;
+    } else {
+        setFormWarning(newProjectPathLabel, newProjectPathInput, '');
+    }
+
+    createProjectButton.disabled = disabled;
+}
+
+
+function editImportProject() {
+    let importProjectPathInput = document.getElementById('importProjectPath');
+    let importProjectPathLabel = document.getElementById('importProjectPathLabel');
+    let importProjectButton = document.getElementById('importProject');
+
+    let importProjectPath = importProjectPathInput.value;
+
+    let directoriesResponse = browseDirectory(importProjectPath, '');
+
+    let disabled = false;
+
+    // Check that project path is filled, unique and exists
+    if (importProjectPath === '') {
+        setFormWarning(importProjectPathLabel, importProjectPathInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.path_unique) {
+        setFormWarning(importProjectPathLabel, importProjectPathInput,
+                       'Another project is already registered in this location');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(importProjectPathLabel, importProjectPathInput, 'This path does not exist');
+        disabled = true;
+    } else {
+        setFormWarning(importProjectPathLabel, importProjectPathInput, '');
+    }
+
+    importProjectButton.disabled = disabled;
 }
 
 
@@ -159,13 +148,8 @@ function syncRequest(url, data) {
 }
 
 
-function getProjects() {
-    return syncRequest('/projects-list', null);
-}
-
-
-function browseDirectory(path) {
-    return syncRequest('/browse-directory', {path: path});
+function browseDirectory(path, projectName) {
+    return syncRequest('/browse-directory', {path: path, project: projectName});
 }
 
 

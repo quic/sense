@@ -47,15 +47,6 @@ def projects_overview():
     return render_template('projects_overview.html', projects=projects)
 
 
-@app.route('/projects-list', methods=['POST'])
-def projects_list():
-    """
-    Provide the current list of projects to external callers.
-    """
-    projects = utils.load_project_overview_config()
-    return jsonify(projects)
-
-
 @app.route('/project-config', methods=['POST'])
 def project_config():
     """
@@ -89,15 +80,30 @@ def remove_project(name):
 def browse_directory():
     """
     Browse the local file system starting at the given path and provide the following information:
+    - project_name_unique: If the given project name is not yet registered in the projects list
+    - full_project_path: Full path constructed from base path and project name
+    - full_path_exists: If the full path exists
     - path_exists: If the given path exists
+    - path_unique: If the given path is not yet registered for another project
     - subdirs: The list of sub-directories at the given path
     """
     data = request.json
     path = data['path']
+    project = data['project']
 
     subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)] if os.path.isabs(path) else []
+    full_path = os.path.join(path, project.lower().replace(' ', '_'))
 
-    return jsonify(path_exists=os.path.exists(path), subdirs=subdirs)
+    projects = utils.load_project_overview_config()
+
+    return jsonify(
+        project_name_unique=project not in projects,
+        full_project_path=full_path,
+        full_path_exists=os.path.exists(full_path),
+        path_exists=os.path.exists(path),
+        path_unique=path not in [p['path'] for p in projects.values()],
+        subdirs=subdirs,
+    )
 
 
 @app.route('/setup-project', methods=['POST'])
