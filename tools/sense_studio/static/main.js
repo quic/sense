@@ -147,9 +147,11 @@ $.fn.form.settings.rules.uniqueClassName = function (className) {
 
 function syncRequest(url, data, method='POST') {
     let xhttp = new XMLHttpRequest();
-
     xhttp.open(method, url, false);
-    xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+    if (method == 'POST') {
+        xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+    }
 
     if (data) {
         xhttp.send(JSON.stringify(data));
