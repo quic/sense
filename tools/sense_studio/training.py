@@ -38,12 +38,12 @@ def train_model():
     path_annotations_valid = os.path.join(path, 'tags_valid')
 
     # TODO: Check if it is needed if go with 'spawn' type
-    # ctx = multiprocessing.get_context('spawn')
+    ctx = multiprocessing.get_context('spawn')
 
     global queue
-    queue = Queue()
+    queue = ctx.Queue()
     global queue_error
-    queue_error = Queue()
+    queue_error = ctx.Queue()
 
     training_kwargs = {
         'path_in': path,
@@ -62,7 +62,7 @@ def train_model():
 
     is_disabled = True
     global PROCESS
-    PROCESS = Process(target=training_model, kwargs=training_kwargs)
+    PROCESS = ctx.Process(target=training_model, kwargs=training_kwargs)
     PROCESS.start()
 
     def get_training_logs():
