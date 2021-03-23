@@ -9,6 +9,7 @@ Web app for maintaining all of your video datasets:
 
 import datetime
 import glob
+import multiprocessing
 import os
 import urllib
 
@@ -315,4 +316,5 @@ def context_processors():
 
 
 if __name__ == '__main__':
+    multiprocessing.set_start_method('spawn')
     app.run(debug=True)

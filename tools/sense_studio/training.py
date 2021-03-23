@@ -1,10 +1,8 @@
+import multiprocessing
 import os
+import queue
 import time
 import urllib
-import multiprocessing
-from multiprocessing import Process
-from multiprocessing import Queue
-
 
 from flask import Blueprint
 from flask import render_template
@@ -16,7 +14,7 @@ from tools.sense_studio.training_script import training_model
 training_bp = Blueprint('training_bp', __name__)
 
 PROCESS = None
-queue = None
+queue_train_logs = None
 queue_error = None
 
 
@@ -37,11 +35,10 @@ def train_model():
     path_annotations_train = os.path.join(path, 'tags_train')
     path_annotations_valid = os.path.join(path, 'tags_valid')
 
-    # TODO: Check if it is needed if go with 'spawn' type
     ctx = multiprocessing.get_context('spawn')
 
-    global queue
-    queue = ctx.Queue()
+    global queue_train_logs
+    queue_train_logs = ctx.Queue()
     global queue_error
     queue_error = ctx.Queue()
 
@@ -53,36 +50,48 @@ def train_model():
         'model_name': model_name,
         'epochs': int(data['epochs']),
         'use_gpu': config['use_gpu'],
-        'logging': queue,
-        'errors': queue_error,
+        'training_logs': queue_train_logs,
+        'training_errors': queue_error,
         # 'temporal_training': config['temporal'],
         # 'path_annotations_train': path_annotations_train,
         # 'path_annotations_valid': path_annotations_valid
     }
 
-    is_disabled = True
     global PROCESS
     PROCESS = ctx.Process(target=training_model, kwargs=training_kwargs)
     PROCESS.start()
 
     def get_training_logs():
         global PROCESS
-        global queue
+        global queue_train_logs
         global queue_error
         while True:
-            output = queue.get()
-            if queue.empty() and not PROCESS.is_alive():
-                PROCESS.terminate()
-                PROCESS = None
-                queue.close()
-                queue_error.close()
-                break
-            if output:
-                time.sleep(0.1)
-                yield output + '\n'
+            try:
+                # TODO: Figure out how to catch errors.
+                # errors = queue_error.get_nowait()
+                # if errors:
+                #     PROCESS.terminate()
+                #     PROCESS = None
+                #     queue_train_logs.close()
+                #     queue_error.close()
+                #     for error in errors:
+                #         yield error + '\n'
+                #     break
+                # else:
+                output = queue_train_logs.get_nowait()
+                if output:
+                    time.sleep(0.1)
+                    yield output + '\n'
+            except queue.Empty:
+                if not PROCESS.is_alive():
+                    PROCESS.terminate()
+                    PROCESS = None
+                    queue_train_logs.close()
+                    queue_error.close()
+                    break
 
     return render_template('training.html', project=project, path=path,
-                           is_disabled=is_disabled,
+                           is_disabled=True,
                            models=utils.BACKBONE_MODELS,
                            logs=get_training_logs())
 
