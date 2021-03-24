@@ -20,6 +20,7 @@ from sklearn.linear_model import LogisticRegression
 from sense import SPLITS
 from sense.finetuning import compute_frames_features
 from tools import directories
+from tools.sense_studio import project_utils
 from tools.sense_studio import utils
 
 
@@ -33,7 +34,7 @@ def show_video_list(project, split, label):
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
     project = urllib.parse.unquote(project)
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
 
@@ -72,7 +73,7 @@ def prepare_annotation(project):
     Prepare all files needed for annotating the videos in the given project.
     """
     project = urllib.parse.unquote(project)
-    dataset_path = utils.lookup_project_path(project)
+    dataset_path = project_utils.lookup_project_path(project)
 
     # load feature extractor
     inference_engine, model_config = utils.load_feature_extractor(dataset_path)
@@ -98,7 +99,7 @@ def annotate(project, split, label, idx):
     For the given class label, show all frames for annotating the selected video.
     """
     project = urllib.parse.unquote(project)
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
 
@@ -141,7 +142,7 @@ def annotate(project, split, label, idx):
             annotations = data['time_annotation']
 
     # Read tags from config
-    config = utils.load_project_config(path)
+    config = project_utils.load_project_config(path)
     tags = config['classes'][label]
     show_logreg = config.get('show_logreg', False)
 
@@ -255,6 +256,6 @@ def download_file(project, split, label, video_name, img_file):
     """
     Load an image from the given path.
     """
-    dataset_path = utils.lookup_project_path(project)
+    dataset_path = project_utils.lookup_project_path(project)
     img_dir = os.path.join(directories.get_frames_dir(dataset_path, split, label), video_name)
     return send_from_directory(img_dir, img_file, as_attachment=True)

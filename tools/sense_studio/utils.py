@@ -1,15 +1,8 @@
-import json
-import os
-
 from sense.engine import InferenceEngine
 from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
-
-MODULE_DIR = os.path.dirname(__file__)
-PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
-
-PROJECT_CONFIG_FILE = 'project_config.json'
+from tools.sense_studio.project_utils import get_project_setting
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', []),
@@ -38,39 +31,6 @@ def is_image_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 
-def load_project_overview_config():
-    if os.path.isfile(PROJECTS_OVERVIEW_CONFIG_FILE):
-        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
-            projects = json.load(f)
-        return projects
-    else:
-        write_project_overview_config({})
-        return {}
-
-
-def write_project_overview_config(projects):
-    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
-        json.dump(projects, f, indent=2)
-
-
-def lookup_project_path(project_name):
-    projects = load_project_overview_config()
-    return projects[project_name]['path']
-
-
-def load_project_config(path):
-    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
-    with open(config_path, 'r') as f:
-        config = json.load(f)
-    return config
-
-
-def write_project_config(path, config):
-    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
-    with open(config_path, 'w') as f:
-        json.dump(config, f, indent=2)
-
-
 def get_class_name_and_tags(form_data):
     """
     Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
@@ -85,19 +45,3 @@ def get_class_name_and_tags(form_data):
         tag2 = f'{tag2}_2'
 
     return class_name, tag1, tag2
-
-
-def get_project_setting(path, setting):
-    config = load_project_config(path)
-    return config.get(setting, False)
-
-
-def toggle_project_setting(path, setting):
-    config = load_project_config(path)
-    current_status = config.get(setting, False)
-
-    new_status = not current_status
-    config[setting] = new_status
-    write_project_config(path, config)
-
-    return new_status
