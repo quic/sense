@@ -73,7 +73,7 @@
         <span uk-icon="icon: file-edit"></span>
         Create New Project
     </button>
-    <div class="uk-width-large uk-text-left" uk-drop="pos: bottom-center">
+    <div class="uk-width-large uk-text-left" uk-drop="pos: bottom-center; mode:click">
         <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('setup_project') }}">
             <div class="uk-card-body">
                 <div>
@@ -89,11 +89,8 @@
                     <label class="uk-form-label uk-text-danger" id="newProjectPathLabel"></label>
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: folder"></span>
-                        <input class="uk-input" type="text" id="newProjectPath" name="path" placeholder="/path/to/project"
+                        <input class="uk-input path-search" type="text" id="newProjectPath" name="path" placeholder="/path/to/project"
                                autocomplete="off" oninput="editNewProject();">
-                        <div id="pathSuggestions" class="results">
-                            <!-- Filled automatically -->
-                        </div>
                     </div>
                 </div>
 
@@ -111,18 +108,15 @@
         <span uk-icon="icon: pull"></span>
         Import Existing Project
     </button>
-    <div class="uk-width-large uk-text-left" uk-drop="pos: bottom-center">
+    <div class="uk-width-large uk-text-left" uk-drop="pos: bottom-center; mode:click">
         <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('setup_project') }}">
             <div class="uk-card-body">
                 <div>
                     <label class="uk-form-label uk-text-danger" id="importProjectPathLabel"></label>
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: folder"></span>
-                        <input class="uk-input" type="text" id="importProjectPath" name="path" placeholder="/path/to/project"
+                        <input class="uk-input path-search" type="text" id="importProjectPath" name="path" placeholder="/path/to/project"
                                autocomplete="off" oninput="editImportProject();">
-                        <div id="importPathSuggestions" class="results">
-                            <!-- Filled automatically -->
-                        </div>
                     </div>
                 </div>
 

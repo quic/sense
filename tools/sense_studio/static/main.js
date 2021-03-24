@@ -1,21 +1,37 @@
+// Suppress Enter key on text input fields for submitting forms, so that for example search fields don't submit
+// the form on selection of an entry
+window.addEventListener(
+    'keydown',
+    function(e) {
+        if ((e.keyIdentifier=='U+000A' || e.keyIdentifier=='Enter' || e.keyCode==13)
+            && e.target.nodeName=='INPUT' && e.target.type=='text')
+        {
+            e.preventDefault();
+            return false;
+        }
+    },
+    true
+);
+
 
 $(document).ready(function () {
-    $('.path-search').search({
-        apiSettings: {
-            response: function (e) {
-                let path = this.children[1].value;
-                let response = browseDirectory(path);
-
-                let results = [];
-                for (const subdir of response.subdirs) {
-                    results.push({title: subdir})
-                }
-
-                return {results: results}
-            }
+    new autoComplete({
+        selector: '.path-search',
+        minChars: 1,
+        cache: false,
+        source: function(term, response) {
+            let directoriesResponse = browseDirectory(term, '');
+            response(directoriesResponse.subdirs);
         },
-        showNoResults: false,
-        cache: false
+        onSelect: function(event, term, item) {
+            let inputs = document.getElementsByClassName('path-search');
+
+            for (input of inputs) {
+                if (input.value === term) {
+                    input.oninput();
+                }
+            }
+        }
     });
 
     $('.class-card').form({
