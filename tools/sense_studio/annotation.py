@@ -113,16 +113,16 @@ def annotate(project, split, label, idx):
     # The list of images in the folder
     images = [image for image in glob.glob(os.path.join(frames_dir, videos[idx], '*'))
               if utils.is_image_file(image)]
+    classes = [-1] * len(images)
 
     # Load logistic regression model if available
-    logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
-    features_path = os.path.join(features_dir, f'{videos[idx]}.npy')
-    if os.path.isfile(logreg_path) and os.path.isfile(features_path):
-        logreg = load(logreg_path)
-        features = np.load(os.path.join(features_dir, f'{videos[idx]}.npy')).mean(axis=(2, 3))
-        classes = list(logreg.predict(features))
-    else:
-        classes = [-1] * len(images)
+    if utils.get_project_setting(path, 'assisted_tagging'):
+        logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
+        features_path = os.path.join(features_dir, f'{videos[idx]}.npy')
+        if os.path.isfile(logreg_path) and os.path.isfile(features_path):
+            logreg = load(logreg_path)
+            features = np.load(os.path.join(features_dir, f'{videos[idx]}.npy')).mean(axis=(2, 3))
+            classes = list(logreg.predict(features))
 
     # Natural sort images, so that they are sorted by number
     images = natsorted(images, alg=ns.IC)
