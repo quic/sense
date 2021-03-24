@@ -13,7 +13,7 @@ from tools.sense_studio.training_script import training_model
 
 training_bp = Blueprint('training_bp', __name__)
 
-PROCESS = None
+train_process = None
 queue_train_logs = None
 
 
@@ -49,12 +49,12 @@ def train_model():
         'training_logs': queue_train_logs,
     }
 
-    global PROCESS
-    PROCESS = ctx.Process(target=training_model, kwargs=training_kwargs)
-    PROCESS.start()
+    global train_process
+    train_process = ctx.Process(target=training_model, kwargs=training_kwargs)
+    train_process.start()
 
     def get_training_logs():
-        global PROCESS
+        global train_process
         global queue_train_logs
         while True:
             try:
@@ -63,9 +63,9 @@ def train_model():
                     time.sleep(0.1)
                     yield output + '\n'
             except queue.Empty:
-                if not PROCESS.is_alive():
-                    PROCESS.terminate()
-                    PROCESS = None
+                if not train_process.is_alive():
+                    train_process.terminate()
+                    train_process = None
                     queue_train_logs.close()
                     break
 
@@ -78,10 +78,10 @@ def cancel_training():
     data = request.form
     project = data['project']
     path = data['path']
-    global PROCESS
-    if PROCESS:
-        PROCESS.terminate()
-        PROCESS = None
+    global train_process
+    if train_process:
+        train_process.terminate()
+        train_process = None
         log = "Training Cancelled."
     else:
         log = "No Training Process Running to Terminate."
