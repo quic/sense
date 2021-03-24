@@ -112,7 +112,7 @@ def setup_project():
     Add a new project to the config file. Can also be used for updating an existing project.
     """
     data = request.form
-    name = data['projectName']
+    name = data.get('projectName')
     path = data['path']
 
     # Initialize project directory

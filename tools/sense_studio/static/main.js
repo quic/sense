@@ -66,45 +66,44 @@ function setFormWarning(label, input, text) {
 
 
 function editNewProject() {
-    let newProjectNameInput = document.getElementById('newProjectName');
-    let newProjectNameLabel = document.getElementById('newProjectNameLabel');
-    let newProjectPathInput = document.getElementById('newProjectPath');
-    let newProjectPathLabel = document.getElementById('newProjectPathLabel');
-    let createProjectButton = document.getElementById('createProject');
+    let nameInput = document.getElementById('newProjectName');
+    let nameLabel = document.getElementById('newProjectNameLabel');
+    let pathInput = document.getElementById('newProjectPath');
+    let pathLabel = document.getElementById('newProjectPathLabel');
     let fullPathDiv = document.getElementById('fullPath');
+    let createProjectButton = document.getElementById('createProject');
 
-    let newProjectName = newProjectNameInput.value;
-    let newProjectPath = newProjectPathInput.value;
+    let name = nameInput.value;
+    let path = pathInput.value;
 
-    let directoriesResponse = browseDirectory(newProjectPath, newProjectName);
+    let directoriesResponse = browseDirectory(path, name);
     fullPathDiv.innerHTML = directoriesResponse.full_project_path;
 
     let disabled = false;
 
     // Check that project name is filled, unique and not yet present in directory
-    if (newProjectName === '') {
-        setFormWarning(newProjectNameLabel, newProjectNameInput, '');
+    if (name === '') {
+        setFormWarning(nameLabel, nameInput, '');
         disabled = true;
     } else if (!directoriesResponse.project_name_unique) {
-        setFormWarning(newProjectNameLabel, newProjectNameInput, 'This project name is already used');
+        setFormWarning(nameLabel, nameInput, 'This project name is already used');
         disabled = true;
     } else if (directoriesResponse.full_path_exists) {
-        setFormWarning(newProjectNameLabel, newProjectNameInput,
-                       'A directory with this name already exists in the chosen location');
+        setFormWarning(nameLabel, nameInput, 'A directory with this name already exists in the chosen location');
         disabled = true;
     } else {
-        setFormWarning(newProjectNameLabel, newProjectNameInput, '');
+        setFormWarning(nameLabel, nameInput, '');
     }
 
     // Check that project path is filled and exists
-    if (newProjectPath === '') {
-        setFormWarning(newProjectPathLabel, newProjectPathInput, '');
+    if (path === '') {
+        setFormWarning(pathLabel, pathInput, '');
         disabled = true;
     } else if (!directoriesResponse.path_exists) {
-        setFormWarning(newProjectPathLabel, newProjectPathInput, 'This path does not exist');
+        setFormWarning(pathLabel, pathInput, 'This path does not exist');
         disabled = true;
     } else {
-        setFormWarning(newProjectPathLabel, newProjectPathInput, '');
+        setFormWarning(pathLabel, pathInput, '');
     }
 
     createProjectButton.disabled = disabled;
@@ -112,29 +111,28 @@ function editNewProject() {
 
 
 function editImportProject() {
-    let importProjectPathInput = document.getElementById('importProjectPath');
-    let importProjectPathLabel = document.getElementById('importProjectPathLabel');
+    let pathInput = document.getElementById('importProjectPath');
+    let pathLabel = document.getElementById('importProjectPathLabel');
     let importProjectButton = document.getElementById('importProject');
 
-    let importProjectPath = importProjectPathInput.value;
+    let path = pathInput.value;
 
-    let directoriesResponse = browseDirectory(importProjectPath, '');
+    let directoriesResponse = browseDirectory(path, '');
 
     let disabled = false;
 
     // Check that project path is filled, unique and exists
-    if (importProjectPath === '') {
-        setFormWarning(importProjectPathLabel, importProjectPathInput, '');
+    if (path === '') {
+        setFormWarning(pathLabel, pathInput, '');
         disabled = true;
     } else if (!directoriesResponse.path_unique) {
-        setFormWarning(importProjectPathLabel, importProjectPathInput,
-                       'Another project is already registered in this location');
+        setFormWarning(pathLabel, pathInput, 'Another project is already registered in this location');
         disabled = true;
     } else if (!directoriesResponse.path_exists) {
-        setFormWarning(importProjectPathLabel, importProjectPathInput, 'This path does not exist');
+        setFormWarning(pathLabel, pathInput, 'This path does not exist');
         disabled = true;
     } else {
-        setFormWarning(importProjectPathLabel, importProjectPathInput, '');
+        setFormWarning(pathLabel, pathInput, '');
     }
 
     importProjectButton.disabled = disabled;
