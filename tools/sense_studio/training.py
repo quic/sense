@@ -69,9 +69,7 @@ def train_model():
                     queue_train_logs.close()
                     break
 
-    return render_template('training.html', project=project, path=path,
-                           is_disabled=True,
-                           models=utils.BACKBONE_MODELS,
+    return render_template('training.html', project=project, path=path, is_disabled=True, models=utils.BACKBONE_MODELS,
                            logs=get_training_logs())
 
 
@@ -89,12 +87,3 @@ def cancel_training():
         log = "No Training Process Running to Terminate."
     return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS, is_disabled=False,
                            logs=[log])
-
-
-# @training_bp.route('/confusion-matrix/<string:project>/', methods=['GET'])
-# def get_confusion_matrix(project):
-#     img_path = os.path.join(os.getcwd(), 'dataset/', project)
-#
-#     if os.path.exists(os.path.join(img_path, 'confusion_matrix.png')):
-#         return send_from_directory(img_path, 'confusion_matrix.png', as_attachment=True)
-#     return None
