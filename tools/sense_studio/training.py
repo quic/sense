@@ -15,7 +15,6 @@ training_bp = Blueprint('training_bp', __name__)
 
 PROCESS = None
 queue_train_logs = None
-queue_error = None
 
 
 @training_bp.route('/<string:project>', methods=['GET'])
@@ -32,15 +31,11 @@ def train_model():
     path = data['path']
     config = utils.load_project_config(path)
     model_name, model_version = data['model_name'].split('-')
-    path_annotations_train = os.path.join(path, 'tags_train')
-    path_annotations_valid = os.path.join(path, 'tags_valid')
 
     ctx = multiprocessing.get_context('spawn')
 
     global queue_train_logs
     queue_train_logs = ctx.Queue()
-    global queue_error
-    queue_error = ctx.Queue()
 
     training_kwargs = {
         'path_in': path,
@@ -50,11 +45,8 @@ def train_model():
         'model_name': model_name,
         'epochs': int(data['epochs']),
         'use_gpu': config['use_gpu'],
+        'temporal_training': config['temporal'],
         'training_logs': queue_train_logs,
-        'training_errors': queue_error,
-        # 'temporal_training': config['temporal'],
-        # 'path_annotations_train': path_annotations_train,
-        # 'path_annotations_valid': path_annotations_valid
     }
 
     global PROCESS
@@ -64,21 +56,9 @@ def train_model():
     def get_training_logs():
         global PROCESS
         global queue_train_logs
-        global queue_error
         while True:
             try:
-                # TODO: Figure out how to catch errors.
-                # errors = queue_error.get_nowait()
-                # if errors:
-                #     PROCESS.terminate()
-                #     PROCESS = None
-                #     queue_train_logs.close()
-                #     queue_error.close()
-                #     for error in errors:
-                #         yield error + '\n'
-                #     break
-                # else:
-                output = queue_train_logs.get_nowait()
+                output = queue_train_logs.get(timeout=1)
                 if output:
                     time.sleep(0.1)
                     yield output + '\n'
@@ -87,7 +67,6 @@ def train_model():
                     PROCESS.terminate()
                     PROCESS = None
                     queue_train_logs.close()
-                    queue_error.close()
                     break
 
     return render_template('training.html', project=project, path=path,

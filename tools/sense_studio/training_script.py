@@ -36,9 +36,10 @@ Options:
 import datetime
 import json
 import os
-import torch.utils.data
+import sys
 
 from docopt import docopt
+import torch.utils.data
 
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
@@ -53,8 +54,6 @@ from sense.loading import update_backbone_weights
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
 
-import sys
-
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', []),
@@ -65,8 +64,7 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 
 
 def training_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
-                   use_gpu=True, overwrite=True, temporal_training=None, path_annotations_train=None,
-                   path_annotations_valid=None, resume=False, training_logs=None, training_errors=None):
+                   use_gpu=True, overwrite=True, temporal_training=None, resume=False, training_logs=None):
     os.makedirs(path_out, exist_ok=True)
 
     # Check for existing files
@@ -91,7 +89,6 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
         model_name,
         model_version,
         training_logs,
-        training_errors
     )
     backbone_weights = weights['backbone']
 
@@ -112,9 +109,9 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
         if not num_timesteps:
             # Remove 1 because we added 0 to temporal_dependencies
             num_layers = len(backbone_network.num_required_frames_per_layer) - 1
-            if training_errors:
-                training_errors.put(f'Num of layers to finetune not compatible. '
-                                    f'Must be an integer between 0 and {num_layers}')
+            if training_logs:
+                training_logs.put(f'Num of layers to finetune not compatible. '
+                                  f'Must be an integer between 0 and {num_layers}')
             raise IndexError(f'Num of layers to finetune not compatible. '
                              f'Must be an integer between 0 and {num_layers}')
     else:
@@ -148,14 +145,24 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
     train_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=num_timesteps, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training,
-                                        training_errors=training_errors)
+                                        training_logs=training_logs)
 
     features_dir = directories.get_features_dir(path_in, 'valid', selected_config, num_layers_to_finetune)
     tags_dir = directories.get_tags_dir(path_in, 'valid')
     valid_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training,
-                                        training_errors=training_errors)
+                                        training_logs=training_logs)
+    # Check if the data is loaded fully
+    if not train_loader or not valid_loader:
+        print("FileNotFoundError:\n "
+              "\tMissing annotations for train or valid set.\n "
+              "\tHint: Check if tags_train and tags_valid directories exist.\n")
+        if training_logs:
+            training_logs.put("\nFileNotFoundError:\n"
+                              "\tMissing annotations for train or valid set.\n "
+                              "\tHint: Check if annotation files exist in tags_train and tags_valid directories.\n")
+        return None
 
     # Modify the network to generate the training network on top of the features
     if temporal_training:
@@ -225,8 +232,6 @@ if __name__ == "__main__":
     _path_in = args['--path_in']
     _path_out = args['--path_out'] or os.path.join(_path_in, "checkpoints")
     _use_gpu = args['--use_gpu']
-    _path_annotations_train = args['--path_annotations_train'] or None
-    _path_annotations_valid = args['--path_annotations_valid'] or None
     _model_name = args['--model_name'] or None
     _model_version = args['--model_version'] or None
     _num_layers_to_finetune = int(args['--num_layers_to_finetune'])
@@ -245,7 +250,5 @@ if __name__ == "__main__":
         use_gpu=_use_gpu,
         overwrite=_overwrite,
         temporal_training=_temporal_training,
-        path_annotations_train=_path_annotations_train,
-        path_annotations_valid=_path_annotations_valid,
         resume=_resume,
     )
