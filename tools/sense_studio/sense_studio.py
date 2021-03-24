@@ -128,7 +128,7 @@ def setup_project():
             'classes': {},
             'use_gpu': False,
             'temporal': False,
-            'show_logreg': False,
+            'assisted_tagging': False,
             'video_recording': {
                 'countdown': 3,
                 'recording': 5,
@@ -218,7 +218,7 @@ def toggle_project_setting():
     setting = data['setting']
     new_status = utils.toggle_project_setting(path, setting)
 
-    if setting == 'show_logreg' and new_status:
+    if setting == 'assisted_tagging' and new_status:
         split = data['split']
         label = data['label']
         inference_engine = utils.load_feature_extractor(path)

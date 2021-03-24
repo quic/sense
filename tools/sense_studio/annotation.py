@@ -177,7 +177,7 @@ def submit_annotation():
         json.dump(description, f, indent=2)
 
     # Automatic re-training of the logistic regression model
-    if utils.get_project_setting(path, 'show_logreg'):
+    if utils.get_project_setting(path, 'assisted_tagging'):
         inference_engine = utils.load_feature_extractor(path)
         compute_frames_features(inference_engine, split, label, path)
         utils.train_logreg(path, split, label)

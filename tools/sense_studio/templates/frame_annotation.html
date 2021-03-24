@@ -13,9 +13,9 @@
         <div class="ui toggle checkbox hashoverpopup"
            data-content="Train a simple logistic regression model live on temporal annotations and show current predictions?"
            data-position="left center">
-            <input type="checkbox" id="logregInput" {% if project_config.show_logreg %} checked="checked" {% endif %}
-               onclick="toggleShowPredictions('{{ path }}', '{{ split }}', '{{ label }}');">
-            <label>Show Predictions</label>
+            <input type="checkbox" id="logregInput" {% if project_config.assisted_tagging %} checked="checked" {% endif %}
+               onclick="toggleAssistedTagging('{{ path }}', '{{ split }}', '{{ label }}');">
+            <label>Assisted Tagging</label>
         </div>
     </div>
     <h1 class="ui header">Annotate Frames</h1>
@@ -52,7 +52,7 @@
                         <img src="{{ url_for('annotation_bp.download_file', project=project, split=split, label=label, video_name=video_name, img_file=img) }}">
                     </div>
                     <div class="content center aligned ">
-                        <div class="logreg-predictions {{ 'display-hidden' if not project_config.show_logreg }}">
+                        <div class="logreg-predictions {{ 'display-hidden' if not project_config.assisted_tagging }}">
                             {% if pred_class == 0 %}
                                 <div class="ui large grey label prediction-label fluid">
                                     Background
