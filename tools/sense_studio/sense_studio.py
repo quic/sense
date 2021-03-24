@@ -112,8 +112,17 @@ def setup_project():
     Add a new project to the config file. Can also be used for updating an existing project.
     """
     data = request.form
-    name = data.get('projectName')
     path = data['path']
+    base_name = data.get('projectName', os.path.basename(path))
+
+    projects = utils.load_project_overview_config()
+
+    # If the name already exists, append '_'
+    name = base_name
+    idx = 2
+    while name in projects:
+        name = f'{base_name} ({idx})'
+        idx += 1
 
     # Initialize project directory
     if not os.path.exists(path):
@@ -123,8 +132,14 @@ def setup_project():
     try:
         # Check for existing config file
         config = utils.load_project_config(path)
-        old_name = config['name']
-        config['name'] = name
+        config_name = config['name']
+
+        # Use project name from config if it isn't already occupied
+        if config_name not in projects:
+            name = config_name
+        else:
+            config['name'] = name
+
     except FileNotFoundError:
         # Setup new project config
         config = {
@@ -135,7 +150,6 @@ def setup_project():
             'temporal': False,
             'show_logreg': False,
         }
-        old_name = None
 
     utils.write_project_config(path, config)
 
@@ -146,11 +160,6 @@ def setup_project():
             os.mkdir(videos_dir)
 
     # Update overall projects config file
-    projects = utils.load_project_overview_config()
-
-    if old_name and old_name in projects:
-        del projects[old_name]
-
     projects[name] = {
         'path': path,
     }
