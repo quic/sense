@@ -98,6 +98,7 @@ def send_training_logs(msg):
         else:
             emit('status', msg)
             break
+
     error = True if "ERROR" in output else False
     if not error:
         img_path = url_for('training_bp.confusion_matrix',
