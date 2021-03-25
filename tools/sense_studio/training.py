@@ -82,8 +82,8 @@ def cancel_training():
 def send_training_logs(msg):
     global train_process
     global queue_train_logs
-    if train_process:
-        while True:
+    while True:
+        if train_process:
             try:
                 output = queue_train_logs.get(timeout=1)
                 if output:
@@ -95,20 +95,22 @@ def send_training_logs(msg):
                     train_process = None
                     queue_train_logs.close()
                     break
-
-            if not errors:
-                img_path = url_for('training_bp.confusion_matrix',
-                                   project=msg['project'],
-                                   output_folder=msg['outputFolder'])
-                emit('success', {'status': 'Complete', 'img_path': img_path})
-            else:
-                emit('failed', {'status': 'Failed'})
+        else:
+            emit('status', msg)
+            break
+    error = True if "ERROR" in output else False
+    if not error:
+        img_path = url_for('training_bp.confusion_matrix',
+                           project=msg['project'],
+                           output_folder=msg['outputFolder'])
+        emit('success', {'status': 'Complete', 'img_path': img_path})
     else:
-        emit('status', msg)
+        emit('failed', {'status': 'Failed'})
 
 
+@training_bp.route('/confusion-matrix/<string:project>/', methods=['GET'])
 @training_bp.route('/confusion-matrix/<string:project>/<string:output_folder>', methods=['GET'])
-def confusion_matrix(project, output_folder):
+def confusion_matrix(project, output_folder=""):
     project = urllib.parse.unquote(project)
     output_folder = urllib.parse.unquote(output_folder)
     path = utils.lookup_project_path(project)
