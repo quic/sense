@@ -15,14 +15,14 @@
 
                 <label class="uk-margin"  uk-tooltip="Do you want to tag your video with frame-wise temporal annotations?">
                     <input type="checkbox" id="makeProjectTemporal" class="uk-checkbox"
-                           {% if project_config.use_gpu %} checked {% endif %}
+                           {% if project_config.temporal %} checked {% endif %}
                            onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
                     Use Temporal Annotations
                 </label>
 
                 <label uk-tooltip="Train a simple logistic regression model live on temporal annotations and show current predictions?">
                     <input type="checkbox" id="logregInput" class="uk-checkbox"
-                           {% if project_config.use_gpu %} checked {% endif %}
+                           {% if project_config.show_logreg %} checked {% endif %}
                            onclick="toggleShowPredictions('{{ path }}');">
                     Show Predictions
                 </label>
