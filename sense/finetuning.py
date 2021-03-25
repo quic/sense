@@ -129,7 +129,7 @@ def generate_data_loader(features_dir, tags_dir, label_names, label2int,
                          1: f'{label}_position_1',
                          2: f'{label}_position_2'}
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
-        if os.path.isfile(temporal_annotation_file):
+        if os.path.isfile(temporal_annotation_file) and temporal_annotation_only:
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
             annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
             temporal_annotation.append(annotation)
