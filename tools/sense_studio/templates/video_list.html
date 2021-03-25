@@ -20,18 +20,16 @@
         <br>
         <span uk-icon="icon: git-fork"></span> {{ split }}
     </div>
-    <div uk-filter="target: .js-filter">
+    <div uk-filter="target: .video-list">
         <div class="uk-flex uk-flex-center">
-            <div class="uk-text-center uk-width-auto">
-                <ul class="uk-subnav uk-subnav-pill">
-                    <li class="uk-text-large uk-text-bold uk-margin">Filter</li>
-                    <li uk-filter-control><a href="#">All</a></li>
-                    <li uk-filter-control=".video-tagged"><a href="#">Tagged</a></li>
-                    <li uk-filter-control=".video-untagged"><a href="#">Untagged</a></li>
-                </ul>
-            </div>
+            <ul class="uk-subnav uk-subnav-pill">
+                <li class="uk-text-large uk-text-bold uk-margin">Filter</li>
+                <li uk-filter-control><a href="#">All</a></li>
+                <li uk-filter-control=".video-tagged"><a href="#">Tagged</a></li>
+                <li uk-filter-control=".video-untagged"><a href="#">Untagged</a></li>
+            </ul>
         </div>
-        <table class="uk-box-shadow-large uk-background-muted uk-table uk-table-small uk-width-auto uk-text-medium uk-align-right">
+        <table class="uk-box-shadow-medium uk-background-muted uk-table uk-table-small uk-width-auto uk-text-medium uk-align-right">
             <tr>
                 <td class="uk-text-bold">Total</td>
                 <td class="uk-text-right uk-text-light">{{ num_videos }}</td>
@@ -45,7 +43,7 @@
                 <td class="uk-text-right uk-text-light">{{ num_untagged }}</td>
             </tr>
         </table>
-        <div class="js-filter uk-grid-small uk-child-width-1-1" uk-grid>
+        <div class="video-list uk-grid-small uk-child-width-1-1" uk-grid>
             {% for video, tagged, id in video_list %}
             <div class="{{ 'video-tagged' if tagged else 'video-untagged' }}">
                 <a class="uk-card uk-card-body uk-card-default uk-card-small uk-card-hover uk-link-toggle"
