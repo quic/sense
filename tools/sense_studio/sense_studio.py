@@ -8,6 +8,7 @@ Web app for maintaining all of your video datasets:
 """
 
 import glob
+import multiprocessing
 import os
 import urllib
 
@@ -346,4 +347,5 @@ def set_timer_default():
 
 
 if __name__ == '__main__':
+    multiprocessing.set_start_method('spawn')
     socketio.run(app)
