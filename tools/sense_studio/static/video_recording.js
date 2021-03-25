@@ -39,6 +39,13 @@ function enableSetDefaultsButton() {
 
 
 function recordVideo(url) {
+    // Check if ffmpeg is installed
+    response = syncRequest('/video-recording/ffmpeg-check')
+    if (!response.ffmpeg_installed) {
+        displayOverlay('Please make sure ffmpeg is installed!', 'error');
+        return;
+    }
+
     document.getElementById('recordVideoButton').classList.add('disabled');
     navigator.mediaDevices.getUserMedia({ audio: false, video: true })
         .then(stream => setupRecording(stream, url));
