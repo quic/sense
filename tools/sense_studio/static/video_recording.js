@@ -1,5 +1,31 @@
 
+function enableSetDefaultsButton() {
+    let setDefaultButton = document.getElementById('setDefaultButton');
+    setDefaultButton.disabled = false;
+    setDefaultButton.innerHTML = "Save as defaults"
+}
+
+
+function setTimerDefault(path) {
+    let setDefaultButton = document.getElementById('setDefaultButton');
+    let countdownDuration = parseInt(document.getElementById('countdown').value);
+    let recordingDuration = parseInt(document.getElementById('duration').value);
+
+    setDefaultButton.disabled = true;
+    setDefaultButton.innerHTML = "Saved";
+
+    response = syncRequest('/set-timer-default', {path: path, countdown: countdownDuration, recording: recordingDuration});
+}
+
+
 function recordVideo(url) {
+    // Check if ffmpeg is installed
+    response = syncRequest('/video-recording/ffmpeg-check')
+    if (!response.ffmpeg_installed) {
+        displayOverlay('Please make sure ffmpeg is installed!', 'error');
+        return;
+    }
+
     document.getElementById('recordVideoButton').classList.add('disabled');
     navigator.mediaDevices.getUserMedia({ audio: false, video: true })
         .then(stream => setupRecording(stream, url));

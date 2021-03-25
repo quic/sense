@@ -60,6 +60,10 @@ def setup_new_project(project_name, path, config=None):
             'use_gpu': False,
             'temporal': False,
             'show_logreg': False,
+            'video_recording': {
+                'countdown': 3,
+                'recording': 5,
+            },
         }
     else:
         config['name'] = project_name
@@ -119,3 +123,24 @@ def toggle_project_setting(path, setting):
     write_project_config(path, config)
 
     return new_status
+
+
+def get_timer_default(path):
+    """Get the default countdown and recording duration (in seconds) for video-recording."""
+    config = load_project_config(path)
+    countdown = config.get('video_recording', {}).get('countdown', 3)
+    duration = config.get('video_recording', {}).get('recording', 5)
+
+    return countdown, duration
+
+
+def set_timer_default(path, countdown, recording):
+    """Set the new default countdown and recording duration (in seconds) for video-recording."""
+    config = load_project_config(path)
+    video_recording = config.get('video_recording', {})
+
+    video_recording['countdown'] = countdown
+    video_recording['recording'] = recording
+    config['video_recording'] = video_recording
+
+    write_project_config(path, config)

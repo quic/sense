@@ -23,35 +23,44 @@
 
     <form class="uk-form-stacked">
         <div class="uk-grid-match" uk-grid>
-            <div class="uk-width-expand">
+            <div class="uk-width-small">
                 <label class="uk-form-label" for="countdown">Countdown</label>
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: future"></span>
-                        <input class="uk-input" type="number" id="countdown" value="3" min="0">
+                        <input class="uk-input" type="number" id="countdown" value="{{ countdown }}" min="0"
+                               onchange="enableSetDefaultsButton();">
                     </div>
                 </div>
             </div>
 
-            <div class="uk-width-expand">
+            <div class="uk-width-small">
                 <label class="uk-form-label" for="duration">Duration</label>
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: clock"></span>
-                        <input class="uk-input" type="number" id="duration" value="5" min="1">
+                        <input class="uk-input" type="number" id="duration" value="{{ recording }}" min="1"
+                               onchange="enableSetDefaultsButton();">
                     </div>
                 </div>
             </div>
 
             <div class="uk-width-auto">
                 <div class="uk-margin-auto-top">
-                    <button class="uk-button uk-button-primary" type="button" id="recordVideoButton"
-                       onclick="recordVideo('{{ url_for('video_recording_bp.save_video', project=project, label=label, split=split) }}');">
-                        <span uk-icon="icon: video-camera"></span>
-                        Record
+                    <button class="uk-button uk-button-default" type="button" id="setDefaultButton"
+                            onclick="setTimerDefault('{{ path }}');" disabled>
+                        Save as defaults
                     </button>
                 </div>
             </div>
+        </div>
+
+        <div class="uk-margin">
+            <button class="uk-button uk-button-primary" type="button" id="recordVideoButton"
+               onclick="recordVideo('{{ url_for('video_recording_bp.save_video', project=project, label=label, split=split) }}');">
+                <span uk-icon="icon: video-camera"></span>
+                Record
+            </button>
         </div>
     </form>
 

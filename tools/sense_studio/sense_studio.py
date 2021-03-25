@@ -333,5 +333,17 @@ def context_processors():
     return dict(inject_project_config=inject_project_config)
 
 
+@app.route('/set-timer-default', methods=['POST'])
+def set_timer_default():
+    data = request.json
+    path = data['path']
+    countdown = int(data['countdown'])
+    recording = int(data['recording'])
+
+    project_utils.set_timer_default(path, countdown, recording)
+
+    return jsonify(status=True)
+
+
 if __name__ == '__main__':
     socketio.run(app)
