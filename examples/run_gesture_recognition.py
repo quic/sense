@@ -75,6 +75,7 @@ if __name__ == "__main__":
         'choices': [
             'Baseline',
             'Fine-tuned',
+            'FPS-variation'
         ],
     })
 
@@ -85,11 +86,13 @@ if __name__ == "__main__":
     LAB_THRESHOLDS = LAB_THRESHOLDS_reactive
     dict_name = 'gesture_reactive'
 
-    if model_select == "Fine-tuned":
+    if model_select != "Baseline":
         LAB2INT = LAB2INT_reactive9
         INT2LAB = INT2LAB_reactive9
         LAB_THRESHOLDS = LAB_THRESHOLDS_reactive9
         model_version = 'reactive_gesture_demo'
+        if model_select == "FPS-variation":
+            dict_name = 'gesture_reactive_fps'
 
     classes = []
     if choose:
