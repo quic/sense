@@ -260,11 +260,11 @@ function toggleAssistedTagging(path, split, label) {
     // Show/hide all LogReg prediction-labels
     if (response.setting_status) {
         logregInput.setAttribute('checked', 'checked');
-        $('.logreg-predictions').show();
     } else {
         logregInput.removeAttribute('checked');
-        $('.logreg-predictions').hide();
     }
+
+    window.location.reload();
 }
 
 
