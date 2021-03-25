@@ -269,8 +269,6 @@ def compute_frames_features(inference_engine: InferenceEngine, project_path: str
                                       frames=frames,
                                       batch_size=64,
                                       num_timesteps=1)
-            # compute_features(video_path, path_features, inference_engine, with_features,
-            #                  num_timesteps=1, path_frames=path_frames, batch_size=64)
 
 
 def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1):
@@ -304,8 +302,6 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
                                           frames=frames,
                                           batch_size=16,
                                           num_timesteps=num_timesteps)
-                # compute_features(video_path, path_out, inference_engine, with_features=True,
-                #                  num_timesteps=num_timesteps, path_frames=None, batch_size=16)
 
         print('\n')
 
