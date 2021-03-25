@@ -222,9 +222,38 @@ function getProjectConfig(projectName) {
 }
 
 
-function loading(element) {
-    element.classList.add('loading');
-    element.classList.add('disabled');
+async function prepareAnnotations(element, projectName) {
+    loading(element, 'Preparing Annotations');
+
+    await asyncRequest('/annotation/prepare-annotation', {projectName: projectName});
+
+    loadingDone(element, 'Annotations Prepared');
+}
+
+
+function loading(element, message, url) {
+    let icon = element.children[0];
+    let text = element.children[1];
+
+    icon.removeAttribute('uk-icon');
+    icon.setAttribute('uk-spinner', 'ratio: 0.6');
+    text.innerHTML = message;
+    element.disabled = true;
+
+    if (url) {
+        window.location = url;
+    }
+}
+
+
+function loadingDone(element, message) {
+    let icon = element.children[0];
+    let text = element.children[1];
+
+    icon.removeAttribute('uk-spinner');
+    icon.classList.remove('uk-spinner');
+    icon.setAttribute('uk-icon', 'icon: check');
+    text.innerHTML = message;
 }
 
 

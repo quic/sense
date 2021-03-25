@@ -18,12 +18,12 @@
         {{ path }}
     </div>
 
-    <a class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}" onclick="loading(this);"
-       href="{{ url_for('annotation_bp.prepare_annotation', project=project) }}"
-       uk-tooltip="Prepare required files for all classes">
+    <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+            onclick="prepareAnnotations(this, '{{ project }}');"
+            uk-tooltip="Prepare required files for all classes">
         <span uk-icon="icon: album"></span>
-        Prepare Annotations
-    </a>
+        <span>Prepare Annotations</span>
+    </button>
 
     <input type="hidden" id="projectName" value="{{ project }}">
 
@@ -85,12 +85,11 @@
                             <span uk-icon="icon: video-camera"></span>
                             Record
                         </a>
-                        <a class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-                           onclick="loading(this);"
-                           href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
+                        <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+                           onclick="loading(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}');">
                             <span uk-icon="icon: file-edit"></span>
-                            Annotate
-                        </a>
+                            <span>Annotate</span>
+                        </button>
                     </div>
 
                     <h5>
@@ -104,12 +103,11 @@
                             <span uk-icon="icon: video-camera"></span>
                             Record
                         </a>
-                        <a class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-                           onclick="loading(this);"
-                           href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
+                        <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+                           onclick="loading(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}');">
                             <span uk-icon="icon: file-edit"></span>
-                            Annotate
-                        </a>
+                            <span>Annotate</span>
+                        </button>
                     </div>
                 </div>
             </div>

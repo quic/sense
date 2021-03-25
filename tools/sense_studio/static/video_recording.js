@@ -26,7 +26,7 @@ function recordVideo(url) {
         return;
     }
 
-    document.getElementById('recordVideoButton').classList.add('disabled');
+    document.getElementById('recordVideoButton').disabled = true;
     navigator.mediaDevices.getUserMedia({ audio: false, video: true })
         .then(stream => setupRecording(stream, url));
 }
@@ -103,7 +103,7 @@ function stopRecording(mediaRecorder) {
     });
 
     displayOverlay('Saving', 'saving');
-    document.getElementById('recordVideoButton').classList.remove('disabled');
+    document.getElementById('recordVideoButton').disabled = false;
 }
 
 

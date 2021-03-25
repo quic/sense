@@ -5,6 +5,7 @@ import os
 import urllib
 
 from flask import Blueprint
+from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
@@ -71,12 +72,13 @@ def show_video_list(project, split, label):
                            project=project, num_videos=num_videos, num_tagged=num_tagged, num_untagged=num_untagged)
 
 
-@annotation_bp.route('/prepare-annotation/<string:project>')
-def prepare_annotation(project):
+@annotation_bp.route('/prepare-annotation', methods=['POST'])
+def prepare_annotation():
     """
     Prepare all files needed for annotating the videos in the given project.
     """
-    project = urllib.parse.unquote(project)
+    data = request.json
+    project = data['projectName']
     dataset_path = project_utils.lookup_project_path(project)
 
     # load feature extractor
@@ -94,7 +96,7 @@ def prepare_annotation(project):
                                     frames_dir=frames_dir,
                                     features_dir=features_dir)
 
-    return redirect(url_for("project_details", project=project))
+    return jsonify(success=True)
 
 
 @annotation_bp.route('/<string:project>/<string:split>/<string:label>/<int:idx>')
