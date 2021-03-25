@@ -47,7 +47,7 @@ def projects_overview():
     return render_template('projects_overview.html', projects=projects)
 
 
-@app.route('/projects-list', methods=['POST'])
+@app.route('/projects-list')
 def projects_list():
     """
     Provide the current list of projects to external callers.
