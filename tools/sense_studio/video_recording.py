@@ -14,6 +14,12 @@ from tools.sense_studio import utils
 video_recording_bp = Blueprint('video_recording_bp', __name__)
 
 
+@video_recording_bp.route('/ffmpeg-check')
+def check_ffmpeg():
+    ffmpeg_installed = os.popen("ffmpeg -version").read()
+    return jsonify(ffmpeg_installed=ffmpeg_installed != '')
+
+
 @video_recording_bp.route('/record-video/<string:project>/<string:split>/<string:label>')
 def record_video(project, split, label):
     """
