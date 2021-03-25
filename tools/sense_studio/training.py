@@ -71,35 +71,38 @@ def cancel_training():
     return jsonify(success=True)
 
 
-@socketio.on('training_logs', namespace='/train-model')
+@socketio.on('connect_training_logs', namespace='/connect-training-logs')
 def send_training_logs(msg):
     global train_process
     errors = []
     if train_process:
         while True:
-            if not train_process:
-                break
-            errors = train_process.stderr.readlines()
-            if errors:
-                for error in errors:
-                    time.sleep(0.1)
-                    emit('training_logs', {'log': error.decode() + '\n'})
-                train_process.terminate()
-                train_process = None
-                break
-            else:
-                if not train_process:
-                    break
-                output = train_process.stdout.readline()
-                if output == b'' and train_process.poll() is not None:
+            try:
+                errors = train_process.stderr.readlines()
+                if errors:
+                    for error in errors:
+                        time.sleep(0.1)
+                        emit('training_logs', {'log': error.decode() + '\n'})
                     train_process.terminate()
                     train_process = None
                     break
-                if output:
-                    time.sleep(0.1)
-                    emit('training_logs', {'log': output.decode() + '\n'})
+                else:
+                    output = train_process.stdout.readline()
+                    if output == b'' and train_process.poll() is not None:
+                        train_process.terminate()
+                        train_process = None
+                        break
+                    if output:
+                        time.sleep(0.1)
+                        emit('training_logs', {'log': output.decode() + '\n'})
+            except AttributeError:
+                # train_process has been cancelled and is None
+                break
+
         if not errors:
-            img_path = url_for('training_bp.confusion_matrix', project=msg['project'])
+            img_path = url_for('training_bp.confusion_matrix',
+                               project=msg['project'],
+                               output_folder=msg['outputFolder'])
             emit('success', {'status': 'Complete', 'img_path': img_path})
         else:
             emit('failed', {'status': 'Failed'})
@@ -107,9 +110,10 @@ def send_training_logs(msg):
         emit('status', msg)
 
 
-@training_bp.route('/confusion-matrix/<string:project>', methods=['GET'])
 @training_bp.route('/confusion-matrix/<string:project>/<string:output_folder>', methods=['GET'])
 def confusion_matrix(project, output_folder):
+    project = urllib.parse.unquote(project)
+    output_folder = urllib.parse.unquote(output_folder)
     path = utils.lookup_project_path(project)
-    img_path = os.path.join(path, output_folder, 'checkpoints')
+    img_path = os.path.join(path, 'checkpoints', output_folder)
     return send_from_directory(img_path, filename='confusion_matrix.png', as_attachment=True)

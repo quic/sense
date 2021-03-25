@@ -1,6 +1,6 @@
 
 function addTerminalMessage(message) {
-    $("#terminal").children().append(`<p class='monospace-font'><b>${message}</b></p>`);
+    $("#terminal").append(`<p class='monospace-font'><b>${message}</b></p>`);
     $('#terminal').scrollTop($('#terminal')[0].scrollHeight);
 }
 
@@ -14,10 +14,11 @@ function startTraining(url) {
     let modelName = $('#modelName').val();
     let epochs = $('#epochs').val();
 
-    // TODO: Remove http://
-    socket = io.connect('http://' + document.domain + ':' + location.port + '/train-model');
+    let socket = io.connect('/connect-training-logs');
     socket.on('connect', function() {
-        socket.emit('training_logs', {status: 'Socket Connected', project: project});
+        console.log('Socket Connected');
+        socket.emit('connect_training_logs',
+                    {status: 'Socket Connected', project: project, outputFolder: outputFolder});
     });
 
     socket.on('status', function(message) {
@@ -25,7 +26,7 @@ function startTraining(url) {
     });
 
     socket.on('training_logs', function(message) {
-        addTerminalMessage(message.log)
+        addTerminalMessage(message.log);
     });
 
     socket.on('success', function(message) {
@@ -35,7 +36,7 @@ function startTraining(url) {
 
             $('#btnTrain').removeClass('disabled');
             $('#btnCancelTrain').addClass('disabled');
-            $('#confusionMatrix').append(`<img src=${message.img_path}/${outputFolder} alt='Confusion matrix' />`);
+            $('#confusionMatrix').append(`<img src=${message.img_path} alt='Confusion matrix' />`);
             $('#confusionMatrix').show();
         }
     });
@@ -52,6 +53,8 @@ function startTraining(url) {
 
     $('#btnTrain').addClass('disabled');
     $('#btnCancelTrain').removeClass('disabled');
+    $('#terminal').html('');
+    $('#confusionMatrix').html('');
 
     addTerminalMessage('Training started...');
 
