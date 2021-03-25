@@ -1,5 +1,5 @@
-
 $(document).ready(function () {
+
     $('.path-search').search({
         apiSettings: {
             response: function (e) {
@@ -252,18 +252,4 @@ function toggleMakeProjectTemporal(path) {
         makeProjectTemporal.removeAttribute('checked');
         $('.temporal').hide();
     }
-}
-
-// TODO: Not Working Properly (Needs investigation)
-function disableTrainModel() {
-    let trainModel = document.getElementById('trainModel');
-    trainModel.setAttribute('disabled', 'disabled');
-    $('.train-console').show();
-}
-
-// TODO: Not Working Properly (Needs investigation)
-function enableTrainModel() {
-    let trainModel = document.getElementById('trainModel');
-    trainModel.removeAttribute('disabled', 'disabled');
-    $('.train-console').show();
 }

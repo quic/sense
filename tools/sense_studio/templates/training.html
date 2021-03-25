@@ -14,15 +14,15 @@
             <i class="folder open icon"></i> {{ path }}
         </div>
     </h1>
-    <form class="ui form" action="{{ url_for('.train_model') }}" method="post">
-        <input type="hidden" name="project" value="{{ project }}">
-        <input type="hidden" name="path" value="{{ path }}">
+    <form class="ui form">
+        <input type="hidden" id="project" name="project" value="{{ project }}">
+        <input type="hidden" id="path" name="path" value="{{ path }}">
         <div class="two fields wide">
             <div class="field">
                 <label>Backbone Model</label>
                 <div class="ui selection dropdown">
                    {% if models %}
-                    <input type="hidden" name="model_name" value="{{ models[0] }}">
+                    <input type="hidden" id="modelName" name="modelName" value="{{ models[0] }}">
                         <div class="default text">Select Model</div>
                         <i class="dropdown icon"></i>
                         <div class="menu">
@@ -37,36 +37,38 @@
             </div>
             <div class="field">
                 <label>Number of layers to finetune</label>
-                <input type="number" name="layers_to_finetune" min="9" value="9">
+                <input type="number" id="layersToFinetune" name="layersToFinetune" min="0" value="9">
             </div>
         </div>
         <div class="two fields wide">
             <div class="field train">
                 <label>Epochs</label>
-                <input type="number" name="epochs" min="1" value="1">
+                <input type="number" id="epochs" name="epochs" min="1" value="1">
             </div>
             <div class="field">
                 <label>Output folder</label>
                 <div class="ui labeled input">
                     <div class="ui label">
-                        {{ project }}/
+                        {{ output_path_prefix }}
                     </div>
-                    <input type="text" name="output_folder" placeholder="Folder Name">
+                    <input type="text" id="outputFolder" name="outputFolder" value="{{ output_folder }}" placeholder="Folder Name" autocomplete="off">
                 </div>
             </div>
         </div>
-      <button class="ui button {{ 'disabled' if is_disabled }}" id="trainModel" type="submit" tabindex="0" >Train model</button>
-      <button class="ui button" type="submit" tabindex="1" formaction="{{ url_for('.cancel_training') }}">Cancel</button>
+      <button class="ui button" id="btnTrain" type="button" tabindex="0"
+              onclick="startTraining('{{ url_for('.start_training') }}');">
+          Train model
+      </button>
+      <button class="ui button disabled" id="btnCancelTrain" type="button" tabindex="1"
+              onclick="cancelTraining('{{ url_for('.cancel_training') }}');">
+          Cancel
+      </button>
     </form>
-    <div class="ui segment train-console">
-        {% if is_disabled %}
-            <h4 class="monospace-font">Training Model...</h4>
-        {% endif %}
-        <h4 class="monospace-font">
-            {% for log in logs %}
-                {{ log }} <br />
-            {% endfor %}
-        </h4>
-    </div>
+    <div id="terminal" class="ui segment train-console"></div>
+    <div id="confusionMatrix" class="ui huge image"></div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='training.js') }}"></script>
 {% endblock %}
