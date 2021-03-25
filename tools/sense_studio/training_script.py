@@ -3,7 +3,7 @@
 Finetuning script that can be used to train a custom classifier on top of our pretrained models.
 
 Usage:
-  train_classifier.py  --path_in=PATH
+  training_script.py  --path_in=PATH
                        [--model_name=NAME]
                        [--model_version=VERSION]
                        [--num_layers_to_finetune=NUM]
@@ -13,7 +13,7 @@ Usage:
                        [--temporal_training]
                        [--resume]
                        [--overwrite]
-  train_classifier.py  (-h | --help)
+  training_script.py  (-h | --help)
 
 Options:
   --path_in=PATH                 Path to the dataset folder.
