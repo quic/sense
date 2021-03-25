@@ -33,7 +33,7 @@ def train_model():
     project = data['project']
     path = data['path']
     num_layers_to_finetune = data['layers_to_finetune']
-    output_folder = data['output_folder']
+    output_folder = data['outputFolder']
     model_name = data['model_name']
     epochs = data['epochs']
 
@@ -71,7 +71,7 @@ def cancel_training():
     data = request.form
     project = data['project']
     path = data['path']
-    output_folder = data['output_folder']
+    output_folder = data['outputFolder']
     global train_process
     if train_process:
         train_process.terminate()

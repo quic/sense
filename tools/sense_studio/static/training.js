@@ -2,8 +2,9 @@ var socket;
 $(document).ready(function () {
 
     let project = $('#project').val();
-    let output_folder = $('#output_folder').val();
+    let outputFolder = $('#outputFolder').val();
 
+    // TODO: Remove http://
     socket = io.connect('http://' + document.domain + ':' + location.port + '/train-model');
     socket.on('connect', function() {
         socket.emit('training_logs', {status: 'Socket Connected', project: project});
@@ -23,10 +24,10 @@ $(document).ready(function () {
             socket.disconnect();
             console.log('Socket Disconnected');
 
-            $('#btn-train').removeClass('disabled');
-            $('#btn-cancel-train').addClass('disabled');
-            $('#confusion-matrix').append(`<img src=${message.img_path}/${output_folder} alt='Confusion matrix' />`);
-            $('#confusion-matrix').show();
+            $('#btnTrain').removeClass('disabled');
+            $('#btnCancelTrain').addClass('disabled');
+            $('#confusionMatrix').append(`<img src=${message.img_path}/${outputFolder} alt='Confusion matrix' />`);
+            $('#confusionMatrix').show();
         }
     });
 
@@ -35,8 +36,8 @@ $(document).ready(function () {
             socket.disconnect();
             console.log('Socket Disconnected');
 
-            $('#btn-train').removeClass('disabled');
-            $('#btn-cancel-train').addClass('disabled');
+            $('#btnTrain').removeClass('disabled');
+            $('#btnCancelTrain').addClass('disabled');
         }
     });
 });

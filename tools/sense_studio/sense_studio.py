@@ -18,11 +18,11 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+
 from sense import SPLITS
 from tools import directories
-from tools.sense_studio import utils
-
 from tools.sense_studio import socketio
+from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
 from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
