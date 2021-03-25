@@ -48,6 +48,7 @@ def show_video_list(project, split, label):
 
     # compute the features and frames missing
     compute_frames_features(inference_engine=inference_engine,
+                            project_path=path,
                             videos_dir=videos_dir,
                             frames_dir=frames_dir,
                             features_dir=features_dir)
@@ -82,10 +83,10 @@ def prepare_annotation(project):
             features_dir = directories.get_features_dir(dataset_path, split, model_config, label=label)
 
             compute_frames_features(inference_engine=inference_engine,
+                                    project_path=dataset_path,
                                     videos_dir=videos_dir,
                                     frames_dir=frames_dir,
-                                    features_dir=features_dir,
-                                    with_features=False)
+                                    features_dir=features_dir)
 
     return redirect(url_for("project_details", project=project))
 
@@ -178,9 +179,20 @@ def submit_annotation():
 
     # Automatic re-training of the logistic regression model
     if utils.get_project_setting(path, 'assisted_tagging'):
-        inference_engine = utils.load_feature_extractor(path)
-        compute_frames_features(inference_engine, split, label, path)
-        utils.train_logreg(path, split, label)
+        inference_engine, model_config = utils.load_feature_extractor(path)
+        videos_dir = directories.get_videos_dir(path, split, label)
+        frames_dir = directories.get_frames_dir(path, split, label)
+        features_dir = directories.get_features_dir(path, split, model_config, label=label)
+
+        # Compute the respective frames and features
+        compute_frames_features(inference_engine=inference_engine,
+                                project_path=path,
+                                videos_dir=videos_dir,
+                                frames_dir=frames_dir,
+                                features_dir=features_dir)
+
+        # Re-train the logistic regression model
+        utils.train_logreg(path=path, split=split, label=label)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('.show_video_list', project=project, split=split, label=label))

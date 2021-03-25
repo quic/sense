@@ -17,9 +17,12 @@ from sense import SPLITS
 from sense.engine import InferenceEngine
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
+from tools.sense_studio import utils
 
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
+
+FRAMES_TO_ADD = MODEL_TEMPORAL_STRIDE * (MODEL_TEMPORAL_DEPENDENCY // MODEL_TEMPORAL_STRIDE + 1) - 1
 
 
 def set_internal_padding_false(module):
@@ -153,7 +156,6 @@ def uniform_frame_sample(video, sample_rate):
     """
     Uniformly sample video frames according to the provided sample_rate.
     """
-
     depth = video.shape[0]
     if sample_rate < 1.:
         indices = np.arange(0, depth, 1. / sample_rate)
@@ -163,12 +165,11 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
-def compute_features(video_path, path_out, inference_engine, with_features, num_timesteps=1, path_frames=None,
-                     batch_size=None):
-    video_source = camera.VideoSource(size=inference_engine.expected_frame_size,
-                                      filename=video_path)
+def compute_only_frames(video_path, inference_engine, path_frames=None):
+    video_source = camera.VideoSource(size=inference_engine.expected_frame_size, filename=video_path)
     video_fps = video_source.get_fps()
     frames = []
+
     while True:
         images = video_source.get_image()
         if images is None:
@@ -176,43 +177,24 @@ def compute_features(video_path, path_out, inference_engine, with_features, num_
         else:
             image, image_rescaled = images
             frames.append(image_rescaled)
+
     frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
     # Compute how many frames are padded to the left in order to "warm up" the model -- removing previous predictions
     # from the internal states --  with the first image, and to ensure we have enough frames in the video.
     # We also want the first non padding frame to output a feature
-    frames_to_add = MODEL_TEMPORAL_STRIDE * (MODEL_TEMPORAL_DEPENDENCY // MODEL_TEMPORAL_STRIDE + 1) - 1
-
+    #
     # Possible improvement : investigate if a symmetric or reflect padding could be better for
     # temporal annotation prediction instead of the static first frame
-    frames = np.pad(frames, ((frames_to_add, 0), (0, 0), (0, 0), (0, 0)),
+    frames = np.pad(frames, ((FRAMES_TO_ADD, 0), (0, 0), (0, 0), (0, 0)),
                     mode='edge')
-
-    if with_features:
-        # Inference
-        clip = frames[None].astype(np.float32)
-
-        # Run the model on padded frames in order to remove the state in the current model coming
-        # from the previous video.
-        pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
-
-        # Depending on the number of layers we finetune, we keep the number of features from padding
-        # equal to the temporal dependency of the model.
-        temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
-
-        # predictions of the actual video frames
-        predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
-        predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
-        features = np.array(predictions)
-        os.makedirs(os.path.dirname(path_out), exist_ok=True)
-        np.save(path_out, features)
 
     if path_frames is not None:
         os.makedirs(os.path.dirname(path_frames), exist_ok=True)
         frames_to_save = []
-        # remove the padded frames. extract frames starting at the first one (feature for the
-        # first frame)
-        for e, frame in enumerate(frames[frames_to_add:]):
+
+        # Remove the padded frames. Extract frames starting at the first one (feature for the first frame)
+        for e, frame in enumerate(frames[FRAMES_TO_ADD:]):
             if e % MODEL_TEMPORAL_STRIDE == 0:
                 frames_to_save.append(frame)
 
@@ -220,15 +202,39 @@ def compute_features(video_path, path_out, inference_engine, with_features, num_
             Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
                 os.path.join(path_frames, f'{e}.jpg'), quality=50)
 
+    return frames
 
-def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, frames_dir: str, features_dir: str,
-                            with_features: bool = True):
+
+def compute_only_features(path_out, inference_engine, frames, batch_size=None, num_timesteps=1):
+    # Inference
+    clip = frames[None].astype(np.float32)
+
+    # Run the model on padded frames in order to remove the state in the current model coming
+    # from the previous video.
+    pre_features = inference_engine.infer(clip[:, 0:FRAMES_TO_ADD + 1], batch_size=batch_size)
+
+    # Depending on the number of layers we finetune, we keep the number of features from padding
+    # equal to the temporal dependency of the model.
+    temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
+
+    # predictions of the actual video frames
+    predictions = inference_engine.infer(clip[:, FRAMES_TO_ADD + 1:], batch_size=batch_size)
+    predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
+    features = np.array(predictions)
+    os.makedirs(os.path.dirname(path_out), exist_ok=True)
+    np.save(path_out, features)
+
+
+def compute_frames_features(inference_engine: InferenceEngine, project_path: str, videos_dir: str,
+                            frames_dir: str, features_dir: str):
     """
     Split the videos in the given directory into frames and compute features on each frame.
     Results are stored in the given directories for frames and features.
 
     :param inference_engine:
         Initialized InferenceEngine that can be used for computing the features.
+    :param project_path:
+        The path of the current project.
     :param videos_dir:
         Directory where the videos are stored.
     :param frames_dir:
@@ -236,8 +242,6 @@ def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, 
         numbered .jpg files in there.
     :param features_dir:
         Directory where computed features should be stored. One .npy file will be created per video.
-    :param with_features:
-        Whether to extract features from frames using logreg or not.
     """
     # Create features and frames folders
     os.makedirs(features_dir, exist_ok=True)
@@ -256,8 +260,17 @@ def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, 
 
         if not os.path.isfile(path_features):
             os.makedirs(path_frames, exist_ok=True)
-            compute_features(video_path, path_features, inference_engine, with_features,
-                             num_timesteps=1, path_frames=path_frames, batch_size=64)
+            frames = compute_only_frames(video_path=video_path,
+                                         inference_engine=inference_engine,
+                                         path_frames=path_frames)
+            if utils.get_project_setting(project_path, 'assisted_tagging'):
+                compute_only_features(path_out=path_features,
+                                      inference_engine=inference_engine,
+                                      frames=frames,
+                                      batch_size=64,
+                                      num_timesteps=1)
+            # compute_features(video_path, path_features, inference_engine, with_features,
+            #                  num_timesteps=1, path_frames=path_frames, batch_size=64)
 
 
 def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1):
@@ -282,8 +295,17 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
                 print("\n\tSkipped - feature was already precomputed.")
             else:
                 # Read all frames
-                compute_features(video_path, path_out, inference_engine, with_features=True,
-                                 num_timesteps=num_timesteps, path_frames=None, batch_size=16)
+                frames = compute_only_frames(video_path=video_path,
+                                             inference_engine=inference_engine,
+                                             path_frames=None)
+                if utils.get_project_setting(path_in, 'assisted_tagging'):
+                    compute_only_features(path_out=path_out,
+                                          inference_engine=inference_engine,
+                                          frames=frames,
+                                          batch_size=16,
+                                          num_timesteps=num_timesteps)
+                # compute_features(video_path, path_out, inference_engine, with_features=True,
+                #                  num_timesteps=num_timesteps, path_frames=None, batch_size=16)
 
         print('\n')
 

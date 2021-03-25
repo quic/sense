@@ -218,11 +218,24 @@ def toggle_project_setting():
     setting = data['setting']
     new_status = utils.toggle_project_setting(path, setting)
 
+    # Only if the current project setting is "assisted tagging"
     if setting == 'assisted_tagging' and new_status:
         split = data['split']
         label = data['label']
-        inference_engine = utils.load_feature_extractor(path)
-        compute_frames_features(inference_engine, split, label, path, with_features=True)
+        inference_engine, model_config = utils.load_feature_extractor(path)
+
+        videos_dir = directories.get_videos_dir(path, split, label)
+        frames_dir = directories.get_frames_dir(path, split, label)
+        features_dir = directories.get_features_dir(path, split, model_config, label=label)
+
+        # Compute the respective frames and features
+        compute_frames_features(inference_engine=inference_engine,
+                                project_path=path,
+                                videos_dir=videos_dir,
+                                frames_dir=frames_dir,
+                                features_dir=features_dir)
+
+        # Re-train the logistic regression model
         utils.train_logreg(path=path, split=split, label=label)
 
     return jsonify(setting_status=new_status)
