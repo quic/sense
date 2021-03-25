@@ -23,8 +23,9 @@ train_process = None
 def training_page(project):
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
+    output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
     return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS, is_disabled=False,
-                           message="Train Model...")
+                           message="", output_path_prefix=output_path_prefix)
 
 
 @training_bp.route('/train-model', methods=['POST'])
@@ -38,20 +39,16 @@ def train_model():
     epochs = data['epochs']
 
     config = utils.load_project_config(path)
-    model_version = model_name.split('-')[1]
-    model_name = model_name.split('-')[0]
-    path_out = os.path.join(path, output_folder, 'checkpoints')
-    path_annotations_train = os.path.join(path, 'tags_train')
-    path_annotations_valid = os.path.join(path, 'tags_valid')
+    model_name, model_version = model_name.split('-')
+    output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
+    path_out = os.path.join(output_path_prefix, output_folder)
 
     train_classifier = ["python tools/train_classifier.py", f"--path_in={path}",
                         f"--num_layers_to_finetune={num_layers_to_finetune}",
-                        f"--path_out={path_out}" if path_out else "",
-                        f"--model_name={model_name}" if model_name else "",
-                        f"--model_version={model_version}" if model_version else "",
+                        f"--path_out={path_out}",
+                        f"--model_name={model_name}",
+                        f"--model_version={model_version}",
                         f"--epochs={epochs}",
-                        f"--path_annotations_train={path_annotations_train}" if config['temporal'] else "",
-                        f"--path_annotations_valid={path_annotations_valid}" if config['temporal'] else "",
                         "--use_gpu" if config['use_gpu'] else "",
                         f"--temporal_training" if config['temporal'] else "",
                         "--overwrite"]
@@ -63,7 +60,8 @@ def train_model():
     train_process = subprocess.Popen(train_classifier, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
     return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
-                           is_disabled=True, output_folder=output_folder, message="Train Model...")
+                           is_disabled=True, output_folder=output_folder, message="Train Model...",
+                           output_path_prefix=output_path_prefix)
 
 
 @training_bp.route('/cancel-training', methods=['POST'])
@@ -72,13 +70,18 @@ def cancel_training():
     project = data['project']
     path = data['path']
     output_folder = data['outputFolder']
+
+    output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
+
     global train_process
     if train_process:
         train_process.terminate()
         train_process = None
         message = "Training Cancelled."
+
     return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
-                           is_disabled=False, message=message, output_folder=output_folder)
+                           is_disabled=False, message=message, output_folder=output_folder,
+                           output_path_prefix=output_path_prefix)
 
 
 @socketio.on('training_logs', namespace='/train-model')
