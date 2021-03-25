@@ -90,10 +90,8 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         Name of a specific model to use (i.e. StridedInflatedEfficientNet or StridedInflatedMobileNetV2)
     :param requested_version:
         Version of the model to use (i.e. pro or lite)
-    :param logging:
+    :param training_logs:
         Queue to save output print statements (for multiprocessing in sense_studio)
-    :param errors:
-        Queue to save error print statements (for multiprocessing in sense_studio)
     :return:
         First available model config and dictionary of model weights
     """
@@ -109,10 +107,10 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
     # Check if not empty
     if not model_config_list:
         if training_logs:
-            training_logs.put(f'Could not find a model configuration matching requested parameters:\n'
+            training_logs.put(f'ERROR - Could not find a model configuration matching requested parameters:\n'
                               f'\tmodel_name={requested_model_name}\n'
                               f'\tversion={requested_version}')
-        raise Exception(f'Could not find a model configuration matching requested parameters:\n'
+        raise Exception(f'ERROR - Could not find a model configuration matching requested parameters:\n'
                         f'\tmodel_name={requested_model_name}\n'
                         f'\tversion={requested_version}')
 
