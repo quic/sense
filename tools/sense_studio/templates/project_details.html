@@ -44,7 +44,46 @@
         </div>
     </div>
 
-    <h1>Classes</h1>
+    <div class="uk-margin-large-top uk-margin-medium-bottom" uk-grid>
+        <div>
+            <h1>Classes</h1>
+        </div>
+
+        <div>
+            <button class="uk-button uk-button-default uk-width-1-1" type="submit">
+                <span uk-icon="icon: plus"></span>
+                Add New Class
+            </button>
+            <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
+                <form class="uk-card uk-card-secondary uk-card-hover class-card" method="POST" action="{{ url_for('add_class', project=project) }}">
+                    <div class="uk-card-body">
+                        <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                            <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                            <input class="uk-input" type="text" name="className" placeholder="Class Name">
+                        </div>
+
+                        <div class="temporal {{ 'uk-hidden' if not config.temporal }}" >
+                            <h4>Tags</h4>
+                            <div class="uk-inline uk-width-1-1">
+                                <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                                <input class="uk-input" type="text" name="tag1" placeholder="Tag 1">
+                            </div>
+                            <div class="uk-inline uk-width-1-1 uk-margin">
+                                <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                                <input class="uk-input" type="text" name="tag2" placeholder="Tag 2">
+                            </div>
+                        </div>
+
+                        <button class="uk-button uk-button-default uk-width-1-1" type="submit">
+                            <span uk-icon="icon: plus"></span>
+                            Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="uk-child-width-1-2@m uk-child-width-1-3@l" uk-grid>
         {% for class, tags in config.classes.items() %}
         <div id="classShow{{ loop.index }}">
@@ -114,28 +153,26 @@
         </div>
 
         <div id="classEdit{{ loop.index }}" class="uk-hidden">
-            <form class="uk-card uk-card-default uk-card-hover class-card" method="POST"
+            <form class="uk-card uk-card-secondary uk-card-hover class-card" method="POST"
                   action="{{ url_for('edit_class', project=project, class_name=class) }}">
-                <div class="uk-card-header">
-                    <div class="uk-inline uk-width-1-1">
+                <div class="uk-card-body">
+                    <div class="uk-inline uk-width-1-1 uk-margin-bottom">
                         <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
                         <input class="uk-input" type="text" name="className" placeholder="Class Name" value="{{ class }}" >
                     </div>
-                </div>
 
-                <div class="uk-card-body temporal {{ 'uk-hidden' if not config.temporal }}">
-                    <h4>Tags</h4>
-                    <div class="uk-inline uk-width-1-1">
-                        <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                        <input class="uk-input" type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" >
+                    <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
+                        <h4>Tags</h4>
+                        <div class="uk-inline uk-width-1-1">
+                            <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                            <input class="uk-input" type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" >
+                        </div>
+                        <div class="uk-inline uk-width-1-1 uk-margin">
+                            <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                            <input class="uk-input" type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" >
+                        </div>
                     </div>
-                    <div class="uk-inline uk-width-1-1 uk-margin-top">
-                        <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                        <input class="uk-input" type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" >
-                    </div>
-                </div>
 
-                <div class="uk-card-footer">
                     <button class="uk-button uk-button-default uk-width-1-1" type="button" onclick="editClass('{{ loop.index }}', false)">
                         <span uk-icon="icon: close"></span>
                         Cancel
@@ -162,36 +199,6 @@
             </form>
         </div>
         {% endfor %}
-
-        <div>
-            <form class="uk-card uk-card-default uk-card-hover class-card" method="POST" action="{{ url_for('add_class', project=project) }}">
-                <div class="uk-card-header">
-                    <div class="uk-inline uk-width-1-1">
-                        <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                        <input class="uk-input" type="text" name="className" placeholder="Class Name">
-                    </div>
-                </div>
-
-                <div class="uk-card-body temporal {{ 'uk-hidden' if not config.temporal }}" >
-                    <h4>Tags</h4>
-                    <div class="uk-inline uk-width-1-1">
-                        <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                        <input class="uk-input" type="text" name="tag1" placeholder="Tag 1">
-                    </div>
-                    <div class="uk-inline uk-width-1-1 uk-margin-top">
-                        <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                        <input class="uk-input" type="text" name="tag2" placeholder="Tag 2">
-                    </div>
-                </div>
-
-                <div class="uk-card-footer">
-                    <button class="uk-button uk-button-default uk-width-1-1" type="submit">
-                        <span uk-icon="icon: plus"></span>
-                        Add New Class
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 </div>
 {% endblock %}
