@@ -6,10 +6,10 @@
 <div class="uk-container">
     <h1 class="uk-heading-medium uk-margin-large-top uk-margin-medium-bottom">Projects</h1>
 
-    <div class="uk-child-width-1-2@s uk-child-width-1-3@m" uk-grid>
+    <div class="uk-child-width-1-2@s uk-child-width-1-3@m uk-flex-center" uk-grid>
         {% for name, project in projects.items() %}
         <div>
-            <form class="uk-card uk-card-default uk-card-hover update-project-card" method="POST" action="{{ url_for('setup_project') }}">
+            <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('update_project') }}">
                 <input type="hidden" name="projectName" value="{{ name }}">
 
                 <div class="uk-card-header">
@@ -48,14 +48,17 @@
                             <span uk-icon="icon: warning"></span>
                             This path no longer exists.
                         </div>
-                        <div class="uk-inline uk-width-1-1">
-                            <span class="uk-form-icon" uk-icon="icon: folder"></span>
-                            <input class="uk-input" type="text" name="path" placeholder="/path/to/project" value="{{ project.path }}" autocomplete="off">
-                            <div id="pathSuggestions{{ loop.index }}" class="results">
-                                <!-- Filled automatically -->
+                        <div>
+                            <label class="uk-form-label uk-text-danger" id="updateProjectLabel{{ loop.index }}"></label>
+                            <div class="uk-inline uk-width-1-1">
+                                <span class="uk-form-icon" uk-icon="icon: folder"></span>
+                                <input class="uk-input path-search" type="text" id="updateProjectPath{{ loop.index }}"
+                                       name="path" placeholder="/path/to/project" value="{{ project.path }}" autocomplete="off"
+                                       oninput="editUpdateProject('{{ loop.index }}');">
                             </div>
                         </div>
-                        <button class="uk-button uk-button-default uk-margin-top uk-width-1-1" type="submit">
+                        <button class="uk-button uk-button-default uk-margin-top uk-width-1-1" type="submit"
+                                id="updateProject{{ loop.index }}" disabled>
                             <span uk-icon="icon: check"></span>
                             Save New Location
                         </button>
@@ -64,28 +67,68 @@
             </form>
         </div>
         {% endfor %}
+    </div>
+</div>
 
-        <div>
-            <form class="uk-card uk-card-default uk-card-hover" id="newProjectCard" method="POST" action="{{ url_for('setup_project') }}">
-                <div class="uk-card-body">
+
+<div class="uk-width-1-1 uk-margin uk-text-center">
+    <button class="uk-button uk-button-default uk-margin-right" type="button">
+        <span uk-icon="icon: file-edit"></span>
+        Create New Project
+    </button>
+    <div class="uk-width-large uk-text-left" uk-drop="pos: bottom-center; mode:click">
+        <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('create_project') }}">
+            <div class="uk-card-body">
+                <div>
+                    <label class="uk-form-label uk-text-danger" id="newProjectNameLabel"></label>
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: home"></span>
-                        <input class="uk-input" type="text" name="projectName" placeholder="Project Name">
+                        <input class="uk-input" type="text" id="newProjectName" name="projectName" placeholder="Project Name"
+                               autocomplete="off" oninput="editNewProject();">
                     </div>
-                    <div class="uk-inline uk-width-1-1 uk-margin">
-                        <span class="uk-form-icon" uk-icon="icon: folder"></span>
-                        <input class="uk-input" type="text" name="path" placeholder="/path/to/project" autocomplete="off">
-                        <div id="pathSuggestions" class="results">
-                            <!-- Filled automatically -->
-                        </div>
-                    </div>
-                    <button class="uk-button uk-button-default uk-width-1-1" type="submit">
-                        <span uk-icon="icon: file-edit"></span>
-                        Create / Import
-                    </button>
                 </div>
-            </form>
-        </div>
+
+                <div class="uk-margin">
+                    <label class="uk-form-label uk-text-danger" id="newProjectPathLabel"></label>
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: folder"></span>
+                        <input class="uk-input path-search" type="text" id="newProjectPath" name="path" placeholder="/path/to/project"
+                               autocomplete="off" oninput="editNewProject();">
+                    </div>
+                </div>
+
+                <div class="uk-text-muted uk-text-center" id="fullPath"></div>
+
+                <button class="uk-button uk-button-default uk-width-1-1 uk-margin-top" type="submit" id="createProject" disabled>
+                    <span uk-icon="icon: file-edit"></span>
+                    Create
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <button class="uk-button uk-button-default" type="button">
+        <span uk-icon="icon: pull"></span>
+        Import Existing Project
+    </button>
+    <div class="uk-width-large uk-text-left" uk-drop="pos: bottom-center; mode:click">
+        <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('import_project') }}">
+            <div class="uk-card-body">
+                <div>
+                    <label class="uk-form-label uk-text-danger" id="importProjectPathLabel"></label>
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: folder"></span>
+                        <input class="uk-input path-search" type="text" id="importProjectPath" name="path" placeholder="/path/to/project"
+                               autocomplete="off" oninput="editImportProject();">
+                    </div>
+                </div>
+
+                <button class="uk-button uk-button-default uk-width-1-1 uk-margin-top" type="submit" id="importProject" disabled>
+                    <span uk-icon="icon: pull"></span>
+                    Import
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

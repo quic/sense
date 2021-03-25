@@ -1,74 +1,36 @@
+// Suppress Enter key on text input fields for submitting forms, so that for example search fields don't submit
+// the form on selection of an entry
+window.addEventListener(
+    'keydown',
+    function(e) {
+        if ((e.keyIdentifier=='U+000A' || e.keyIdentifier=='Enter' || e.keyCode==13)
+            && e.target.nodeName=='INPUT' && e.target.type=='text')
+        {
+            e.preventDefault();
+            return false;
+        }
+    },
+    true
+);
+
 
 $(document).ready(function () {
-    $('.path-search').search({
-        apiSettings: {
-            response: function (e) {
-                let path = this.children[1].value;
-                let response = browseDirectory(path);
-
-                let results = [];
-                for (const subdir of response.subdirs) {
-                    results.push({title: subdir})
-                }
-
-                return {results: results}
-            }
-        },
-        showNoResults: false,
-        cache: false
-    });
-
-    $('.update-project-card').form({
-        fields: {
-            path: {
-                rules: [
-                    {
-                        type   : 'regExp',
-                        value  : /^\/.*/,
-                        prompt : 'Please enter an absolute path (starting with a "/")'
-                    },
-                    {
-                        type   : 'notExistingPath',
-                        prompt : 'The chosen directory doesn\'t exist'
-                    },
-                    {
-                        type   : 'uniquePath',
-                        prompt : 'Another project is already initialized in this location'
-                    }
-                ]
-            }
-        }
-    });
-
-    $('#newProjectCard').form({
-        fields: {
-            projectName: {
-                rules: [
-                    {
-                        type   : 'empty',
-                        prompt : 'Please enter a project name'
-                    },
-                    {
-                        type   : 'uniqueProjectName',
-                        prompt : 'The chosen project name already exists'
-                    }
-                ]
+    let pathSearchInputs = document.getElementsByClassName('path-search');
+    for (input of pathSearchInputs) {
+        const currentInput = input;
+        new autoComplete({
+            selector: input,
+            minChars: 1,
+            cache: false,
+            source: function(term, response) {
+                let directoriesResponse = browseDirectory(term, '');
+                response(directoriesResponse.subdirs);
             },
-            path: {
-                rules: [
-                    {
-                        type   : 'regExp',
-                        value  : /^\/.*/,
-                        prompt : 'Please enter an absolute path (starting with a "/")'
-                    },
-                    {
-                        type   : 'uniquePath',
-                        prompt : 'Another project is already initialized in this location'
-                    }
-                ]
+            onSelect: function(event, term, item) {
+                currentInput.oninput();
             }
-        }
-    });
+        });
+    }
 
     $('.class-card').form({
         fields: {
@@ -87,52 +49,120 @@ $(document).ready(function () {
         }
     });
 
-    $('.hasclickpopup').popup({
-        inline: true,
-        on: 'click',
-        position: 'bottom right',
-    });
-
-    $('.hashoverpopup').popup();
-
-    $('.message .close').on('click', function() {
-        $(this).closest('.message').transition('fade');
-    });
-
 });
 
 
-$.fn.form.settings.rules.uniqueProjectName = function (projectName) {
-    let projects = getProjects();
-    let projectNames = Object.keys(projects);
-    return !projectNames.includes(projectName);
-}
+function setFormWarning(label, input, text) {
+    label.innerHTML = text;
 
-
-$.fn.form.settings.rules.existingPath = function (projectPath) {
-    let response = browseDirectory(projectPath);
-    return !response.path_exists;
-}
-
-
-$.fn.form.settings.rules.notExistingPath = function (projectPath) {
-    if (projectPath) {
-        let response = browseDirectory(projectPath);
-        return response.path_exists;
+    if (text === '') {
+        input.classList.remove('uk-form-danger');
     } else {
-        return true;
+        input.classList.add('uk-form-danger');
     }
 }
 
 
-$.fn.form.settings.rules.uniquePath = function (projectPath) {
-    let projects = getProjects();
-    for (project of Object.values(projects)) {
-        if (project.path === projectPath) {
-            return false;
-        }
+function editNewProject() {
+    let nameInput = document.getElementById('newProjectName');
+    let nameLabel = document.getElementById('newProjectNameLabel');
+    let pathInput = document.getElementById('newProjectPath');
+    let pathLabel = document.getElementById('newProjectPathLabel');
+    let fullPathDiv = document.getElementById('fullPath');
+    let createProjectButton = document.getElementById('createProject');
+
+    let name = nameInput.value;
+    let path = pathInput.value;
+
+    let directoriesResponse = browseDirectory(path, name);
+    fullPathDiv.innerHTML = directoriesResponse.full_project_path;
+
+    let disabled = false;
+
+    // Check that project name is filled, unique and not yet present in directory
+    if (name === '') {
+        setFormWarning(nameLabel, nameInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.project_name_unique) {
+        setFormWarning(nameLabel, nameInput, 'This project name is already used');
+        disabled = true;
+    } else if (directoriesResponse.full_path_exists) {
+        setFormWarning(nameLabel, nameInput, 'A directory with this name already exists in the chosen location');
+        disabled = true;
+    } else {
+        setFormWarning(nameLabel, nameInput, '');
     }
-    return true;
+
+    // Check that project path is filled and exists
+    if (path === '') {
+        setFormWarning(pathLabel, pathInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(pathLabel, pathInput, 'This path does not exist');
+        disabled = true;
+    } else {
+        setFormWarning(pathLabel, pathInput, '');
+    }
+
+    createProjectButton.disabled = disabled;
+}
+
+
+function editImportProject() {
+    let pathInput = document.getElementById('importProjectPath');
+    let pathLabel = document.getElementById('importProjectPathLabel');
+    let importProjectButton = document.getElementById('importProject');
+
+    let path = pathInput.value;
+
+    let directoriesResponse = browseDirectory(path, '');
+
+    let disabled = false;
+
+    // Check that project path is filled, unique and exists
+    if (path === '') {
+        setFormWarning(pathLabel, pathInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.path_unique) {
+        setFormWarning(pathLabel, pathInput, 'Another project is already registered in this location');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(pathLabel, pathInput, 'This path does not exist');
+        disabled = true;
+    } else {
+        setFormWarning(pathLabel, pathInput, '');
+    }
+
+    importProjectButton.disabled = disabled;
+}
+
+
+function editUpdateProject(projectIdx) {
+    let pathInput = document.getElementById(`updateProjectPath${projectIdx}`);
+    let pathLabel = document.getElementById(`updateProjectLabel${projectIdx}`);
+    let updateProjectButton = document.getElementById(`updateProject${projectIdx}`);
+
+    let path = pathInput.value;
+
+    let directoriesResponse = browseDirectory(path, '');
+
+    let disabled = false;
+
+    // Check that project path is filled, unique and exists
+    if (path === '') {
+        setFormWarning(pathLabel, pathInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.path_unique) {
+        setFormWarning(pathLabel, pathInput, 'Another project is already registered in this location');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(pathLabel, pathInput, 'This path does not exist');
+        disabled = true;
+    } else {
+        setFormWarning(pathLabel, pathInput, '');
+    }
+
+    updateProjectButton.disabled = disabled;
 }
 
 
@@ -159,13 +189,8 @@ function syncRequest(url, data) {
 }
 
 
-function getProjects() {
-    return syncRequest('/projects-list', null);
-}
-
-
-function browseDirectory(path) {
-    return syncRequest('/browse-directory', {path: path});
+function browseDirectory(path, projectName) {
+    return syncRequest('/browse-directory', {path: path, project: projectName});
 }
 
 
