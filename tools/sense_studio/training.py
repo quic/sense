@@ -5,6 +5,7 @@ import time
 import urllib
 
 from flask import Blueprint
+from flask import jsonify
 from flask import render_template
 from flask import request
 from flask import send_from_directory
@@ -24,24 +25,22 @@ def training_page(project):
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
     output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
-    return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS, is_disabled=False,
-                           message="", output_path_prefix=output_path_prefix)
+    return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
+                           output_path_prefix=output_path_prefix)
 
 
-@training_bp.route('/train-model', methods=['POST'])
-def train_model():
-    data = request.form
-    project = data['project']
+@training_bp.route('/start-training', methods=['POST'])
+def start_training():
+    data = request.json
     path = data['path']
-    num_layers_to_finetune = data['layers_to_finetune']
+    num_layers_to_finetune = data['layersToFinetune']
     output_folder = data['outputFolder']
-    model_name = data['model_name']
+    model_name = data['modelName']
     epochs = data['epochs']
 
     config = utils.load_project_config(path)
     model_name, model_version = model_name.split('-')
-    output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
-    path_out = os.path.join(output_path_prefix, output_folder)
+    path_out = os.path.join(path, 'checkpoints', output_folder)
 
     train_classifier = ["python tools/train_classifier.py", f"--path_in={path}",
                         f"--num_layers_to_finetune={num_layers_to_finetune}",
@@ -59,29 +58,17 @@ def train_model():
     global train_process
     train_process = subprocess.Popen(train_classifier, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
-    return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
-                           is_disabled=True, output_folder=output_folder, message="Train Model...",
-                           output_path_prefix=output_path_prefix)
+    return jsonify(success=True)
 
 
 @training_bp.route('/cancel-training', methods=['POST'])
 def cancel_training():
-    data = request.form
-    project = data['project']
-    path = data['path']
-    output_folder = data['outputFolder']
-
-    output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
-
     global train_process
     if train_process:
         train_process.terminate()
         train_process = None
-        message = "Training Cancelled."
 
-    return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
-                           is_disabled=False, message=message, output_folder=output_folder,
-                           output_path_prefix=output_path_prefix)
+    return jsonify(success=True)
 
 
 @socketio.on('training_logs', namespace='/train-model')
