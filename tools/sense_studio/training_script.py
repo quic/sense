@@ -23,11 +23,6 @@ Options:
   --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
   --epochs=NUM                   Number of epochs to run [default: 80].
   --path_out=PATH                Where to save results. Will default to `path_in` if not provided.
-  --path_annotations_train=PATH  Path to an annotation file. This argument is only useful if you want
-                                 to fit a subset of the available training data. If provided, each entry
-                                 in the json file should have the following format: {'file': NAME,
-                                 'label': LABEL}.
-  --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
   --temporal_training            Use this flag if your dataset has been annotated with the temporal
                                  annotations tool
   --resume                       Initialize weights from the last saved checkpoint and restart training
@@ -110,9 +105,9 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
             # Remove 1 because we added 0 to temporal_dependencies
             num_layers = len(backbone_network.num_required_frames_per_layer) - 1
             if training_logs:
-                training_logs.put(f'Num of layers to finetune not compatible. '
+                training_logs.put(f'ERROR - Num of layers to finetune not compatible. '
                                   f'Must be an integer between 0 and {num_layers}')
-            raise IndexError(f'Num of layers to finetune not compatible. '
+            raise IndexError(f'ERROR - Num of layers to finetune not compatible. '
                              f'Must be an integer between 0 and {num_layers}')
     else:
         num_timesteps = 1
@@ -155,12 +150,12 @@ def training_model(path_in, path_out, model_name, model_version, num_layers_to_f
                                         training_logs=training_logs)
     # Check if the data is loaded fully
     if not train_loader or not valid_loader:
-        print("FileNotFoundError:\n "
-              "\tMissing annotations for train or valid set.\n "
+        print("ERROR - \n "
+              "\tMissing annotations for train or valid set.\n"
               "\tHint: Check if tags_train and tags_valid directories exist.\n")
         if training_logs:
-            training_logs.put("\nFileNotFoundError:\n"
-                              "\tMissing annotations for train or valid set.\n "
+            training_logs.put("\nERROR - \n"
+                              "\tMissing annotations for train or valid set.\n"
                               "\tHint: Check if annotation files exist in tags_train and tags_valid directories.\n")
         return None
 
