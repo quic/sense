@@ -175,6 +175,27 @@ $.fn.form.settings.rules.uniqueClassName = function (className) {
 }
 
 
+function asyncRequest(url, data, callback) {
+    return new Promise(function (resolve, reject) {
+        let xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            response = JSON.parse(xhttp.responseText);
+            resolve(response);
+        };
+
+        if (data) {
+            xhttp.open('POST', url, true);
+            xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+            xhttp.send(JSON.stringify(data));
+        } else {
+            xhttp.open('GET', url, true);
+            xhttp.send();
+        }
+    });
+}
+
+
 function syncRequest(url, data) {
     let xhttp = new XMLHttpRequest();
 
