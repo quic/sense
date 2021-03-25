@@ -11,6 +11,8 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
 ]
 
+BACKBONE_MODELS = [model_name.combined_model_name for model_name in SUPPORTED_MODEL_CONFIGURATIONS]
+
 
 def load_feature_extractor(project_path):
     # Load weights

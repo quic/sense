@@ -21,15 +21,22 @@ from flask import url_for
 from sense import SPLITS
 from tools import directories
 from tools.sense_studio import project_utils
+from tools.sense_studio import socketio
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
+
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
+app.debug = True
 
 app.register_blueprint(annotation_bp, url_prefix='/annotation')
 app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
+app.register_blueprint(training_bp, url_prefix='/training')
+
+socketio.init_app(app)
 
 
 @app.route('/')
@@ -327,4 +334,4 @@ def context_processors():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app)

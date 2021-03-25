@@ -7,6 +7,7 @@ Usage:
                        [--model_name=NAME]
                        [--model_version=VERSION]
                        [--num_layers_to_finetune=NUM]
+                       [--epochs=NUM]
                        [--use_gpu]
                        [--path_out=PATH]
                        [--path_annotations_train=PATH]
@@ -22,6 +23,7 @@ Options:
   --model_name=NAME              Name of the backbone model to be used.
   --model_version=VERSION        Version of the backbone model to be used.
   --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
+  --epochs=NUM                   Number of epochs to run [default: 80].
   --path_out=PATH                Where to save results. Will default to `path_in` if not provided.
   --path_annotations_train=PATH  Path to an annotation file. This argument is only useful if you want
                                  to fit a subset of the available training data. If provided, each entry
@@ -76,6 +78,7 @@ if __name__ == "__main__":
     model_name = args['--model_name'] or None
     model_version = args['--model_version'] or None
     num_layers_to_finetune = int(args['--num_layers_to_finetune'])
+    epochs = int(args['--epochs'])
     temporal_training = args['--temporal_training']
     resume = args['--resume']
     overwrite = args['--overwrite']
@@ -187,8 +190,8 @@ if __name__ == "__main__":
     if use_gpu:
         net = net.cuda()
 
-    lr_schedule = {0: 0.0001, 40: 0.00001}
-    num_epochs = 80
+    lr_schedule = {0: 0.0001, int(epochs / 2): 0.00001} if epochs > 1 else {0: 0.0001}
+    num_epochs = epochs
 
     # Save training config and label2int dictionary
     config = {
