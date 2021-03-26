@@ -69,7 +69,7 @@ def start_training():
     return jsonify(success=True)
 
 
-@training_bp.route('/cancel-training', methods=['POST'])
+@training_bp.route('/cancel-training')
 def cancel_training():
     global train_process
     if train_process:
@@ -89,7 +89,7 @@ def send_training_logs(msg):
                 output = queue_train_logs.get(timeout=1)
                 if output:
                     time.sleep(0.1)
-                    emit('training_logs', {'log': output + '\n'})
+                    emit('training_logs', {'log': output})
             except queue.Empty:
                 if not train_process.is_alive():
                     train_process.terminate()

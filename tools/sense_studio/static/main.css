@@ -16,17 +16,15 @@ video {
     -moz-transform: rotateY(180deg); /* Firefox */
 }
 
-.ui.segment.train-console {
+#terminal {
     overflow: auto;
     height: 500px;
-    background-color: black;
-    color: white;
+}
+
+#terminal > :last-child {
+    margin-bottom: 15px; /* Keep margin at the bottom while container is overflowing */
 }
 
 .monospace-font {
     font-family: "Ubuntu Mono", monospace;
-}
-
-#confusionMatrix {
-    display: none;
 }
