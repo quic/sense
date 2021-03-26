@@ -22,8 +22,6 @@ from tools.sense_studio import utils
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
 
-FRAMES_TO_ADD = MODEL_TEMPORAL_STRIDE * (MODEL_TEMPORAL_DEPENDENCY // MODEL_TEMPORAL_STRIDE + 1) - 1
-
 
 def set_internal_padding_false(module):
     """
@@ -187,46 +185,38 @@ def extract_frames(video_path, inference_engine, path_frames=None, return_frames
 
     frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
-    # Compute how many frames are padded to the left in order to "warm up" the model -- removing previous predictions
-    # from the internal states --  with the first image, and to ensure we have enough frames in the video.
-    # We also want the first non padding frame to output a feature
-    #
-    # Possible improvement : investigate if a symmetric or reflect padding could be better for
-    # temporal annotation prediction instead of the static first frame
-    frames = np.pad(frames, ((FRAMES_TO_ADD, 0), (0, 0), (0, 0), (0, 0)),
-                    mode='edge')
-
     # Save frames if a path was provided
     if save_frames:
         os.makedirs(path_frames)
-        frames_to_save = []
 
-        # Remove the padded frames. Extract frames starting at the first one (feature for the first frame)
-        for e, frame in enumerate(frames[FRAMES_TO_ADD:]):
-            if e % MODEL_TEMPORAL_STRIDE == 0:
-                frames_to_save.append(frame)
-
-        for e, frame in enumerate(frames_to_save):
+        for idx, frame in enumerate(frames[::MODEL_TEMPORAL_STRIDE]):
             Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
-                os.path.join(path_frames, f'{e}.jpg'), quality=50)
+                os.path.join(path_frames, f'{idx}.jpg'), quality=50)
 
     return frames
 
 
 def compute_features(path_features, inference_engine, frames, batch_size=None, num_timesteps=1):
-    # Inference
+    # Compute how many frames are padded to the left in order to "warm up" the model -- removing previous predictions
+    # from the internal states -- with the first image, and to ensure we have enough frames in the video.
+    # We also want the first non padding frame to output a feature
+    frames_to_add = MODEL_TEMPORAL_STRIDE * (MODEL_TEMPORAL_DEPENDENCY // MODEL_TEMPORAL_STRIDE + 1) - 1
+
+    # Possible improvement: investigate if a symmetric or reflect padding could be better for
+    # temporal annotation prediction instead of the static first frame
+    frames = np.pad(frames, ((frames_to_add, 0), (0, 0), (0, 0), (0, 0)), mode='edge')
     clip = frames[None].astype(np.float32)
 
     # Run the model on padded frames in order to remove the state in the current model coming
     # from the previous video.
-    pre_features = inference_engine.infer(clip[:, 0:FRAMES_TO_ADD + 1], batch_size=batch_size)
+    pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
 
     # Depending on the number of layers we finetune, we keep the number of features from padding
     # equal to the temporal dependency of the model.
     temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
 
     # Predictions of the actual video frames
-    predictions = inference_engine.infer(clip[:, FRAMES_TO_ADD + 1:], batch_size=batch_size)
+    predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
     predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
     features = np.array(predictions)
 
