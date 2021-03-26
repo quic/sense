@@ -117,7 +117,7 @@ def annotate(project, split, label, idx):
     logreg_dir = directories.get_logreg_dir(path, model_config, label)
 
     videos = os.listdir(frames_dir)
-    videos.sort()
+    videos = natsorted(videos, alg=ns.IC)
 
     features = np.load(os.path.join(features_dir, f'{videos[idx]}.npy'))
     features = features.mean(axis=(2, 3))
