@@ -255,14 +255,8 @@ function toggleMakeProjectTemporal(path) {
 
 function toggleAssistedTagging(path, split, label) {
     let logregInput = document.getElementById('logregInput');
-    response = syncRequest('/toggle-project-setting', {path: path, setting: 'assisted_tagging', split: split, label: label});
-
-    // Show/hide all LogReg prediction-labels
-    if (response.setting_status) {
-        logregInput.setAttribute('checked', 'checked');
-    } else {
-        logregInput.removeAttribute('checked');
-    }
+    response = syncRequest('/toggle-project-setting',
+                           {path: path, setting: 'assisted_tagging', split: split, label: label});
 
     window.location.reload();
 }

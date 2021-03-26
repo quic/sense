@@ -218,7 +218,7 @@ def toggle_project_setting():
     setting = data['setting']
     new_status = utils.toggle_project_setting(path, setting)
 
-    # Only if the current project setting is "assisted tagging"
+    # Update logreg model if assisted tagging was just enabled
     if setting == 'assisted_tagging' and new_status:
         split = data['split']
         label = data['label']
