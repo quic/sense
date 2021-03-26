@@ -165,7 +165,14 @@ def uniform_frame_sample(video, sample_rate):
     return video
 
 
-def compute_only_frames(video_path, inference_engine, path_frames=None):
+def extract_frames(video_path, inference_engine, path_frames=None, return_frames=True):
+    save_frames = path_frames is not None and not os.path.exists(path_frames)
+
+    if not save_frames and not return_frames:
+        # Nothing to do
+        return None
+
+    # Read frames from video
     video_source = camera.VideoSource(size=inference_engine.expected_frame_size, filename=video_path)
     video_fps = video_source.get_fps()
     frames = []
@@ -189,8 +196,9 @@ def compute_only_frames(video_path, inference_engine, path_frames=None):
     frames = np.pad(frames, ((FRAMES_TO_ADD, 0), (0, 0), (0, 0), (0, 0)),
                     mode='edge')
 
-    if path_frames is not None:
-        os.makedirs(os.path.dirname(path_frames), exist_ok=True)
+    # Save frames if a path was provided
+    if save_frames:
+        os.makedirs(path_frames)
         frames_to_save = []
 
         # Remove the padded frames. Extract frames starting at the first one (feature for the first frame)
@@ -205,7 +213,7 @@ def compute_only_frames(video_path, inference_engine, path_frames=None):
     return frames
 
 
-def compute_only_features(path_out, inference_engine, frames, batch_size=None, num_timesteps=1):
+def compute_features(path_features, inference_engine, frames, batch_size=None, num_timesteps=1):
     # Inference
     clip = frames[None].astype(np.float32)
 
@@ -217,16 +225,18 @@ def compute_only_features(path_out, inference_engine, frames, batch_size=None, n
     # equal to the temporal dependency of the model.
     temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
 
-    # predictions of the actual video frames
+    # Predictions of the actual video frames
     predictions = inference_engine.infer(clip[:, FRAMES_TO_ADD + 1:], batch_size=batch_size)
     predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
     features = np.array(predictions)
-    os.makedirs(os.path.dirname(path_out), exist_ok=True)
-    np.save(path_out, features)
+
+    # Save features
+    os.makedirs(os.path.dirname(path_features), exist_ok=True)
+    np.save(path_features, features)
 
 
-def compute_frames_features(inference_engine: InferenceEngine, project_path: str, videos_dir: str,
-                            frames_dir: str, features_dir: str):
+def compute_frames_and_features(inference_engine: InferenceEngine, project_path: str, videos_dir: str,
+                                frames_dir: str, features_dir: str):
     """
     Split the videos in the given directory into frames and compute features on each frame.
     Results are stored in the given directories for frames and features.
@@ -258,17 +268,20 @@ def compute_frames_features(inference_engine: InferenceEngine, project_path: str
         path_frames = os.path.join(frames_dir, video_name)
         path_features = os.path.join(features_dir, f'{video_name}.npy')
 
-        if not os.path.isfile(path_features):
-            os.makedirs(path_frames, exist_ok=True)
-            frames = compute_only_frames(video_path=video_path,
-                                         inference_engine=inference_engine,
-                                         path_frames=path_frames)
-            if utils.get_project_setting(project_path, 'assisted_tagging'):
-                compute_only_features(path_out=path_features,
-                                      inference_engine=inference_engine,
-                                      frames=frames,
-                                      batch_size=64,
-                                      num_timesteps=1)
+        features_needed = (utils.get_project_setting(project_path, 'assisted_tagging')
+                           and not os.path.exists(path_features))
+
+        frames = extract_frames(video_path=video_path,
+                                inference_engine=inference_engine,
+                                path_frames=path_frames,
+                                return_frames=features_needed)
+
+        if features_needed:
+            compute_features(path_features=path_features,
+                             inference_engine=inference_engine,
+                             frames=frames,
+                             batch_size=64,
+                             num_timesteps=1)
 
 
 def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1):
@@ -287,21 +300,19 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
         for video_index, video_path in enumerate(video_files):
             print(f'\rExtract features from video {video_index + 1} / {num_videos}',
                   end='' if video_index < (num_videos - 1) else '\n')
-            path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
+            path_features = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
-            if os.path.isfile(path_out):
+            if os.path.isfile(path_features):
                 print("\n\tSkipped - feature was already precomputed.")
             else:
                 # Read all frames
-                frames = compute_only_frames(video_path=video_path,
-                                             inference_engine=inference_engine,
-                                             path_frames=None)
-                if utils.get_project_setting(path_in, 'assisted_tagging'):
-                    compute_only_features(path_out=path_out,
-                                          inference_engine=inference_engine,
-                                          frames=frames,
-                                          batch_size=16,
-                                          num_timesteps=num_timesteps)
+                frames = extract_frames(video_path=video_path,
+                                        inference_engine=inference_engine)
+                compute_features(path_features=path_features,
+                                 inference_engine=inference_engine,
+                                 frames=frames,
+                                 batch_size=16,
+                                 num_timesteps=num_timesteps)
 
         print('\n')
 

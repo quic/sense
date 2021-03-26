@@ -20,7 +20,7 @@ from flask import request
 from flask import url_for
 
 from sense import SPLITS
-from sense.finetuning import compute_frames_features
+from sense.finetuning import compute_frames_and_features
 from tools import directories
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
@@ -229,11 +229,11 @@ def toggle_project_setting():
         features_dir = directories.get_features_dir(path, split, model_config, label=label)
 
         # Compute the respective frames and features
-        compute_frames_features(inference_engine=inference_engine,
-                                project_path=path,
-                                videos_dir=videos_dir,
-                                frames_dir=frames_dir,
-                                features_dir=features_dir)
+        compute_frames_and_features(inference_engine=inference_engine,
+                                    project_path=path,
+                                    videos_dir=videos_dir,
+                                    frames_dir=frames_dir,
+                                    features_dir=features_dir)
 
         # Re-train the logistic regression model
         utils.train_logreg(path=path, split=split, label=label)

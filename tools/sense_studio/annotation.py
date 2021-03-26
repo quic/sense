@@ -15,7 +15,7 @@ from natsort import natsorted
 from natsort import ns
 
 from sense import SPLITS
-from sense.finetuning import compute_frames_features
+from sense.finetuning import compute_frames_and_features
 from tools import directories
 from tools.sense_studio import utils
 
@@ -47,11 +47,11 @@ def show_video_list(project, split, label):
     os.makedirs(tags_dir, exist_ok=True)
 
     # compute the features and frames missing
-    compute_frames_features(inference_engine=inference_engine,
-                            project_path=path,
-                            videos_dir=videos_dir,
-                            frames_dir=frames_dir,
-                            features_dir=features_dir)
+    compute_frames_and_features(inference_engine=inference_engine,
+                                project_path=path,
+                                videos_dir=videos_dir,
+                                frames_dir=frames_dir,
+                                features_dir=features_dir)
 
     videos = os.listdir(frames_dir)
     videos = natsorted(videos, alg=ns.IC)
@@ -82,11 +82,11 @@ def prepare_annotation(project):
             frames_dir = directories.get_frames_dir(dataset_path, split, label)
             features_dir = directories.get_features_dir(dataset_path, split, model_config, label=label)
 
-            compute_frames_features(inference_engine=inference_engine,
-                                    project_path=dataset_path,
-                                    videos_dir=videos_dir,
-                                    frames_dir=frames_dir,
-                                    features_dir=features_dir)
+            compute_frames_and_features(inference_engine=inference_engine,
+                                        project_path=dataset_path,
+                                        videos_dir=videos_dir,
+                                        frames_dir=frames_dir,
+                                        features_dir=features_dir)
 
     return redirect(url_for("project_details", project=project))
 
@@ -185,11 +185,11 @@ def submit_annotation():
         features_dir = directories.get_features_dir(path, split, model_config, label=label)
 
         # Compute the respective frames and features
-        compute_frames_features(inference_engine=inference_engine,
-                                project_path=path,
-                                videos_dir=videos_dir,
-                                frames_dir=frames_dir,
-                                features_dir=features_dir)
+        compute_frames_and_features(inference_engine=inference_engine,
+                                    project_path=path,
+                                    videos_dir=videos_dir,
+                                    frames_dir=frames_dir,
+                                    features_dir=features_dir)
 
         # Re-train the logistic regression model
         utils.train_logreg(path=path, split=split, label=label)
