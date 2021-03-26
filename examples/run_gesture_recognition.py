@@ -49,6 +49,7 @@ from sense.loading import ModelConfig
 SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_reactive']),
     ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo', ['gesture_reactive']),
+    ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo_fps', ['gesture_reactive_fps']),
     ModelConfig('StridedInflatedMobileNetV2', 'pro', ['gesture_recognition']),
     ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_recognition']),
     ModelConfig('StridedInflatedMobileNetV2', 'lite', ['gesture_recognition']),
@@ -92,6 +93,7 @@ if __name__ == "__main__":
         LAB_THRESHOLDS = LAB_THRESHOLDS_reactive9
         model_version = 'reactive_gesture_demo'
         if model_select == "FPS-variation":
+            model_version = 'reactive_gesture_demo_fps'
             dict_name = 'gesture_reactive_fps'
 
     classes = []

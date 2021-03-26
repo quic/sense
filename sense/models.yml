@@ -17,6 +17,9 @@ StridedInflatedEfficientNet:
   reactive_gesture_demo:
     backbone: backbone/strided_inflated_efficientnet_reactive.ckpt
     gesture_reactive: gesture_recognition/sien_reactive9_logreg.ckpt
+
+  reactive_gesture_demo_fps:
+    backbone: backbone/strided_inflated_efficientnet_reactive_fps.ckpt
     gesture_reactive_fps: gesture_recognition/sien_reactive9_fps_logreg.ckpt
 
 StridedInflatedMobileNetV2:
