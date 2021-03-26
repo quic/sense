@@ -272,13 +272,15 @@ def edit_class(project, class_name):
 
         # Feature directories follow the format <dataset_dir>/<split>/<model>/<num_layers_to_finetune>/<label>
         features_dir = directories.get_features_dir(path, split)
-        model_dirs = [os.path.join(features_dir, model_dir) for model_dir in os.listdir(features_dir)]
-        data_dirs.extend([os.path.join(model_dir, tuned_layers)
-                          for model_dir in model_dirs
-                          for tuned_layers in os.listdir(model_dir)])
+        if os.path.exists(features_dir):
+            model_dirs = [os.path.join(features_dir, model_dir) for model_dir in os.listdir(features_dir)]
+            data_dirs.extend([os.path.join(model_dir, tuned_layers)
+                              for model_dir in model_dirs
+                              for tuned_layers in os.listdir(model_dir)])
 
     logreg_dir = directories.get_logreg_dir(path)
-    data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
+    if os.path.exists(logreg_dir):
+        data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
 
     for base_dir in data_dirs:
         class_dir = os.path.join(base_dir, class_name)
