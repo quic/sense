@@ -25,6 +25,7 @@ from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.testing import testing_bp
 from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
 
@@ -36,6 +37,7 @@ app.debug = True
 app.register_blueprint(annotation_bp, url_prefix='/annotation')
 app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
 app.register_blueprint(training_bp, url_prefix='/training')
+app.register_blueprint(testing_bp, url_prefix='/testing')
 
 socketio.init_app(app)
 
