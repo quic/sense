@@ -1,6 +1,5 @@
-<!-- The method injected by context processor is called here to get the class labels. -->
-{% set class_labels = inject_class_labels(project) %}
-{% set temporal_status = inject_temporal_status(project) %}
+<!-- The method injected by context processor is called here to get the project config. -->
+{% set project_config = inject_project_config(project) %}
 <a href="{{ url_for('project_details', project=project) }}" class="item">Project Details</a>
 <div class="ui simple dropdown item">
     Video Recording
@@ -8,10 +7,10 @@
     <div class="menu">
         <div class="item">
             Train
-            {% if class_labels %}
+            {% if project_config.classes %}
                 <i class="dropdown icon"></i>
                 <div class="menu">
-                    {% for label in class_labels  %}
+                    {% for label in project_config.classes  %}
                         <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">{{ label }}</a>
                     {% endfor %}
                 </div>
@@ -19,10 +18,10 @@
         </div>
         <div class="item">
             Valid
-            {% if class_labels %}
+            {% if project_config.classes %}
                 <i class="dropdown icon"></i>
                 <div class="menu">
-                    {% for label in class_labels %}
+                    {% for label in project_config.classes %}
                         <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">{{ label }}</a>
                     {% endfor %}
                 </div>
@@ -30,16 +29,16 @@
         </div>
     </div>
 </div>
-<div class="ui simple dropdown item temporal {{ 'display-hidden' if not temporal_status }}">
+<div class="ui simple dropdown item temporal {{ 'display-hidden' if not project_config.temporal }}">
     Annotation
     <i class="dropdown icon"></i>
     <div class="menu">
         <div class="item">
             Train
-            {% if class_labels %}
+            {% if project_config.classes %}
                 <i class="dropdown icon"></i>
                 <div class="menu">
-                    {% for label in class_labels %}
+                    {% for label in project_config.classes %}
                         <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{ label }}</a>
                     {% endfor %}
                 </div>
@@ -47,10 +46,10 @@
         </div>
         <div class="item">
             Valid
-            {% if class_labels %}
+            {% if project_config.classes %}
                 <i class="dropdown icon"></i>
                 <div class="menu">
-                    {% for label in class_labels %}
+                    {% for label in project_config.classes %}
                         <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{ label }}</a>
                     {% endfor %}
                 </div>
@@ -59,17 +58,17 @@
     </div>
 </div>
 <a href="javascript:void(0)" class="item hashoverpopup"
-   data-html="<h5>Coming Soon! For now, run this script:</h5> <code>sense/tools/train_classifier.py</code>"
+   data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/train_classifier.py</code>"
    data-position="bottom center" data-variation="very wide">
     Training
 </a>
 <a href="javascript:void(0)" class="item hashoverpopup"
-   data-html="<h5>Coming Soon! For now, run this script:</h5> <code>sense/tools/run_custom_classifier.py</code>"
+   data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/run_custom_classifier.py</code>"
    data-position="bottom center" data-variation="very wide">
     Testing
 </a>
 <a href="javascript:void(0)" class="item hashoverpopup"
-   data-html="<h5>Coming Soon! For now, run this script:</h5> <code>sense/tools/conversion/convert_to_tflite.py</code>"
+   data-html="<h4>Coming Soon!</h4>For now, run this script:<br/> <code>sense/tools/conversion/convert_to_tflite.py</code>"
    data-position="bottom center" data-variation="very wide">
     Conversion
 </a>

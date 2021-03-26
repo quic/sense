@@ -20,6 +20,7 @@ from flask import request
 from flask import url_for
 
 from sense import SPLITS
+from sense.finetuning import compute_frames_and_features
 from tools import directories
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
@@ -127,6 +128,7 @@ def setup_project():
             'classes': {},
             'use_gpu': False,
             'temporal': False,
+            'assisted_tagging': False,
             'video_recording': {
                 'countdown': 3,
                 'recording': 5,
@@ -216,6 +218,26 @@ def toggle_project_setting():
     setting = data['setting']
     new_status = utils.toggle_project_setting(path, setting)
 
+    # Update logreg model if assisted tagging was just enabled
+    if setting == 'assisted_tagging' and new_status:
+        split = data['split']
+        label = data['label']
+        inference_engine, model_config = utils.load_feature_extractor(path)
+
+        videos_dir = directories.get_videos_dir(path, split, label)
+        frames_dir = directories.get_frames_dir(path, split, label)
+        features_dir = directories.get_features_dir(path, split, model_config, label=label)
+
+        # Compute the respective frames and features
+        compute_frames_and_features(inference_engine=inference_engine,
+                                    project_path=path,
+                                    videos_dir=videos_dir,
+                                    frames_dir=frames_dir,
+                                    features_dir=features_dir)
+
+        # Re-train the logistic regression model
+        utils.train_logreg(path=path, split=split, label=label)
+
     return jsonify(setting_status=new_status)
 
 
@@ -301,19 +323,13 @@ def context_processors():
     """
     This context processor will inject methods into templates,
     which can be invoked like an ordinary method in HTML templates.
-    E.g. check navigation.html: line 1-2
+    E.g. {% set project_config = inject_project_config(project) %}
     """
-    def inject_class_labels(project):
+    def inject_project_config(project):
         path = utils.lookup_project_path(project)
-        class_labels = utils.get_class_labels(path)
-        return class_labels
+        return utils.load_project_config(path)
 
-    def inject_temporal_status(project):
-        path = utils.lookup_project_path(project)
-        temporal_status = utils.get_project_setting(path, 'temporal')
-        return temporal_status
-
-    return dict(inject_class_labels=inject_class_labels, inject_temporal_status=inject_temporal_status)
+    return dict(inject_project_config=inject_project_config)
 
 
 @app.route('/set-timer-default', methods=['POST'])
