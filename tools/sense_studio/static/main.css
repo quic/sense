@@ -1,72 +1,30 @@
-body {
-    background-color: #FFFFFF;
+
+.navbar-logo {
+    min-width: 120px;
+    width: 120px;
 }
 
-a {
-    color: inherit;
+.footer-logo {
+    width: 150px;
 }
 
-.ui.menu .item img.logo {
-    margin-right: 1.5em;
-    height: 4em;
-    width: auto;
-}
-
-.main.container {
-    margin-top: 7em;
-}
-
-.right-floated {
-    float: right;
-}
-
-.ui.footer.segment {
-    margin: 5em 0em 0em;
-    padding: 2em 0em;
-}
-
-.ui.button.mt {
-    margin-top: 1em;
-}
-
-.ui.button.mb {
-    margin-bottom: 1em;
-}
-
-.ui.prediction-label {
-    margin-bottom: 0.5em;
-}
-
-.video-container {
-    position: relative;
-}
-
-.video-container video {
-    position:relative;
-    z-index:0;
-    border-radius: inherit;
+video {
+    width: 640px;
+    height: 480px;
     transform: rotateY(180deg);
     -webkit-transform: rotateY(180deg); /* Safari and Chrome */
     -moz-transform: rotateY(180deg); /* Firefox */
 }
 
-#textOverlay {
-    position: absolute;
-    margin-top: 30px;
-    margin-left: 30px;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    opacity: 0.7;
-    line-height: 1em;
-    padding: 0.2em 0.3em;
-    font-size: 50px;
+#terminal {
+    overflow: auto;
+    height: 500px;
 }
 
-.flex-container {
-    display: flex;
+#terminal > :last-child {
+    margin-bottom: 15px; /* Keep margin at the bottom while container is overflowing */
 }
 
-.flex-filler {
-    flex: 1;
+.monospace-font {
+    font-family: "Ubuntu Mono", monospace;
 }

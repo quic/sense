@@ -1,74 +1,36 @@
+// Suppress Enter key on text input fields for submitting forms, so that for example search fields don't submit
+// the form on selection of an entry
+window.addEventListener(
+    'keydown',
+    function(e) {
+        if ((e.keyIdentifier=='U+000A' || e.keyIdentifier=='Enter' || e.keyCode==13)
+            && e.target.nodeName=='INPUT' && e.target.type=='text')
+        {
+            e.preventDefault();
+            return false;
+        }
+    },
+    true
+);
+
 
 $(document).ready(function () {
-    $('.path-search').search({
-        apiSettings: {
-            response: function (e) {
-                let path = this.children[1].value;
-                let response = browseDirectory(path);
-
-                let results = [];
-                for (const subdir of response.subdirs) {
-                    results.push({title: subdir})
-                }
-
-                return {results: results}
-            }
-        },
-        showNoResults: false,
-        cache: false
-    });
-
-    $('.update-project-card').form({
-        fields: {
-            path: {
-                rules: [
-                    {
-                        type   : 'regExp',
-                        value  : /^\/.*/,
-                        prompt : 'Please enter an absolute path (starting with a "/")'
-                    },
-                    {
-                        type   : 'notExistingPath',
-                        prompt : 'The chosen directory doesn\'t exist'
-                    },
-                    {
-                        type   : 'uniquePath',
-                        prompt : 'Another project is already initialized in this location'
-                    }
-                ]
-            }
-        }
-    });
-
-    $('#newProjectCard').form({
-        fields: {
-            projectName: {
-                rules: [
-                    {
-                        type   : 'empty',
-                        prompt : 'Please enter a project name'
-                    },
-                    {
-                        type   : 'uniqueProjectName',
-                        prompt : 'The chosen project name already exists'
-                    }
-                ]
+    let pathSearchInputs = document.getElementsByClassName('path-search');
+    for (input of pathSearchInputs) {
+        const currentInput = input;
+        new autoComplete({
+            selector: input,
+            minChars: 1,
+            cache: false,
+            source: function(term, response) {
+                let directoriesResponse = browseDirectory(term, '');
+                response(directoriesResponse.subdirs);
             },
-            path: {
-                rules: [
-                    {
-                        type   : 'regExp',
-                        value  : /^\/.*/,
-                        prompt : 'Please enter an absolute path (starting with a "/")'
-                    },
-                    {
-                        type   : 'uniquePath',
-                        prompt : 'Another project is already initialized in this location'
-                    }
-                ]
+            onSelect: function(event, term, item) {
+                currentInput.oninput();
             }
-        }
-    });
+        });
+    }
 
     $('.class-card').form({
         fields: {
@@ -87,54 +49,122 @@ $(document).ready(function () {
         }
     });
 
-    $('.hasclickpopup').popup({
-        inline: true,
-        on: 'click',
-        position: 'bottom right',
-    });
-
-    $('.hashoverpopup').popup();
-
-    $('.display-hidden').hide();
-
-    $('.message .close').on('click', function() {
-        $(this).closest('.message').transition('fade');
-    });
+    $('.ui .dropdown').dropdown();
 
 });
 
 
-$.fn.form.settings.rules.uniqueProjectName = function (projectName) {
-    let projects = getProjects();
-    let projectNames = Object.keys(projects);
-    return !projectNames.includes(projectName);
-}
+function setFormWarning(label, input, text) {
+    label.innerHTML = text;
 
-
-$.fn.form.settings.rules.existingPath = function (projectPath) {
-    let response = browseDirectory(projectPath);
-    return !response.path_exists;
-}
-
-
-$.fn.form.settings.rules.notExistingPath = function (projectPath) {
-    if (projectPath) {
-        let response = browseDirectory(projectPath);
-        return response.path_exists;
+    if (text === '') {
+        input.classList.remove('uk-form-danger');
     } else {
-        return true;
+        input.classList.add('uk-form-danger');
     }
 }
 
 
-$.fn.form.settings.rules.uniquePath = function (projectPath) {
-    let projects = getProjects();
-    for (project of Object.values(projects)) {
-        if (project.path === projectPath) {
-            return false;
-        }
+function editNewProject() {
+    let nameInput = document.getElementById('newProjectName');
+    let nameLabel = document.getElementById('newProjectNameLabel');
+    let pathInput = document.getElementById('newProjectPath');
+    let pathLabel = document.getElementById('newProjectPathLabel');
+    let fullPathDiv = document.getElementById('fullPath');
+    let createProjectButton = document.getElementById('createProject');
+
+    let name = nameInput.value;
+    let path = pathInput.value;
+
+    let directoriesResponse = browseDirectory(path, name);
+    fullPathDiv.innerHTML = directoriesResponse.full_project_path;
+
+    let disabled = false;
+
+    // Check that project name is filled, unique and not yet present in directory
+    if (name === '') {
+        setFormWarning(nameLabel, nameInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.project_name_unique) {
+        setFormWarning(nameLabel, nameInput, 'This project name is already used');
+        disabled = true;
+    } else if (directoriesResponse.full_path_exists) {
+        setFormWarning(nameLabel, nameInput, 'A directory with this name already exists in the chosen location');
+        disabled = true;
+    } else {
+        setFormWarning(nameLabel, nameInput, '');
     }
-    return true;
+
+    // Check that project path is filled and exists
+    if (path === '') {
+        setFormWarning(pathLabel, pathInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(pathLabel, pathInput, 'This path does not exist');
+        disabled = true;
+    } else {
+        setFormWarning(pathLabel, pathInput, '');
+    }
+
+    createProjectButton.disabled = disabled;
+}
+
+
+function editImportProject() {
+    let pathInput = document.getElementById('importProjectPath');
+    let pathLabel = document.getElementById('importProjectPathLabel');
+    let importProjectButton = document.getElementById('importProject');
+
+    let path = pathInput.value;
+
+    let directoriesResponse = browseDirectory(path, '');
+
+    let disabled = false;
+
+    // Check that project path is filled, unique and exists
+    if (path === '') {
+        setFormWarning(pathLabel, pathInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.path_unique) {
+        setFormWarning(pathLabel, pathInput, 'Another project is already registered in this location');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(pathLabel, pathInput, 'This path does not exist');
+        disabled = true;
+    } else {
+        setFormWarning(pathLabel, pathInput, '');
+    }
+
+    importProjectButton.disabled = disabled;
+}
+
+
+function editUpdateProject(projectIdx) {
+    let pathInput = document.getElementById(`updateProjectPath${projectIdx}`);
+    let pathLabel = document.getElementById(`updateProjectLabel${projectIdx}`);
+    let updateProjectButton = document.getElementById(`updateProject${projectIdx}`);
+
+    let path = pathInput.value;
+
+    let directoriesResponse = browseDirectory(path, '');
+
+    let disabled = false;
+
+    // Check that project path is filled, unique and exists
+    if (path === '') {
+        setFormWarning(pathLabel, pathInput, '');
+        disabled = true;
+    } else if (!directoriesResponse.path_unique) {
+        setFormWarning(pathLabel, pathInput, 'Another project is already registered in this location');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(pathLabel, pathInput, 'This path does not exist');
+        disabled = true;
+    } else {
+        setFormWarning(pathLabel, pathInput, '');
+    }
+
+    updateProjectButton.disabled = disabled;
 }
 
 
@@ -142,6 +172,27 @@ $.fn.form.settings.rules.uniqueClassName = function (className) {
     let projectName = $('#projectName').val();
     let config = getProjectConfig(projectName);
     return !(className in config.classes)
+}
+
+
+function asyncRequest(url, data, callback) {
+    return new Promise(function (resolve, reject) {
+        let xhttp = new XMLHttpRequest();
+
+        xhttp.onload = function () {
+            response = JSON.parse(xhttp.responseText);
+            resolve(response);
+        };
+
+        if (data) {
+            xhttp.open('POST', url, true);
+            xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+            xhttp.send(JSON.stringify(data));
+        } else {
+            xhttp.open('GET', url, true);
+            xhttp.send();
+        }
+    });
 }
 
 
@@ -161,13 +212,8 @@ function syncRequest(url, data) {
 }
 
 
-function getProjects() {
-    return syncRequest('/projects-list');
-}
-
-
-function browseDirectory(path) {
-    return syncRequest('/browse-directory', {path: path});
+function browseDirectory(path, projectName) {
+    return syncRequest('/browse-directory', {path: path, project: projectName});
 }
 
 
@@ -176,17 +222,47 @@ function getProjectConfig(projectName) {
 }
 
 
-function loading(element) {
-    element.classList.add('loading');
-    element.classList.add('disabled');
+async function prepareAnnotations(element, projectName) {
+    loading(element, 'Preparing Annotations');
+
+    await asyncRequest('/annotation/prepare-annotation', {projectName: projectName});
+
+    loadingDone(element, 'Annotations Prepared');
 }
 
 
-let tagColors = [
-    'grey',
-    'blue',
-    'green'
-];
+function loading(element, message, url) {
+    let icon = element.children[0];
+    let text = element.children[1];
+
+    icon.removeAttribute('uk-icon');
+    icon.setAttribute('uk-spinner', 'ratio: 0.6');
+    text.innerHTML = message;
+    element.disabled = true;
+
+    if (url) {
+        window.location = url;
+    }
+}
+
+
+function loadingDone(element, message) {
+    let icon = element.children[0];
+    let text = element.children[1];
+
+    icon.removeAttribute('uk-spinner');
+    icon.classList.remove('uk-spinner');
+    icon.setAttribute('uk-icon', 'icon: check');
+    text.innerHTML = message;
+}
+
+
+// TODO: Tag colors still need to be adapted
+const buttonClasses = [
+    'uk-button-primary',
+    'uk-button-secondary',
+    'uk-button-danger',
+]
 
 
 function assignTag(frameIdx, selectedTagIdx) {
@@ -197,9 +273,9 @@ function assignTag(frameIdx, selectedTagIdx) {
         let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
 
         if (tagIdx == selectedTagIdx) {
-            button.classList.add(tagColors[tagIdx]);
+            button.classList.add(buttonClasses[tagIdx]);
         } else {
-            button.classList.remove(tagColors[tagIdx]);
+            button.classList.remove(buttonClasses[tagIdx]);
         }
     }
 }
@@ -213,53 +289,60 @@ function initTagButtons(annotations) {
 
 
 function editClass(index, shouldEdit) {
-    let classShow = $(`#classShow${index}`);
-    let classEdit = $(`#classEdit${index}`);
+    let classShow = document.getElementById(`classShow${index}`);
+    let classEdit = document.getElementById(`classEdit${index}`);
 
     if (shouldEdit) {
-        classShow.hide();
-        classEdit.show();
+        classShow.classList.add('uk-hidden');
+        classEdit.classList.remove('uk-hidden');
     } else {
-        classShow.show();
-        classEdit.hide();
+        classShow.classList.remove('uk-hidden');
+        classEdit.classList.add('uk-hidden');
     }
 }
 
 
 function toggleGPU(path) {
-    let gpuInput = document.getElementById('gpuInput');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
 
-    if (response.setting_status) {
-        gpuInput.setAttribute('checked', 'checked');
-    } else {
-        gpuInput.removeAttribute('checked');
-    }
+    let gpuInput = document.getElementById('gpuInput');
+    gpuInput.checked = response.setting_status;
 }
 
 
 function toggleMakeProjectTemporal(path) {
-    let makeProjectTemporal = document.getElementById('makeProjectTemporal');
     response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
 
+    let makeProjectTemporal = document.getElementById('makeProjectTemporal');
+    let temporalElements = document.getElementsByClassName('temporal');
+
+    makeProjectTemporal.checked = response.setting_status;
+
     // Show/hide all temporal-related elements
-    if (response.setting_status) {
-        makeProjectTemporal.setAttribute('checked', 'checked');
-        $('.temporal').show();
-    } else {
-        makeProjectTemporal.removeAttribute('checked');
-        $('.temporal').hide();
+    for (element of temporalElements) {
+        if (response.setting_status) {
+            element.classList.remove('uk-hidden');
+        } else {
+            element.classList.add('uk-hidden');
+        }
     }
 }
 
 
-function setTimerDefault(path) {
-    let setDefaultButton = document.getElementById('setDefaultButton');
-    let countdownDuration = parseInt(document.getElementById('countdown').value);
-    let recordingDuration = parseInt(document.getElementById('duration').value);
+function toggleShowPredictions(path) {
+    response = syncRequest('/toggle-project-setting', {path: path, setting: 'show_logreg'});
 
-    setDefaultButton.classList.add('disabled');
-    setDefaultButton.innerHTML = "Saved";
+    let logregInput = document.getElementById('logregInput');
+    let logregElements = document.getElementsByClassName('logreg-predictions');
 
-    response = syncRequest('/set-timer-default', {path: path, countdown: countdownDuration, recording: recordingDuration});
+    logregInput.checked = response.setting_status;
+
+    // Show/hide all LogReg prediction-labels
+    for (element of logregElements) {
+        if (response.setting_status) {
+            element.classList.remove('uk-hidden');
+        } else {
+            element.classList.add('uk-hidden');
+        }
+    }
 }

@@ -7,8 +7,8 @@ Web app for maintaining all of your video datasets:
 - Train custom models using strong backbone networks (coming soon)
 """
 
-import datetime
 import glob
+import multiprocessing
 import os
 import urllib
 
@@ -21,15 +21,23 @@ from flask import url_for
 
 from sense import SPLITS
 from tools import directories
+from tools.sense_studio import project_utils
+from tools.sense_studio import socketio
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
+
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
+app.debug = True
 
 app.register_blueprint(annotation_bp, url_prefix='/annotation')
 app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
+app.register_blueprint(training_bp, url_prefix='/training')
+
+socketio.init_app(app)
 
 
 @app.route('/')
@@ -38,22 +46,13 @@ def projects_overview():
     Home page of SenseStudio. Show the overview of all registered projects and check if their
     locations are still valid.
     """
-    projects = utils.load_project_overview_config()
+    projects = project_utils.load_project_overview_config()
 
     # Check if project paths still exist
-    for name, project in projects.items():
+    for project in projects.values():
         project['exists'] = os.path.exists(project['path'])
 
     return render_template('projects_overview.html', projects=projects)
-
-
-@app.route('/projects-list')
-def projects_list():
-    """
-    Provide the current list of projects to external callers.
-    """
-    projects = utils.load_project_overview_config()
-    return jsonify(projects)
 
 
 @app.route('/project-config', methods=['POST'])
@@ -63,10 +62,10 @@ def project_config():
     """
     data = request.json
     name = data['name']
-    path = utils.lookup_project_path(name)
+    path = project_utils.lookup_project_path(name)
 
     # Get config
-    config = utils.load_project_config(path)
+    config = project_utils.load_project_config(path)
     return jsonify(config)
 
 
@@ -76,11 +75,11 @@ def remove_project(name):
     Remove a given project from the config file and reload the overview page.
     """
     name = urllib.parse.unquote(name)
-    projects = utils.load_project_overview_config()
+    projects = project_utils.load_project_overview_config()
 
     del projects[name]
 
-    utils.write_project_overview_config(projects)
+    project_utils.write_project_overview_config(projects)
 
     return redirect(url_for('projects_overview'))
 
@@ -89,72 +88,97 @@ def remove_project(name):
 def browse_directory():
     """
     Browse the local file system starting at the given path and provide the following information:
+    - project_name_unique: If the given project name is not yet registered in the projects list
+    - full_project_path: Full path constructed from base path and project name
+    - full_path_exists: If the full path exists
     - path_exists: If the given path exists
+    - path_unique: If the given path is not yet registered for another project
     - subdirs: The list of sub-directories at the given path
     """
     data = request.json
     path = data['path']
+    project = data['project']
 
     subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)] if os.path.isabs(path) else []
+    full_path = os.path.join(path, project_utils.get_folder_name_for_project(project))
 
-    return jsonify(path_exists=os.path.exists(path), subdirs=subdirs)
+    projects = project_utils.load_project_overview_config()
+
+    return jsonify(
+        project_name_unique=project not in projects,
+        full_project_path=full_path,
+        full_path_exists=os.path.exists(full_path),
+        path_exists=os.path.exists(path),
+        path_unique=path not in [p['path'] for p in projects.values()],
+        subdirs=subdirs,
+    )
 
 
-@app.route('/setup-project', methods=['POST'])
-def setup_project():
+@app.route('/create-project', methods=['POST'])
+def create_project():
     """
-    Add a new project to the config file. Can also be used for updating an existing project.
+    Setup a new project directory and add it to the projects overview config file.
+    The given project name will be used for constructing the directory in the given path.
     """
     data = request.form
-    name = data['projectName']
+    project_name = data['projectName']
     path = data['path']
 
-    # Initialize project directory
-    if not os.path.exists(path):
-        os.mkdir(path)
+    path = os.path.join(path, project_name)
+    os.mkdir(path)
 
-    # Update project config
+    # Setup new project
+    project_utils.setup_new_project(project_name, path)
+
+    return redirect(url_for('project_details', project=project_name))
+
+
+@app.route('/update-project', methods=['POST'])
+def update_project():
+    """
+    Update an existing project entry with a new path. If a config file exists in there, it will be
+    used, otherwise a new one will be created.
+    The project will keep the given project name.
+    """
+    data = request.form
+    project_name = data['projectName']
+    path = data['path']
+
     try:
         # Check for existing config file
-        config = utils.load_project_config(path)
-        old_name = config['name']
-        config['name'] = name
+        config = project_utils.load_project_config(path)
     except FileNotFoundError:
-        # Setup new project config
-        config = {
-            'name': name,
-            'date_created': datetime.date.today().isoformat(),
-            'classes': {},
-            'use_gpu': False,
-            'temporal': False,
-            'video_recording': {
-                'countdown': 3,
-                'recording': 5,
-            },
-        }
-        old_name = None
+        config = None
 
-    utils.write_project_config(path, config)
+    # Make sure the directory is correctly set up
+    project_utils.setup_new_project(project_name, path, config)
 
-    # Setup directory structure
-    for split in SPLITS:
-        videos_dir = directories.get_videos_dir(path, split)
-        if not os.path.exists(videos_dir):
-            os.mkdir(videos_dir)
+    return redirect(url_for('project_details', project=project_name))
 
-    # Update overall projects config file
-    projects = utils.load_project_overview_config()
 
-    if old_name and old_name in projects:
-        del projects[old_name]
+@app.route('/import-project', methods=['POST'])
+def import_project():
+    """
+    Import an existing project from the given path. If a config file exists in there, it will be
+    used while also making sure that the project name is still unique. Otherwise, a new config
+    will be created and a unique project name will be constructed from the directory name.
+    """
+    data = request.form
+    path = data['path']
 
-    projects[name] = {
-        'path': path,
-    }
+    try:
+        # Check for existing config file and make sure project name is unique
+        config = project_utils.load_project_config(path)
+        project_name = project_utils.get_unique_project_name(config['name'])
+    except FileNotFoundError:
+        # Use folder name as project name and make sure it is unique
+        config = None
+        project_name = project_utils.get_unique_project_name(os.path.basename(path))
 
-    utils.write_project_overview_config(projects)
+    # Make sure the directory is correctly set up
+    project_utils.setup_new_project(project_name, path, config)
 
-    return redirect(url_for('project_details', project=name))
+    return redirect(url_for('project_details', project=project_name))
 
 
 @app.route('/project/<string:project>')
@@ -163,8 +187,8 @@ def project_details(project):
     Show the details for the selected project.
     """
     project = urllib.parse.unquote(project)
-    path = utils.lookup_project_path(project)
-    config = utils.load_project_config(path)
+    path = project_utils.lookup_project_path(project)
+    config = project_utils.load_project_config(path)
 
     stats = {}
     for class_name, tags in config['classes'].items():
@@ -186,15 +210,15 @@ def add_class(project):
     Add a new class to the given project.
     """
     project = urllib.parse.unquote(project)
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
 
     # Get class name and tags
     class_name, tag1, tag2 = utils.get_class_name_and_tags(request.form)
 
     # Update project config
-    config = utils.load_project_config(path)
+    config = project_utils.load_project_config(path)
     config['classes'][class_name] = [tag1, tag2]
-    utils.write_project_config(path, config)
+    project_utils.write_project_config(path, config)
 
     # Setup directory structure
     for split in SPLITS:
@@ -214,7 +238,7 @@ def toggle_project_setting():
     data = request.json
     path = data['path']
     setting = data['setting']
-    new_status = utils.toggle_project_setting(path, setting)
+    new_status = project_utils.toggle_project_setting(path, setting)
 
     return jsonify(setting_status=new_status)
 
@@ -226,16 +250,16 @@ def edit_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
 
     # Get new class name and tags
     new_class_name, new_tag1, new_tag2 = utils.get_class_name_and_tags(request.form)
 
     # Update project config
-    config = utils.load_project_config(path)
+    config = project_utils.load_project_config(path)
     del config['classes'][class_name]
     config['classes'][new_class_name] = [new_tag1, new_tag2]
-    utils.write_project_config(path, config)
+    project_utils.write_project_config(path, config)
 
     # Update directory names
     data_dirs = []
@@ -273,12 +297,12 @@ def remove_class(project, class_name):
     """
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
 
     # Update project config
-    config = utils.load_project_config(path)
+    config = project_utils.load_project_config(path)
     del config['classes'][class_name]
-    utils.write_project_config(path, config)
+    project_utils.write_project_config(path, config)
 
     return redirect(url_for("project_details", project=project))
 
@@ -301,19 +325,13 @@ def context_processors():
     """
     This context processor will inject methods into templates,
     which can be invoked like an ordinary method in HTML templates.
-    E.g. check navigation.html: line 1-2
+    E.g. {% set project_config = inject_project_config(project) %}
     """
-    def inject_class_labels(project):
-        path = utils.lookup_project_path(project)
-        class_labels = utils.get_class_labels(path)
-        return class_labels
+    def inject_project_config(project):
+        path = project_utils.lookup_project_path(project)
+        return project_utils.load_project_config(path)
 
-    def inject_temporal_status(project):
-        path = utils.lookup_project_path(project)
-        temporal_status = utils.get_project_setting(path, 'temporal')
-        return temporal_status
-
-    return dict(inject_class_labels=inject_class_labels, inject_temporal_status=inject_temporal_status)
+    return dict(inject_project_config=inject_project_config)
 
 
 @app.route('/set-timer-default', methods=['POST'])
@@ -323,10 +341,11 @@ def set_timer_default():
     countdown = int(data['countdown'])
     recording = int(data['recording'])
 
-    utils.set_timer_default(path, countdown, recording)
+    project_utils.set_timer_default(path, countdown, recording)
 
     return jsonify(status=True)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    multiprocessing.set_start_method('spawn')
+    socketio.run(app)

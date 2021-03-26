@@ -1,0 +1,32 @@
+<!-- The method injected by context processor is called here to get the project config. -->
+{% set project_config = inject_project_config(project) %}
+
+<li>
+    <a href="#">Settings</a>
+    <div uk-drop>
+        <div class="uk-card uk-card-small uk-card-body uk-card-default">
+            <div class="uk-grid-small uk-grid">
+                <label uk-tooltip="Should a GPU be used for computing features?">
+                    <input type="checkbox" id="gpuInput" class="uk-checkbox"
+                           {% if project_config.use_gpu %} checked {% endif %}
+                           onclick="toggleGPU('{{ path }}');">
+                    Use GPU
+                </label>
+
+                <label class="uk-margin"  uk-tooltip="Do you want to tag your video with frame-wise temporal annotations?">
+                    <input type="checkbox" id="makeProjectTemporal" class="uk-checkbox"
+                           {% if project_config.temporal %} checked {% endif %}
+                           onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
+                    Use Temporal Annotations
+                </label>
+
+                <label uk-tooltip="Train a simple logistic regression model live on temporal annotations and show current predictions?">
+                    <input type="checkbox" id="logregInput" class="uk-checkbox"
+                           {% if project_config.show_logreg %} checked {% endif %}
+                           onclick="toggleShowPredictions('{{ path }}');">
+                    Show Predictions
+                </label>
+            </div>
+        </div>
+    </div>
+</li>
