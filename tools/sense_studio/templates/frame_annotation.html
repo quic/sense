@@ -28,7 +28,7 @@
         <div class="uk-width-auto">
             <a class="uk-button uk-button-default"
                href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx-1) }}">
-                <i class="left arrow icon"></i>
+                <span uk-icon="arrow-left"></span>
                 Previous
             </a>
         </div>
@@ -39,7 +39,7 @@
             <a class="uk-button uk-button-default"
                href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx+1) }}">
                 Next
-                <i class="right arrow icon"></i>
+                <span uk-icon="arrow-right"></span>
             </a>
         </div>
         {% endif %}
