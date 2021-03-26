@@ -49,7 +49,7 @@ from sense.loading import ModelConfig
 SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_reactive']),
     ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo', ['gesture_reactive']),
-    ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo_fps', ['gesture_reactive_fps']),
+    ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo_fps', ['gesture_reactive']),
     ModelConfig('StridedInflatedMobileNetV2', 'pro', ['gesture_recognition']),
     ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_recognition']),
     ModelConfig('StridedInflatedMobileNetV2', 'lite', ['gesture_recognition']),
