@@ -20,6 +20,7 @@ from flask import request
 from flask import url_for
 
 from sense import SPLITS
+from sense.finetuning import compute_frames_and_features
 from tools import directories
 from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
@@ -239,6 +240,26 @@ def toggle_project_setting():
     path = data['path']
     setting = data['setting']
     new_status = project_utils.toggle_project_setting(path, setting)
+
+    # Update logreg model if assisted tagging was just enabled
+    if setting == 'assisted_tagging' and new_status:
+        split = data['split']
+        label = data['label']
+        inference_engine, model_config = utils.load_feature_extractor(path)
+
+        videos_dir = directories.get_videos_dir(path, split, label)
+        frames_dir = directories.get_frames_dir(path, split, label)
+        features_dir = directories.get_features_dir(path, split, model_config, label=label)
+
+        # Compute the respective frames and features
+        compute_frames_and_features(inference_engine=inference_engine,
+                                    project_path=path,
+                                    videos_dir=videos_dir,
+                                    frames_dir=frames_dir,
+                                    features_dir=features_dir)
+
+        # Re-train the logistic regression model
+        utils.train_logreg(path=path, split=split, label=label)
 
     return jsonify(setting_status=new_status)
 

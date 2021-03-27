@@ -329,20 +329,10 @@ function toggleMakeProjectTemporal(path) {
 }
 
 
-function toggleShowPredictions(path) {
-    response = syncRequest('/toggle-project-setting', {path: path, setting: 'show_logreg'});
-
+function toggleAssistedTagging(path, split, label) {
     let logregInput = document.getElementById('logregInput');
-    let logregElements = document.getElementsByClassName('logreg-predictions');
+    response = syncRequest('/toggle-project-setting',
+                           {path: path, setting: 'assisted_tagging', split: split, label: label});
 
-    logregInput.checked = response.setting_status;
-
-    // Show/hide all LogReg prediction-labels
-    for (element of logregElements) {
-        if (response.setting_status) {
-            element.classList.remove('uk-hidden');
-        } else {
-            element.classList.add('uk-hidden');
-        }
-    }
+    window.location.reload();
 }
