@@ -38,7 +38,7 @@ def get_class_name_and_tags(form_data):
     Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
     are not empty or the same.
     """
-    class_name = form_data['className']
+    class_name = form_data['newClassName']
     tag1 = form_data['tag1'] or f'{class_name}_tag1'
     tag2 = form_data['tag2'] or f'{class_name}_tag2'
 

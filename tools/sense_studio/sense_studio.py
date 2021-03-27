@@ -257,7 +257,8 @@ def edit_class(project, class_name):
 
     # Update project config
     config = project_utils.load_project_config(path)
-    del config['classes'][class_name]
+    if class_name != new_class_name:
+        del config['classes'][class_name]
     config['classes'][new_class_name] = [new_tag1, new_tag2]
     project_utils.write_project_config(path, config)
 

@@ -55,13 +55,16 @@
                 Add New Class
             </button>
             <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
-                <form class="uk-card uk-card-secondary uk-card-hover class-card" method="POST" action="{{ url_for('add_class', project=project) }}">
+                <form class="uk-card uk-card-secondary uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('add_class', project=project) }}">
                     <div class="uk-card-body">
-                        <div class="uk-inline uk-width-1-1 uk-margin-bottom">
-                            <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                            <input class="uk-input" type="text" name="className" placeholder="Class Name">
+                        <div class="uk-margin-bottom">
+                            <label class="uk-form-label uk-text-danger" id="newClassNameLabel"></label>
+                            <div class="uk-inline uk-width-1-1">
+                                <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                                <input class="uk-input" type="text" id="newClassName" name="newClassName"
+                                    placeholder="Class Name" oninput="editAddNewClass('{{ project }}');">
+                            </div>
                         </div>
-
                         <div class="temporal {{ 'uk-hidden' if not config.temporal }}" >
                             <h4>Tags</h4>
                             <div class="uk-inline uk-width-1-1">
@@ -74,9 +77,9 @@
                             </div>
                         </div>
 
-                        <button class="uk-button uk-button-default uk-width-1-1" type="submit">
-                            <span uk-icon="icon: plus"></span>
-                            Add
+                        <button class="uk-button uk-button-default uk-width-1-1 uk-margin-top" type="submit" id="addNewClass" disabled>
+                            <span uk-icon="icon: pull"></span>
+                            Done
                         </button>
                     </div>
                 </form>
@@ -156,20 +159,23 @@
             <form class="uk-card uk-card-secondary uk-card-hover class-card" method="POST"
                   action="{{ url_for('edit_class', project=project, class_name=class) }}">
                 <div class="uk-card-body">
-                    <div class="uk-inline uk-width-1-1 uk-margin-bottom">
-                        <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                        <input class="uk-input" type="text" name="className" placeholder="Class Name" value="{{ class }}" >
+                    <div class="uk-margin-bottom">
+                        <label class="uk-form-label uk-text-danger" id="editClassNameLabel"></label>
+                        <div class="uk-inline uk-width-1-1">
+                            <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                            <input class="uk-input" type="text" id="editClassName" name="newClassName" value="{{ class }}"
+                                placeholder="Class Name" oninput="editExistingClass('{{ project }}', '{{ class }}');">
+                        </div>
                     </div>
-
                     <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
                         <h4>Tags</h4>
                         <div class="uk-inline uk-width-1-1">
                             <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                            <input class="uk-input" type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" >
+                            <input class="uk-input" type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}">
                         </div>
                         <div class="uk-inline uk-width-1-1 uk-margin">
                             <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                            <input class="uk-input" type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" >
+                            <input class="uk-input" type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}">
                         </div>
                     </div>
 
@@ -177,7 +183,7 @@
                         <span uk-icon="icon: close"></span>
                         Cancel
                     </button>
-                    <button class="uk-button uk-button-default uk-width-1-1 uk-margin" type="submit">
+                    <button class="uk-button uk-button-default uk-width-1-1 uk-margin" type="submit" id="saveChanges">
                         <span uk-icon="icon: check"></span>
                         Save Changes
                     </button>

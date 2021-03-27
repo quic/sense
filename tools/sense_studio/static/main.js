@@ -139,6 +139,56 @@ function editImportProject() {
 }
 
 
+function editAddNewClass(projectName) {
+    let newNameInput = document.getElementById('newClassName');
+    let newNameLabel = document.getElementById('newClassNameLabel');
+    let addClassButton = document.getElementById('addNewClass');
+
+    let className = newNameInput.value;
+
+    let config = getProjectConfig(projectName);
+
+    let disabled = false;
+
+    if (className === '') {
+        setFormWarning(newNameLabel, newNameInput, 'Class-name cannot be empty');
+        disabled = true;
+    } else if (className in config.classes) {
+        setFormWarning(newNameLabel, newNameInput, 'A class with this name already exists');
+        disabled = true;
+    } else {
+        setFormWarning(newNameLabel, newNameInput, '');
+    }
+
+    addClassButton.disabled = disabled;
+}
+
+
+function editExistingClass(projectName, oldClassName) {
+    let editNameInput = document.getElementById('editClassName');
+    let editNameLabel = document.getElementById('editClassNameLabel');
+    let saveChangesButton = document.getElementById('saveChanges');
+
+    let newClassName = editNameInput.value;
+
+    let config = getProjectConfig(projectName);
+
+    let disabled = false;
+
+    if (newClassName === '') {
+        setFormWarning(editNameLabel, editNameInput, 'Class-name cannot be empty');
+        disabled = true;
+    } else if ((newClassName in config.classes) && (newClassName != oldClassName) {
+        setFormWarning(editNameLabel, editNameInput, 'A class with this name already exists');
+        disabled = true;
+    } else {
+        setFormWarning(editNameLabel, editNameInput, '');
+    }
+
+    saveChangesButton.disabled = disabled;
+}
+
+
 function editUpdateProject(projectIdx) {
     let pathInput = document.getElementById(`updateProjectPath${projectIdx}`);
     let pathLabel = document.getElementById(`updateProjectLabel${projectIdx}`);
