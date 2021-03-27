@@ -330,9 +330,9 @@ function toggleMakeProjectTemporal(path) {
 
 
 function toggleAssistedTagging(path, split, label) {
-    let logregInput = document.getElementById('logregInput');
     response = syncRequest('/toggle-project-setting',
                            {path: path, setting: 'assisted_tagging', split: split, label: label});
 
+    // Reload page to update predictions
     window.location.reload();
 }

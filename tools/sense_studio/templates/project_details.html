@@ -6,16 +6,42 @@
     {% include 'navigation.html' %}
 {% endblock navigation %}
 
-{% block settings %}
-    {% include 'settings.html' %}
-{% endblock settings %}
-
 {% block main %}
 <div class="uk-container">
-    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">{{ project }}</h1>
-    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
-        <span uk-icon="icon: folder"></span>
-        {{ path }}
+
+    <div class="uk-margin-large-top" uk-grid>
+        <div class="uk-width-expand">
+            <h1 class="uk-heading-medium uk-margin-remove-bottom">{{ project }}</h1>
+            <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+                <span uk-icon="icon: folder"></span>
+                {{ path }}
+            </div>
+        </div>
+
+        <div class="uk-width-medium">
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+                <h3 class="uk-card-title">Settings</h3>
+
+                <div>
+                    <label class="uk-margin"
+                           uk-tooltip="Tag your videos with frame-wise temporal annotations">
+                        <input type="checkbox" id="makeProjectTemporal" class="uk-checkbox"
+                               {% if config.temporal %} checked {% endif %}
+                               onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
+                        Temporal Annotations
+                    </label>
+                </div>
+
+                <div class="uk-margin-small-top">
+                    <label uk-tooltip="Use a GPU for computing features and running the model training">
+                        <input type="checkbox" id="gpuInput" class="uk-checkbox"
+                               {% if config.use_gpu %} checked {% endif %}
+                               onclick="toggleGPU('{{ path }}');">
+                        Use GPU
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
 
     <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
@@ -37,8 +63,9 @@
                 <h3>Classes and Tags?</h3>
                 <p>
                     Each video will have exactly one class label.
-                    Tags can be used for temporally annotating single frames out of a video with more specific labels,
-                    which later enable you to perform tasks such as counting certain actions.
+                    If you enable the "Use Temporal Annotations" setting, tags can be used for annotating single frames
+                    out of a video with more specific labels, which later enable you to perform tasks such as counting
+                    certain actions.
                 </p>
             </div>
         </div>

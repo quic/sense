@@ -6,10 +6,6 @@
     {% include 'navigation.html' %}
 {% endblock navigation %}
 
-{% block settings %}
-    {% include 'settings.html' %}
-{% endblock settings %}
-
 {% block main %}
 <div class="uk-container uk-container-xsmall">
     <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Training</h1>
@@ -68,6 +64,24 @@
                                placeholder="Folder Name" autocomplete="off">
                     </div>
                 </div>
+            </div>
+
+            <div>
+                <label uk-tooltip="Train the model on temporal annotations instead of whole-video class labels">
+                    <input type="checkbox" id="makeProjectTemporal" class="uk-checkbox"
+                           {% if project_config.temporal %} checked {% endif %}
+                           onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
+                    Temporal Annotations
+                </label>
+            </div>
+
+            <div>
+                <label>
+                    <input type="checkbox" id="gpuInput" class="uk-checkbox"
+                           {% if project_config.use_gpu %} checked {% endif %}
+                           onclick="toggleGPU('{{ path }}');">
+                    Use GPU
+                </label>
             </div>
         </div>
 

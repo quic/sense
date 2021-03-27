@@ -27,9 +27,10 @@ queue_train_logs = None
 def training_page(project):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
+    project_config = project_utils.load_project_config(path)
     output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
     return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
-                           output_path_prefix=output_path_prefix)
+                           output_path_prefix=output_path_prefix, project_config=project_config)
 
 
 @training_bp.route('/start-training', methods=['POST'])

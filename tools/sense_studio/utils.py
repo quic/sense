@@ -68,50 +68,53 @@ def train_logreg(path, split, label):
     logreg_dir = directories.get_logreg_dir(path, model_config, label)
     logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
 
-    annotations = os.listdir(tags_dir)
+    annotations = os.listdir(tags_dir) if os.path.exists(tags_dir) else None
+
+    if not annotations:
+        return
+
+    features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+    annotations = [os.path.join(tags_dir, x) for x in annotations]
+    x = []
+    y = []
+
     class_weight = {0: 0.5}
 
-    if annotations:
-        features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-        annotations = [os.path.join(tags_dir, x) for x in annotations]
-        x = []
-        y = []
+    for feature in features:
+        feature = np.load(feature)
 
-        for feature in features:
-            feature = np.load(feature)
+        for f in feature:
+            x.append(f.mean(axis=(1, 2)))
 
-            for f in feature:
-                x.append(f.mean(axis=(1, 2)))
+    for annotation in annotations:
+        with open(annotation, 'r') as f:
+            annotation = json.load(f)['time_annotation']
 
-        for annotation in annotations:
-            with open(annotation, 'r') as f:
-                annotation = json.load(f)['time_annotation']
+        pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
 
-            pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
+        if len(pos1) > 0:
+            class_weight.update({1: 2})
 
-            if len(pos1) > 0:
-                class_weight.update({1: 2})
+            for p in pos1:
+                if p + 1 < len(annotation):
+                    annotation[p + 1] = 1
 
-                for p in pos1:
-                    if p + 1 < len(annotation):
-                        annotation[p + 1] = 1
+        pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
 
-            pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
+        if len(pos1) > 0:
+            class_weight.update({2: 2})
 
-            if len(pos1) > 0:
-                class_weight.update({2: 2})
+            for p in pos1:
+                if p + 1 < len(annotation):
+                    annotation[p + 1] = 2
 
-                for p in pos1:
-                    if p + 1 < len(annotation):
-                        annotation[p + 1] = 2
+        for a in annotation:
+            y.append(a)
 
-            for a in annotation:
-                y.append(a)
+    x = np.array(x)
+    y = np.array(y)
 
-        x = np.array(x)
-        y = np.array(y)
-
-        if len(class_weight) > 1:
-            logreg = LogisticRegression(C=0.1, class_weight=class_weight)
-            logreg.fit(x, y)
-            dump(logreg, logreg_path)
+    if len(class_weight) > 1:
+        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
+        logreg.fit(x, y)
+        dump(logreg, logreg_path)

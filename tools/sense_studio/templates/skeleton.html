@@ -37,13 +37,6 @@
                         </li>
 
                         {% block navigation %}{% endblock navigation %}
-
-                    </ul>
-                </div>
-
-                <div class="uk-navbar-right">
-                    <ul class="uk-navbar-nav">
-                        {% block settings %}{% endblock settings %}
                     </ul>
                 </div>
             </nav>
@@ -69,7 +62,7 @@
         <div class="uk-container uk-text-center">
             <img src="{{ url_for('static', filename='sense_studio_logo.svg') }}" class="footer-logo">
 
-            <div class="uk-margin uk-text-muted">
+            <div class="uk-margin uk-margin-bottom uk-text-muted">
                 <a class="" href="https://github.com/TwentyBN/sense">
                     <span uk-icon="icon: github"></span>
                     Github

@@ -6,19 +6,19 @@
     {% include 'navigation.html' %}
 {% endblock navigation %}
 
-{% block settings %}
-    {% include 'settings.html' %}
-{% endblock settings %}
-
 {% block main %}
 <div class="uk-container uk-container-xsmall">
     <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Video Annotation</h1>
     <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
-        <span uk-icon="icon: folder"></span> {{ path }}
-        <br>
-        <span uk-icon="icon: bookmark"></span> {{ label }}
-        <br>
-        <span uk-icon="icon: git-fork"></span> {{ split }}
+        <div>
+            <span uk-icon="icon: folder"></span> {{ path }}
+        </div>
+        <div>
+            <span uk-icon="icon: bookmark"></span> {{ label }}
+        </div>
+        <div>
+            <span uk-icon="icon: git-fork"></span> {{ split }}
+        </div>
     </div>
     <div uk-filter="target: .video-list">
         <div class="uk-flex uk-flex-center">
