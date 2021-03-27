@@ -70,7 +70,7 @@
                 <label uk-tooltip="Train the model on temporal annotations instead of whole-video class labels">
                     <input type="checkbox" id="makeProjectTemporal" class="uk-checkbox"
                            {% if project_config.temporal %} checked {% endif %}
-                           onclick="toggleMakeProjectTemporal('{{ path }}', '{{ project }}');">
+                           onclick="toggleMakeProjectTemporal('{{ path }}');">
                     Temporal Annotations
                 </label>
             </div>
