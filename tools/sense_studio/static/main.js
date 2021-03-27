@@ -14,7 +14,7 @@ window.addEventListener(
 );
 
 
-$(document).ready(function () {
+document.addEventListener("DOMContentLoaded", function () {
     let pathSearchInputs = document.getElementsByClassName('path-search');
     for (input of pathSearchInputs) {
         const currentInput = input;
@@ -32,26 +32,31 @@ $(document).ready(function () {
         });
     }
 
-    $('.class-card').form({
-        fields: {
-            className: {
-                rules: [
-                    {
-                        type   : 'empty',
-                        prompt : 'Please enter a class name'
-                    },
-                    {
-                        type   : 'uniqueClassName',
-                        prompt : 'The chosen class name already exists'
-                    }
-                ]
-            }
-        }
-    });
-
-    $('.ui .dropdown').dropdown();
+//    $('.class-card').form({
+//        fields: {
+//            className: {
+//                rules: [
+//                    {
+//                        type   : 'empty',
+//                        prompt : 'Please enter a class name'
+//                    },
+//                    {
+//                        type   : 'uniqueClassName',
+//                        prompt : 'The chosen class name already exists'
+//                    }
+//                ]
+//            }
+//        }
+//    });
 
 });
+
+
+//$.fn.form.settings.rules.uniqueClassName = function (className) {
+//    let projectName = $('#projectName').val();
+//    let config = getProjectConfig(projectName);
+//    return !(className in config.classes)
+//}
 
 
 function setFormWarning(label, input, text) {
@@ -168,13 +173,6 @@ function editUpdateProject(projectIdx) {
 }
 
 
-$.fn.form.settings.rules.uniqueClassName = function (className) {
-    let projectName = $('#projectName').val();
-    let config = getProjectConfig(projectName);
-    return !(className in config.classes)
-}
-
-
 function asyncRequest(url, data, callback) {
     return new Promise(function (resolve, reject) {
         let xhttp = new XMLHttpRequest();
@@ -234,17 +232,6 @@ function loading(element, message, url) {
     if (url) {
         window.location = url;
     }
-}
-
-
-function loadingDone(element, message) {
-    let icon = element.children[0];
-    let text = element.children[1];
-
-    icon.removeAttribute('uk-spinner');
-    icon.classList.remove('uk-spinner');
-    icon.setAttribute('uk-icon', 'icon: check');
-    text.innerHTML = message;
 }
 
 
