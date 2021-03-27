@@ -125,7 +125,7 @@ def create_project():
     project_name = data['projectName']
     path = data['path']
 
-    path = os.path.join(path, project_name)
+    path = os.path.join(path, project_utils.get_folder_name_for_project(project_name))
     os.mkdir(path)
 
     # Setup new project
