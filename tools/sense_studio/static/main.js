@@ -31,32 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-
-//    $('.class-card').form({
-//        fields: {
-//            className: {
-//                rules: [
-//                    {
-//                        type   : 'empty',
-//                        prompt : 'Please enter a class name'
-//                    },
-//                    {
-//                        type   : 'uniqueClassName',
-//                        prompt : 'The chosen class name already exists'
-//                    }
-//                ]
-//            }
-//        }
-//    });
-
 });
-
-
-//$.fn.form.settings.rules.uniqueClassName = function (className) {
-//    let projectName = $('#projectName').val();
-//    let config = getProjectConfig(projectName);
-//    return !(className in config.classes)
-//}
 
 
 function setFormWarning(label, input, text) {
@@ -170,6 +145,59 @@ function editUpdateProject(projectIdx) {
     }
 
     updateProjectButton.disabled = disabled;
+}
+
+
+function editAddClass(projectName) {
+    let classNameInput = document.getElementById('newClassName');
+    let classNameLabel = document.getElementById('newClassNameLabel');
+    let addClassButton = document.getElementById('addClass');
+
+    let className = classNameInput.value;
+
+    let config = getProjectConfig(projectName);
+
+    let disabled = false;
+
+    // Check that class name is filled and unique
+    if (className === '') {
+        setFormWarning(classNameLabel, classNameInput, '');
+        disabled = true;
+    } else if (className in config.classes) {
+        setFormWarning(classNameLabel, classNameInput, 'A class with this name already exists');
+        disabled = true;
+    } else {
+        setFormWarning(classNameLabel, classNameInput, '');
+    }
+
+    addClassButton.disabled = disabled;
+}
+
+
+function editUpdateClass(projectName, originalClassName, index) {
+    console.log(`editClassName${index}`);
+    let classNameInput = document.getElementById(`editClassName${index}`);
+    let classNameLabel = document.getElementById(`editClassNameLabel${index}`);
+    let editClassButton = document.getElementById(`submitEditClass${index}`);
+
+    let className = classNameInput.value;
+
+    let config = getProjectConfig(projectName);
+
+    let disabled = false;
+
+    // Check that class name is filled and unique
+    if (className === '') {
+        setFormWarning(classNameLabel, classNameInput, 'Class name cannot be left empty');
+        disabled = true;
+    } else if (className !== originalClassName && className in config.classes) {
+        setFormWarning(classNameLabel, classNameInput, 'A class with this name already exists');
+        disabled = true;
+    } else {
+        setFormWarning(classNameLabel, classNameInput, '');
+    }
+
+    editClassButton.disabled = disabled;
 }
 
 

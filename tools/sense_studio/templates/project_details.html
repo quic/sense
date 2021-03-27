@@ -75,11 +75,16 @@
                 Add New Class
             </button>
             <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
-                <form class="uk-card uk-card-secondary uk-card-hover class-card" method="POST" action="{{ url_for('add_class', project=project) }}">
+                <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
+                      action="{{ url_for('add_class', project=project) }}">
                     <div class="uk-card-body">
-                        <div class="uk-inline uk-width-1-1 uk-margin-bottom">
-                            <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                            <input class="uk-input" type="text" name="className" placeholder="Class Name">
+                        <div>
+                            <label class="uk-form-label uk-text-danger" id="newClassNameLabel"></label>
+                            <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                                <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                                <input class="uk-input" type="text" id="newClassName" name="className" placeholder="Class Name"
+                                       oninput="editAddClass('{{ project }}');" autocomplete="off">
+                            </div>
                         </div>
 
                         <div class="temporal {{ 'uk-hidden' if not config.temporal }}" >
@@ -94,7 +99,7 @@
                             </div>
                         </div>
 
-                        <button class="uk-button uk-button-default uk-width-1-1" type="submit">
+                        <button class="uk-button uk-button-default uk-width-1-1" type="submit" id="addClass" disabled>
                             <span uk-icon="icon: plus"></span>
                             Add
                         </button>
@@ -173,12 +178,17 @@
         </div>
 
         <div id="classEdit{{ loop.index }}" class="uk-hidden">
-            <form class="uk-card uk-card-secondary uk-card-hover class-card" method="POST"
+            <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
                   action="{{ url_for('edit_class', project=project, class_name=class) }}">
                 <div class="uk-card-body">
-                    <div class="uk-inline uk-width-1-1 uk-margin-bottom">
-                        <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                        <input class="uk-input" type="text" name="className" placeholder="Class Name" value="{{ class }}" >
+                    <div>
+                        <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ loop.index }}"></label>
+                        <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                            <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                            <input class="uk-input" type="text" id="editClassName{{ loop.index }}" name="className"
+                                   placeholder="Class Name" value="{{ class }}" autocomplete="off"
+                                   oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ loop.index }}')">
+                        </div>
                     </div>
 
                     <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
@@ -197,7 +207,7 @@
                         <span uk-icon="icon: close"></span>
                         Cancel
                     </button>
-                    <button class="uk-button uk-button-default uk-width-1-1 uk-margin" type="submit">
+                    <button class="uk-button uk-button-default uk-width-1-1 uk-margin" type="submit" id="submitEditClass{{ loop.index }}">
                         <span uk-icon="icon: check"></span>
                         Save Changes
                     </button>

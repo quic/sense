@@ -15,7 +15,7 @@
                 Create New Project
             </button>
             <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
-                <form class="uk-card uk-card-secondary uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('create_project') }}">
+                <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('create_project') }}">
                     <div class="uk-card-body">
                         <div>
                             <label class="uk-form-label uk-text-danger" id="newProjectNameLabel"></label>
@@ -52,7 +52,7 @@
                 Import Existing Project
             </button>
             <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
-                <form class="uk-card uk-card-secondary uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('import_project') }}">
+                <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('import_project') }}">
                     <div class="uk-card-body">
                         <div>
                             <label class="uk-form-label uk-text-danger" id="importProjectPathLabel"></label>
