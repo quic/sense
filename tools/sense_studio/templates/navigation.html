@@ -13,7 +13,7 @@
                 <ul class="uk-nav uk-navbar-dropdown-nav">
                     <li class="uk-nav-header">Train</li>
                     {% if project_config.classes %}
-                        {% for label in project_config.classes  %}
+                        {% for label, _ in project_config.classes|dictsort  %}
                             <li>
                                 <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">
                                     {{ label }}
@@ -27,7 +27,7 @@
                 <ul class="uk-nav uk-navbar-dropdown-nav">
                     <li class="uk-nav-header">Valid</li>
                     {% if project_config.classes %}
-                        {% for label in project_config.classes %}
+                        {% for label, _ in project_config.classes|dictsort %}
                             <li>
                                 <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">
                                     {{ label }}
@@ -49,7 +49,7 @@
                 <ul class="uk-nav uk-navbar-dropdown-nav">
                     <li class="uk-nav-header">Train</li>
                     {% if project_config.classes %}
-                        {% for label in project_config.classes  %}
+                        {% for label, _ in project_config.classes|dictsort  %}
                             <li>
                                 <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">
                                     {{ label }}
@@ -63,7 +63,7 @@
                 <ul class="uk-nav uk-navbar-dropdown-nav">
                     <li class="uk-nav-header">Valid</li>
                     {% if project_config.classes %}
-                        {% for label in project_config.classes %}
+                        {% for label, _ in project_config.classes|dictsort %}
                             <li>
                                 <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">
                                     {{ label }}
