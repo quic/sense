@@ -110,12 +110,14 @@ def annotate(project, split, label, idx):
     images = [(os.path.basename(image), _class) for image, _class in zip(images, classes)]
 
     # Load existing annotations
-    annotations = []
     annotations_file = os.path.join(tags_dir, f'{videos[idx]}.json')
     if os.path.exists(annotations_file):
         with open(annotations_file, 'r') as f:
             data = json.load(f)
             annotations = data['time_annotation']
+    else:
+        # Use "background" label for all frames per default
+        annotations = [0] * len(images)
 
     # Read tags from config
     config = project_utils.load_project_config(path)

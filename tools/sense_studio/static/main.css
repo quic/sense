@@ -28,3 +28,34 @@ video {
 .monospace-font {
     font-family: "Ubuntu Mono", monospace;
 }
+
+/* Additional colors for buttons and labels */
+.button-green {
+    background: #6aa84f;
+    color: #fff;
+}
+
+.button-green:focus, .button-green:hover {
+    background: #649b4c;
+    color: #fff;
+}
+
+.label-green {
+    background: #6aa84f;
+    color: #fff;
+}
+
+.button-grey {
+    background: #9f9f9f;
+    color: #fff;
+}
+
+.button-grey:focus, .button-grey:hover {
+    background: #8f8f8f;
+    color: #fff;
+}
+
+.label-grey {
+    background: #9f9f9f;
+    color: #fff;
+}

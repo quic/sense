@@ -248,11 +248,10 @@ function loadingDone(element, message) {
 }
 
 
-// TODO: Tag colors still need to be adapted
 const buttonClasses = [
+    'button-grey',
     'uk-button-primary',
-    'uk-button-secondary',
-    'uk-button-danger',
+    'button-green',
 ]
 
 
