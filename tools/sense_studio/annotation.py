@@ -70,34 +70,6 @@ def show_video_list(project, split, label):
                            project=project, num_videos=num_videos, num_tagged=num_tagged, num_untagged=num_untagged)
 
 
-@annotation_bp.route('/prepare-annotation', methods=['POST'])
-def prepare_annotation():
-    """
-    Prepare all files needed for annotating the videos in the given project.
-    """
-    data = request.json
-    project = data['projectName']
-    dataset_path = project_utils.lookup_project_path(project)
-
-    # load feature extractor
-    inference_engine, model_config = utils.load_feature_extractor(dataset_path)
-    for split in SPLITS:
-        print(f'\n\tPreparing videos in the {split}-set')
-
-        for label in os.listdir(directories.get_videos_dir(dataset_path, split)):
-            videos_dir = directories.get_videos_dir(dataset_path, split, label)
-            frames_dir = directories.get_frames_dir(dataset_path, split, label)
-            features_dir = directories.get_features_dir(dataset_path, split, model_config, label=label)
-
-            compute_frames_and_features(inference_engine=inference_engine,
-                                        project_path=dataset_path,
-                                        videos_dir=videos_dir,
-                                        frames_dir=frames_dir,
-                                        features_dir=features_dir)
-
-    return jsonify(success=True)
-
-
 @annotation_bp.route('/<string:project>/<string:split>/<string:label>/<int:idx>')
 def annotate(project, split, label, idx):
     """

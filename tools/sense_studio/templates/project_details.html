@@ -44,13 +44,6 @@
         </div>
     </div>
 
-    <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-            onclick="prepareAnnotations(this, '{{ project }}');"
-            uk-tooltip="Prepare required files for all classes">
-        <span uk-icon="icon: album"></span>
-        <span>Prepare Annotations</span>
-    </button>
-
     <input type="hidden" id="projectName" value="{{ project }}">
 
     <div uk-alert>

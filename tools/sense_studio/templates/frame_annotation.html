@@ -93,7 +93,7 @@
                         <img src="{{ url_for('annotation_bp.download_file', project=project, split=split, label=label, video_name=video_name, img_file=img) }}">
                     </div>
                     <div class="uk-card-body">
-                        <div class="logreg-predictions {{ 'uk-hidden' if not project_config.assisted_tagging }}">
+                        <div class="{{ 'uk-hidden' if not project_config.assisted_tagging }}">
                             {% if pred_class == 0 %}
                                 <div class="uk-label">
                                     <span class="uk-text-bolder">

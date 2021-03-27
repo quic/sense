@@ -222,15 +222,6 @@ function getProjectConfig(projectName) {
 }
 
 
-async function prepareAnnotations(element, projectName) {
-    loading(element, 'Preparing Annotations');
-
-    await asyncRequest('/annotation/prepare-annotation', {projectName: projectName});
-
-    loadingDone(element, 'Annotations Prepared');
-}
-
-
 function loading(element, message, url) {
     let icon = element.children[0];
     let text = element.children[1];
