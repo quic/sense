@@ -99,11 +99,11 @@ class FeaturesDataset(torch.utils.data.Dataset):
 def generate_data_loader(features_dir, tags_dir, label_names, label2int,
                          label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
                          stride=4, path_annotations=None, temporal_annotation_only=False,
-                         full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY, training_logs=None):
+                         full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
     # Find pre-computed features and derive corresponding labels
     labels_string = []
     temporal_annotation = []
-    data_loader = None
+
     if not path_annotations:
         # Use all pre-computed features
         features = []
@@ -146,10 +146,9 @@ def generate_data_loader(features_dir, tags_dir, label_names, label2int,
                               full_network_minimum_frames=full_network_minimum_frames)
 
     try:
-        data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
+        return torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
     except Exception as e:
-        pass
-    return data_loader
+        return None
 
 
 def uniform_frame_sample(video, sample_rate):
@@ -259,7 +258,7 @@ def compute_frames_features(inference_engine: InferenceEngine, videos_dir: str, 
                              num_timesteps=1, path_frames=path_frames, batch_size=64)
 
 
-def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1, training_logs=None):
+def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1, log_fn=print):
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
@@ -270,30 +269,23 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
         video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
         num_videos = len(video_files)
-        print(f"\nFound {num_videos} videos to process in the {split}-set")
-        if training_logs:
-            training_logs.put(f"\nFound {num_videos} videos to process in the {split}-set")
+        log_fn(f"\nFound {num_videos} videos to process in the {split}-set")
         for video_index, video_path in enumerate(video_files):
-            if training_logs:
-                training_logs.put(f'\rExtract features from video {video_index + 1} / {num_videos}')
-            print(f'\rExtract features from video {video_index + 1} / {num_videos}',
-                  end='' if video_index < (num_videos - 1) else '\n')
+            log_fn(f'\rExtract features from video {video_index + 1} / {num_videos}')
             path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
             if os.path.isfile(path_out):
-                print("\n\tSkipped - feature was already precomputed.")
-                if training_logs:
-                    training_logs.put("\n\tSkipped - feature was already precomputed.")
+                log_fn("\tSkipped - feature was already precomputed.")
             else:
                 # Read all frames
                 compute_features(video_path, path_out, inference_engine,
                                  num_timesteps=num_timesteps, path_frames=None, batch_size=16)
 
-        print('\n')
+        log_fn('\n')
 
 
 def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False, training_logs=None):
+                   temporal_annotation_training=False, log_fn=print):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -304,9 +296,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
     for epoch in range(0, num_epochs):  # loop over the dataset multiple times
         new_lr = lr_schedule.get(epoch)
         if new_lr:
-            print(f"update lr to {new_lr}")
-            if training_logs:
-                training_logs.put(f"update lr to {new_lr}")
+            log_fn(f"update lr to {new_lr}")
             for param_group in optimizer.param_groups:
                 param_group['lr'] = new_lr
 
@@ -318,14 +308,8 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
 
-        print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
-                                                                                      valid_loss, valid_top1))
-        if training_logs:
-            training_logs.put('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1,
-                                                                                                      train_loss,
-                                                                                                      train_top1,
-                                                                                                      valid_loss,
-                                                                                                      valid_top1))
+        log_fn('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f'
+               % (epoch + 1, train_loss, train_top1, valid_loss, valid_top1))
 
         if not temporal_annotation_training:
             if valid_top1 > best_top1:
@@ -343,9 +327,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                             for key, value in model_state_dict.items()}
         torch.save(model_state_dict, os.path.join(path_out, "last_classifier.checkpoint"))
 
-    print('Finished Training')
-    if training_logs:
-        training_logs.put('Finished Training')
+    log_fn('Finished Training')
     return best_state_dict
 
 

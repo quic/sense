@@ -58,7 +58,7 @@ def start_training():
         'epochs': int(epochs),
         'use_gpu': config['use_gpu'],
         'temporal_training': config['temporal'],
-        'training_logs': queue_train_logs,
+        'log_fn': queue_train_logs.put,
     }
 
     global train_process
