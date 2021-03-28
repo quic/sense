@@ -75,5 +75,5 @@ function cancelTraining(url) {
     $('#btnTrain').removeClass('disabled');
     $('#btnCancelTrain').addClass('disabled');
 
-    addTerminalMessage('Training cancelled');
+    addTerminalMessage('Training cancelled.');
 }

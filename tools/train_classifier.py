@@ -10,8 +10,6 @@ Usage:
                        [--epochs=NUM]
                        [--use_gpu]
                        [--path_out=PATH]
-                       [--path_annotations_train=PATH]
-                       [--path_annotations_valid=PATH]
                        [--temporal_training]
                        [--resume]
                        [--overwrite]
@@ -25,11 +23,6 @@ Options:
   --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
   --epochs=NUM                   Number of epochs to run [default: 80].
   --path_out=PATH                Where to save results. Will default to `path_in` if not provided.
-  --path_annotations_train=PATH  Path to an annotation file. This argument is only useful if you want
-                                 to fit a subset of the available training data. If provided, each entry
-                                 in the json file should have the following format: {'file': NAME,
-                                 'label': LABEL}.
-  --path_annotations_valid=PATH  Same as '--path_annotations_train' but for validation examples.
   --temporal_training            Use this flag if your dataset has been annotated with the temporal
                                  annotations tool
   --resume                       Initialize weights from the last saved checkpoint and restart training
@@ -38,9 +31,10 @@ Options:
 import datetime
 import json
 import os
-import torch.utils.data
+import sys
 
 from docopt import docopt
+import torch.utils.data
 
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
@@ -55,8 +49,6 @@ from sense.loading import update_backbone_weights
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
 
-import sys
-
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', []),
@@ -66,22 +58,9 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-if __name__ == "__main__":
-    # Parse arguments
-    args = docopt(__doc__)
-    path_in = args['--path_in']
-    path_out = args['--path_out'] or os.path.join(path_in, "checkpoints")
+def train_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
+                use_gpu=True, overwrite=True, temporal_training=None, resume=False, log_fn=print):
     os.makedirs(path_out, exist_ok=True)
-    use_gpu = args['--use_gpu']
-    path_annotations_train = args['--path_annotations_train'] or None
-    path_annotations_valid = args['--path_annotations_valid'] or None
-    model_name = args['--model_name'] or None
-    model_version = args['--model_version'] or None
-    num_layers_to_finetune = int(args['--num_layers_to_finetune'])
-    epochs = int(args['--epochs'])
-    temporal_training = args['--temporal_training']
-    resume = args['--resume']
-    overwrite = args['--overwrite']
 
     # Check for existing files
     saved_files = ["last_classifier.checkpoint", "best_classifier.checkpoint", "config.json", "label2int.json",
@@ -103,7 +82,8 @@ if __name__ == "__main__":
     selected_config, weights = get_relevant_weights(
         SUPPORTED_MODEL_CONFIGURATIONS,
         model_name,
-        model_version
+        model_version,
+        log_fn,
     )
     backbone_weights = weights['backbone']
 
@@ -124,11 +104,12 @@ if __name__ == "__main__":
         if not num_timesteps:
             # Remove 1 because we added 0 to temporal_dependencies
             num_layers = len(backbone_network.num_required_frames_per_layer) - 1
-            raise IndexError(f'Num of layers to finetune not compatible. '
-                             f'Must be an integer between 0 and {num_layers}')
+            msg = (f'ERROR - Num of layers to finetune not compatible. '
+                   f'Must be an integer between 0 and {num_layers}')
+            log_fn(msg)
+            raise IndexError(msg)
     else:
         num_timesteps = 1
-    minimum_frames = backbone_network.num_required_frames_per_layer[0]
 
     # Extract layers to finetune
     if num_layers_to_finetune > 0:
@@ -137,7 +118,7 @@ if __name__ == "__main__":
 
     # finetune the model
     extract_features(path_in, selected_config, backbone_network, num_layers_to_finetune, use_gpu,
-                     num_timesteps=num_timesteps)
+                     num_timesteps=num_timesteps, log_fn=log_fn)
 
     # Find label names
     label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
@@ -164,6 +145,12 @@ if __name__ == "__main__":
     valid_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
                                         num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
                                         temporal_annotation_only=temporal_training)
+    # Check if the data is loaded fully
+    if not train_loader or not valid_loader:
+        log_fn("ERROR - \n "
+               "\tMissing annotations for train or valid set.\n"
+               "\tHint: Check if tags_train and tags_valid directories exist.\n")
+        return
 
     # Modify the network to generate the training network on top of the features
     if temporal_training:
@@ -213,7 +200,8 @@ if __name__ == "__main__":
 
     # Train model
     best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
-                                           label_names, path_out, temporal_annotation_training=temporal_training)
+                                           label_names, path_out, temporal_annotation_training=temporal_training,
+                                           log_fn=log_fn)
 
     # Save best model
     if isinstance(net, Pipe):
@@ -224,3 +212,31 @@ if __name__ == "__main__":
     config['end_time'] = str(datetime.datetime.now())
     with open(os.path.join(path_out, 'config.json'), 'w') as f:
         json.dump(config, f, indent=2)
+
+
+if __name__ == "__main__":
+    # Parse arguments
+    args = docopt(__doc__)
+    _path_in = args['--path_in']
+    _path_out = args['--path_out'] or os.path.join(_path_in, "checkpoints")
+    _use_gpu = args['--use_gpu']
+    _model_name = args['--model_name'] or None
+    _model_version = args['--model_version'] or None
+    _num_layers_to_finetune = int(args['--num_layers_to_finetune'])
+    _epochs = int(args['--epochs'])
+    _temporal_training = args['--temporal_training']
+    _resume = args['--resume']
+    _overwrite = args['--overwrite']
+
+    train_model(
+        path_in=_path_in,
+        path_out=_path_out,
+        model_name=_model_name,
+        model_version=_model_version,
+        num_layers_to_finetune=_num_layers_to_finetune,
+        epochs=_epochs,
+        use_gpu=_use_gpu,
+        overwrite=_overwrite,
+        temporal_training=_temporal_training,
+        resume=_resume,
+    )
