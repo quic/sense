@@ -1,7 +1,6 @@
 import multiprocessing
 import os
 import queue
-import time
 import urllib
 
 from flask import Blueprint
@@ -14,8 +13,8 @@ from flask_socketio import emit
 
 from tools.sense_studio import project_utils
 from tools.sense_studio import utils
-from tools.sense_studio.training_script import training_model
 from tools.sense_studio import socketio
+from tools.train_classifier import train_model
 
 training_bp = Blueprint('training_bp', __name__)
 
@@ -60,11 +59,11 @@ def start_training():
         'epochs': int(epochs),
         'use_gpu': config['use_gpu'],
         'temporal_training': config['temporal'],
-        'training_logs': queue_train_logs,
+        'log_fn': queue_train_logs.put,
     }
 
     global train_process
-    train_process = ctx.Process(target=training_model, kwargs=training_kwargs)
+    train_process = ctx.Process(target=train_model, kwargs=training_kwargs)
     train_process.start()
 
     return jsonify(success=True)
@@ -84,25 +83,30 @@ def cancel_training():
 def send_training_logs(msg):
     global train_process
     global queue_train_logs
-    while True:
-        if train_process:
+
+    try:
+        while train_process.is_alive():
             try:
                 output = queue_train_logs.get(timeout=1)
-                if output:
-                    time.sleep(0.1)
-                    emit('training_logs', {'log': output})
+                emit('training_logs', {'log': output})
             except queue.Empty:
-                if not train_process.is_alive():
-                    train_process.terminate()
-                    train_process = None
-                    queue_train_logs.close()
-                    break
-        else:
-            emit('status', msg)
-            break
+                # No message received during the last second
+                pass
 
-    error = True if "ERROR" in output else False
-    if not error:
+        train_process.terminate()
+        train_process = None
+    except AttributeError:
+        # train_process has been cancelled and is None
+        pass
+    finally:
+        queue_train_logs.close()
+
+    project = msg['project']
+    output_folder = msg['outputFolder']
+
+    path = utils.lookup_project_path(project)
+    img_path = os.path.join(path, 'checkpoints', output_folder, 'confusion_matrix.png')
+    if os.path.exists(img_path):
         img_path = url_for('training_bp.confusion_matrix',
                            project=msg['project'],
                            output_folder=msg['outputFolder'])

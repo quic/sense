@@ -1,5 +1,3 @@
-let socket = null;
-
 
 function addTerminalMessage(message) {
     console.log(message);
@@ -23,7 +21,7 @@ function startTraining(url) {
     let buttonCancelTrain = document.getElementById('btnCancelTrain');
     let confusionMatrix = document.getElementById('confusionMatrix');
 
-    socket = io.connect('/connect-training-logs');
+    let socket = io.connect('/connect-training-logs');
     socket.on('connect', function() {
         console.log('Socket Connected');
         socket.emit('connect_training_logs',
@@ -79,9 +77,6 @@ function startTraining(url) {
 
 async function cancelTraining(url) {
     await asyncRequest(url);
-
-    socket.disconnect();
-    console.log('Socket Disconnected');
 
     document.getElementById('btnTrain').disabled = false;
     document.getElementById('btnCancelTrain').disabled = true;
