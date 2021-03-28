@@ -1,4 +1,3 @@
-let socket = null;
 
 function addTerminalMessage(message) {
     $("#terminal").append(`<p class='monospace-font'><b>${message}</b></p>`);
@@ -15,7 +14,7 @@ function startTraining(url) {
     let modelName = $('#modelName').val();
     let epochs = $('#epochs').val();
 
-    socket = io.connect('/connect-training-logs');
+    let socket = io.connect('/connect-training-logs');
     socket.on('connect', function() {
         console.log('Socket Connected');
         socket.emit('connect_training_logs',
@@ -72,9 +71,6 @@ function startTraining(url) {
 
 function cancelTraining(url) {
     syncRequest(url);
-
-    socket.disconnect();
-    console.log('Socket Disconnected');
 
     $('#btnTrain').removeClass('disabled');
     $('#btnCancelTrain').addClass('disabled');

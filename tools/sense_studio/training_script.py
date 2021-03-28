@@ -58,8 +58,8 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-def training_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
-                   use_gpu=True, overwrite=True, temporal_training=None, resume=False, log_fn=print):
+def train_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
+                use_gpu=True, overwrite=True, temporal_training=None, resume=False, log_fn=print):
     os.makedirs(path_out, exist_ok=True)
 
     # Check for existing files
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     _resume = args['--resume']
     _overwrite = args['--overwrite']
 
-    training_model(
+    train_model(
         path_in=_path_in,
         path_out=_path_out,
         model_name=_model_name,
