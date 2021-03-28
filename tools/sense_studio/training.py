@@ -104,7 +104,7 @@ def send_training_logs(msg):
     project = msg['project']
     output_folder = msg['outputFolder']
 
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
     img_path = os.path.join(path, 'checkpoints', output_folder, 'confusion_matrix.png')
     if os.path.exists(img_path):
         img_path = url_for('training_bp.confusion_matrix',

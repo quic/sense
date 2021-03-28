@@ -1,6 +1,5 @@
 
 function addTerminalMessage(message) {
-    console.log(message);
     let terminal = document.getElementById('terminal');
     terminal.insertAdjacentHTML('beforeend', `<div class='monospace-font'><b>${message}</b></div>`);
     terminal.scrollTop = terminal.scrollHeight;
