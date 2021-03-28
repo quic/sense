@@ -98,30 +98,20 @@ class FeaturesDataset(torch.utils.data.Dataset):
 
 def generate_data_loader(features_dir, tags_dir, label_names, label2int,
                          label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
-                         stride=4, path_annotations=None, temporal_annotation_only=False,
+                         stride=4, temporal_annotation_only=False,
                          full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
     # Find pre-computed features and derive corresponding labels
     labels_string = []
     temporal_annotation = []
 
-    if not path_annotations:
-        # Use all pre-computed features
-        features = []
-        labels = []
-        for label in label_names:
-            feature_temp = glob.glob(os.path.join(features_dir, label, '*.npy'))
-            features += feature_temp
-            labels += [label2int[label]] * len(feature_temp)
-            labels_string += [label] * len(feature_temp)
-    else:
-        with open(path_annotations, 'r') as f:
-            annotations = json.load(f)
-        features = [os.path.join(features_dir,
-                                 entry['label'],
-                                 f'{os.path.splitext(os.path.basename(entry["file"]))[0]}.npy')
-                    for entry in annotations]
-        labels = [label2int[entry['label']] for entry in annotations]
-        labels_string = [entry['label'] for entry in annotations]
+    # Use all pre-computed features
+    features = []
+    labels = []
+    for label in label_names:
+        feature_temp = glob.glob(os.path.join(features_dir, label, '*.npy'))
+        features += feature_temp
+        labels += [label2int[label]] * len(feature_temp)
+        labels_string += [label] * len(feature_temp)
 
     # check if annotation exist for each video
     for label, feature in zip(labels_string, features):

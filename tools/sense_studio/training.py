@@ -13,7 +13,7 @@ from flask_socketio import emit
 
 from tools.sense_studio import utils
 from tools.sense_studio import socketio
-from tools.sense_studio.training_script import train_model
+from tools.train_classifier import train_model
 
 training_bp = Blueprint('training_bp', __name__)
 
