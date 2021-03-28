@@ -22,9 +22,8 @@ document.addEventListener("DOMContentLoaded", function () {
             selector: input,
             minChars: 1,
             cache: false,
-            source: function(term, response) {
-                let directoriesResponse = browseDirectory(term, '');
-                response(directoriesResponse.subdirs);
+            source: async function(term, response) {
+                browseDirectory(term, '').then(r => response(r.subdirs));
             },
             onSelect: function(event, term, item) {
                 currentInput.oninput();
@@ -148,14 +147,14 @@ function editUpdateProject(projectIdx) {
 }
 
 
-function editAddClass(projectName) {
+async function editAddClass(projectName) {
     let classNameInput = document.getElementById('newClassName');
     let classNameLabel = document.getElementById('newClassNameLabel');
     let addClassButton = document.getElementById('addClass');
 
     let className = classNameInput.value;
 
-    let config = getProjectConfig(projectName);
+    let config = await getProjectConfig(projectName);
 
     let disabled = false;
 
@@ -174,7 +173,7 @@ function editAddClass(projectName) {
 }
 
 
-function editUpdateClass(projectName, originalClassName, index) {
+async function editUpdateClass(projectName, originalClassName, index) {
     console.log(`editClassName${index}`);
     let classNameInput = document.getElementById(`editClassName${index}`);
     let classNameLabel = document.getElementById(`editClassNameLabel${index}`);
@@ -182,7 +181,7 @@ function editUpdateClass(projectName, originalClassName, index) {
 
     let className = classNameInput.value;
 
-    let config = getProjectConfig(projectName);
+    let config = await getProjectConfig(projectName);
 
     let disabled = false;
 
@@ -201,7 +200,7 @@ function editUpdateClass(projectName, originalClassName, index) {
 }
 
 
-function asyncRequest(url, data, callback) {
+function asyncRequest(url, data) {
     return new Promise(function (resolve, reject) {
         let xhttp = new XMLHttpRequest();
 
@@ -222,29 +221,13 @@ function asyncRequest(url, data, callback) {
 }
 
 
-function syncRequest(url, data) {
-    let xhttp = new XMLHttpRequest();
-
-    if (data) {
-        xhttp.open('POST', url, false);
-        xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-        xhttp.send(JSON.stringify(data));
-    } else {
-        xhttp.open('GET', url, false);
-        xhttp.send();
-    }
-
-    return JSON.parse(xhttp.responseText);
-}
-
-
 function browseDirectory(path, projectName) {
-    return syncRequest('/browse-directory', {path: path, project: projectName});
+    return asyncRequest('/browse-directory', {path: path, project: projectName});
 }
 
 
 function getProjectConfig(projectName) {
-    return syncRequest('/project-config', {name: projectName});
+    return asyncRequest('/project-config', {name: projectName});
 }
 
 
@@ -307,16 +290,16 @@ function editClass(index, shouldEdit) {
 }
 
 
-function toggleGPU(path) {
-    response = syncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
+async function toggleGPU(path) {
+    let response = await asyncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
 
     let gpuInput = document.getElementById('gpuInput');
     gpuInput.checked = response.setting_status;
 }
 
 
-function toggleMakeProjectTemporal(path) {
-    response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
+async function toggleMakeProjectTemporal(path) {
+    let response = await asyncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
 
     let makeProjectTemporal = document.getElementById('makeProjectTemporal');
     let temporalElements = document.getElementsByClassName('temporal');
@@ -334,9 +317,9 @@ function toggleMakeProjectTemporal(path) {
 }
 
 
-function toggleAssistedTagging(path, split, label) {
-    response = syncRequest('/toggle-project-setting',
-                           {path: path, setting: 'assisted_tagging', split: split, label: label});
+async function toggleAssistedTagging(path, split, label) {
+    let response = await asyncRequest('/toggle-project-setting',
+                                      {path: path, setting: 'assisted_tagging', split: split, label: label});
 
     // Reload page to update predictions
     window.location.reload();

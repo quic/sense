@@ -73,12 +73,12 @@ function startTraining(url) {
         modelName: modelName,
         epochs: epochs,
     };
-    syncRequest(url, data);
+    asyncRequest(url, data);
 }
 
 
-function cancelTraining(url) {
-    syncRequest(url);
+async function cancelTraining(url) {
+    await asyncRequest(url);
 
     socket.disconnect();
     console.log('Socket Disconnected');
