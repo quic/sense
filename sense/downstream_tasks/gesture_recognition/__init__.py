@@ -206,3 +206,22 @@ LAB_THRESHOLDS_reactive9 = {
     "counting - zoom_out_with_full_hand=start": 0.2,
     "counting - background": 0.8
 }
+
+LAB2INT_LOCAL = {
+    "counting - clockwise_rotation=end": 1,
+    "counting - counter-clockwise_rotation=end": 2,
+    "counting - invalid_gesture=end": 3,
+    "counting - swipe_down=end": 4,
+    "counting - swipe_left_with_left_hand=end": 5,
+    "counting - swipe_left_with_right_hand=end": 6,
+    "counting - swipe_right_with_left_hand=end": 7,
+    "counting - swipe_right_with_right_hand=end": 8,
+    "counting - swipe_up=end": 9,
+    "counting - thumb_down=end": 10,
+    "counting - thumb_up=end": 11,
+    "counting - zoom_in_with_full_hand=end": 12,
+    "counting - zoom_out_with_full_hand=end": 13,
+    "counting - background": 0
+}
+
+INT2LAB_LOCAL = {value: key for key, value in LAB2INT_LOCAL.items()}
