@@ -35,9 +35,11 @@ from sense.downstream_tasks.gesture_recognition import INT2LAB_reactive
 from sense.downstream_tasks.gesture_recognition import INT2LAB_reactive9
 from sense.downstream_tasks.gesture_recognition import LAB2INT_reactive
 from sense.downstream_tasks.gesture_recognition import LAB2INT_reactive9
+from sense.downstream_tasks.gesture_recognition import INT2LAB_LOCAL
+from sense.downstream_tasks.gesture_recognition import LAB2INT_LOCAL
 from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS_reactive
 from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS_reactive9
-from sense.downstream_tasks.nn_utils import LogisticRegression
+from sense.downstream_tasks.nn_utils import LogisticRegression, MultiTimestepsLogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.downstream_tasks.postprocess import OnePositionRepCounter
@@ -50,6 +52,8 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_reactive']),
     ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo', ['gesture_reactive']),
     ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo_fps', ['gesture_reactive']),
+    ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo_fps_v2', ['gesture_reactive']),
+    ModelConfig('StridedInflatedEfficientNet', 'reactive_gesture_demo_fps_v3', ['gesture_reactive']),
     ModelConfig('StridedInflatedMobileNetV2', 'pro', ['gesture_recognition']),
     ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_recognition']),
     ModelConfig('StridedInflatedMobileNetV2', 'lite', ['gesture_recognition']),
@@ -76,7 +80,8 @@ if __name__ == "__main__":
         'choices': [
             'Baseline',
             'Fine-tuned',
-            'FPS-variation'
+            'FPS-variation',
+            'Latest'
         ],
     })
 
@@ -85,8 +90,8 @@ if __name__ == "__main__":
     LAB2INT = LAB2INT_reactive
     INT2LAB = INT2LAB_reactive
     LAB_THRESHOLDS = LAB_THRESHOLDS_reactive
-    dict_name = 'gesture_reactive'
 
+    dict_name = 'gesture_reactive'
     if model_select != "Baseline":
         LAB2INT = LAB2INT_reactive9
         INT2LAB = INT2LAB_reactive9
@@ -94,7 +99,19 @@ if __name__ == "__main__":
         model_version = 'reactive_gesture_demo'
         if model_select == "FPS-variation":
             model_version = 'reactive_gesture_demo_fps'
-            dict_name = 'gesture_reactive_fps'
+
+        elif model_select == "Latest":
+            model_version = 'reactive_gesture_demo_fps_v3'
+            LAB2INT = LAB2INT_LOCAL
+            INT2LAB = INT2LAB_LOCAL
+            LAB_THRESHOLDS = {key: 0.7 for key in LAB2INT_LOCAL}
+
+    # Load weights
+    selected_config, weights = get_relevant_weights(
+        SUPPORTED_MODEL_CONFIGURATIONS,
+        model_name,
+        model_version
+    )
 
     classes = []
     if choose:
@@ -138,20 +155,16 @@ if __name__ == "__main__":
         print(f"\t{cname}\t\t")
     print('=' * 65)
 
-    # Load weights
-    selected_config, weights = get_relevant_weights(
-        SUPPORTED_MODEL_CONFIGURATIONS,
-        model_name,
-        model_version
-    )
-
     # Load backbone network
     backbone_network = build_backbone_network(selected_config, weights['backbone'])
 
     # Create a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
                                             num_out=len(INT2LAB))
-    gesture_classifier.load_state_dict(weights['gesture_reactive'])
+    # gesture_classifier = MultiTimestepsLogisticRegression(num_in=backbone_network.feature_dim,
+    #                                                       num_out=len(INT2LAB),
+    #                                                       kernel=5)
+    gesture_classifier.load_state_dict(weights[dict_name])
     gesture_classifier.eval()
 
     # Concatenate backbone network and logistic regression

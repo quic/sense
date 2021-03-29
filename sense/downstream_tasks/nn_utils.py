@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import torch.nn as nn
 from typing import Tuple
 
@@ -89,3 +90,68 @@ class LogisticRegressionSigmoid(LogisticRegression):
     def __init__(self, **kwargs):
         super().__init__(use_softmax=False, **kwargs)
         self.add_module(str(len(self)), nn.Sigmoid())
+
+
+class SteppableConv1D(nn.Conv1d):
+
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, **kwargs):
+        self.kernel_size_temporal = kernel_size
+        self.stride_temporal = stride
+        self.dilation_temporal = dilation
+        self.internal_state = None
+        self.internal_padding = True
+
+        super().__init__(in_channels, out_channels, kernel_size, stride=stride,
+                         dilation=dilation, **kwargs)
+
+    @property
+    def temporal_footprint(self):
+        """
+        This is used to determine the size of the internal state.
+        """
+        effective_kernel_size = 1 + (self.kernel_size_temporal - 1) * self.dilation_temporal
+        return effective_kernel_size - self.stride_temporal
+
+    def forward(self, x):
+        if self.internal_padding:
+            if self.internal_state is None:
+                self.initialize_internal_state(x)
+            x = self.pad_internal_state(x)
+
+        print(x[0, 0, :])
+        return super().forward(x)
+
+    def initialize_internal_state(self, x):
+        self.internal_state = torch.cat(self.temporal_footprint * [torch.zeros_like(x[:, :, 0:1])],
+                                        dim=2)
+
+    def pad_internal_state(self, x):
+        x = torch.cat([self.internal_state, x],
+                      dim=2)
+        self.internal_state = x[:, :, -self.temporal_footprint:]
+        return x
+
+    def reset(self):
+        self.internal_state = None
+        return self
+
+    def train(self, mode=True):
+        super().train(mode)
+        return self.reset()
+
+
+class MultiTimestepsLogisticRegression(nn.Sequential):
+
+    def __init__(self, num_in, num_out, kernel, use_softmax=True, global_average_pooling=True):
+        layers = [SteppableConv1D(num_in, num_out, kernel)]
+        if use_softmax:
+            layers.append(nn.Softmax(dim=1))
+        super().__init__(*layers)
+        self.global_average_pooling = global_average_pooling
+
+    def forward(self, input_tensor):
+        if self.global_average_pooling:
+            input_tensor = input_tensor.mean(dim=-1).mean(dim=-1)
+        input_tensor = input_tensor.unsqueeze(2)
+        out = super().forward(input_tensor)
+        return out.squeeze(2)
