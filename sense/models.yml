@@ -13,6 +13,9 @@ StridedInflatedEfficientNet:
     met_converter: calorie_estimation/sien_met_converter.ckpt
     rep_counter: fitness_rep_counting/sien_logreg.ckpt
 
+  gesture_control:
+    backbone: backbone/strided_inflated_efficientnet_reactive_fps=0.5_kar_offset=0.ckpt
+
 StridedInflatedMobileNetV2:
 
   lite:

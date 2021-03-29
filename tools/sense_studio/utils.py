@@ -17,6 +17,7 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedMobileNetV2', 'pro', []),
     ModelConfig('StridedInflatedEfficientNet', 'lite', []),
     ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
+    ModelConfig('StridedInflatedEfficientNet', 'gesture_control', []),
 ]
 
 BACKBONE_MODELS = [model_name.combined_model_name for model_name in SUPPORTED_MODEL_CONFIGURATIONS]
