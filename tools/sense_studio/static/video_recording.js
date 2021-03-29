@@ -101,10 +101,22 @@ function setupRecording(stream, url) {
 
 
 function startRecording(stream, recordingDuration, url) {
-    let mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm; codecs=vp8'});
+    let mimeType;
+    if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8')) {
+        mimeType = 'video/webm;codecs=vp8';
+        videoType = 'webm';
+    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4';
+        videoType = 'mp4';
+    } else {
+        displayOverlay('No supported video format detected. Please try using Firefox, Chrome or Safari.');
+        return;
+    }
+
+    let mediaRecorder = new MediaRecorder(stream, {mimeType: mimeType});
     mediaRecorder.ondataavailable = function (event) {
         if (event.data.size > 0) {
-            saveVideo(event.data, url);
+            saveVideo(event.data, url, videoType);
         }
     };
     mediaRecorder.start();
@@ -131,10 +143,11 @@ function stopRecording(mediaRecorder) {
 }
 
 
-function saveVideo(chunk, url) {
-    let blob = new Blob([chunk], {type: 'video/webm'});
+function saveVideo(chunk, url, videoType) {
+    let blob = new Blob([chunk], {type: 'video/' + videoType});
     const formData = new FormData();
     formData.append('video', blob);
+    formData.append('video_type', videoType);
     fetch(url, {
         method: 'POST',
         body: formData,

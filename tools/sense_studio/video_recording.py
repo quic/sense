@@ -37,10 +37,13 @@ def save_video(project, split, label):
     label = urllib.parse.unquote(label)
     path = utils.lookup_project_path(project)
 
+    data = request.form
+    video_type = data['video_type']
+
     # Read given video to a file
     input_stream = request.files['video']
     output_path = os.path.join(path, f'videos_{split}', label)
-    temp_file_name = os.path.join(output_path, 'temp_video.webm')
+    temp_file_name = os.path.join(output_path, f'temp_video.{video_type}')
     with open(temp_file_name, 'wb') as temp_file:
         temp_file.write(input_stream.read())
 
@@ -53,7 +56,8 @@ def save_video(project, split, label):
         output_file = os.path.join(output_path, f'video_{video_idx}.mp4')
 
     # Convert video to target frame rate and save to output name
-    subprocess.call(f'ffmpeg -i "{temp_file_name}" -r 30 "{output_file}"', shell=True)
+    # subprocess.call(f'ffmpeg -i "{temp_file_name}" -r 30 "{output_file}"', shell=True)
+    subprocess.call(f'cp "{temp_file_name}" "{output_file}"', shell=True)
 
     # Remove temp video file
     os.remove(temp_file_name)
