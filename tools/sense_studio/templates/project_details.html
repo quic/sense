@@ -62,7 +62,8 @@
                             <div class="uk-inline uk-width-1-1">
                                 <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
                                 <input class="uk-input" type="text" id="newClassName" name="newClassName"
-                                    placeholder="Class Name" oninput="editAddNewClass('{{ project }}');">
+                                   placeholder="Class Name" oninput="editAddNewClass('{{ project }}');"
+                                   autocomplete="off">
                             </div>
                         </div>
                         <div class="temporal {{ 'uk-hidden' if not config.temporal }}" >
@@ -156,15 +157,16 @@
         </div>
 
         <div id="classEdit{{ loop.index }}" class="uk-hidden">
-            <form class="uk-card uk-card-secondary uk-card-hover class-card" method="POST"
+            <form class="uk-card uk-card-secondary uk-card-hover" method="POST"
                   action="{{ url_for('edit_class', project=project, class_name=class) }}">
                 <div class="uk-card-body">
                     <div class="uk-margin-bottom">
-                        <label class="uk-form-label uk-text-danger" id="editClassNameLabel"></label>
+                        <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ loop.index }}"></label>
                         <div class="uk-inline uk-width-1-1">
                             <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                            <input class="uk-input" type="text" id="editClassName" name="newClassName" value="{{ class }}"
-                                placeholder="Class Name" oninput="editExistingClass('{{ project }}', '{{ class }}');">
+                            <input class="uk-input" type="text" id="editClassName{{ loop.index }}" name="newClassName" value="{{ class }}"
+                               placeholder="Class Name" oninput="editExistingClass('{{ project }}', '{{ class }}', '{{ loop.index }}');"
+                               autocomplete="off">
                         </div>
                     </div>
                     <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
@@ -183,7 +185,7 @@
                         <span uk-icon="icon: close"></span>
                         Cancel
                     </button>
-                    <button class="uk-button uk-button-default uk-width-1-1 uk-margin" type="submit" id="saveChanges">
+                    <button class="uk-button uk-button-default uk-width-1-1 uk-margin" type="submit" id="saveChanges{{ loop.index }}">
                         <span uk-icon="icon: check"></span>
                         Save Changes
                     </button>

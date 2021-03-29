@@ -32,23 +32,6 @@ $(document).ready(function () {
         });
     }
 
-    $('.class-card').form({
-        fields: {
-            className: {
-                rules: [
-                    {
-                        type   : 'empty',
-                        prompt : 'Please enter a class name'
-                    },
-                    {
-                        type   : 'uniqueClassName',
-                        prompt : 'The chosen class name already exists'
-                    }
-                ]
-            }
-        }
-    });
-
     $('.ui .dropdown').dropdown();
 
 });
@@ -164,10 +147,10 @@ function editAddNewClass(projectName) {
 }
 
 
-function editExistingClass(projectName, oldClassName) {
-    let editNameInput = document.getElementById('editClassName');
-    let editNameLabel = document.getElementById('editClassNameLabel');
-    let saveChangesButton = document.getElementById('saveChanges');
+function editExistingClass(projectName, oldClassName, index) {
+    let editNameInput = document.getElementById(`editClassName${index}`);
+    let editNameLabel = document.getElementById(`editClassNameLabel${index}`);
+    let saveChangesButton = document.getElementById(`saveChanges${index}`);
 
     let newClassName = editNameInput.value;
 
@@ -175,10 +158,11 @@ function editExistingClass(projectName, oldClassName) {
 
     let disabled = false;
 
+    // Check if the new class-name is not empty and doesn't already exist
     if (newClassName === '') {
         setFormWarning(editNameLabel, editNameInput, 'Class-name cannot be empty');
         disabled = true;
-    } else if ((newClassName in config.classes) && (newClassName != oldClassName) {
+    } else if ((newClassName in config.classes) && (newClassName != oldClassName)) {
         setFormWarning(editNameLabel, editNameInput, 'A class with this name already exists');
         disabled = true;
     } else {
