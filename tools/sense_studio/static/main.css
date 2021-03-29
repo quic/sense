@@ -31,17 +31,17 @@ video {
 
 /* Additional colors for buttons and labels */
 .button-green {
-    background: #6aa84f;
+    background: #00cc00;
     color: #fff;
 }
 
 .button-green:focus, .button-green:hover {
-    background: #649b4c;
+    background: #00b300;
     color: #fff;
 }
 
 .label-green {
-    background: #6aa84f;
+    background: #00cc00;
     color: #fff;
 }
 
@@ -57,5 +57,20 @@ video {
 
 .label-grey {
     background: #9f9f9f;
+    color: #fff;
+}
+
+.button-blue {
+    background: #0e73d8;
+    color: #fff;
+}
+
+.button-blue:focus, .button-blue:hover {
+    background: #0c66c0;
+    color: #fff;
+}
+
+.label-blue {
+    background: #0e73d8;
     color: #fff;
 }

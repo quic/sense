@@ -248,7 +248,7 @@ function loading(element, message, url) {
 
 const buttonClasses = [
     'button-grey',
-    'uk-button-primary',
+    'button-blue',
     'button-green',
 ]
 
