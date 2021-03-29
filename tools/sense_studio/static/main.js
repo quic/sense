@@ -44,7 +44,7 @@ function setFormWarning(label, input, text) {
 }
 
 
-function editNewProject() {
+async function editNewProject() {
     let nameInput = document.getElementById('newProjectName');
     let nameLabel = document.getElementById('newProjectNameLabel');
     let pathInput = document.getElementById('newProjectPath');
@@ -55,7 +55,7 @@ function editNewProject() {
     let name = nameInput.value;
     let path = pathInput.value;
 
-    let directoriesResponse = browseDirectory(path, name);
+    let directoriesResponse = await browseDirectory(path, name);
     fullPathDiv.innerHTML = directoriesResponse.full_project_path;
 
     let disabled = false;
@@ -89,14 +89,14 @@ function editNewProject() {
 }
 
 
-function editImportProject() {
+async function editImportProject() {
     let pathInput = document.getElementById('importProjectPath');
     let pathLabel = document.getElementById('importProjectPathLabel');
     let importProjectButton = document.getElementById('importProject');
 
     let path = pathInput.value;
 
-    let directoriesResponse = browseDirectory(path, '');
+    let directoriesResponse = await browseDirectory(path, '');
 
     let disabled = false;
 
@@ -118,14 +118,14 @@ function editImportProject() {
 }
 
 
-function editUpdateProject(projectIdx) {
+async function editUpdateProject(projectIdx) {
     let pathInput = document.getElementById(`updateProjectPath${projectIdx}`);
     let pathLabel = document.getElementById(`updateProjectLabel${projectIdx}`);
     let updateProjectButton = document.getElementById(`updateProject${projectIdx}`);
 
     let path = pathInput.value;
 
-    let directoriesResponse = browseDirectory(path, '');
+    let directoriesResponse = await browseDirectory(path, '');
 
     let disabled = false;
 
