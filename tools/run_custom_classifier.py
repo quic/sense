@@ -24,14 +24,13 @@ from docopt import docopt
 import torch
 
 import sense.display
-from sense.controller import Controller
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import build_backbone_network
 from sense.loading import load_backbone_model_from_config
 from sense.loading import update_backbone_weights
-
+from examples.run_back_health_posture import MyController
 
 if __name__ == "__main__":
     # Parse arguments
@@ -74,12 +73,12 @@ if __name__ == "__main__":
     display_ops = [
         sense.display.DisplayFPS(expected_camera_fps=net.fps,
                                  expected_inference_fps=net.fps / net.step_size),
-        sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.1),
+        sense.display.DisplayTopKClassificationOutputs(top_k=2, threshold=0.1),
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops)
 
     # Run live inference
-    controller = Controller(
+    controller = MyController(
         neural_network=net,
         post_processors=postprocessor,
         results_display=display_results,

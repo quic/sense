@@ -122,7 +122,7 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
             y_pos = 20 * index + self.y_offset
             if proba >= self.threshold:
                 put_text(img, 'Activity: {}'.format(activity[0:50]), (10, y_pos))
-                put_text(img, 'Proba: {:0.2f}'.format(proba), (10 + self.lateral_offset,
+                put_text(img, 'Proba: {:0.2f}'.format(proba), (170 + self.lateral_offset,
                                                                y_pos))
         return img
 
