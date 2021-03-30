@@ -1,23 +1,18 @@
-import cv2
 import os
-import json
 import numpy as np
 import time
-import ctypes
 
 from sense.controller import Controller
 
 global_timer = time.perf_counter()
-local_timer = 0
 
 
-class MyController(Controller):
+class MyBackHealthController(Controller):
 
     def display_prediction(self, img: np.ndarray, prediction_postprocessed: dict):
         super().display_prediction(img, prediction_postprocessed)
 
         global global_timer
-        global local_timer
         local_timer = time.perf_counter()
         print(local_timer, global_timer, global_timer + 60)
         if local_timer > global_timer + 10:
