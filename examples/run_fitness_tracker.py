@@ -105,7 +105,7 @@ if __name__ == "__main__":
                                  expected_inference_fps=net.fps / net.step_size),
         sense.display.DisplayTopKClassificationOutputs(top_k=1,
                                                        threshold=0.5),
-        sense.display.DisplayMETandCalories(y_offset=40),
+        sense.display.DisplayMETandCalories(offset_y=40),
     ]
     display_results = sense.display.DisplayResults(title=title,
                                                    display_ops=display_ops,
