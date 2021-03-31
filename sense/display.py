@@ -1,11 +1,14 @@
 import cv2
 import numpy as np
+import os
 import time
 
 from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Optional
+
+from sense import RESOURCES_DIR
 
 
 FONT = cv2.FONT_HERSHEY_PLAIN
@@ -386,3 +389,80 @@ class DisplayResults:
     def clean_up(self):
         """Close all windows that are created."""
         cv2.destroyAllWindows()
+
+
+class SmartTVButtons(BaseDisplay):
+
+    path = os.path.join(RESOURCES_DIR, 'play_and_pause.png')
+    size = (100, 100)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Initialize value of ui elements
+        self.playback_status = False
+        self.playback_status_lock = False
+        self.channel_number = 10
+        self.channel_number_lock = False
+
+        # Prepare play and pause UI elements
+        play_and_pause = cv2.imread(self.path)
+        play = cv2.resize(play_and_pause[:, 0:int(play_and_pause.shape[1] / 2)], self.size)
+        pause = cv2.resize(play_and_pause[:, int(play_and_pause.shape[1] / 2):], self.size)
+        self.play = cv2.cvtColor(play, cv2.COLOR_BGR2GRAY)
+        self.pause = cv2.cvtColor(pause, cv2.COLOR_BGR2GRAY)
+
+    def update_ui_values(self, display_data):
+        predictions = {key: value for key, value in display_data['sorted_predictions']}
+
+        # Play-pause logic
+        if predictions['hold-raised-hand'] > 0.8 and not self.playback_status_lock:
+            self.playback_status = not self.playback_status
+            self.playback_status_lock = True
+
+        elif self.playback_status_lock and predictions['hold-raised-hand'] < 0.05:
+            self.playback_status_lock = False
+
+        if predictions['person-has-left'] > 0.8:
+            self.playback_status = False
+            self.playback_status_lock = False
+
+        # Channel number logic
+        if predictions['swiping-left-end'] > predictions['swiping-right-end']:
+            swipe_key = 'swiping-left-end'
+            increment = 1
+        else:
+            swipe_key = 'swiping-right-end'
+            increment = -1
+
+        if predictions[swipe_key] > 0.8 and not self.channel_number_lock:
+            self.channel_number += increment
+            self.channel_number_lock = True
+
+        elif self.channel_number_lock and predictions[swipe_key] < 0.05:
+            self.channel_number_lock = False
+
+
+    def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
+        self.update_ui_values(display_data)
+
+        # Play/Pause overlay
+        if self.playback_status:
+            ui_elem = self.play
+            ui_color = [0, 200, 0]
+        else:
+            ui_elem = self.pause
+            ui_color = [0, 0, 200]
+
+        mask = np.zeros(img.shape[0:2], dtype='uint8')
+        top_x = int((img.shape[1] - self.size[1]) / 2)
+        top_y = int((img.shape[0] - self.size[0]) / 2)
+        mask[top_y: top_y + self.size[0], top_x: top_x + self.size[0]] = ui_elem
+        mask = mask > 0
+        img[mask] = ui_color
+
+        # TV Channel
+        img = put_text(img, str(self.channel_number), (5, 70),
+                       font_scale=3, thickness=3, color=(200, 0, 0))
+
+        return img
