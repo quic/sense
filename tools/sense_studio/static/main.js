@@ -14,7 +14,7 @@ window.addEventListener(
 );
 
 
-$(document).ready(function () {
+document.addEventListener("DOMContentLoaded", function () {
     let pathSearchInputs = document.getElementsByClassName('path-search');
     for (input of pathSearchInputs) {
         const currentInput = input;
@@ -22,35 +22,14 @@ $(document).ready(function () {
             selector: input,
             minChars: 1,
             cache: false,
-            source: function(term, response) {
-                let directoriesResponse = browseDirectory(term, '');
-                response(directoriesResponse.subdirs);
+            source: async function(term, response) {
+                browseDirectory(term, '').then(r => response(r.subdirs));
             },
             onSelect: function(event, term, item) {
                 currentInput.oninput();
             }
         });
     }
-
-    $('.class-card').form({
-        fields: {
-            className: {
-                rules: [
-                    {
-                        type   : 'empty',
-                        prompt : 'Please enter a class name'
-                    },
-                    {
-                        type   : 'uniqueClassName',
-                        prompt : 'The chosen class name already exists'
-                    }
-                ]
-            }
-        }
-    });
-
-    $('.ui .dropdown').dropdown();
-
 });
 
 
@@ -65,7 +44,7 @@ function setFormWarning(label, input, text) {
 }
 
 
-function editNewProject() {
+async function editNewProject() {
     let nameInput = document.getElementById('newProjectName');
     let nameLabel = document.getElementById('newProjectNameLabel');
     let pathInput = document.getElementById('newProjectPath');
@@ -76,7 +55,7 @@ function editNewProject() {
     let name = nameInput.value;
     let path = pathInput.value;
 
-    let directoriesResponse = browseDirectory(path, name);
+    let directoriesResponse = await browseDirectory(path, name);
     fullPathDiv.innerHTML = directoriesResponse.full_project_path;
 
     let disabled = false;
@@ -110,14 +89,14 @@ function editNewProject() {
 }
 
 
-function editImportProject() {
+async function editImportProject() {
     let pathInput = document.getElementById('importProjectPath');
     let pathLabel = document.getElementById('importProjectPathLabel');
     let importProjectButton = document.getElementById('importProject');
 
     let path = pathInput.value;
 
-    let directoriesResponse = browseDirectory(path, '');
+    let directoriesResponse = await browseDirectory(path, '');
 
     let disabled = false;
 
@@ -139,14 +118,14 @@ function editImportProject() {
 }
 
 
-function editUpdateProject(projectIdx) {
+async function editUpdateProject(projectIdx) {
     let pathInput = document.getElementById(`updateProjectPath${projectIdx}`);
     let pathLabel = document.getElementById(`updateProjectLabel${projectIdx}`);
     let updateProjectButton = document.getElementById(`updateProject${projectIdx}`);
 
     let path = pathInput.value;
 
-    let directoriesResponse = browseDirectory(path, '');
+    let directoriesResponse = await browseDirectory(path, '');
 
     let disabled = false;
 
@@ -168,14 +147,60 @@ function editUpdateProject(projectIdx) {
 }
 
 
-$.fn.form.settings.rules.uniqueClassName = function (className) {
-    let projectName = $('#projectName').val();
-    let config = getProjectConfig(projectName);
-    return !(className in config.classes)
+async function editAddClass(projectName) {
+    let classNameInput = document.getElementById('newClassName');
+    let classNameLabel = document.getElementById('newClassNameLabel');
+    let addClassButton = document.getElementById('addClass');
+
+    let className = classNameInput.value;
+
+    let config = await getProjectConfig(projectName);
+
+    let disabled = false;
+
+    // Check that class name is filled and unique
+    if (className === '') {
+        setFormWarning(classNameLabel, classNameInput, '');
+        disabled = true;
+    } else if (className in config.classes) {
+        setFormWarning(classNameLabel, classNameInput, 'A class with this name already exists');
+        disabled = true;
+    } else {
+        setFormWarning(classNameLabel, classNameInput, '');
+    }
+
+    addClassButton.disabled = disabled;
 }
 
 
-function asyncRequest(url, data, callback) {
+async function editUpdateClass(projectName, originalClassName, index) {
+    console.log(`editClassName${index}`);
+    let classNameInput = document.getElementById(`editClassName${index}`);
+    let classNameLabel = document.getElementById(`editClassNameLabel${index}`);
+    let editClassButton = document.getElementById(`submitEditClass${index}`);
+
+    let className = classNameInput.value;
+
+    let config = await getProjectConfig(projectName);
+
+    let disabled = false;
+
+    // Check that class name is filled and unique
+    if (className === '') {
+        setFormWarning(classNameLabel, classNameInput, 'Class name cannot be left empty');
+        disabled = true;
+    } else if (className !== originalClassName && className in config.classes) {
+        setFormWarning(classNameLabel, classNameInput, 'A class with this name already exists');
+        disabled = true;
+    } else {
+        setFormWarning(classNameLabel, classNameInput, '');
+    }
+
+    editClassButton.disabled = disabled;
+}
+
+
+function asyncRequest(url, data) {
     return new Promise(function (resolve, reject) {
         let xhttp = new XMLHttpRequest();
 
@@ -196,38 +221,13 @@ function asyncRequest(url, data, callback) {
 }
 
 
-function syncRequest(url, data) {
-    let xhttp = new XMLHttpRequest();
-
-    if (data) {
-        xhttp.open('POST', url, false);
-        xhttp.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-        xhttp.send(JSON.stringify(data));
-    } else {
-        xhttp.open('GET', url, false);
-        xhttp.send();
-    }
-
-    return JSON.parse(xhttp.responseText);
-}
-
-
 function browseDirectory(path, projectName) {
-    return syncRequest('/browse-directory', {path: path, project: projectName});
+    return asyncRequest('/browse-directory', {path: path, project: projectName});
 }
 
 
 function getProjectConfig(projectName) {
-    return syncRequest('/project-config', {name: projectName});
-}
-
-
-async function prepareAnnotations(element, projectName) {
-    loading(element, 'Preparing Annotations');
-
-    await asyncRequest('/annotation/prepare-annotation', {projectName: projectName});
-
-    loadingDone(element, 'Annotations Prepared');
+    return asyncRequest('/project-config', {name: projectName});
 }
 
 
@@ -246,22 +246,10 @@ function loading(element, message, url) {
 }
 
 
-function loadingDone(element, message) {
-    let icon = element.children[0];
-    let text = element.children[1];
-
-    icon.removeAttribute('uk-spinner');
-    icon.classList.remove('uk-spinner');
-    icon.setAttribute('uk-icon', 'icon: check');
-    text.innerHTML = message;
-}
-
-
-// TODO: Tag colors still need to be adapted
 const buttonClasses = [
-    'uk-button-primary',
-    'uk-button-secondary',
-    'uk-button-danger',
+    'button-grey',
+    'button-blue',
+    'button-green',
 ]
 
 
@@ -302,16 +290,16 @@ function editClass(index, shouldEdit) {
 }
 
 
-function toggleGPU(path) {
-    response = syncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
+async function toggleGPU(path) {
+    let response = await asyncRequest('/toggle-project-setting', {path: path, setting: 'use_gpu'});
 
     let gpuInput = document.getElementById('gpuInput');
     gpuInput.checked = response.setting_status;
 }
 
 
-function toggleMakeProjectTemporal(path) {
-    response = syncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
+async function toggleMakeProjectTemporal(path) {
+    let response = await asyncRequest('/toggle-project-setting', {path: path, setting: 'temporal'});
 
     let makeProjectTemporal = document.getElementById('makeProjectTemporal');
     let temporalElements = document.getElementsByClassName('temporal');
@@ -329,20 +317,10 @@ function toggleMakeProjectTemporal(path) {
 }
 
 
-function toggleShowPredictions(path) {
-    response = syncRequest('/toggle-project-setting', {path: path, setting: 'show_logreg'});
+async function toggleAssistedTagging(path, split, label) {
+    let response = await asyncRequest('/toggle-project-setting',
+                                      {path: path, setting: 'assisted_tagging', split: split, label: label});
 
-    let logregInput = document.getElementById('logregInput');
-    let logregElements = document.getElementsByClassName('logreg-predictions');
-
-    logregInput.checked = response.setting_status;
-
-    // Show/hide all LogReg prediction-labels
-    for (element of logregElements) {
-        if (response.setting_status) {
-            element.classList.remove('uk-hidden');
-        } else {
-            element.classList.add('uk-hidden');
-        }
-    }
+    // Reload page to update predictions
+    window.location.reload();
 }

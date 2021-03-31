@@ -14,13 +14,13 @@ function setTimerDefault(path) {
     setDefaultButton.disabled = true;
     setDefaultButton.innerHTML = "Saved";
 
-    response = syncRequest('/set-timer-default', {path: path, countdown: countdownDuration, recording: recordingDuration});
+    asyncRequest('/set-timer-default', {path: path, countdown: countdownDuration, recording: recordingDuration});
 }
 
 
-function recordVideo(url) {
+async function recordVideo(url) {
     // Check if ffmpeg is installed
-    response = syncRequest('/video-recording/ffmpeg-check')
+    let response = await asyncRequest('/video-recording/ffmpeg-check')
     if (!response.ffmpeg_installed) {
         displayOverlay('Please make sure ffmpeg is installed!', 'error');
         return;

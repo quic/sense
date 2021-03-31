@@ -6,21 +6,50 @@
     {% include 'navigation.html' %}
 {% endblock navigation %}
 
-{% block settings %}
-    {% include 'settings.html' %}
-{% endblock settings %}
-
 {% block main %}
 <div class="uk-container">
-    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Frame Annotation</h1>
-    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
-        <span uk-icon="icon: folder"></span> {{ path }}
-        <br>
-        <span uk-icon="icon: bookmark"></span> {{ label }}
-        <br>
-        <span uk-icon="icon: git-fork"></span> {{ split }}
-        <br>
-        <span uk-icon="icon: play"></span> {{ video_name }}
+    <div class="uk-margin-large-top" uk-grid>
+        <div class="uk-width-expand">
+            <h1 class="uk-heading-medium uk-margin-remove-bottom">Frame Annotation</h1>
+            <h1 class="uk-margin-remove-top uk-margin-remove-bottom">
+                <span uk-icon="icon: play"></span> {{ video_name }}
+            </h1>
+            <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+                <div>
+                    <span uk-icon="icon: folder"></span> {{ path }}
+                </div>
+                <div>
+                    <span uk-icon="icon: bookmark"></span> {{ label }}
+                </div>
+                <div>
+                    <span uk-icon="icon: git-fork"></span> {{ split }}
+                </div>
+            </div>
+        </div>
+
+        <div class="uk-width-medium">
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+                <h3 class="uk-card-title">Settings</h3>
+
+                <div>
+                    <label uk-tooltip="Train a simple logistic regression model live on temporal annotations and show current predictions">
+                        <input type="checkbox" class="uk-checkbox"
+                               {% if project_config.assisted_tagging %} checked {% endif %}
+                               onclick="toggleAssistedTagging('{{ path }}', '{{ split }}', '{{ label }}');">
+                        Assisted Tagging
+                    </label>
+                </div>
+
+                <div class="uk-margin-small-top">
+                    <label uk-tooltip="Use a GPU for computing features for assisted tagging">
+                        <input type="checkbox" id="gpuInput" class="uk-checkbox"
+                               {% if project_config.use_gpu %} checked {% endif %}
+                               onclick="toggleGPU('{{ path }}');">
+                        Use GPU
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="uk-margin" uk-grid>
@@ -28,7 +57,7 @@
         <div class="uk-width-auto">
             <a class="uk-button uk-button-default"
                href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx-1) }}">
-                <span uk-icon="arrow-left"></span>
+                <span uk-icon="chevron-left"></span>
                 Previous
             </a>
         </div>
@@ -39,7 +68,7 @@
             <a class="uk-button uk-button-default"
                href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx+1) }}">
                 Next
-                <span uk-icon="arrow-right"></span>
+                <span uk-icon="chevron-right"></span>
             </a>
         </div>
         {% endif %}
@@ -64,9 +93,9 @@
                         <img src="{{ url_for('annotation_bp.download_file', project=project, split=split, label=label, video_name=video_name, img_file=img) }}">
                     </div>
                     <div class="uk-card-body">
-                        <div class="logreg-predictions {{ 'uk-hidden' if not show_logreg }}">
+                        <div class="{{ 'uk-hidden' if not project_config.assisted_tagging }}">
                             {% if pred_class == 0 %}
-                                <div class="uk-label">
+                                <div class="uk-label label-grey">
                                     <span class="uk-text-bolder">
                                         Background
                                     </span>
@@ -75,7 +104,7 @@
                                     </span>
                                 </div>
                             {% elif pred_class == 1 %}
-                                <div class="uk-label uk-label-success">
+                                <div class="uk-label label-blue">
                                     <span class="uk-text-bolder">
                                         {{ tags[0] }}
                                     </span>
@@ -84,7 +113,7 @@
                                     </span>
                                 </div>
                             {% elif pred_class == 2 %}
-                                <div class="uk-label uk-label-warning">
+                                <div class="uk-label label-green">
                                     <span class="uk-text-bolder">
                                         {{ tags[1] }}
                                     </span>

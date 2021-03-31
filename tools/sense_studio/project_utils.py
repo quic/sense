@@ -59,7 +59,7 @@ def setup_new_project(project_name, path, config=None):
             'classes': {},
             'use_gpu': False,
             'temporal': False,
-            'show_logreg': False,
+            'assisted_tagging': False,
             'video_recording': {
                 'countdown': 3,
                 'recording': 5,

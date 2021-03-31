@@ -20,6 +20,7 @@ from flask import request
 from flask import url_for
 
 from sense import SPLITS
+from sense.finetuning import compute_frames_and_features
 from tools import directories
 from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
@@ -126,7 +127,7 @@ def create_project():
     project_name = data['projectName']
     path = data['path']
 
-    path = os.path.join(path, project_name)
+    path = os.path.join(path, project_utils.get_folder_name_for_project(project_name))
     os.mkdir(path)
 
     # Setup new project
@@ -242,6 +243,26 @@ def toggle_project_setting():
     setting = data['setting']
     new_status = project_utils.toggle_project_setting(path, setting)
 
+    # Update logreg model if assisted tagging was just enabled
+    if setting == 'assisted_tagging' and new_status:
+        split = data['split']
+        label = data['label']
+        inference_engine, model_config = utils.load_feature_extractor(path)
+
+        videos_dir = directories.get_videos_dir(path, split, label)
+        frames_dir = directories.get_frames_dir(path, split, label)
+        features_dir = directories.get_features_dir(path, split, model_config, label=label)
+
+        # Compute the respective frames and features
+        compute_frames_and_features(inference_engine=inference_engine,
+                                    project_path=path,
+                                    videos_dir=videos_dir,
+                                    frames_dir=frames_dir,
+                                    features_dir=features_dir)
+
+        # Re-train the logistic regression model
+        utils.train_logreg(path=path, split=split, label=label)
+
     return jsonify(setting_status=new_status)
 
 
@@ -274,13 +295,15 @@ def edit_class(project, class_name):
 
         # Feature directories follow the format <dataset_dir>/<split>/<model>/<num_layers_to_finetune>/<label>
         features_dir = directories.get_features_dir(path, split)
-        model_dirs = [os.path.join(features_dir, model_dir) for model_dir in os.listdir(features_dir)]
-        data_dirs.extend([os.path.join(model_dir, tuned_layers)
-                          for model_dir in model_dirs
-                          for tuned_layers in os.listdir(model_dir)])
+        if os.path.exists(features_dir):
+            model_dirs = [os.path.join(features_dir, model_dir) for model_dir in os.listdir(features_dir)]
+            data_dirs.extend([os.path.join(model_dir, tuned_layers)
+                              for model_dir in model_dirs
+                              for tuned_layers in os.listdir(model_dir)])
 
     logreg_dir = directories.get_logreg_dir(path)
-    data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
+    if os.path.exists(logreg_dir):
+        data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
 
     for base_dir in data_dirs:
         class_dir = os.path.join(base_dir, class_name)

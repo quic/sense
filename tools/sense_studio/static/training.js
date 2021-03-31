@@ -1,8 +1,5 @@
-let socket = null;
-
 
 function addTerminalMessage(message) {
-    console.log(message);
     let terminal = document.getElementById('terminal');
     terminal.insertAdjacentHTML('beforeend', `<div class='monospace-font'><b>${message}</b></div>`);
     terminal.scrollTop = terminal.scrollHeight;
@@ -23,7 +20,7 @@ function startTraining(url) {
     let buttonCancelTrain = document.getElementById('btnCancelTrain');
     let confusionMatrix = document.getElementById('confusionMatrix');
 
-    socket = io.connect('/connect-training-logs');
+    let socket = io.connect('/connect-training-logs');
     socket.on('connect', function() {
         console.log('Socket Connected');
         socket.emit('connect_training_logs',
@@ -73,15 +70,12 @@ function startTraining(url) {
         modelName: modelName,
         epochs: epochs,
     };
-    syncRequest(url, data);
+    asyncRequest(url, data);
 }
 
 
-function cancelTraining(url) {
-    syncRequest(url);
-
-    socket.disconnect();
-    console.log('Socket Disconnected');
+async function cancelTraining(url) {
+    await asyncRequest(url);
 
     document.getElementById('btnTrain').disabled = false;
     document.getElementById('btnCancelTrain').disabled = true;
