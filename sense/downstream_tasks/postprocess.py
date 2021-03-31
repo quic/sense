@@ -83,6 +83,56 @@ class PostprocessRepCounts(PostProcessor):
         }
 
 
+class PostprocessKeepUps(PostProcessor):
+
+    def __init__(self, mapping_dict, position_1="in_air", position_2="on_foot",
+                 threshold_1=0.4, threshold_2=0.3, **kwargs):
+        super().__init__(**kwargs)
+        self.mapping = mapping_dict
+        self.position_1 = position_1
+        self.position_2 = position_2
+        self.threshold_1 = threshold_1
+        self.threshold_2 = threshold_2
+        self.keep_up_counter = ExerciseSpecificRepCounter(
+            mapping_dict,
+            position_1,
+            position_2,
+            threshold_1,
+            threshold_2)
+
+    def postprocess(self, classif_output):
+        if classif_output is not None:
+            self.keep_up_counter.process(classif_output)
+
+        return {
+            'counting': {
+                "keep_ups": self.keep_up_counter.count
+            }
+        }
+
+
+class ExerciseSpecificRepCounter:
+
+    def __init__(self, mapping, position0, position1, threshold0, threshold1):
+        self.threshold0 = threshold0
+        self.threshold1 = threshold1
+        self.mapping = mapping
+        self.inverse_mapping = {v: k for k, v in mapping.items()}
+        self.position0 = position0
+        self.position1 = position1
+        self.count = 0
+        self.position = 0
+
+    def process(self, classif_output):
+        if self.position == 0:
+            if classif_output[self.inverse_mapping[self.position1]] > self.threshold0:
+                self.position = 1
+        else:
+            if classif_output[self.inverse_mapping[self.position0]] > self.threshold1:
+                self.position = 0
+                self.count += 1
+
+
 class ExerciceSpecificRepCounter:
 
     def __init__(self, mapping, position0, position1, threshold):

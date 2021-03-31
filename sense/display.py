@@ -136,11 +136,18 @@ class DisplayRepCounts(BaseDisplay):
 
     def display(self, img, display_data):
         counters = display_data['counting']
+
+        # Put a translucent box behind text for better visibility
+        x, y, w, h = (self.lateral_offset - 10), (self.y_offset - 10), 200, 50
+        sub_img = img[y:y + h, x:x + w]
+        back_rect = np.ones(sub_img.shape, dtype=np.uint8) * 0
+        res = cv2.addWeighted(sub_img, 0.3, back_rect, 0.7, 1.0)
+        img[y:y + h, x:x + w] = res
+
         index = 0
         for activity, count in counters.items():
             y_pos = 20 * (index + 1) + self.y_offset
-            put_text(img, 'Exercise: {}'.format(activity[0:50]), (10, y_pos))
-            put_text(img, 'Count: {}'.format(count), (10 + self.lateral_offset, y_pos))
+            put_text(img, 'Count: {}'.format(count), (10 + self.lateral_offset, y_pos), font_scale=2, thickness=2)
             index += 1
         return img
 
