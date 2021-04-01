@@ -119,5 +119,7 @@ def send_training_logs(msg):
         img_base64 = base64.b64encode(data)
         if img_base64:
             emit('success', {'status': 'Complete', 'img': img_base64})
+        else:
+            emit('failed', {'status': 'Failed'})
     else:
         emit('failed', {'status': 'Failed'})
