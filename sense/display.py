@@ -309,7 +309,7 @@ class DisplayResults:
     Display window for an image frame with prediction outputs from a neural network.
     """
     def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30,
-                 window_size: Tuple[int, int] = (480, 640)):
+                 window_size: Tuple[int, int] = (480, 640), catch_frames=cv2.imshow):
         """
         :param title:
             Title of the image frame on display.
@@ -332,6 +332,7 @@ class DisplayResults:
         cv2.resizeWindow(self._window_title, self.window_size[1], self.window_size[0] + self.border_size)
         self.title = title
         self.display_ops = display_ops
+        self.catch_frames = catch_frames
 
     def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
@@ -364,7 +365,7 @@ class DisplayResults:
             put_text(img, self.title, (middle, 20))
 
         # Show the image in a window
-        cv2.imshow(self._window_title, img)
+        self.catch_frames(self._window_title, img)
         return img
 
     def resize_to_fit_window(self, img):

@@ -20,6 +20,7 @@ Options:
 import os
 import json
 
+import cv2
 from docopt import docopt
 import torch
 
@@ -33,7 +34,8 @@ from sense.loading import load_backbone_model_from_config
 from sense.loading import update_backbone_weights
 
 
-def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_classifier=None, title=None, use_gpu=True):
+def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_classifier=None, title=None, use_gpu=True,
+                          catch_frames=cv2.imshow):
 
     # Load backbone network according to config file
     backbone_model_config, backbone_weights = load_backbone_model_from_config(custom_classifier)
@@ -68,7 +70,7 @@ def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_class
                                  expected_inference_fps=net.fps / net.step_size),
         sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.1),
     ]
-    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops)
+    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops, catch_frames=catch_frames)
 
     # Run live inference
     controller = Controller(
