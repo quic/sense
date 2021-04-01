@@ -6,7 +6,7 @@ function addTerminalMessage(message) {
 }
 
 
-function startTraining(url) {
+async function startTraining(url) {
 
     let project = document.getElementById('project').value;
     let path = document.getElementById('path').value;
@@ -20,15 +20,20 @@ function startTraining(url) {
     let buttonCancelTrain = document.getElementById('btnCancelTrain');
     let confusionMatrix = document.getElementById('confusionMatrix');
 
+    data = {
+        path: path,
+        layersToFinetune: layersToFinetune,
+        outputFolder: outputFolder,
+        modelName: modelName,
+        epochs: epochs,
+    };
+    await asyncRequest(url, data);
+
     let socket = io.connect('/connect-training-logs');
     socket.on('connect', function() {
         console.log('Socket Connected');
         socket.emit('connect_training_logs',
                     {status: 'Socket Connected', project: project, outputFolder: outputFolder});
-    });
-
-    socket.on('status', function(message) {
-        console.log(message.status);
     });
 
     socket.on('training_logs', function(message) {
@@ -62,15 +67,6 @@ function startTraining(url) {
     confusionMatrix.innerHTML = '';
 
     addTerminalMessage('Training started...');
-
-    data = {
-        path: path,
-        layersToFinetune: layersToFinetune,
-        outputFolder: outputFolder,
-        modelName: modelName,
-        epochs: epochs,
-    };
-    asyncRequest(url, data);
 }
 
 
