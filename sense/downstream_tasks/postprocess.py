@@ -86,7 +86,7 @@ class PostprocessRepCounts(PostProcessor):
 class PostprocessKeepUps(PostProcessor):
 
     def __init__(self, mapping_dict, position_1="in_air", position_2="on_foot",
-                 threshold_1=0.4, threshold_2=0.3, **kwargs):
+                 threshold_1=0.3, threshold_2=0.1, **kwargs):
         super().__init__(**kwargs)
         self.mapping = mapping_dict
         self.position_1 = position_1
@@ -125,10 +125,10 @@ class ExerciseSpecificRepCounter:
 
     def process(self, classif_output):
         if self.position == 0:
-            if classif_output[self.inverse_mapping[self.position1]] > self.threshold0:
+            if classif_output[self.inverse_mapping[self.position1]] > self.threshold1:
                 self.position = 1
         else:
-            if classif_output[self.inverse_mapping[self.position0]] > self.threshold1:
+            if classif_output[self.inverse_mapping[self.position0]] > self.threshold0:
                 self.position = 0
                 self.count += 1
 

@@ -69,7 +69,7 @@ if __name__ == "__main__":
     net = Pipe(backbone_network, gesture_classifier)
 
     postprocessor = [
-        PostprocessClassificationOutput(INT2LAB, smoothing=2),
+        PostprocessClassificationOutput(INT2LAB, smoothing=1),
         PostprocessKeepUps(INT2LAB)
     ]
 
