@@ -36,10 +36,6 @@ async function startTraining(url) {
                     {status: 'Socket Connected', project: project, outputFolder: outputFolder});
     });
 
-    socket.on('status', function(message) {
-        console.log(message.status);
-    });
-
     socket.on('training_logs', function(message) {
         addTerminalMessage(message.log);
     });
