@@ -299,7 +299,7 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
 
 
 def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False, log_fn=print):
+                   temporal_annotation_training=False, log_fn=print, confmat_event=None):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -329,7 +329,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
             if valid_top1 > best_top1:
                 best_top1 = valid_top1
                 best_state_dict = net.state_dict().copy()
-                save_confusion_matrix(path_out, cnf_matrix, label_names)
+                save_confusion_matrix(path_out, cnf_matrix, label_names, confmat_event=confmat_event)
         else:
             if valid_loss < best_loss:
                 best_loss = valid_loss
@@ -418,7 +418,9 @@ def save_confusion_matrix(
         classes,
         normalize=False,
         title='Confusion matrix',
-        cmap=plt.cm.Blues):
+        cmap=plt.cm.Blues,
+        confmat_event=None,
+):
     """
     This function creates a matplotlib figure out of the provided confusion matrix and saves it
     to a file. The provided numpy array is also saved. Normalization can be applied by setting
@@ -454,3 +456,6 @@ def save_confusion_matrix(
     plt.close()
 
     np.save(os.path.join(path_out, 'confusion_matrix.npy'), confusion_matrix_array)
+
+    if confmat_event is not None:
+        confmat_event.set()
