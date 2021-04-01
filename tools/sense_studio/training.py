@@ -1,3 +1,4 @@
+import base64
 import multiprocessing
 import os
 import queue
@@ -107,19 +108,9 @@ def send_training_logs(msg):
     path = project_utils.lookup_project_path(project)
     img_path = os.path.join(path, 'checkpoints', output_folder, 'confusion_matrix.png')
     if os.path.exists(img_path):
-        img_path = url_for('training_bp.confusion_matrix',
-                           project=msg['project'],
-                           output_folder=msg['outputFolder'])
-        emit('success', {'status': 'Complete', 'img_path': img_path})
+        with open(img_path, 'rb') as f:
+            data = f.read()
+        img_base64 = base64.b64encode(data)
+        emit('success', {'status': 'Complete', 'img': img_base64})
     else:
         emit('failed', {'status': 'Failed'})
-
-
-@training_bp.route('/confusion-matrix/<string:project>/', methods=['GET'])
-@training_bp.route('/confusion-matrix/<string:project>/<string:output_folder>', methods=['GET'])
-def confusion_matrix(project, output_folder=""):
-    project = urllib.parse.unquote(project)
-    output_folder = urllib.parse.unquote(output_folder)
-    path = project_utils.lookup_project_path(project)
-    img_path = os.path.join(path, 'checkpoints', output_folder)
-    return send_from_directory(img_path, filename='confusion_matrix.png', as_attachment=True)
