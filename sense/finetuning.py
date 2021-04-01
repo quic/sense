@@ -139,7 +139,7 @@ def generate_data_loader(features_dir, tags_dir, label_names, label2int,
 
     try:
         return torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
-    except Exception as e:
+    except ValueError:
         return None
 
 
