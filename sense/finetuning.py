@@ -136,10 +136,10 @@ def generate_data_loader(features_dir, tags_dir, label_names, label2int,
     dataset = FeaturesDataset(features, labels, temporal_annotation,
                               num_timesteps=num_timesteps, stride=stride,
                               full_network_minimum_frames=full_network_minimum_frames)
-
     try:
         return torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
     except ValueError:
+        # if the project is temporal, but annotations do not exist for train or valid.
         return None
 
 
