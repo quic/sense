@@ -139,7 +139,7 @@ def generate_data_loader(features_dir, tags_dir, label_names, label2int,
     try:
         return torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
     except ValueError:
-        # if the project is temporal, but annotations do not exist for train or valid.
+        # The project is temporal, but annotations do not exist for train or valid.
         return None
 
 
