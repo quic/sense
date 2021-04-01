@@ -1,14 +1,15 @@
+import base64
 import multiprocessing
 import os
 import queue
 import urllib
 
+from typing import Optional
+
 from flask import Blueprint
 from flask import jsonify
 from flask import render_template
 from flask import request
-from flask import send_from_directory
-from flask import url_for
 from flask_socketio import emit
 
 from tools.sense_studio import project_utils
@@ -18,8 +19,9 @@ from tools.train_classifier import train_model
 
 training_bp = Blueprint('training_bp', __name__)
 
-train_process = None
-queue_train_logs = None
+train_process: Optional[multiprocessing.Process] = None
+queue_train_logs: Optional[multiprocessing.Queue] = None
+confmat_event: Optional[multiprocessing.Event] = None
 
 
 @training_bp.route('/<string:project>', methods=['GET'])
@@ -48,7 +50,10 @@ def start_training():
     ctx = multiprocessing.get_context('spawn')
 
     global queue_train_logs
+    global confmat_event
+
     queue_train_logs = ctx.Queue()
+    confmat_event = ctx.Event()
 
     training_kwargs = {
         'path_in': path,
@@ -60,6 +65,7 @@ def start_training():
         'use_gpu': config['use_gpu'],
         'temporal_training': config['temporal'],
         'log_fn': queue_train_logs.put,
+        'confmat_event': confmat_event,
     }
 
     global train_process
@@ -83,6 +89,7 @@ def cancel_training():
 def send_training_logs(msg):
     global train_process
     global queue_train_logs
+    global confmat_event
 
     try:
         while train_process.is_alive():
@@ -106,20 +113,13 @@ def send_training_logs(msg):
 
     path = project_utils.lookup_project_path(project)
     img_path = os.path.join(path, 'checkpoints', output_folder, 'confusion_matrix.png')
-    if os.path.exists(img_path):
-        img_path = url_for('training_bp.confusion_matrix',
-                           project=msg['project'],
-                           output_folder=msg['outputFolder'])
-        emit('success', {'status': 'Complete', 'img_path': img_path})
+    if confmat_event.is_set() and os.path.exists(img_path):
+        with open(img_path, 'rb') as f:
+            data = f.read()
+        img_base64 = base64.b64encode(data)
+        if img_base64:
+            emit('success', {'status': 'Complete', 'img': img_base64})
+        else:
+            emit('failed', {'status': 'Failed'})
     else:
         emit('failed', {'status': 'Failed'})
-
-
-@training_bp.route('/confusion-matrix/<string:project>/', methods=['GET'])
-@training_bp.route('/confusion-matrix/<string:project>/<string:output_folder>', methods=['GET'])
-def confusion_matrix(project, output_folder=""):
-    project = urllib.parse.unquote(project)
-    output_folder = urllib.parse.unquote(output_folder)
-    path = project_utils.lookup_project_path(project)
-    img_path = os.path.join(path, 'checkpoints', output_folder)
-    return send_from_directory(img_path, filename='confusion_matrix.png', as_attachment=True)
