@@ -5,6 +5,7 @@ import os
 import urllib
 
 from flask import Blueprint
+from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
@@ -17,6 +18,7 @@ from natsort import ns
 from sense import SPLITS
 from sense.finetuning import compute_frames_and_features
 from tools import directories
+from tools.sense_studio import project_utils
 from tools.sense_studio import utils
 
 
@@ -30,7 +32,7 @@ def show_video_list(project, split, label):
     If the necessary files for annotation haven't been prepared yet, this is done now.
     """
     project = urllib.parse.unquote(project)
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
     split = urllib.parse.unquote(split)
     label = urllib.parse.unquote(label)
 
@@ -59,36 +61,13 @@ def show_video_list(project, split, label):
     tagged_list = set(os.listdir(tags_dir))
     tagged = [f'{video}.json' in tagged_list for video in videos]
 
+    num_videos = len(videos)
+    num_tagged = len(tagged_list)
+    num_untagged = num_videos - num_tagged
+
     video_list = zip(videos, tagged, list(range(len(videos))))
     return render_template('video_list.html', video_list=video_list, split=split, label=label, path=path,
-                           project=project)
-
-
-@annotation_bp.route('/prepare-annotation/<string:project>')
-def prepare_annotation(project):
-    """
-    Prepare all files needed for annotating the videos in the given project.
-    """
-    project = urllib.parse.unquote(project)
-    dataset_path = utils.lookup_project_path(project)
-
-    # load feature extractor
-    inference_engine, model_config = utils.load_feature_extractor(dataset_path)
-    for split in SPLITS:
-        print(f'\n\tPreparing videos in the {split}-set')
-
-        for label in os.listdir(directories.get_videos_dir(dataset_path, split)):
-            videos_dir = directories.get_videos_dir(dataset_path, split, label)
-            frames_dir = directories.get_frames_dir(dataset_path, split, label)
-            features_dir = directories.get_features_dir(dataset_path, split, model_config, label=label)
-
-            compute_frames_and_features(inference_engine=inference_engine,
-                                        project_path=dataset_path,
-                                        videos_dir=videos_dir,
-                                        frames_dir=frames_dir,
-                                        features_dir=features_dir)
-
-    return redirect(url_for("project_details", project=project))
+                           project=project, num_videos=num_videos, num_tagged=num_tagged, num_untagged=num_untagged)
 
 
 @annotation_bp.route('/<string:project>/<string:split>/<string:label>/<int:idx>')
@@ -97,7 +76,7 @@ def annotate(project, split, label, idx):
     For the given class label, show all frames for annotating the selected video.
     """
     project = urllib.parse.unquote(project)
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
 
@@ -109,7 +88,7 @@ def annotate(project, split, label, idx):
     logreg_dir = directories.get_logreg_dir(path, model_config, label)
 
     videos = os.listdir(frames_dir)
-    videos.sort()
+    videos = natsorted(videos, alg=ns.IC)
 
     # The list of images in the folder
     images = [image for image in glob.glob(os.path.join(frames_dir, videos[idx], '*'))
@@ -131,15 +110,17 @@ def annotate(project, split, label, idx):
     images = [(os.path.basename(image), _class) for image, _class in zip(images, classes)]
 
     # Load existing annotations
-    annotations = []
     annotations_file = os.path.join(tags_dir, f'{videos[idx]}.json')
     if os.path.exists(annotations_file):
         with open(annotations_file, 'r') as f:
             data = json.load(f)
             annotations = data['time_annotation']
+    else:
+        # Use "background" label for all frames per default
+        annotations = [0] * len(images)
 
     # Read tags from config
-    config = utils.load_project_config(path)
+    config = project_utils.load_project_config(path)
     tags = config['classes'][label]
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
@@ -205,6 +186,6 @@ def download_file(project, split, label, video_name, img_file):
     """
     Load an image from the given path.
     """
-    dataset_path = utils.lookup_project_path(project)
+    dataset_path = project_utils.lookup_project_path(project)
     img_dir = os.path.join(directories.get_frames_dir(dataset_path, split, label), video_name)
     return send_from_directory(img_dir, img_file, as_attachment=True)
