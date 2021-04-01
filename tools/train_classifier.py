@@ -59,7 +59,8 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 
 
 def train_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
-                use_gpu=True, overwrite=True, temporal_training=None, resume=False, log_fn=print):
+                use_gpu=True, overwrite=True, temporal_training=None, resume=False, log_fn=print,
+                confmat_event=None):
     os.makedirs(path_out, exist_ok=True)
 
     # Check for existing files
@@ -201,7 +202,7 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     # Train model
     best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
                                            label_names, path_out, temporal_annotation_training=temporal_training,
-                                           log_fn=log_fn)
+                                           log_fn=log_fn, confmat_event=confmat_event)
 
     # Save best model
     if isinstance(net, Pipe):

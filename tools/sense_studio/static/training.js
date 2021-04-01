@@ -47,7 +47,12 @@ async function startTraining(url) {
 
             buttonTrain.disabled = false;
             buttonCancelTrain.disabled = true;
-            confusionMatrix.innerHTML = `<img src=${message.img_path} alt='Confusion matrix' />`;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                confusionMatrix.src = `data:image/png;base64,${e.target.result}`;
+            };
+            reader.readAsBinaryString(new Blob([message.img]));
         }
     });
 
@@ -64,7 +69,7 @@ async function startTraining(url) {
     buttonTrain.disabled = true;
     buttonCancelTrain.disabled = false;
     terminal.innerHTML = '';
-    confusionMatrix.innerHTML = '';
+    confusionMatrix.src = '';
 
     addTerminalMessage('Training started...');
 }
