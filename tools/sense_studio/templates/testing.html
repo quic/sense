@@ -16,7 +16,7 @@
     <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
         <span uk-icon="icon: folder"></span> {{ path }}
     </div>
-    <form class="uk-form-stacked" action="" method="post">
+    <form class="uk-form-stacked" method="post">
         <input type="hidden" id="project" name="project" value="{{ project }}">
         <input type="hidden" id="path" name="path" value="{{ path }}">
         <input type="hidden" id="outputFolder" name="outputFolder" value="{{ output_folder }}">
@@ -28,13 +28,13 @@
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: folder"></span>
-                        <input class="uk-input path-search" type="text" id="classifier" name="classifier" placeholder="/path/to/classifier"
-                               autocomplete="off" oninput="getClassifierPath();" required>
+                        <input class="uk-input path-search" type="text" id="classifier" placeholder="/path/to/classifier"
+                               autocomplete="off" oninput="getPathInputs('classifierLabel', 'classifier');" required />
                     </div>
                 </div>
             </div>
         </div>
-        <!-- TODO: Create oninput method for input video path -->
+
         <div class="uk-child-width-1-1@s uk-grid-small" uk-grid>
             <div>
                 <label class="uk-form-label" for="inputVideoPath">Input video path</label>
@@ -42,15 +42,14 @@
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
-                        <input class="uk-input path-search" type="text" id="inputVideoPath" name="input-video" placeholder="/path/to/input-video"
-                               autocomplete="off" oninput="getClassifierPath();">
+                        <input class="uk-input path-search" type="text" id="inputVideoPath" placeholder="/path/to/input-video"
+                               autocomplete="off" oninput="getPathInputs('inputVideoPathLabel', 'inputVideoPath');">
                     </div>
                 </div>
             </div>
         </div>
-        <!-- TODO: Create oninput method for output video path -->
-        <div class="uk-child-width-1-2@s uk-grid-small" uk-grid>
 
+        <div class="uk-child-width-1-2@s uk-grid-small" uk-grid>
             <div>
                 <label class="uk-form-label" for="outputVideoName">
                     Output video name ({{ project }}/{{ output_folder }}/...)
@@ -59,8 +58,8 @@
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
-                        <input class="uk-input path-search" type="text" id="outputVideoName" name="output-video" placeholder="Output video name"
-                               autocomplete="off" oninput="getClassifierPath();" />
+                        <input class="uk-input" type="text" id="outputVideoName" placeholder="Output video name"
+                               autocomplete="off" />
                     </div>
                 </div>
             </div>
@@ -70,35 +69,35 @@
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: pencil"></span>
-                        <input class="uk-input path-search" type="text" id="title" name="title" placeholder="Title" autocomplete="off">
+                        <input class="uk-input path-search" type="text" id="title" placeholder="Title" autocomplete="off" />
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTest" type="button" tabindex="0">
+        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTest" type="button" tabindex="0"
+                onclick="startTesting('{{ url_for('.start_testing') }}');">
             Test model
         </button>
         <button class="uk-button uk-button-danger" id="btnCancelTest" type="button" tabindex="1"
-                onclick="" disabled>
+                onclick="cancelTesting('{{ url_for('.cancel_testing') }}');" disabled>
             Cancel
         </button>
     </form>
-
-    <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small" >
-        <h4>Start Inference</h4>
-        <h4>Stop Inference</h4>
-    </div>
-    <!-- TODO: Create embedded video streaming -->
+     <!-- TODO: Create embedded video streaming -->
     <div class="uk-margin uk-text-center">
         <div class="uk-section uk-section-muted uk-padding-remove-vertical uk-inline">
-            <video id="outputVideoPlayer" width="640" height="480" autoplay></video>
-            <div class="uk-overlay uk-overlay-default uk-position-top uk-text-large uk-hidden uk-padding-small" id="textOverlay">
+            <div id="outputVideo" class="uk-overlay uk-overlay-default uk-position-top uk-text-large uk-hidden uk-padding-small">
                 <!-- Automatically filled -->
             </div>
         </div>
     </div>
+
+<!--    <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small" >-->
+<!--        <h4>Start Inference</h4>-->
+<!--        <h4>Stop Inference</h4>-->
+<!--    </div>-->
 
 </div>
 {% endblock %}
