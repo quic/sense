@@ -1,73 +1,110 @@
-<!-- The method injected by context processor is called here to get the class labels. -->
-{% set class_labels = inject_class_labels(project) %}
-{% set temporal_status = inject_temporal_status(project) %}
-<a href="{{ url_for('project_details', project=project) }}" class="item">Project Details</a>
-<div class="ui simple dropdown item">
-    Video Recording
-    <i class="dropdown icon"></i>
-    <div class="menu">
-        <div class="item">
-            Train
-            {% if class_labels %}
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    {% for label in class_labels  %}
-                        <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">{{ label }}</a>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        <div class="item">
-            Valid
-            {% if class_labels %}
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    {% for label in class_labels %}
-                        <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">{{ label }}</a>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-<div class="ui simple dropdown item temporal {{ 'display-hidden' if not temporal_status }}">
-    Annotation
-    <i class="dropdown icon"></i>
-    <div class="menu">
-        <div class="item">
-            Train
-            {% if class_labels %}
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    {% for label in class_labels %}
-                        <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">{{ label }}</a>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        <div class="item">
-            Valid
-            {% if class_labels %}
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    {% for label in class_labels %}
-                        <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">{{ label }}</a>
-                    {% endfor %}
-                </div>
-            {% endif %}
+<!-- The method injected by context processor is called here to get the project config. -->
+{% set project_config = inject_project_config(project) %}
+
+<li>
+    <a href="{{ url_for('project_details', project=project) }}" class="uk-navbar-item">Project Details</a>
+</li>
+
+<li>
+    <a href="#">Video Recording</a>
+    <div class="uk-navbar-dropdown uk-navbar-dropdown-width-2">
+        <div class="uk-navbar-dropdown-grid uk-child-width-1-2" uk-grid>
+            <div>
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li class="uk-nav-header">Train</li>
+                    {% if project_config.classes %}
+                        {% for label, _ in project_config.classes|dictsort  %}
+                            <li>
+                                <a href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=label) }}" class="item">
+                                    {{ label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+            <div>
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li class="uk-nav-header">Valid</li>
+                    {% if project_config.classes %}
+                        {% for label, _ in project_config.classes|dictsort %}
+                            <li>
+                                <a href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=label) }}" class="item">
+                                    {{ label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
         </div>
     </div>
-</div>
-<a href="{{ url_for('training_bp.training_page', project=project) }}" class="item">
-    Training
-</a>
-<a href="javascript:void(0)" class="item hashoverpopup"
-   data-html="<h5>Coming Soon! For now, run this script:</h5> <code>sense/tools/run_custom_classifier.py</code>"
-   data-position="bottom center" data-variation="very wide">
-    Testing
-</a>
-<a href="javascript:void(0)" class="item hashoverpopup"
-   data-html="<h5>Coming Soon! For now, run this script:</h5> <code>sense/tools/conversion/convert_to_tflite.py</code>"
-   data-position="bottom center" data-variation="very wide">
-    Conversion
-</a>
+</li>
+
+<li class="temporal {{ 'uk-hidden' if not project_config.temporal }}">
+    <a href="#">Annotation</a>
+    <div class="uk-navbar-dropdown uk-navbar-dropdown-width-2">
+        <div class="uk-navbar-dropdown-grid uk-child-width-1-2" uk-grid>
+            <div>
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li class="uk-nav-header">Train</li>
+                    {% if project_config.classes %}
+                        {% for label, _ in project_config.classes|dictsort  %}
+                            <li>
+                                <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=label)}}" class="item">
+                                    {{ label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+            <div>
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                    <li class="uk-nav-header">Valid</li>
+                    {% if project_config.classes %}
+                        {% for label, _ in project_config.classes|dictsort %}
+                            <li>
+                                <a href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=label)}}" class="item">
+                                    {{ label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</li>
+
+<li>
+    <a href="{{ url_for('training_bp.training_page', project=project) }}" class="uk-navbar-item">
+        Training
+    </a>
+</li>
+
+<li>
+    <a href="#">Testing</a>
+    <div class="uk-navbar-dropdown uk-navbar-dropdown-width-2">
+        <div class="uk-nav-header">Coming soon!</div>
+        <div class="uk-text-muted">
+            For now, run this script:
+        </div>
+        <div>
+            <code>ssense/tools/run_custom_classifier.py</code>
+        </div>
+    </div>
+</li>
+
+<li>
+    <a href="#">Conversion</a>
+    <div class="uk-navbar-dropdown uk-navbar-dropdown-width-2">
+        <div class="uk-nav-header">Coming soon!</div>
+        <div class="uk-text-muted">
+            For now, run this script:
+        </div>
+        <div>
+            <code>sense/tools/conversion/convert_to_tflite.py</code>
+        </div>
+    </div>
+</li>

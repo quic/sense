@@ -1,34 +1,37 @@
+import base64
 import multiprocessing
 import os
 import queue
-import time
 import urllib
+
+from typing import Optional
 
 from flask import Blueprint
 from flask import jsonify
 from flask import render_template
 from flask import request
-from flask import send_from_directory
-from flask import url_for
 from flask_socketio import emit
 
+from tools.sense_studio import project_utils
 from tools.sense_studio import utils
-from tools.sense_studio.training_script import training_model
 from tools.sense_studio import socketio
+from tools.train_classifier import train_model
 
 training_bp = Blueprint('training_bp', __name__)
 
-train_process = None
-queue_train_logs = None
+train_process: Optional[multiprocessing.Process] = None
+queue_train_logs: Optional[multiprocessing.Queue] = None
+confmat_event: Optional[multiprocessing.Event] = None
 
 
 @training_bp.route('/<string:project>', methods=['GET'])
 def training_page(project):
     project = urllib.parse.unquote(project)
-    path = utils.lookup_project_path(project)
+    path = project_utils.lookup_project_path(project)
+    project_config = project_utils.load_project_config(path)
     output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
     return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
-                           output_path_prefix=output_path_prefix)
+                           output_path_prefix=output_path_prefix, project_config=project_config)
 
 
 @training_bp.route('/start-training', methods=['POST'])
@@ -40,14 +43,17 @@ def start_training():
     model_name = data['modelName']
     epochs = data['epochs']
 
-    config = utils.load_project_config(path)
+    config = project_utils.load_project_config(path)
     model_name, model_version = model_name.split('-')
     path_out = os.path.join(path, 'checkpoints', output_folder)
 
     ctx = multiprocessing.get_context('spawn')
 
     global queue_train_logs
+    global confmat_event
+
     queue_train_logs = ctx.Queue()
+    confmat_event = ctx.Event()
 
     training_kwargs = {
         'path_in': path,
@@ -58,17 +64,18 @@ def start_training():
         'epochs': int(epochs),
         'use_gpu': config['use_gpu'],
         'temporal_training': config['temporal'],
-        'training_logs': queue_train_logs,
+        'log_fn': queue_train_logs.put,
+        'confmat_event': confmat_event,
     }
 
     global train_process
-    train_process = ctx.Process(target=training_model, kwargs=training_kwargs)
+    train_process = ctx.Process(target=train_model, kwargs=training_kwargs)
     train_process.start()
 
     return jsonify(success=True)
 
 
-@training_bp.route('/cancel-training', methods=['POST'])
+@training_bp.route('/cancel-training')
 def cancel_training():
     global train_process
     if train_process:
@@ -82,38 +89,37 @@ def cancel_training():
 def send_training_logs(msg):
     global train_process
     global queue_train_logs
-    while True:
-        if train_process:
+    global confmat_event
+
+    try:
+        while train_process.is_alive():
             try:
                 output = queue_train_logs.get(timeout=1)
-                if output:
-                    time.sleep(0.1)
-                    emit('training_logs', {'log': output + '\n'})
+                emit('training_logs', {'log': output})
             except queue.Empty:
-                if not train_process.is_alive():
-                    train_process.terminate()
-                    train_process = None
-                    queue_train_logs.close()
-                    break
-        else:
-            emit('status', msg)
-            break
+                # No message received during the last second
+                pass
 
-    error = True if "ERROR" in output else False
-    if not error:
-        img_path = url_for('training_bp.confusion_matrix',
-                           project=msg['project'],
-                           output_folder=msg['outputFolder'])
-        emit('success', {'status': 'Complete', 'img_path': img_path})
+        train_process.terminate()
+        train_process = None
+    except AttributeError:
+        # train_process has been cancelled and is None
+        pass
+    finally:
+        queue_train_logs.close()
+
+    project = msg['project']
+    output_folder = msg['outputFolder']
+
+    path = project_utils.lookup_project_path(project)
+    img_path = os.path.join(path, 'checkpoints', output_folder, 'confusion_matrix.png')
+    if confmat_event.is_set() and os.path.exists(img_path):
+        with open(img_path, 'rb') as f:
+            data = f.read()
+        img_base64 = base64.b64encode(data)
+        if img_base64:
+            emit('success', {'status': 'Complete', 'img': img_base64})
+        else:
+            emit('failed', {'status': 'Failed'})
     else:
         emit('failed', {'status': 'Failed'})
-
-
-@training_bp.route('/confusion-matrix/<string:project>/', methods=['GET'])
-@training_bp.route('/confusion-matrix/<string:project>/<string:output_folder>', methods=['GET'])
-def confusion_matrix(project, output_folder=""):
-    project = urllib.parse.unquote(project)
-    output_folder = urllib.parse.unquote(output_folder)
-    path = utils.lookup_project_path(project)
-    img_path = os.path.join(path, 'checkpoints', output_folder)
-    return send_from_directory(img_path, filename='confusion_matrix.png', as_attachment=True)
