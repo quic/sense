@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
             minChars: 1,
             cache: false,
             source: async function(term, response) {
-                browseDirectory(term, '').then(r => response(r.subdirs));
+                await browseDirectory(term, '').then(r => response(r.subdirs));
             },
             onSelect: function(event, term, item) {
                 currentInput.oninput();
@@ -32,6 +32,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+
+document.addEventListener("DOMContentLoaded", function () {
+    let pathSearchInputs = document.getElementsByClassName('file-path-search');
+    for (input of pathSearchInputs) {
+        const currentInput = input;
+        new autoComplete({
+            selector: input,
+            minChars: 1,
+            cache: false,
+            source: async function(term, response) {
+                await browseDirectory(term, '').then(r => response(r.subfiles));
+            },
+            onSelect: function(event, term, item) {
+                currentInput.oninput();
+            }
+        });
+    }
+});
 
 function setFormWarning(label, input, text) {
     label.innerHTML = text;
