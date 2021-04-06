@@ -19,7 +19,6 @@
     <form class="uk-form-stacked" method="post">
         <input type="hidden" id="project" name="project" value="{{ project }}">
         <input type="hidden" id="path" name="path" value="{{ path }}">
-        <input type="hidden" id="outputFolder" name="outputFolder" value="{{ output_folder }}">
 
         <div class="uk-child-width-1-1@s uk-grid-small" uk-grid>
             <div>
@@ -28,8 +27,8 @@
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: folder"></span>
-                        <input class="uk-input path-search" type="text" id="classifier" placeholder="/path/to/classifier"
-                               autocomplete="off" oninput="getPathInputs('classifierLabel', 'classifier');" required />
+                        <input class="uk-input path-search" type="text" id="classifier" placeholder="/path/to/custom-classifier"
+                               autocomplete="off" oninput="getPathInputs('classifierLabel', 'classifier');" required>
                     </div>
                 </div>
             </div>
@@ -42,24 +41,36 @@
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
-                        <input class="uk-input path-search" type="text" id="inputVideoPath" placeholder="/path/to/input-video"
+                        <input class="uk-input file-path-search" type="text" id="inputVideoPath" placeholder="/path/to/input-video"
                                autocomplete="off" oninput="getPathInputs('inputVideoPathLabel', 'inputVideoPath');">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="uk-child-width-1-2@s uk-grid-small" uk-grid>
+        <div class="uk-child-width-1-3@s uk-grid-small" uk-grid>
+            <div>
+                <label class="uk-form-label" for="outputFolder">
+                    Output folder ({{ project }}/...)
+                </label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: folder"></span>
+                        <input class="uk-input" type="text" id="outputFolder" placeholder="Output Folder"
+                               autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <label class="uk-form-label" for="outputVideoName">
-                    Output video name ({{ project }}/{{ output_folder }}/...)
-                    <span class="uk-label">.mp4</span>
+                    Output video name <span class="uk-label uk-floated-right">.mp4</span>
                 </label>
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
                         <input class="uk-input" type="text" id="outputVideoName" placeholder="Output video name"
-                               autocomplete="off" />
+                               autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -85,19 +96,14 @@
             Cancel
         </button>
     </form>
-     <!-- TODO: Create embedded video streaming -->
-    <div class="uk-margin uk-text-center">
-        <div class="uk-section uk-section-muted uk-padding-remove-vertical uk-inline">
-            <div id="outputVideo" class="uk-overlay uk-overlay-default uk-position-top uk-text-large uk-hidden uk-padding-small">
-                <!-- Automatically filled -->
-            </div>
-        </div>
+
+    <!--    Output video streaming frame-wise (Automatically filled) -->
+    <div id="videoStream" class="uk-margin uk-text-center uk-hidden">
+        <img id="frame" src="">
     </div>
 
-<!--    <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small" >-->
-<!--        <h4>Start Inference</h4>-->
-<!--        <h4>Stop Inference</h4>-->
-<!--    </div>-->
+    <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small" >
+    </div>
 
 </div>
 {% endblock %}
