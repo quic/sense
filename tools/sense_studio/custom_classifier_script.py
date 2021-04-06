@@ -43,8 +43,8 @@ def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_class
     try:
         # Load custom classifier
         checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))
-    except FileNotFoundError as e:
-        msg = ("Error: No such file or directory: 'best_classifier.checkpoint'\n" 
+    except FileNotFoundError:
+        msg = ("Error: No such file or directory: 'best_classifier.checkpoint'\n"
                "Hint: Provide path to 'custom_classifier'.\n")
         if video_frames:
             video_frames(msg)
