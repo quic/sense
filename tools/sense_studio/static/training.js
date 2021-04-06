@@ -6,7 +6,7 @@ function addTerminalMessage(message) {
 }
 
 
-function startTraining(url) {
+async function startTraining(url) {
 
     let project = document.getElementById('project').value;
     let path = document.getElementById('path').value;
@@ -20,15 +20,20 @@ function startTraining(url) {
     let buttonCancelTrain = document.getElementById('btnCancelTrain');
     let confusionMatrix = document.getElementById('confusionMatrix');
 
+    data = {
+        path: path,
+        layersToFinetune: layersToFinetune,
+        outputFolder: outputFolder,
+        modelName: modelName,
+        epochs: epochs,
+    };
+    await asyncRequest(url, data);
+
     let socket = io.connect('/connect-training-logs');
     socket.on('connect', function() {
         console.log('Socket Connected');
         socket.emit('connect_training_logs',
                     {status: 'Socket Connected', project: project, outputFolder: outputFolder});
-    });
-
-    socket.on('status', function(message) {
-        console.log(message.status);
     });
 
     socket.on('training_logs', function(message) {
@@ -42,7 +47,12 @@ function startTraining(url) {
 
             buttonTrain.disabled = false;
             buttonCancelTrain.disabled = true;
-            confusionMatrix.innerHTML = `<img src=${message.img_path} alt='Confusion matrix' />`;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                confusionMatrix.src = `data:image/png;base64,${e.target.result}`;
+            };
+            reader.readAsBinaryString(new Blob([message.img]));
         }
     });
 
@@ -59,18 +69,9 @@ function startTraining(url) {
     buttonTrain.disabled = true;
     buttonCancelTrain.disabled = false;
     terminal.innerHTML = '';
-    confusionMatrix.innerHTML = '';
+    confusionMatrix.src = '';
 
     addTerminalMessage('Training started...');
-
-    data = {
-        path: path,
-        layersToFinetune: layersToFinetune,
-        outputFolder: outputFolder,
-        modelName: modelName,
-        epochs: epochs,
-    };
-    asyncRequest(url, data);
 }
 
 
