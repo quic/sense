@@ -35,14 +35,22 @@ from sense.loading import update_backbone_weights
 
 
 def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_classifier=None, title=None, use_gpu=True,
-                          catch_frames=cv2.imshow):
+                          video_frames=None):
 
     # Load backbone network according to config file
     backbone_model_config, backbone_weights = load_backbone_model_from_config(custom_classifier)
 
-    # Load custom classifier
-    checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))
-
+    try:
+        # Load custom classifier
+        checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))
+    except FileNotFoundError as e:
+        msg = ("Error: No such file or directory: 'best_classifier.checkpoint'\n" 
+               "Hint: Provide path to 'custom_classifier'.\n")
+        if video_frames:
+            video_frames(msg)
+        else:
+            print(msg)
+        return None
     # Update original weights in case some intermediate layers have been finetuned
     update_backbone_weights(backbone_weights, checkpoint_classifier)
 
@@ -70,7 +78,7 @@ def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_class
                                  expected_inference_fps=net.fps / net.step_size),
         sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.1),
     ]
-    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops, catch_frames=catch_frames)
+    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops, video_frames=video_frames)
 
     # Run live inference
     controller = Controller(
