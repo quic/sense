@@ -12,12 +12,14 @@ PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
 
 PROJECT_CONFIG_FILE = 'project_config.json'
 
-SUPPORTED_MODEL_CONFIGURATIONS = [
+ALL_SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', []),
     ModelConfig('StridedInflatedMobileNetV2', 'pro', []),
     ModelConfig('StridedInflatedEfficientNet', 'lite', []),
     ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
 ]
+
+SUPPORTED_MODEL_CONFIGURATIONS = [i for i in ALL_SUPPORTED_MODEL_CONFIGURATIONS if i.model_exist() is True]
 
 BACKBONE_MODELS = [model_name.combined_model_name for model_name in SUPPORTED_MODEL_CONFIGURATIONS]
 
