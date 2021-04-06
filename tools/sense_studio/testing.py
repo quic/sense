@@ -1,8 +1,10 @@
+import base64
 import multiprocessing
 import os
 import queue
 import urllib
 
+import cv2
 from flask import Blueprint
 from flask import jsonify
 from flask import render_template
@@ -17,14 +19,14 @@ from tools.sense_studio import socketio
 testing_bp = Blueprint('testing_bp', __name__)
 
 test_process = None
-queue_frames = None
+queue_testing_output = None
 
 
 @testing_bp.route('/<string:project>', methods=['GET'])
 def testing_page(project):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
-    return render_template('testing.html', project=project, path=path, output_folder="video_output")
+    return render_template('testing.html', project=project, path=path)
 
 
 @testing_bp.route('/start-testing', methods=['POST'])
@@ -35,16 +37,17 @@ def start_testing():
     path_out = data['outputVideoName'] or ''
     title = data['title']
     path = data['path']
-    output_folder = data['outputFolder']
+    output_folder = data['outputFolder'] or ''
 
     config = project_utils.load_project_config(path)
-    path_out = os.path.join(path, output_folder, path_out)
-    os.makedirs(path_out, exist_ok=True)
+    output_dir = os.path.join(path, output_folder)
+    os.makedirs(output_dir, exist_ok=True)
+    path_out = os.path.join(output_dir, path_out + '.mp4')
 
     ctx = multiprocessing.get_context('spawn')
 
-    global queue_frames
-    queue_frames = ctx.Queue()
+    global queue_testing_output
+    queue_testing_output = ctx.Queue()
 
     testing_kwargs = {
         'path_in': path_in,
@@ -52,7 +55,7 @@ def start_testing():
         'custom_classifier': custom_classifier,
         'title': title,
         'use_gpu': config['use_gpu'],
-        # 'catch_frames': queue_frames,
+        'video_frames': queue_testing_output.put,
     }
 
     global test_process
@@ -75,34 +78,29 @@ def cancel_testing():
 @socketio.on('stream_video', namespace='/stream-video')
 def stream_video(msg):
     global test_process
-    global queue_frames
-
+    global queue_testing_output
     try:
         while test_process.is_alive():
             try:
-                output = queue_frames.get(timeout=1)
-                emit('training_logs', {'log': output})
+                output = queue_testing_output.get(timeout=1)
+                if type(output) == str:
+                    emit('testing_logs', {'log': output})
+                else:
+                    # Encode frame as jpeg
+                    frame = cv2.imencode('.jpg', output)[1].tobytes()
+                    # Encode frame in base64 version and remove utf-8 encoding
+                    frame = base64.b64encode(frame).decode('utf-8')
+                    emit('testing_images', {'image': f"data:image/jpeg;base64,{frame}"})
             except queue.Empty:
                 # No message received during the last second
                 pass
 
         test_process.terminate()
-        train_process = None
+        test_process = None
     except AttributeError:
-        # train_process has been cancelled and is None
+        # test_process has been cancelled and is None
         pass
     finally:
-        queue_frames.close()
+        queue_testing_output.close()
 
-    project = msg['project']
-    output_folder = msg['outputFolder']
-
-    path = project_utils.lookup_project_path(project)
-    img_path = os.path.join(path, 'checkpoints', output_folder, 'confusion_matrix.png')
-    if os.path.exists(img_path):
-        img_path = url_for('training_bp.confusion_matrix',
-                           project=msg['project'],
-                           output_folder=msg['outputFolder'])
-        emit('success', {'status': 'Complete', 'img_path': img_path})
-    else:
-        emit('failed', {'status': 'Failed'})
+    emit('success', {'status': 'Complete'})
