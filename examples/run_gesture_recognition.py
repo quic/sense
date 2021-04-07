@@ -104,7 +104,7 @@ if __name__ == "__main__":
             model_version = 'reactive_gesture_demo_fps_v3'
             LAB2INT = LAB2INT_LOCAL
             INT2LAB = INT2LAB_LOCAL
-            LAB_THRESHOLDS = {key: 0.7 for key in LAB2INT_LOCAL}
+            LAB_THRESHOLDS = {key: 0.5 for key in LAB2INT_LOCAL}
 
     # Load weights
     selected_config, weights = get_relevant_weights(
@@ -119,10 +119,11 @@ if __name__ == "__main__":
             'type': 'checkbox',
             'name': 'classes_chosen',
             'message': 'Choose the classes to test:',
-            'choices': [{'name': key.split('=')[0]} for key in LAB2INT.keys() if key.endswith("=end")],
+            'choices': [{'name': key} for key in LAB2INT.keys()],
+            #'choices': [{'name': key.split('=')[0]} for key in LAB2INT.keys() if key.endswith("=end")],
         })
 
-        classes = [f"{key}=end" for key in answer_classes['classes_chosen']]
+        classes = [f"{key}" for key in answer_classes['classes_chosen']]
 
     if not choose and not choose_all or len(classes) == 0:
         _classes = class_names.split(',')
