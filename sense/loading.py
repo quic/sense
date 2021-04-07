@@ -203,7 +203,8 @@ def update_backbone_weights(backbone_weights: dict, checkpoint: dict):
         backbone_weights[key] = checkpoint.pop(key)
 
 
-def build_backbone_network(selected_config: ModelConfig, weights: dict):
+def build_backbone_network(selected_config: ModelConfig, weights: dict,
+                           weights_finetuned: dict = None):
     """
     Creates a backbone network and load provided weights, unless Travis is used.
 
@@ -211,11 +212,18 @@ def build_backbone_network(selected_config: ModelConfig, weights: dict):
         An instance of ModelConfig, specifying the backbone architecture name.
     :param weights:
         A model state dict.
+    :param  weights_finetuned:
+        A state dict that contains the finetuned weights of a subset of the model layers.
     :return:
         A backbone network, with pre-trained weights.
     """
     backbone_network = getattr(backbone_networks, selected_config.model_name)()
     if not running_on_travis():
+        if weights_finetuned:
+            # Update weights of layers that were finetuned
+            weights_finetuned = {key: weight for key, weight in weights_finetuned.items()
+                                 if key in weights}
+            weights = {**weights, **weights_finetuned}
         backbone_network.load_state_dict(weights)
     backbone_network.eval()
     return backbone_network

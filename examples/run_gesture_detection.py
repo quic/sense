@@ -3,14 +3,14 @@
 Real time detection of 6 hand gestures.
 
 Usage:
-  run_gesture_recognition_v2.py [--camera_id=CAMERA_ID]
-                                [--path_in=FILENAME]
-                                [--path_out=FILENAME]
-                                [--title=TITLE]
-                                [--model_name=NAME]
-                                [--model_version=VERSION]
-                                [--use_gpu]
-  run_gesture_recognition_v2.py (-h | --help)
+  run_gesture_detection.py [--camera_id=CAMERA_ID]
+                           [--path_in=FILENAME]
+                           [--path_out=FILENAME]
+                           [--title=TITLE]
+                           [--model_name=NAME]
+                           [--model_version=VERSION]
+                           [--use_gpu]
+  run_gesture_detection.py (-h | --help)
 
 Options:
   --path_in=FILENAME         Video file to stream from
@@ -24,8 +24,8 @@ from docopt import docopt
 
 import sense.display
 from sense.controller import Controller
-from sense.downstream_tasks.gesture_recognition import INT2LAB
-from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS
+from sense.downstream_tasks.gesture_detection import INT2LAB
+from sense.downstream_tasks.gesture_detection import LAB_THRESHOLDS
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
@@ -35,8 +35,8 @@ from sense.loading import ModelConfig
 
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
-    ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_recognition_v2']),
-    ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_recognition_v2']),
+    ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_detection']),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_detection']),
 ]
 
 if __name__ == "__main__":
@@ -58,19 +58,20 @@ if __name__ == "__main__":
     )
 
     # Load backbone network
-    backbone_network = build_backbone_network(selected_config, weights['backbone'])
+    backbone_network = build_backbone_network(selected_config, weights['backbone'],
+                                              weights_finetuned=weights['gesture_detection'])
 
     # Create a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
-                                            num_out=30)
-    gesture_classifier.load_state_dict(weights['gesture_recognition'])
+                                            num_out=len(INT2LAB))
+    gesture_classifier.load_state_dict(weights['gesture_detection'], strict=False)
     gesture_classifier.eval()
 
     # Concatenate backbone network and logistic regression
     net = Pipe(backbone_network, gesture_classifier)
 
     postprocessor = [
-        PostprocessClassificationOutput(INT2LAB, smoothing=4)
+        PostprocessClassificationOutput(INT2LAB, smoothing=1)
     ]
 
     border_size = 30
@@ -78,9 +79,10 @@ if __name__ == "__main__":
     display_ops = [
         sense.display.DisplayFPS(expected_camera_fps=net.fps,
                                  expected_inference_fps=net.fps / net.step_size),
-        sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
+        sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0., x_offset=500),
         sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS,
-                                              border_size=border_size if not title else border_size + 50),
+                                              border_size=border_size if not title else border_size + 50,
+                                              duration=1),
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops)
 
