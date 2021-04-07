@@ -1,4 +1,5 @@
 import base64
+import glob
 import multiprocessing
 import os
 import queue
@@ -9,8 +10,9 @@ from flask import Blueprint
 from flask import jsonify
 from flask import render_template
 from flask import request
-from flask import url_for
 from flask_socketio import emit
+from natsort import natsorted
+from natsort import ns
 
 from tools.sense_studio.custom_classifier_script import run_custom_classifier
 from tools.sense_studio import project_utils
@@ -26,7 +28,16 @@ queue_testing_output = None
 def testing_page(project):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
-    return render_template('testing.html', project=project, path=path)
+    output_path_prefix = os.path.join(os.path.basename(path), 'processed_videos', '')
+
+    # If classifier checkpoint exist, get the path of sub-directory from checkpoints
+    classifiers = [os.path.join('checkpoints', os.path.basename(d)) for d in glob.glob(f"{path}/checkpoints/*")
+                   if os.path.exists(os.path.join(d, 'best_classifier.checkpoint'))
+                   and os.path.isdir(d)] + ['checkpoints/']
+    classifiers = natsorted(classifiers, alg=ns.IC)
+
+    return render_template('testing.html', project=project, path=path, output_path_prefix=output_path_prefix,
+                           classifiers=classifiers)
 
 
 @testing_bp.route('/start-testing', methods=['POST'])
