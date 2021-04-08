@@ -28,12 +28,14 @@ queue_testing_output = None
 def testing_page(project):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
-    output_path_prefix = os.path.join(os.path.basename(path), 'processed_videos', '')
+    output_path_prefix = os.path.join(os.path.basename(path), 'output_videos', '')
 
+    default_checkpoint = os.path.join(path, 'checkpoints', 'best_classifier.checkpoint')
     # If classifier checkpoint exist, get the path of sub-directory from checkpoints
     classifiers = [os.path.join('checkpoints', os.path.basename(d)) for d in glob.glob(f"{path}/checkpoints/*")
                    if os.path.exists(os.path.join(d, 'best_classifier.checkpoint'))
-                   and os.path.isdir(d)] + ['checkpoints/']
+                   and os.path.isdir(d)]
+    classifiers.extend(['checkpoints/'] if os.path.exists(default_checkpoint) else [])
     classifiers = natsorted(classifiers, alg=ns.IC)
 
     return render_template('testing.html', project=project, path=path, output_path_prefix=output_path_prefix,

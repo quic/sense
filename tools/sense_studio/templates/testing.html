@@ -16,55 +16,62 @@
     <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
         <span uk-icon="icon: folder"></span> {{ path }}
     </div>
-    <form class="uk-form-horizontal" method="post">
+    <form class="uk-form-stacked" method="post">
         <input type="hidden" id="project" name="project" value="{{ project }}">
         <input type="hidden" id="path" name="path" value="{{ path }}">
-        <input type="hidden" id="output_path_prefix" name="output_path_prefix" value="{{ output_path_prefix }}">
 
-        <div class="uk-margin">
-            <label class="uk-form-label" for="classifier">Custom Classifier</label>
-            <label class="uk-form-label uk-text-danger" id="classifierLabel"></label>
-            <div class="uk-form-controls">
-                <div class="uk-inline uk-width-1-1">
-                    <span class="uk-form-icon" uk-icon="icon: folder"></span>
-                    <input class="uk-input path-search" type="text" id="classifier" placeholder="/path/to/custom-classifier"
-                           autocomplete="off" oninput="getPathInputs('classifierLabel', 'classifier');" required>
+        <div class="uk-child-width-1-2@s uk-grid-small" uk-grid>
+            <div>
+                <label class="uk-form-label" for="classifier">Custom Classifier</label>
+                 <div class="uk-form-controls">
+                    <select class="uk-select" id="classifier">
+                        {% if classifiers %}
+                            {% for classifier in classifiers %}
+                                <option>{{ classifier }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">No classifiers to select from</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="uk-form-label" for="title">Window title</label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: pencil"></span>
+                        <input class="uk-input path-search" type="text" id="title" placeholder="Title" autocomplete="off" />
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="uk-margin">
-            <label class="uk-form-label" for="inputVideoPath">Input video path</label>
-            <label class="uk-form-label uk-text-danger" id="inputVideoPathLabel"></label>
-            <div class="uk-form-controls">
-                <div class="uk-inline uk-width-1-1">
-                    <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
-                    <input class="uk-input file-path-search" type="text" id="inputVideoPath" placeholder="/path/to/input-video"
-                           autocomplete="off" oninput="getPathInputs('inputVideoPathLabel', 'inputVideoPath');">
+        <div class="uk-child-width-1-1@s uk-grid-small" uk-grid>
+            <div>
+                <label class="uk-form-label" for="inputVideoPath">Input video path</label>
+                <label class="uk-form-label uk-text-danger" id="inputVideoPathLabel"></label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
+                        <input class="uk-input file-path-search" type="text" id="inputVideoPath" placeholder="/path/to/input-video"
+                               autocomplete="off" oninput="getPathInputs('inputVideoPathLabel', 'inputVideoPath');">
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="uk-margin">
-            <label class="uk-form-label" for="outputVideoName">
-                Output video name ({{ output_path_prefix }}..) <span class="uk-label">.mp4</span>
-            </label>
-            <div class="uk-form-controls">
-                <div class="uk-inline uk-width-1-1">
-                    <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
-                    <input class="uk-input" type="text" id="outputVideoName" placeholder="Output video name"
-                           autocomplete="off">
-                </div>
-            </div>
-        </div>
-
-        <!--  Title is hidden for now (to use it remove 'uk-hidden' class from div-->
-        <div class="uk-margin uk-hidden">
-            <label class="uk-form-label" for="title">Title</label>
-            <div class="uk-form-controls">
-                <div class="uk-inline uk-width-1-1">
-                    <span class="uk-form-icon" uk-icon="icon: pencil"></span>
-                    <input class="uk-input path-search" type="text" id="title" placeholder="Title" autocomplete="off" />
+        <div class="uk-child-width-1-1@s uk-grid-small" uk-grid>
+             <div>
+                <label class="uk-form-label" for="outputVideoName">
+                    Output video name ({{ output_path_prefix }}..) <span class="uk-label">.mp4</span>
+                </label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
+                        <input class="uk-input" type="text" id="outputVideoName" placeholder="Output video name"
+                               autocomplete="off">
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,7 +91,8 @@
         <img id="frame" src="">
     </div>
 
-    <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small" ></div>
+    <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small" >
+    </div>
 
 </div>
 {% endblock %}
