@@ -45,17 +45,18 @@ def testing_page(project):
 @testing_bp.route('/start-testing', methods=['POST'])
 def start_testing():
     data = request.json
-    custom_classifier = data['classifier']
     path_in = data['inputVideoPath'] or ''
     path_out = data['outputVideoName'] or ''
     title = data['title']
     path = data['path']
-    output_folder = data['outputFolder'] or ''
+    custom_classifier = os.path.join(path, data['classifier'])
 
     config = project_utils.load_project_config(path)
-    output_dir = os.path.join(path, output_folder)
+    output_dir = os.path.join(path, 'output_videos')
     os.makedirs(output_dir, exist_ok=True)
-    path_out = os.path.join(output_dir, path_out + '.mp4')
+
+    if path_out:
+        path_out = os.path.join(output_dir, path_out + '.mp4')
 
     ctx = multiprocessing.get_context('spawn')
 
@@ -116,4 +117,4 @@ def stream_video(msg):
     finally:
         queue_testing_output.close()
 
-    emit('success', {'status': 'Complete'})
+    emit('success', {'status': 'Complete', 'image': ""})

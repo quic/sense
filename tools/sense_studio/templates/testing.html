@@ -37,17 +37,48 @@
             </div>
 
             <div>
-                <label class="uk-form-label" for="title">Window title</label>
+                <label class="uk-form-label" for="title">Window Title</label>
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: pencil"></span>
-                        <input class="uk-input path-search" type="text" id="title" placeholder="Title" autocomplete="off" />
+                        <input class="uk-input" type="text" id="title" placeholder="Title" autocomplete="off" />
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="uk-child-width-1-1@s uk-grid-small" uk-grid>
+            <div>
+                <label class="uk-form-label">Choose Input Source</label>
+                 <div class="uk-form-controls">
+                     <div class="uk-inline uk-width-1-1">
+                        <label>
+                            <input class="uk-radio" type="radio" name="inputSource" value="0" onclick="toggleInputVideoField();" checked>
+                            &nbsp;&nbsp;Use Webcam
+                        </label>
+                        <label class="uk-margin-large-left">
+                            <input class="uk-radio" type="radio" name="inputSource" value="1" onclick="toggleInputVideoField();">
+                            &nbsp;&nbsp;Input Video
+                        </label>
+                     </div>
+                </div>
+            </div>
+
+            <!-- TODO: Check if needed or not -->
+<!--            <div>-->
+<!--                 <div class="uk-form-controls uk-form-large uk-hidden">-->
+<!--                     <div class="uk-width-1-1 uk-margin-small-top">-->
+<!--                        <label>-->
+<!--                            <input class="uk-checkbox" type="checkbox" name="saveVideo" onclick="toggleOutputVideoField();">-->
+<!--                            &nbsp;&nbsp;Save Output Video-->
+<!--                        </label>-->
+<!--                     </div>-->
+<!--                </div>-->
+<!--            </div>-->
+        </div>
+
+
+        <div id="inputVideoDiv" class="uk-child-width-1-1@s uk-grid-small uk-hidden" uk-grid>
             <div>
                 <label class="uk-form-label" for="inputVideoPath">Input video path</label>
                 <label class="uk-form-label uk-text-danger" id="inputVideoPathLabel"></label>
@@ -61,7 +92,7 @@
             </div>
         </div>
 
-        <div class="uk-child-width-1-1@s uk-grid-small" uk-grid>
+        <div id="outputVideoDiv" class="uk-child-width-1-1@s uk-grid-small uk-hidden" uk-grid>
              <div>
                 <label class="uk-form-label" for="outputVideoName">
                     Output video name ({{ output_path_prefix }}..) <span class="uk-label">.mp4</span>
@@ -87,8 +118,11 @@
     </form>
 
     <!--    Output video streaming frame-wise (Automatically filled) -->
-    <div id="videoStream" class="uk-margin uk-text-center uk-hidden">
-        <img id="frame" src="">
+    <div id="videoStream" class="uk-margin uk-text-center">
+        <h4> Output Video Stream</h4>
+        <div class="uk-section uk-section-muted uk-padding-remove-vertical uk-inline">
+            <img id="frame" src="" height="480" width="640">
+        </div>
     </div>
 
     <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small" >
