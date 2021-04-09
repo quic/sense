@@ -27,7 +27,7 @@ def training_page(project):
     project = urllib.parse.unquote(project)
     path = utils.lookup_project_path(project)
     output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
-    return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
+    return render_template('training.html', project=project, path=path, models=utils.backbone_models(),
                            output_path_prefix=output_path_prefix)
 
 

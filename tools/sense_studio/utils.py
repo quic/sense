@@ -19,14 +19,20 @@ ALL_SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedMobileNetV2', 'lite', []),
 ]
 
-SUPPORTED_MODEL_CONFIGURATIONS = [i for i in ALL_SUPPORTED_MODEL_CONFIGURATIONS if i.model_exist() is True]
 
-BACKBONE_MODELS = [model_name.combined_model_name for model_name in SUPPORTED_MODEL_CONFIGURATIONS]
+def supported_model_configurations():
+    support = [i for i in ALL_SUPPORTED_MODEL_CONFIGURATIONS if i.model_exist() is True]
+    return support
+
+
+def backbone_models():
+    backbones = [model_name.combined_model_name for model_name in supported_model_configurations()]
+    return backbones
 
 
 def load_feature_extractor(project_path):
     # Load weights
-    model_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
+    model_config, weights = get_relevant_weights(supported_model_configurations())
 
     # Setup backbone network
     backbone_network = build_backbone_network(model_config, weights['backbone'])

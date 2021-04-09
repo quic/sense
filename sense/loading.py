@@ -55,10 +55,16 @@ class ModelConfig:
 
         self.feature_converters = feature_converters
 
-    def model_exist(self):
+    def model_weights(self):
         model_weights = MODELS[self.model_name][self.version]
         path_weights = {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
+        path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
         files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
+
+        return path_weights, path_weights_string, files_exist
+
+    def model_exist(self):
+        _, _, files_exist = self.model_weights()
 
         if files_exist:
             return True
@@ -66,11 +72,8 @@ class ModelConfig:
             return False
 
     def get_weights(self, training_logs=None):
-        model_weights = MODELS[self.model_name][self.version]
-        path_weights = {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
-        path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
+        path_weights, path_weights_string, files_exist = self.model_weights()
 
-        files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
         if files_exist or running_on_travis():
             print(f'Weights found:\n{path_weights_string}')
             if training_logs:
