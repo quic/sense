@@ -5,6 +5,8 @@ import os
 import queue
 import urllib
 
+from typing import Optional
+
 import cv2
 from flask import Blueprint
 from flask import jsonify
@@ -20,8 +22,9 @@ from tools.sense_studio import socketio
 
 testing_bp = Blueprint('testing_bp', __name__)
 
-test_process = None
-queue_testing_output = None
+test_process: Optional[multiprocessing.Process] = None
+queue_testing_output: Optional[multiprocessing.Queue] = None
+queue_signal: Optional[multiprocessing.Queue] = None
 
 
 @testing_bp.route('/<string:project>', methods=['GET'])
@@ -61,7 +64,9 @@ def start_testing():
     ctx = multiprocessing.get_context('spawn')
 
     global queue_testing_output
+    global queue_signal
     queue_testing_output = ctx.Queue()
+    queue_signal = ctx.Queue()
 
     testing_kwargs = {
         'path_in': path_in,
@@ -70,6 +75,7 @@ def start_testing():
         'title': title,
         'use_gpu': config['use_gpu'],
         'video_frames': queue_testing_output.put,
+        'signal_queue': queue_signal,
     }
 
     global test_process
@@ -82,9 +88,16 @@ def start_testing():
 @testing_bp.route('/cancel-testing')
 def cancel_testing():
     global test_process
+    global queue_signal
     if test_process:
+        # Send signal to stop inference
+        queue_signal.put(-1)
+
+        # Wait until process is complete
+        test_process.join()
         test_process.terminate()
         test_process = None
+        queue_signal.close()
 
     return jsonify(success=True)
 
