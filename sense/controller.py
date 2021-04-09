@@ -52,7 +52,7 @@ class Controller:
         :param use_gpu:
             If True, run the model on the GPU
         :param signal_queue:
-            If value in queue -1, stop the model inference
+            Queue for signalling to stop model inference. (If signal = -1, stop inference)
         """
         self.inference_engine = InferenceEngine(neural_network, use_gpu=use_gpu)
         video_source = VideoSource(
