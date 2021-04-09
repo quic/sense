@@ -207,7 +207,8 @@ class DisplayClassnameOverlay(BaseDisplay):
             duration: float = 2.,
             font_scale: float = 3.,
             thickness: int = 2,
-            border_size: int = 50,
+            border_size_top: int = 50,
+            border_size_right: int = 0,
             **kwargs
     ):
         """
@@ -228,7 +229,8 @@ class DisplayClassnameOverlay(BaseDisplay):
         self.duration = duration
         self.font_scale = font_scale
         self.thickness = thickness
-        self.border_size = border_size
+        self.border_size_top = border_size_top
+        self.border_size_right = border_size_right
 
         self._current_class_name = None
         self._start_time = None
@@ -241,10 +243,11 @@ class DisplayClassnameOverlay(BaseDisplay):
         text_size = cv2.getTextSize(text, FONT, font_scale, self.thickness)[0]
 
         height, width, _ = img.shape
-        height -= self.border_size
+        width -= self.border_size_right
+        height -= self.border_size_top
 
         x = int((width - text_size[0]) / 2)
-        y = int((height + text_size[1]) / 2) + self.border_size
+        y = int((height + text_size[1]) / 2) + self.border_size_top
 
         return x, y
 
@@ -300,12 +303,60 @@ class DisplayClassnameOverlay(BaseDisplay):
         return time.perf_counter()
 
 
+class DisplayPredictionBarGraph(BaseDisplay):
+    def __init__(
+            self,
+            keys: List[str],
+            thresholds: Dict[str, float] = None,
+            bar_width: int = 100,
+            display_counts: bool = False,
+            **kwargs):
+        super().__init__(**kwargs)
+        self.keys = keys
+        self.thresholds = thresholds or {}
+        self.bar_width = bar_width
+        self.display_counts = display_counts
+
+    def display(self, img, display_data):
+        results = dict(display_data['sorted_predictions'])
+
+        for index, key in enumerate(self.keys):
+            proba = results[key]
+            size_text = cv2.getTextSize(key, FONT, 1.2, 1)[0]
+            x_text = self.x_offset - size_text[0]
+            x_bar_left = self.x_offset + 10
+            x_bar_right = x_bar_left + int(self.bar_width * proba)
+            y_pos = 25 * (index + 1) + self.y_offset
+            # determine color of the bar
+            if proba > self.thresholds.get(key, 1.):
+                bar_color = (0, 255, 0)  # bright green
+            else:
+                bar_color = (0, 128, 0)  # darker green
+            # display key name
+            put_text(img, key, (x_text, y_pos), font_scale=1.2)
+            # display bar next to key name
+            cv2.line(img, (x_bar_left, y_pos - 5), (x_bar_right, y_pos - 5),
+                     bar_color, 10, cv2.LINE_AA)
+            # display proba value next to bar
+            put_text(img, f"{proba:.2f}", (x_bar_right + 10, y_pos), font_scale=1.2)
+            # display event counts
+            if self.display_counts:
+                count = display_data[key]
+                put_text(img, f"{count}", (x_bar_left + self.bar_width + 100, y_pos), font_scale=1.2)
+
+        return img
+
+
 class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
     """
-    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30,
-                 window_size: Tuple[int, int] = (480, 640)):
+    def __init__(
+            self,
+            title: str, display_ops: List[BaseDisplay],
+            border_size_top: int = 30,
+            border_size_right: int = 0,
+            window_size: Tuple[int, int] = (480, 640)):
         """
         :param title:
             Title of the image frame on display.
@@ -323,9 +374,12 @@ class DisplayResults:
         """
         self.window_size = window_size
         self._window_title = 'Real-time SenseNet'
-        self.border_size = border_size
+        self.border_size_top = border_size_top
+        self.border_size_right = border_size_right
         cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_KEEPRATIO)
-        cv2.resizeWindow(self._window_title, self.window_size[1], self.window_size[0] + self.border_size)
+        cv2.resizeWindow(self._window_title,
+                         self.window_size[1] + self.border_size_right,
+                         self.window_size[0] + self.border_size_top)
         self.title = title
         self.display_ops = display_ops
 
@@ -381,7 +435,10 @@ class DisplayResults:
         #   - bottom: none
         #   - left-right: so that the width is equal to window_size[1]
         lr_pad = max(round((self.window_size[1] - new_width) / 2), 0)
-        img = cv2.copyMakeBorder(img, self.border_size, 0, lr_pad, lr_pad, cv2.BORDER_CONSTANT)
+        img = cv2.copyMakeBorder(img,
+                                 self.border_size_top, 0,
+                                 lr_pad, lr_pad + self.border_size_right,
+                                 cv2.BORDER_CONSTANT)
         return img
 
     def clean_up(self):

@@ -24,10 +24,13 @@ from docopt import docopt
 
 import sense.display
 from sense.controller import Controller
+from sense.downstream_tasks.gesture_detection import LAB2INT
 from sense.downstream_tasks.gesture_detection import INT2LAB
+from sense.downstream_tasks.gesture_detection import ENABLED_LABELS
 from sense.downstream_tasks.gesture_detection import LAB_THRESHOLDS
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
+from sense.downstream_tasks.postprocess import EventCounter
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import get_relevant_weights
 from sense.loading import build_backbone_network
@@ -73,18 +76,30 @@ if __name__ == "__main__":
     postprocessor = [
         PostprocessClassificationOutput(INT2LAB, smoothing=1)
     ]
+    postprocessor += [
+        EventCounter(key, LAB2INT[key], LAB_THRESHOLDS[key]) for key in ENABLED_LABELS
+    ]
 
-    border_size = 30
+    border_size_top = 0
+    border_size_right = 500
 
     display_ops = [
         sense.display.DisplayFPS(expected_camera_fps=net.fps,
                                  expected_inference_fps=net.fps / net.step_size),
-        sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0., x_offset=500),
         sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS,
-                                              border_size=border_size if not title else border_size + 50,
-                                              duration=1),
+                                              duration=1,
+                                              border_size_top=border_size_top if not title else border_size_top + 50,
+                                              border_size_right=border_size_right),
+        sense.display.DisplayPredictionBarGraph(ENABLED_LABELS,
+                                                LAB_THRESHOLDS,
+                                                x_offset=900,
+                                                y_offset=100,
+                                                display_counts=True)
     ]
-    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops)
+    display_results = sense.display.DisplayResults(title=title,
+                                                   display_ops=display_ops,
+                                                   border_size_top=border_size_top,
+                                                   border_size_right=border_size_right)
 
     # Run live inference
     controller = Controller(

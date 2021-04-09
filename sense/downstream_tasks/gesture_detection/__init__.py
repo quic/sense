@@ -53,4 +53,4 @@ ENABLED_LABELS = [
     "Thumb Down",
     "Thumb Up",
 ]
-LAB_THRESHOLDS = {key: 0.5 if key in ENABLED_LABELS else 1. for key in LAB2INT}
+LAB_THRESHOLDS = {key: 0.6 if key in ENABLED_LABELS else 1. for key in LAB2INT}
