@@ -31,7 +31,7 @@ def training_page(project):
     project_config = project_utils.load_project_config(path)
     output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
     return render_template('training.html', project=project, path=path, models=utils.backbone_models(),
-                           output_path_prefix=output_path_prefix)
+                           output_path_prefix=output_path_prefix, project_config=project_config)
 
 
 @training_bp.route('/start-training', methods=['POST'])
