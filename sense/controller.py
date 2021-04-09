@@ -1,3 +1,6 @@
+import multiprocessing
+import queue
+
 from collections import Callable
 from typing import List
 from typing import Optional
@@ -24,7 +27,8 @@ class Controller:
             camera_id: int = 0,
             path_in: str = Optional[None],
             path_out: str = Optional[None],
-            use_gpu: bool = True):
+            use_gpu: bool = True,
+            signal_queue: Optional[multiprocessing.Queue] = None):
         """
         :param neural_network:
             The neural network that produces the predictions for the camera image.
@@ -47,6 +51,8 @@ class Controller:
             If provided, store the captured video in a file in this location
         :param use_gpu:
             If True, run the model on the GPU
+        :param signal_queue:
+            If value in queue -1, stop the model inference
         """
         self.inference_engine = InferenceEngine(neural_network, use_gpu=use_gpu)
         video_source = VideoSource(
@@ -70,6 +76,7 @@ class Controller:
         self.path_out = path_out
         self.video_recorder = None  # created in `display_prediction`
         self.video_recorder_raw = None  # created in `display_prediction`
+        self.signal_queue = signal_queue
 
     def run_inference(self):
         runtime_error = None
@@ -116,6 +123,15 @@ class Controller:
             # Press escape to exit
             if cv2.waitKey(1) == 27:
                 break
+
+            # Press cancel on sense-studio testing page to stop inference
+            if self.signal_queue:
+                try:
+                    if self.signal_queue.get_nowait() == -1:
+                        break
+                except queue.Empty:
+                    # No signal received during the last second
+                    pass
 
         self._stop_inference()
 
