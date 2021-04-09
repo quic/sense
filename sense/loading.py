@@ -71,13 +71,11 @@ class ModelConfig:
         else:
             return False
 
-    def get_weights(self, training_logs=None):
+    def get_weights(self, log_fn=print):
         path_weights, path_weights_string, files_exist = self.model_weights()
 
         if files_exist or running_on_travis():
-            print(f'Weights found:\n{path_weights_string}')
-            if training_logs:
-                training_logs.put(f'Weights found:\n{path_weights_string}')
+            log_fn(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
                 load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
@@ -85,14 +83,12 @@ class ModelConfig:
 
             return weights
         else:
-            print(f'Could not find at least one of the following files:\n{path_weights_string}')
-            if training_logs:
-                training_logs.put(f'Could not find at least one of the following files:\n{path_weights_string}')
+            log_fn(f'Could not find at least one of the following files:\n{path_weights_string}')
             return None
 
 
 def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_name=None,
-                         requested_version=None, training_logs=None) -> Optional[Tuple[ModelConfig, dict]]:
+                         requested_version=None, log_fn=print) -> Optional[Tuple[ModelConfig, dict]]:
     """
     Returns the model weights for the appropriate backbone and classifier head based on
     a list of compatible model configs. The first available config is returned.
@@ -103,8 +99,8 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         Name of a specific model to use (i.e. StridedInflatedEfficientNet or StridedInflatedMobileNetV2)
     :param requested_version:
         Version of the model to use (i.e. pro or lite)
-    :param training_logs:
-        Queue to save output print statements (for multiprocessing in sense_studio)
+    :param log_fn:
+        Function to use for logging messages
     :return:
         First available model config and dictionary of model weights
     """
@@ -119,27 +115,22 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
 
     # Check if not empty
     if not model_config_list:
-        if training_logs:
-            training_logs.put(f'ERROR - Could not find a model configuration matching requested parameters:\n'
-                              f'\tmodel_name={requested_model_name}\n'
-                              f'\tversion={requested_version}')
-        raise Exception(f'ERROR - Could not find a model configuration matching requested parameters:\n'
-                        f'\tmodel_name={requested_model_name}\n'
-                        f'\tversion={requested_version}')
+        msg = (f'ERROR - Could not find a model configuration matching requested parameters:\n'
+               f'\tmodel_name={requested_model_name}\n'
+               f'\tversion={requested_version}')
+        log_fn(msg)
+        raise Exception(msg)
 
     for model_config in model_config_list:
-        weights = model_config.get_weights(training_logs)
+        weights = model_config.get_weights(log_fn)
 
         if weights is not None:
             return model_config, weights
 
-    if training_logs:
-        training_logs.put('ERROR - Weights files missing. To download, please go to '
-                          'https://20bn.com/licensing/sdk/evaluation and follow the '
-                          'instructions.')
-    raise Exception('ERROR - Weights files missing. To download, please go to '
-                    'https://20bn.com/licensing/sdk/evaluation and follow the '
-                    'instructions.')
+    msg = ('ERROR - Weights files missing. To download, please go to https://20bn.com/licensing/sdk/evaluation and'
+           'follow the instructions.')
+    log_fn(msg)
+    raise Exception(msg)
 
 
 def load_backbone_model_from_config(checkpoint_path: str) -> Tuple[ModelConfig, dict]:

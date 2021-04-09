@@ -1,29 +1,39 @@
-let socket = null;
 
 function addTerminalMessage(message) {
-    $("#terminal").append(`<p class='monospace-font'><b>${message}</b></p>`);
-    $('#terminal').scrollTop($('#terminal')[0].scrollHeight);
+    let terminal = document.getElementById('terminal');
+    terminal.insertAdjacentHTML('beforeend', `<div class='monospace-font'><b>${message}</b></div>`);
+    terminal.scrollTop = terminal.scrollHeight;
 }
 
 
-function startTraining(url) {
+async function startTraining(url) {
 
-    let project = $('#project').val();
-    let path = $('#path').val();
-    let layersToFinetune = $('#layersToFinetune').val();
-    let outputFolder = $('#outputFolder').val();
-    let modelName = $('#modelName').val();
-    let epochs = $('#epochs').val();
+    let project = document.getElementById('project').value;
+    let path = document.getElementById('path').value;
+    let layersToFinetune = document.getElementById('layersToFinetune').value;
+    let outputFolder = document.getElementById('outputFolder').value;
+    let modelName = document.getElementById('modelName').value;
+    let epochs = document.getElementById('epochs').value;
 
-    socket = io.connect('/connect-training-logs');
+    let terminal = document.getElementById('terminal');
+    let buttonTrain = document.getElementById('btnTrain');
+    let buttonCancelTrain = document.getElementById('btnCancelTrain');
+    let confusionMatrix = document.getElementById('confusionMatrix');
+
+    data = {
+        path: path,
+        layersToFinetune: layersToFinetune,
+        outputFolder: outputFolder,
+        modelName: modelName,
+        epochs: epochs,
+    };
+    await asyncRequest(url, data);
+
+    let socket = io.connect('/connect-training-logs');
     socket.on('connect', function() {
         console.log('Socket Connected');
         socket.emit('connect_training_logs',
                     {status: 'Socket Connected', project: project, outputFolder: outputFolder});
-    });
-
-    socket.on('status', function(message) {
-        console.log(message.status);
     });
 
     socket.on('training_logs', function(message) {
@@ -35,10 +45,14 @@ function startTraining(url) {
             socket.disconnect();
             console.log('Socket Disconnected');
 
-            $('#btnTrain').removeClass('disabled');
-            $('#btnCancelTrain').addClass('disabled');
-            $('#confusionMatrix').append(`<img src=${message.img_path} alt='Confusion matrix' />`);
-            $('#confusionMatrix').show();
+            buttonTrain.disabled = false;
+            buttonCancelTrain.disabled = true;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                confusionMatrix.src = `data:image/png;base64,${e.target.result}`;
+            };
+            reader.readAsBinaryString(new Blob([message.img]));
         }
     });
 
@@ -47,37 +61,25 @@ function startTraining(url) {
             socket.disconnect();
             console.log('Socket Disconnected');
 
-            $('#btnTrain').removeClass('disabled');
-            $('#btnCancelTrain').addClass('disabled');
+            buttonTrain.disabled = false;
+            buttonCancelTrain.disabled = true;
         }
     });
 
-    $('#btnTrain').addClass('disabled');
-    $('#btnCancelTrain').removeClass('disabled');
-    $('#terminal').html('');
-    $('#confusionMatrix').html('');
+    buttonTrain.disabled = true;
+    buttonCancelTrain.disabled = false;
+    terminal.innerHTML = '';
+    confusionMatrix.src = '';
 
     addTerminalMessage('Training started...');
-
-    data = {
-        path: path,
-        layersToFinetune: layersToFinetune,
-        outputFolder: outputFolder,
-        modelName: modelName,
-        epochs: epochs,
-    };
-    syncRequest(url, data);
 }
 
 
-function cancelTraining(url) {
-    syncRequest(url);
+async function cancelTraining(url) {
+    await asyncRequest(url);
 
-    socket.disconnect();
-    console.log('Socket Disconnected');
-
-    $('#btnTrain').removeClass('disabled');
-    $('#btnCancelTrain').addClass('disabled');
+    document.getElementById('btnTrain').disabled = false;
+    document.getElementById('btnCancelTrain').disabled = true;
 
     addTerminalMessage('Training cancelled.');
 }

@@ -1,30 +1,79 @@
 {% extends 'skeleton.html' %}
 
-{% block title %} Annotate Frames {% endblock %}
+{% block title %} Frame Annotation {% endblock %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
 {% endblock navigation %}
 
 {% block main %}
-<div id="main" class="ui main container">
-    <h1 class="ui header">Annotate Frames</h1>
-    <h2 class="ui header">Video: {{ video_name }}</h2>
-    <div class="flex-container">
+<div class="uk-container">
+    <div class="uk-margin-large-top" uk-grid>
+        <div class="uk-width-expand">
+            <h1 class="uk-heading-medium uk-margin-remove-bottom">Frame Annotation</h1>
+            <h1 class="uk-margin-remove-top uk-margin-remove-bottom">
+                <span uk-icon="icon: play"></span> {{ video_name }}
+            </h1>
+            <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+                <div>
+                    <span uk-icon="icon: folder"></span> {{ path }}
+                </div>
+                <div>
+                    <span uk-icon="icon: bookmark"></span> {{ label }}
+                </div>
+                <div>
+                    <span uk-icon="icon: git-fork"></span> {{ split }}
+                </div>
+            </div>
+        </div>
+
+        <div class="uk-width-medium">
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+                <h3 class="uk-card-title">Settings</h3>
+
+                <div>
+                    <label uk-tooltip="Train a simple logistic regression model live on temporal annotations and show current predictions">
+                        <input type="checkbox" class="uk-checkbox"
+                               {% if project_config.assisted_tagging %} checked {% endif %}
+                               onclick="toggleAssistedTagging('{{ path }}', '{{ split }}', '{{ label }}');">
+                        Assisted Tagging
+                    </label>
+                </div>
+
+                <div class="uk-margin-small-top">
+                    <label uk-tooltip="Use a GPU for computing features for assisted tagging">
+                        <input type="checkbox" id="gpuInput" class="uk-checkbox"
+                               {% if project_config.use_gpu %} checked {% endif %}
+                               onclick="toggleGPU('{{ path }}');">
+                        Use GPU
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="uk-margin" uk-grid>
         {% if idx > 0 %}
-            <a class="ui left floated button mt mb" href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx-1) }}">
-                <i class="left arrow icon"></i>
+        <div class="uk-width-auto">
+            <a class="uk-button uk-button-default"
+               href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx-1) }}">
+                <span uk-icon="chevron-left"></span>
                 Previous
             </a>
+        </div>
         {% endif %}
-        <div class="flex-filler"></div>
+        <div class="uk-width-expand"></div>
         {% if idx < n_videos - 1 %}
-            <a class="ui right floated button mt mb" href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx+1) }}">
+        <div class="uk-width-auto">
+            <a class="uk-button uk-button-default"
+               href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=idx+1) }}">
                 Next
-                <i class="right arrow icon"></i>
+                <span uk-icon="chevron-right"></span>
             </a>
+        </div>
         {% endif %}
     </div>
+
     <form method="POST" action="{{ url_for('annotation_bp.submit_annotation') }}">
         <input type="hidden" name="fps" value="{{ fps }}">
         <input type="hidden" name="idx" value="{{ idx }}">
@@ -34,60 +83,74 @@
         <input type="hidden" name="label" value="{{ label }}">
         <input type="hidden" name="video" value="{{ video_name }}">
         <input type="hidden" name="n_images" value="{{ n_images }}">
-        <div class="centered ui cards">
+
+        <div class="uk-child-width-1-2@s uk-child-width-1-3@m uk-child-width-1-4@l" uk-grid>
             {% for img, pred_class in images %}
+            <div>
                 <input type="hidden" id="{{ loop.index0 }}_tag" name="{{ loop.index0 }}_tag" value="0">
-                <div class="card">
-                    <div class="image">
+                <div class="uk-card uk-card-default">
+                    <div class="uk-card-media-top">
                         <img src="{{ url_for('annotation_bp.download_file', project=project, split=split, label=label, video_name=video_name, img_file=img) }}">
                     </div>
-                    <div class="content">
-                        {% if pred_class == 0 %}
-                            <div class="ui large grey label prediction-label">
-                                Background
-                                <div class="detail">
-                                    predicted
+                    <div class="uk-card-body">
+                        <div class="{{ 'uk-hidden' if not project_config.assisted_tagging }}">
+                            {% if pred_class == 0 %}
+                                <div class="uk-label label-grey">
+                                    <span class="uk-text-bolder">
+                                        Background
+                                    </span>
+                                    <span class="uk-text-lowercase uk-text-small">
+                                        predicted
+                                    </span>
                                 </div>
-                            </div>
-                        {% elif pred_class == 1 %}
-                            <div class="ui large blue label prediction-label">
-                                {{ tags[0] }}
-                                <div class="detail">
-                                    predicted
+                            {% elif pred_class == 1 %}
+                                <div class="uk-label label-blue">
+                                    <span class="uk-text-bolder">
+                                        {{ tags[0] }}
+                                    </span>
+                                    <span class=".uk-text-meta">
+                                        predicted
+                                    </span>
                                 </div>
-                            </div>
-                        {% elif pred_class == 2 %}
-                            <div class="ui large green label prediction-label">
-                                {{ tags[1] }}
-                                <div class="detail">
-                                    predicted
+                            {% elif pred_class == 2 %}
+                                <div class="uk-label label-green">
+                                    <span class="uk-text-bolder">
+                                        {{ tags[1] }}
+                                    </span>
+                                    <span class="uk-text-lowercase uk-text-small">
+                                        predicted
+                                    </span>
                                 </div>
+                            {% endif %}
+                        </div>
+                        <div class="uk-grid-collapse uk-margin">
+                            <div>
+                                <button type="button" class="uk-button uk-width-1-1"
+                                        id="{{ loop.index0 }}_tag0" onclick="assignTag({{ loop.index0 }}, 0);">
+                                    Background
+                                </button>
                             </div>
-                        {% endif %}
-                        <div class="ui vertical buttons">
-                            <button type="button" class="ui grey button" id="{{ loop.index0 }}_tag0" onclick="assignTag({{ loop.index0 }}, 0);">
-                                Background
-                            </button>
-                            <button type="button" class="ui button" id="{{ loop.index0 }}_tag1" onclick="assignTag({{ loop.index0 }}, 1);">
-                                {{ tags[0] }}
-                            </button>
-                            <button type="button" class="ui button" id="{{ loop.index0 }}_tag2" onclick="assignTag({{ loop.index0 }}, 2);">
-                                {{ tags[1] }}
-                            </button>
+                            <div>
+                                <button type="button" class="uk-button uk-width-1-1"
+                                        id="{{ loop.index0 }}_tag1" onclick="assignTag({{ loop.index0 }}, 1);">
+                                    {{ tags[0] }}
+                                </button>
+                            </div>
+                            <div>
+                                <button type="button" class="uk-button uk-width-1-1"
+                                        id="{{ loop.index0 }}_tag2" onclick="assignTag({{ loop.index0 }}, 2);">
+                                    {{ tags[1] }}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
             {% endfor %}
         </div>
-        <button class="ui button mt" type="submit">Submit</button>
-    </form>
-    <form method="POST" action="{{ url_for('annotation_bp.train_logreg') }}">
-        <input type="hidden" name="idx" value="{{ idx }}">
-        <input type="hidden" name="path" value="{{ path }}">
-        <input type="hidden" name="project" value="{{ project }}">
-        <input type="hidden" name="split" value="{{ split }}">
-        <input type="hidden" name="label" value="{{ label }}">
-        <button class="ui button mt" type="submit">Retrain Model</button>
+        <div class="uk-width-1-1 uk-text-center uk-margin">
+            <button class="uk-button uk-button-default uk-button-large" type="submit">Submit</button>
+        </div>
     </form>
 </div>
 {% endblock %}

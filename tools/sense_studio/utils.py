@@ -1,16 +1,16 @@
 import json
+import numpy as np
 import os
+
+from joblib import dump
+from sklearn.linear_model import LogisticRegression
 
 from sense.engine import InferenceEngine
 from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
-from sense.loading import MODELS
-
-MODULE_DIR = os.path.dirname(__file__)
-PROJECTS_OVERVIEW_CONFIG_FILE = os.path.join(MODULE_DIR, 'projects_config.json')
-
-PROJECT_CONFIG_FILE = 'project_config.json'
+from tools import directories
+from tools.sense_studio.project_utils import get_project_setting
 
 ALL_SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', []),
@@ -49,39 +49,6 @@ def is_image_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 
-def load_project_overview_config():
-    if os.path.isfile(PROJECTS_OVERVIEW_CONFIG_FILE):
-        with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'r') as f:
-            projects = json.load(f)
-        return projects
-    else:
-        write_project_overview_config({})
-        return {}
-
-
-def write_project_overview_config(projects):
-    with open(PROJECTS_OVERVIEW_CONFIG_FILE, 'w') as f:
-        json.dump(projects, f, indent=2)
-
-
-def lookup_project_path(project_name):
-    projects = load_project_overview_config()
-    return projects[project_name]['path']
-
-
-def load_project_config(path):
-    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
-    with open(config_path, 'r') as f:
-        config = json.load(f)
-    return config
-
-
-def write_project_config(path, config):
-    config_path = os.path.join(path, PROJECT_CONFIG_FILE)
-    with open(config_path, 'w') as f:
-        json.dump(config, f, indent=2)
-
-
 def get_class_name_and_tags(form_data):
     """
     Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
@@ -98,25 +65,64 @@ def get_class_name_and_tags(form_data):
     return class_name, tag1, tag2
 
 
-def get_class_labels(path):
+def train_logreg(path, split, label):
     """
-    Extract class names from the config.
+    (Re-)Train a logistic regression model on all annotations that have been submitted so far.
     """
-    config = load_project_config(path)
-    return config['classes'].keys()
+    _, model_config = load_feature_extractor(path)
 
+    features_dir = directories.get_features_dir(path, split, model_config, label=label)
+    tags_dir = directories.get_tags_dir(path, split, label)
+    logreg_dir = directories.get_logreg_dir(path, model_config, label)
+    logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
 
-def get_project_setting(path, setting):
-    config = load_project_config(path)
-    return config.get(setting, False)
+    annotations = os.listdir(tags_dir) if os.path.exists(tags_dir) else None
 
+    if not annotations:
+        return
 
-def toggle_project_setting(path, setting):
-    config = load_project_config(path)
-    current_status = config.get(setting, False)
+    features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
+    annotations = [os.path.join(tags_dir, x) for x in annotations]
+    x = []
+    y = []
 
-    new_status = not current_status
-    config[setting] = new_status
-    write_project_config(path, config)
+    class_weight = {0: 0.5}
 
-    return new_status
+    for feature in features:
+        feature = np.load(feature)
+
+        for f in feature:
+            x.append(f.mean(axis=(1, 2)))
+
+    for annotation in annotations:
+        with open(annotation, 'r') as f:
+            annotation = json.load(f)['time_annotation']
+
+        pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
+
+        if len(pos1) > 0:
+            class_weight.update({1: 2})
+
+            for p in pos1:
+                if p + 1 < len(annotation):
+                    annotation[p + 1] = 1
+
+        pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
+
+        if len(pos1) > 0:
+            class_weight.update({2: 2})
+
+            for p in pos1:
+                if p + 1 < len(annotation):
+                    annotation[p + 1] = 2
+
+        for a in annotation:
+            y.append(a)
+
+    x = np.array(x)
+    y = np.array(y)
+
+    if len(class_weight) > 1:
+        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
+        logreg.fit(x, y)
+        dump(logreg, logreg_path)

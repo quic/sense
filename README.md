@@ -237,18 +237,18 @@ In some cases, as few as 2-5 videos per class have been enough to achieve excell
 
 #### Step 3: Training
 
-Once your data is prepared, run this command to train a customized classifier on top of one of our features extractor:
-```shell
-PYTHONPATH=./ python tools/train_classifier.py --path_in=/path/to/your/dataset/ [--use_gpu] [--num_layers_to_finetune=9]
-```
+Once your data is prepared, go to the training page in SenseStudio to train a custom classifier.
+You can specify, which of our pretrained feature extractors should be used and how many of its layers should be
+fine-tuned. Setting this parameter to 0 means that only your new classification head will be trained.
 
 ####  Step 4: Running your model
 
-The training script should produce a checkpoint file called `classifier.checkpoint` at the root of the dataset folder.
+The training script will produce a checkpoint file called `best_classifier.checkpoint` in the 
+`checkpoints/<your-output-folder-name>/` directory of your project.
 You can now run it live using the following script:
 
 ```shell
-PYTHONPATH=./ python tools/run_custom_classifier.py --custom_classifier=/path/to/your/dataset/ [--use_gpu]
+PYTHONPATH=./ python tools/run_custom_classifier.py --custom_classifier=/path/to/your/checkpoint/ [--use_gpu]
 ```
 
 ### Advanced Options
@@ -258,8 +258,8 @@ individually tagged frames that identify the event locally in the video versus t
 label. For instructions on how to prepare your data with temporal annotations, refer to this 
 [page](https://github.com/TwentyBN/sense/wiki/tools#temporal-annotations-tool).
 
-After preparing your dataset with our temporal annotations tool, pass `--temporal_training` as an additional
-flag to the `train_classifier.py` script.
+After preparing the temporal annotations for your dataset in SenseStudio, you can run the training with the
+`Temporal Annotations` flag enabled to train on those frame-wise tags instead of the whole-video classes.
 
 ---
 
