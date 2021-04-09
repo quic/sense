@@ -98,28 +98,23 @@ async function cancelTesting(url){
 function toggleInputVideoField(){
     let inputVideoDiv = document.getElementById('inputVideoDiv');
     let inputSource = document.getElementsByName('inputSource');
-    let outputVideoDiv = document.getElementById('outputVideoDiv');
 
     for (let source of inputSource){
         if (source.value == 0 && source.checked){
             inputVideoDiv.classList.add('uk-hidden');
-            outputVideoDiv.classList.add('uk-hidden');
         } else if(source.value == 1 && source.checked){
             inputVideoDiv.classList.remove('uk-hidden');
-            outputVideoDiv.classList.remove('uk-hidden');
         }
     }
 }
 
-//  TODO: Check if needed or not
+function toggleOutputVideoField(){
+    let outputVideoDiv = document.getElementById('outputVideoDiv');
+    let saveVideo = document.getElementsByName('saveVideo')[0];
 
-//function toggleOutputVideoField(){
-//    let outputVideoDiv = document.getElementById('outputVideoDiv');
-//    let saveVideo = document.getElementsByName('saveVideo')[0];
-//
-//    if (saveVideo.checked){
-//        outputVideoDiv.classList.remove('uk-hidden');
-//    } else{
-//        outputVideoDiv.classList.add('uk-hidden');
-//    }
-//}
+    if (saveVideo.checked){
+        outputVideoDiv.classList.remove('uk-hidden');
+    } else{
+        outputVideoDiv.classList.add('uk-hidden');
+    }
+}
