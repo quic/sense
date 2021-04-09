@@ -128,7 +128,7 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
 class DisplayRepCounts(BaseDisplay):
 
     def __init__(self, y_offset=40, **kwargs):
-        super().__init__(y_offset, **kwargs)
+        super().__init__(y_offset=y_offset, **kwargs)
 
     def display(self, img, display_data):
         counters = display_data['counting']
