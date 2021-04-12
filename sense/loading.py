@@ -55,25 +55,21 @@ class ModelConfig:
 
         self.feature_converters = feature_converters
 
-    def model_weights(self):
+    def check_weight_files(self):
         model_weights = MODELS[self.model_name][self.version]
         path_weights = {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
-        path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
         files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
 
-        return path_weights, path_weights_string, files_exist
+        return path_weights, files_exist
 
-    def model_exist(self):
-        _, _, files_exist = self.model_weights()
+    def weights_available(self):
+        _, files_exist = self.check_weight_files()
+        return files_exist
 
-        if files_exist:
-            return True
-        else:
-            return False
+    def load_weights(self, log_fn=print):
+        path_weights, files_exist = self.check_weight_files()
 
-    def get_weights(self, log_fn=print):
-        path_weights, path_weights_string, files_exist = self.model_weights()
-
+        path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
         if files_exist or running_on_travis():
             log_fn(f'Weights found:\n{path_weights_string}')
             weights = {}
@@ -122,7 +118,7 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         raise Exception(msg)
 
     for model_config in model_config_list:
-        weights = model_config.get_weights(log_fn)
+        weights = model_config.load_weights(log_fn)
 
         if weights is not None:
             return model_config, weights
@@ -147,7 +143,7 @@ def load_backbone_model_from_config(checkpoint_path: str) -> Tuple[ModelConfig, 
         # Assume StridedInflatedEfficientNet-pro was used
         backbone_model_config = ModelConfig('StridedInflatedEfficientNet', 'pro', [])
 
-    return backbone_model_config, backbone_model_config.get_weights()['backbone']
+    return backbone_model_config, backbone_model_config.load_weights()['backbone']
 
 
 def prepend_resources_path(checkpoint_path):

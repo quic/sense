@@ -12,7 +12,7 @@ from sense.loading import ModelConfig
 from tools import directories
 from tools.sense_studio.project_utils import get_project_setting
 
-ALL_SUPPORTED_MODEL_CONFIGURATIONS = [
+SUPPORTED_MODEL_CONFIGURATIONS = [
     ModelConfig('StridedInflatedEfficientNet', 'pro', []),
     ModelConfig('StridedInflatedMobileNetV2', 'pro', []),
     ModelConfig('StridedInflatedEfficientNet', 'lite', []),
@@ -20,19 +20,17 @@ ALL_SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-def supported_model_configurations():
-    support = [i for i in ALL_SUPPORTED_MODEL_CONFIGURATIONS if i.model_exist() is True]
-    return support
-
-
-def backbone_models():
-    backbones = [model_name.combined_model_name for model_name in supported_model_configurations()]
-    return backbones
+def get_available_backbone_models():
+    """
+    Get list of combined model names for all backbone models for which weights can be found in the local resources
+    folder.
+    """
+    return [model.combined_model_name for model in SUPPORTED_MODEL_CONFIGURATIONS if model.weights_available()]
 
 
 def load_feature_extractor(project_path):
     # Load weights
-    model_config, weights = get_relevant_weights(supported_model_configurations())
+    model_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
 
     # Setup backbone network
     backbone_network = build_backbone_network(model_config, weights['backbone'])
