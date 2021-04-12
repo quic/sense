@@ -18,7 +18,6 @@ from sense.engine import InferenceEngine
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
 from tools.sense_studio import utils
-from tools.sense_studio.project_utils import PROJECT_CONFIG_FILE
 
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
