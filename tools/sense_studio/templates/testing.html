@@ -24,7 +24,7 @@
             <div>
                 <label class="uk-form-label" for="classifier">Custom Classifier</label>
                  <div class="uk-form-controls">
-                    <select class="uk-select" id="classifier">
+                    <select class="uk-select {{ 'uk-form-danger' if not classifiers }}" id="classifier">
                         {% if classifiers %}
                             {% for classifier in classifiers %}
                                 <option>{{ classifier }}</option>
