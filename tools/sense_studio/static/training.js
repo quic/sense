@@ -83,3 +83,29 @@ async function cancelTraining(url) {
 
     addTerminalMessage('Training cancelled.');
 }
+
+function updateLayersCount(){
+    let layersToFinetune = document.getElementById('layersToFinetune').value;
+    let numOfLayers = document.getElementById('numOfLayers');
+
+    if (layersToFinetune == 0){
+        numOfLayers.value = "Classification Layer";
+    } else {
+        numOfLayers.value = layersToFinetune;
+    }
+}
+
+function setNumOfLayersToFinetuneSlider(){
+    let modelName = document.getElementById('modelName').value;
+    let numOfLayers = document.getElementById('numOfLayers');
+    let layersToFinetune = document.getElementById('layersToFinetune');
+
+    if (modelName.includes('EfficientNet')) {
+        numOfLayers.value = 9;
+        layersToFinetune.value = 9;
+
+    } else if (modelName.includes('MobileNet')){
+        numOfLayers.value = 5;
+        layersToFinetune.value = 5;
+    }
+}
