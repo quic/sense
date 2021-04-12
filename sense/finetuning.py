@@ -18,6 +18,7 @@ from sense.engine import InferenceEngine
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
 from tools.sense_studio import utils
+from tools.sense_studio.project_utils import PROJECT_CONFIG_FILE
 
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
@@ -116,12 +117,16 @@ def generate_data_loader(project_config, features_dir, tags_dir, label_names, la
 
     # Check if temporal annotations exist for each video
     for label, feature in zip(labels_string, features):
-        tag1, tag2 = project_config['classes'][label]
-        class_mapping = {
-            0: 'background',
-            1: tag1,
-            2: tag2
-        }
+        if project_config:
+            tag1, tag2 = project_config['classes'][label]
+            class_mapping = {0: 'background',
+                             1: tag1,
+                             2: tag2}
+        else:
+            class_mapping = {0: "counting_background",
+                             1: f'{label}_position_1',
+                             2: f'{label}_position_2'}
+
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file) and temporal_annotation_only:
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
