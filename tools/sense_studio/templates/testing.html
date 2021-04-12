@@ -107,7 +107,8 @@
         </div>
 
         <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTest" type="button" tabindex="0"
-                onclick="startTesting('{{ url_for('.start_testing') }}');">
+                onclick="startTesting('{{ url_for('.start_testing') }}');"
+                {% if not classifiers %} disabled {% endif %}>
             Test model
         </button>
         <button class="uk-button uk-button-danger" id="btnCancelTest" type="button" tabindex="1"
