@@ -86,7 +86,8 @@
         </div>
 
         <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTrain" type="button" tabindex="0"
-                onclick="startTraining('{{ url_for('.start_training') }}');">
+                onclick="startTraining('{{ url_for('.start_training') }}');"
+                {% if not models %} disabled {% endif %}>
             Train model
         </button>
         <button class="uk-button uk-button-danger" id="btnCancelTrain" type="button" tabindex="1"
