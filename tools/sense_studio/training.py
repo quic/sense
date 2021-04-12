@@ -30,7 +30,7 @@ def training_page(project):
     path = project_utils.lookup_project_path(project)
     project_config = project_utils.load_project_config(path)
     output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
-    return render_template('training.html', project=project, path=path, models=utils.BACKBONE_MODELS,
+    return render_template('training.html', project=project, path=path, models=utils.get_available_backbone_models(),
                            output_path_prefix=output_path_prefix, project_config=project_config)
 
 
