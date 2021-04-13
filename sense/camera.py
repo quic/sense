@@ -66,6 +66,9 @@ class VideoSource:
         """Return the frame rate of the video source."""
         return self._cam.get(cv2.CAP_PROP_FPS)
 
+    def release(self):
+        self._cam.release()
+
 
 class VideoStream(Thread):
     """

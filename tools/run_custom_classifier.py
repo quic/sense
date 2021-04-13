@@ -31,6 +31,7 @@ from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import build_backbone_network
 from sense.loading import load_backbone_model_from_config
 from sense.loading import update_backbone_weights
+from sense.camera import VideoSource
 
 
 if __name__ == "__main__":
@@ -66,6 +67,9 @@ if __name__ == "__main__":
 
     # Concatenate feature extractor and met converter
     net = Pipe(backbone_network, gesture_classifier)
+    video = VideoSource(filename=path_in, camera_id=camera_id)
+    net.feature_extractor.fps = video.get_fps()
+    video.release()
 
     postprocessor = [
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
