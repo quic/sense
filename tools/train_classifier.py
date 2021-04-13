@@ -46,7 +46,7 @@ from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
 from sense.loading import update_backbone_weights
-from tools.sense_studio.project_utils import PROJECT_CONFIG_FILE
+from tools.sense_studio.project_utils import load_project_config
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
 
@@ -62,7 +62,6 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 def train_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
                 use_gpu=True, overwrite=True, temporal_training=None, resume=False, log_fn=print,
                 confmat_event=None):
-    project_config = None
     os.makedirs(path_out, exist_ok=True)
 
     # Check for existing files
@@ -126,20 +125,17 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     # Find label names
     label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
     label_names = [x for x in label_names if not x.startswith('.')]
+    label_names_temporal = ['background']
 
-    if os.path.exists(os.path.join(path_in, PROJECT_CONFIG_FILE)):
-        with open(os.path.join(path_in, PROJECT_CONFIG_FILE)) as f:
-            project_config = json.load(f)
-
-        label_names_temporal = ['background']
+    project_config = load_project_config(path_in)
+    if project_config:
         for temporal_tags in project_config['classes'].values():
             label_names_temporal.extend(temporal_tags)
-        label_names_temporal = sorted(set(label_names_temporal))
-
     else:
-        label_names_temporal = ['counting_background']
         for label in label_names:
-            label_names_temporal += [f'{label}_position_1', f'{label}_position_2']
+            label_names_temporal.extend([f'{label}_tag1', f'{label}_tag2'])
+
+    label_names_temporal = sorted(set(label_names_temporal))
 
     label2int_temporal_annotation = {name: index for index, name in enumerate(label_names_temporal)}
     label2int = {name: index for index, name in enumerate(label_names)}
@@ -149,15 +145,34 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     # Create the data loaders
     features_dir = directories.get_features_dir(path_in, 'train', selected_config, num_layers_to_finetune)
     tags_dir = directories.get_tags_dir(path_in, 'train')
-    train_loader = generate_data_loader(project_config, features_dir, tags_dir, label_names, label2int,
-                                        label2int_temporal_annotation, num_timesteps=num_timesteps,
-                                        stride=extractor_stride, temporal_annotation_only=temporal_training)
+    train_loader = generate_data_loader(
+        project_config,
+        features_dir,
+        tags_dir,
+        label_names,
+        label2int,
+        label2int_temporal_annotation,
+        num_timesteps=num_timesteps,
+        stride=extractor_stride,
+        temporal_annotation_only=temporal_training,
+    )
 
     features_dir = directories.get_features_dir(path_in, 'valid', selected_config, num_layers_to_finetune)
     tags_dir = directories.get_tags_dir(path_in, 'valid')
-    valid_loader = generate_data_loader(project_config, features_dir, tags_dir, label_names, label2int,
-                                        label2int_temporal_annotation, num_timesteps=None, batch_size=1, shuffle=False,
-                                        stride=extractor_stride, temporal_annotation_only=temporal_training)
+    valid_loader = generate_data_loader(
+        project_config,
+        features_dir,
+        tags_dir,
+        label_names,
+        label2int,
+        label2int_temporal_annotation,
+        num_timesteps=None,
+        batch_size=1,
+        shuffle=False,
+        stride=extractor_stride,
+        temporal_annotation_only=temporal_training,
+    )
+
     # Check if the data is loaded fully
     if not train_loader or not valid_loader:
         log_fn("ERROR - \n "

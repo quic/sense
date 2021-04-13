@@ -116,18 +116,15 @@ def generate_data_loader(project_config, features_dir, tags_dir, label_names, la
 
     # Check if temporal annotations exist for each video
     for label, feature in zip(labels_string, features):
-        if project_config:
-            tag1, tag2 = project_config['classes'][label]
-            class_mapping = {0: 'background',
-                             1: tag1,
-                             2: tag2}
-        else:
-            class_mapping = {0: "counting_background",
-                             1: f'{label}_position_1',
-                             2: f'{label}_position_2'}
-
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file) and temporal_annotation_only:
+            if project_config:
+                tag1, tag2 = project_config['classes'][label]
+            else:
+                tag1 = f'{label}_tag1'
+                tag2 = f'{label}_tag2'
+            class_mapping = {0: 'background', 1: tag1, 2: tag2}
+
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
             annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
             temporal_annotation.append(annotation)
