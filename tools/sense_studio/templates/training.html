@@ -22,9 +22,9 @@
                 <label class="uk-form-label" for="modelName">Backbone Model</label>
                 <div class="uk-form-controls uk-width-1-1">
                     <select class="uk-select {{ 'uk-form-danger' if not models }}" id="modelName"
-                            onchange="setNumOfLayersToFinetuneSlider();" required>
+                            onchange="setNumOfLayersToFinetuneSlider();">
                         {% if models %}
-                            <option value="" disabled selected hidden>Choose Model ...</option>
+                            <option value="" disabled selected hidden>Choose Model...</option>
                             {% for model in models %}
                                 <option>{{ model }}</option>
                             {% endfor %}

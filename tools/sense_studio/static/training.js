@@ -12,7 +12,7 @@ async function startTraining(url) {
     let path = document.getElementById('path').value;
     let layersToFinetune = document.getElementById('layersToFinetune').value;
     let outputFolder = document.getElementById('outputFolder').value;
-    let modelName = document.getElementById('modelName').value;
+    let modelName = document.getElementById('modelName');
     let epochs = document.getElementById('epochs').value;
 
     let terminal = document.getElementById('terminal');
@@ -20,58 +20,62 @@ async function startTraining(url) {
     let buttonCancelTrain = document.getElementById('btnCancelTrain');
     let confusionMatrix = document.getElementById('confusionMatrix');
 
-    data = {
-        path: path,
-        layersToFinetune: layersToFinetune,
-        outputFolder: outputFolder,
-        modelName: modelName,
-        epochs: epochs,
-    };
-    await asyncRequest(url, data);
+    if (modelName.value) {
+        data = {
+            path: path,
+            layersToFinetune: layersToFinetune,
+            outputFolder: outputFolder,
+            modelName: modelName.value,
+            epochs: epochs,
+        };
+        await asyncRequest(url, data);
 
-    let socket = io.connect('/connect-training-logs');
-    socket.on('connect', function() {
-        console.log('Socket Connected');
-        socket.emit('connect_training_logs',
-                    {status: 'Socket Connected', project: project, outputFolder: outputFolder});
-    });
+        let socket = io.connect('/connect-training-logs');
+        socket.on('connect', function() {
+            console.log('Socket Connected');
+            socket.emit('connect_training_logs',
+                        {status: 'Socket Connected', project: project, outputFolder: outputFolder});
+        });
 
-    socket.on('training_logs', function(message) {
-        addTerminalMessage(message.log);
-    });
+        socket.on('training_logs', function(message) {
+            addTerminalMessage(message.log);
+        });
 
-    socket.on('success', function(message) {
-        if (message.status === 'Complete') {
-            socket.disconnect();
-            console.log('Socket Disconnected');
+        socket.on('success', function(message) {
+            if (message.status === 'Complete') {
+                socket.disconnect();
+                console.log('Socket Disconnected');
 
-            buttonTrain.disabled = false;
-            buttonCancelTrain.disabled = true;
+                buttonTrain.disabled = false;
+                buttonCancelTrain.disabled = true;
 
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                confusionMatrix.src = `data:image/png;base64,${e.target.result}`;
-            };
-            reader.readAsBinaryString(new Blob([message.img]));
-        }
-    });
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    confusionMatrix.src = `data:image/png;base64,${e.target.result}`;
+                };
+                reader.readAsBinaryString(new Blob([message.img]));
+            }
+        });
 
-    socket.on('failed', function(message) {
-        if (message.status === 'Failed') {
-            socket.disconnect();
-            console.log('Socket Disconnected');
+        socket.on('failed', function(message) {
+            if (message.status === 'Failed') {
+                socket.disconnect();
+                console.log('Socket Disconnected');
 
-            buttonTrain.disabled = false;
-            buttonCancelTrain.disabled = true;
-        }
-    });
+                buttonTrain.disabled = false;
+                buttonCancelTrain.disabled = true;
+            }
+        });
 
-    buttonTrain.disabled = true;
-    buttonCancelTrain.disabled = false;
-    terminal.innerHTML = '';
-    confusionMatrix.src = '';
+        buttonTrain.disabled = true;
+        buttonCancelTrain.disabled = false;
+        terminal.innerHTML = '';
+        confusionMatrix.src = '';
 
-    addTerminalMessage('Training started...');
+        addTerminalMessage('Training started...');
+    } else {
+        modelName.classList.add('uk-form-danger');
+    }
 }
 
 
@@ -96,15 +100,17 @@ function updateLayersCount(){
 }
 
 function setNumOfLayersToFinetuneSlider(){
-    let modelName = document.getElementById('modelName').value;
+    let modelName = document.getElementById('modelName');
     let numOfLayers = document.getElementById('numOfLayers');
     let layersToFinetune = document.getElementById('layersToFinetune');
 
-    if (modelName.includes('EfficientNet')) {
+    modelName.classList.remove('uk-form-danger');
+
+    if (modelName.value.includes('EfficientNet')) {
         numOfLayers.value = 9;
         layersToFinetune.value = 9;
 
-    } else if (modelName.includes('MobileNet')){
+    } else if (modelName.value.includes('MobileNet')){
         numOfLayers.value = 5;
         layersToFinetune.value = 5;
     }
