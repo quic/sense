@@ -75,10 +75,6 @@ video {
     color: #fff;
 }
 
-input[type=range] {
-    width: 75%;
-}
-
-#numOfLayers {
-    width: 25%;
+.line-height-normal {
+    line-height: normal;
 }

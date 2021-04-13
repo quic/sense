@@ -17,7 +17,7 @@
         <input type="hidden" id="project" name="project" value="{{ project }}">
         <input type="hidden" id="path" name="path" value="{{ path }}">
 
-        <div class="uk-child-width-1-2@s uk-grid-small" uk-grid>
+        <div class="uk-child-width-1-2@s uk-grid-small uk-grid-match" uk-grid>
             <div class="uk-inline">
                 <label class="uk-form-label" for="modelName">Backbone Model</label>
                 <div class="uk-form-controls uk-width-1-1">
@@ -50,10 +50,14 @@
             <div>
                 <label class="uk-form-label" for="layersToFinetune">Number of backbone layers to fine-tune</label>
                 <div class="uk-form-controls">
-                    <div class="uk-flex uk-width-1-1">
-                        <input class="uk-range" type="range" id="layersToFinetune" value="9" min="0" max="50" step="1"
-                        oninput="updateLayersCount();">
-                        <output class="uk-margin-left" id="numOfLayers" name="numOfLayers" for="layersToFinetune">9</output>
+                    <div class="uk-width-1-1 uk-grid-small uk-grid-match" uk-grid>
+                        <div class="uk-width-3-4">
+                            <input class="uk-range" type="range" id="layersToFinetune" value="9" min="0" max="32" step="1"
+                                   oninput="updateLayersCount();">
+                        </div>
+                        <div class="uk-width-1-4">
+                            <output class="line-height-normal" id="numOfLayers" for="layersToFinetune">9</output>
+                        </div>
                     </div>
                 </div>
             </div>
