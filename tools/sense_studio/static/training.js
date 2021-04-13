@@ -1,4 +1,9 @@
 
+document.addEventListener("DOMContentLoaded", function () {
+    setNumOfLayersToFinetuneSlider();
+});
+
+
 function addTerminalMessage(message) {
     let terminal = document.getElementById('terminal');
     terminal.insertAdjacentHTML('beforeend', `<div class='monospace-font'><b>${message}</b></div>`);
