@@ -84,28 +84,33 @@ async function cancelTraining(url) {
     addTerminalMessage('Training cancelled.');
 }
 
-function updateLayersCount(){
-    let layersToFinetune = document.getElementById('layersToFinetune').value;
+
+function updateLayersCount() {
+    let layersToFinetune = document.getElementById('layersToFinetune');
     let numOfLayers = document.getElementById('numOfLayers');
 
-    if (layersToFinetune == 0){
-        numOfLayers.value = "Classification Layer";
+    if (layersToFinetune.value == 0) {
+        numOfLayers.value = 'Classification layer only';
+    } else if (layersToFinetune.value == layersToFinetune.max) {
+        numOfLayers.value = 'All layers';
     } else {
-        numOfLayers.value = layersToFinetune;
+        numOfLayers.value = layersToFinetune.value;
     }
 }
 
-function setNumOfLayersToFinetuneSlider(){
+
+function setNumOfLayersToFinetuneSlider() {
     let modelName = document.getElementById('modelName').value;
-    let numOfLayers = document.getElementById('numOfLayers');
     let layersToFinetune = document.getElementById('layersToFinetune');
 
     if (modelName.includes('EfficientNet')) {
-        numOfLayers.value = 9;
         layersToFinetune.value = 9;
+        layersToFinetune.max = 32;
 
-    } else if (modelName.includes('MobileNet')){
-        numOfLayers.value = 5;
+    } else if (modelName.includes('MobileNet')) {
         layersToFinetune.value = 5;
+        layersToFinetune.max = 19;
     }
+
+    updateLayersCount();
 }
