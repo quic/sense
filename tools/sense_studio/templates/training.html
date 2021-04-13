@@ -32,10 +32,15 @@
                     </select>
                     {% if not models %}
                         <div uk-dropdown>
-                            Weights file missing, <br/>
+                            <p>
+                                Pre-trained backbone model weights couldn't be found.
+                            </p>
                             To download, please go to
-                            <a href="https://20bn.com/licensing/sdk/evaluation">https://20bn.com/licensing/sdk/evaluation</a>
+                            <a target="_blank" rel="noopener noreferrer" href="https://20bn.com/licensing/sdk/evaluation">
+                                https://20bn.com/licensing/sdk/evaluation
+                            </a>
                             and follow the instructions.
+                            Then, extract the <code>backbone</code> folder into <code>sense/resources</code>.
                         </div>
                     {% endif %}
                 </div>
