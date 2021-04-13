@@ -18,10 +18,10 @@
         <input type="hidden" id="path" name="path" value="{{ path }}">
 
         <div class="uk-child-width-1-2@s uk-grid-small" uk-grid>
-            <div>
+            <div class="uk-inline">
                 <label class="uk-form-label" for="modelName">Backbone Model</label>
                 <div class="uk-form-controls">
-                    <select class="uk-select" id="modelName">
+                    <select class="uk-select {{ 'uk-form-danger' if not models }}" id="modelName">
                         {% if models %}
                             {% for model in models %}
                                 <option>{{ model }}</option>
@@ -30,6 +30,19 @@
                             <option value="">No models available</option>
                         {% endif %}
                     </select>
+                    {% if not models %}
+                        <div uk-dropdown>
+                            <p>
+                                Pre-trained backbone model weights couldn't be found.
+                            </p>
+                            To download, please go to
+                            <a target="_blank" rel="noopener noreferrer" href="https://20bn.com/licensing/sdk/evaluation">
+                                https://20bn.com/licensing/sdk/evaluation
+                            </a>
+                            and follow the instructions.
+                            Then, extract the <code>backbone</code> folder into <code>sense/resources</code>.
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 
