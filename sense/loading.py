@@ -23,6 +23,7 @@ DOWNLOADABLE_CHECKPOINT_FILES = [
     MODELS['StridedInflatedEfficientNet']['lite']['gesture_detection'],
 ]
 
+
 class ModelConfig:
     """
     Object containing the model specifications for downstream tasks.
