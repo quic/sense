@@ -16,7 +16,7 @@ from flask_socketio import emit
 from natsort import natsorted
 from natsort import ns
 
-from tools.sense_studio.custom_classifier_script import run_custom_classifier
+from tools.run_custom_classifier import run_custom_classifier
 from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
 
@@ -24,7 +24,7 @@ testing_bp = Blueprint('testing_bp', __name__)
 
 test_process: Optional[multiprocessing.Process] = None
 queue_testing_output: Optional[multiprocessing.Queue] = None
-queue_signal: Optional[multiprocessing.Queue] = None
+signal_event: Optional[multiprocessing.Event] = None
 
 
 @testing_bp.route('/<string:project>', methods=['GET'])
@@ -33,12 +33,16 @@ def testing_page(project):
     path = project_utils.lookup_project_path(project)
     output_path_prefix = os.path.join(os.path.basename(path), 'output_videos', '')
 
+    classifiers = []
     default_checkpoint = os.path.join(path, 'checkpoints', 'best_classifier.checkpoint')
+    if os.path.exists(default_checkpoint):
+        classifiers.append('checkpoints/')
+
     # If classifier checkpoint exist, get the path of sub-directory from checkpoints
-    classifiers = [os.path.join('checkpoints', os.path.basename(d)) for d in glob.glob(f"{path}/checkpoints/*")
-                   if os.path.exists(os.path.join(d, 'best_classifier.checkpoint'))
-                   and os.path.isdir(d)]
-    classifiers.extend(['checkpoints/'] if os.path.exists(default_checkpoint) else [])
+    classifiers.extend([os.path.join('checkpoints', d) for d in os.listdir(os.path.join(path, 'checkpoints'))
+                        if os.path.exists(os.path.join(path, 'checkpoints', d, 'best_classifier.checkpoint'))
+                        and os.path.isdir(os.path.join(path, 'checkpoints', d))])
+
     classifiers = natsorted(classifiers, alg=ns.IC)
 
     return render_template('testing.html', project=project, path=path, output_path_prefix=output_path_prefix,
@@ -48,8 +52,8 @@ def testing_page(project):
 @testing_bp.route('/start-testing', methods=['POST'])
 def start_testing():
     data = request.json
-    path_in = data['inputVideoPath'] or ''
-    path_out = data['outputVideoName'] or ''
+    path_in = data['inputVideoPath']
+    path_out = data['outputVideoName']
     title = data['title']
     path = data['path']
     custom_classifier = os.path.join(path, data['classifier'])
@@ -64,9 +68,9 @@ def start_testing():
     ctx = multiprocessing.get_context('spawn')
 
     global queue_testing_output
-    global queue_signal
+    global signal_event
     queue_testing_output = ctx.Queue()
-    queue_signal = ctx.Queue()
+    signal_event = ctx.Event()
 
     testing_kwargs = {
         'path_in': path_in,
@@ -74,8 +78,8 @@ def start_testing():
         'custom_classifier': custom_classifier,
         'title': title,
         'use_gpu': config['use_gpu'],
-        'video_frames': queue_testing_output.put,
-        'signal_queue': queue_signal,
+        'display_fn': queue_testing_output.put,
+        'signal_event': signal_event,
     }
 
     global test_process
@@ -88,16 +92,14 @@ def start_testing():
 @testing_bp.route('/cancel-testing')
 def cancel_testing():
     global test_process
-    global queue_signal
+    global signal_event
     if test_process:
         # Send signal to stop inference
-        queue_signal.put(-1)
-
+        signal_event.set()
         # Wait until process is complete
         test_process.join()
-        test_process.terminate()
         test_process = None
-        queue_signal.close()
+        signal_event.clear()
 
     return jsonify(success=True)
 
@@ -117,7 +119,7 @@ def stream_video(msg):
                     frame = cv2.imencode('.jpg', output)[1].tobytes()
                     # Encode frame in base64 version and remove utf-8 encoding
                     frame = base64.b64encode(frame).decode('utf-8')
-                    emit('testing_images', {'image': f"data:image/jpeg;base64,{frame}"})
+                    emit('stream_frame', {'image': f"data:image/jpeg;base64,{frame}"})
             except queue.Empty:
                 # No message received during the last second
                 pass
@@ -130,4 +132,4 @@ def stream_video(msg):
     finally:
         queue_testing_output.close()
 
-    emit('success', {'status': 'Complete', 'image': ""})
+    emit('success', {'status': 'Complete'})
