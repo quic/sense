@@ -103,8 +103,7 @@ def browse_directory():
     project = data['project']
 
     subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)] if os.path.isabs(path) else []
-    subfiles = [f for f in glob.glob(f'{path}*.mp4') if os.path.isfile(f)] if os.path.isabs(path) else []
-    subfiles.extend(subdirs)
+    video_files = [f for f in glob.glob(f'{path}*.mp4') if os.path.isfile(f)] if os.path.isabs(path) else []
 
     full_path = os.path.join(path, project_utils.get_folder_name_for_project(project))
     projects = project_utils.load_project_overview_config()
@@ -116,7 +115,7 @@ def browse_directory():
         path_exists=os.path.exists(path),
         path_unique=path not in [p['path'] for p in projects.values()],
         subdirs=subdirs,
-        subfiles=subfiles,
+        video_files=video_files,
     )
 
 
