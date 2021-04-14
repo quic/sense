@@ -131,9 +131,9 @@ needs to be downloaded separately.
 --- 
 
 ## Getting Started
-To get started, try out the demos we've provided. Inside the `sense/examples` directory, you will find 3 Python scripts,
-`run_gesture_recognition.py`, `run_fitness_tracker.py`, and `run_calorie_estimation.py`. Launching each demo is as
- simple as running the script in terminal as described below. 
+To get started, try out the demos we've provided. Inside the `sense/examples` directory, you will find multiple Python scripts 
+that each apply our pre-trained models to a specific use-case. Launching each demo is as simple as running the script in terminal 
+as described below. 
 
 #### Demo 1: Gesture Recognition
 
@@ -146,8 +146,20 @@ Usage:
 PYTHONPATH=./ python examples/run_gesture_recognition.py
 ```
 
+#### Demo 2: Hand Gesture Event Detection
 
-#### Demo 2: Fitness Activity Tracking
+`examples/run_gesture_detection.py` applies our pre-trained models to the detection of 6 hand gesture events 
+(4 swiping gestures + thumbs up + thumbs down). Compared to Demo 1, the model used in this case was trained 
+to trigger the correct class for a short period of time right after the hand gesture occurred. This behavior 
+policy makes it easier to quickly trigger multiple hand gestures in a row. 
+
+Usage:
+```shell
+PYTHONPATH=./ python examples/run_gesture_detection.py
+```
+
+
+#### Demo 3: Fitness Activity Tracking
 
 `examples/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
@@ -178,7 +190,7 @@ For the best performance, the following is recommended:
 - Try to be in a simple environment (with a clean background) 
 
 
-#### Demo 3: Calorie Estimation
+#### Demo 4: Calorie Estimation
 
 In order to estimate burned calories, we trained a neural net to convert activity features to the corresponding [MET value](https://en.wikipedia.org/wiki/Metabolic_equivalent_of_task).
 We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
@@ -194,6 +206,16 @@ PYTHONPATH=./ python examples/run_calorie_estimation.py --weight=65 --age=30 --h
 
 The estimated calorie estimates are roughly in the range produced by wearable devices, though they have not been verified in terms of accuracy. 
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
+
+
+#### Demo 5: Repetition Counting 
+
+This demo turns our models into a repetition counter for 2 fitness exercises: jumping jacks and squats.
+
+Usage:
+```shell
+PYTHONPATH=./ python examples/run_fitness_rep_counter.py
+```
 
 ---
 
