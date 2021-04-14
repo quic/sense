@@ -1,4 +1,5 @@
 LAB2INT = {
+    "background": 0,
     "clockwise_rotation_offset=-0.5": 1,
     "Clockwise Rotation": 2,
     "clockwise_rotation_offset=0.5": 3,
@@ -37,8 +38,7 @@ LAB2INT = {
     "zoom_in_with_full_hand_offset=0.5": 36,
     "zoom_out_with_full_hand_offset=-0.5": 37,
     "Zoom Out": 38,
-    "zoom_out_with_full_hand_offset=0.5": 39,
-    "background": 0
+    "zoom_out_with_full_hand_offset=0.5": 39
 }
 
 INT2LAB = {value: key for key, value in LAB2INT.items()}
