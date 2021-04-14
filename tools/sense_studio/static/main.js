@@ -56,7 +56,7 @@ async function editNewProject() {
     let path = pathInput.value;
 
     let directoriesResponse = await browseDirectory(path, name);
-    fullPathDiv.innerHTML = directoriesResponse.full_project_path;
+    fullPathDiv.innerHTML = `<p class='uk-text-emphasis'>${path}<span class='uk-text-primary uk-text-bolder'>${name}</span></p>`;
 
     let disabled = false;
 
