@@ -385,8 +385,10 @@ class DisplayResults:
                 - DisplayMETandCalories
                 - DisplayDetailedMETandCalories
                 - DisplayTopKClassificationOutputs
-        :param border_size:
-            Thickness of the display border.
+        :param border_size_top:
+            Thickness of the top display border.
+        :param border_size_right:
+            Thickness of the right display border.
         :param window_size:
             Resolution of the display window.
         """
