@@ -1,6 +1,6 @@
 
 document.addEventListener("DOMContentLoaded", function () {
-    setNumOfLayersToFinetuneSlider();
+    updateLayersToFinetuneSlider();
 });
 
 
@@ -90,21 +90,21 @@ async function cancelTraining(url) {
 }
 
 
-function updateLayersCount() {
+function updateLayersToFinetuneOutput() {
     let layersToFinetune = document.getElementById('layersToFinetune');
-    let numOfLayers = document.getElementById('numOfLayers');
+    let output = document.getElementById('layersToFinetuneOutput');
 
     if (layersToFinetune.value == 0) {
-        numOfLayers.value = 'Classification layer only';
+        output.value = 'Classification layer only';
     } else if (layersToFinetune.value == layersToFinetune.max) {
-        numOfLayers.value = 'All layers';
+        output.value = 'All layers';
     } else {
-        numOfLayers.value = layersToFinetune.value;
+        output.value = layersToFinetune.value;
     }
 }
 
 
-function setNumOfLayersToFinetuneSlider() {
+function updateLayersToFinetuneSlider() {
     let modelName = document.getElementById('modelName').value;
     let layersToFinetune = document.getElementById('layersToFinetune');
 
@@ -117,5 +117,5 @@ function setNumOfLayersToFinetuneSlider() {
         layersToFinetune.max = 19;
     }
 
-    updateLayersCount();
+    updateLayersToFinetuneOutput();
 }
