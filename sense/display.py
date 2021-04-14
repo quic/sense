@@ -304,17 +304,34 @@ class DisplayClassnameOverlay(BaseDisplay):
 
 
 class DisplayPredictionBarGraph(BaseDisplay):
+    """
+    Display the predicted class probabilities in a bar graph.
+    """
+
     def __init__(
             self,
             keys: List[str],
             thresholds: Dict[str, float] = None,
-            bar_width: int = 100,
+            bar_length: int = 100,
             display_counts: bool = False,
             **kwargs):
+        """
+        :param keys:
+            List of class names that should be displayed.
+        :param thresholds:
+            A dictionary specifying a threshold for each class name. The color of the corresponding
+            bar in the graph will change when the probability passes above the threshold.
+        :param bar_length:
+            Length of the bars in the bar graph.
+        :param display_counts:
+            Whether to display or not event counts (see e.g. postprocess.EventCounter) next
+            to each bar.
+        """
+
         super().__init__(**kwargs)
         self.keys = keys
         self.thresholds = thresholds or {}
-        self.bar_width = bar_width
+        self.bar_length = bar_length
         self.display_counts = display_counts
 
     def display(self, img, display_data):
@@ -325,7 +342,7 @@ class DisplayPredictionBarGraph(BaseDisplay):
             size_text = cv2.getTextSize(key, FONT, 1.2, 1)[0]
             x_text = self.x_offset - size_text[0]
             x_bar_left = self.x_offset + 10
-            x_bar_right = x_bar_left + int(self.bar_width * proba)
+            x_bar_right = x_bar_left + int(self.bar_length * proba)
             y_pos = 25 * (index + 1) + self.y_offset
             # determine color of the bar
             if proba > self.thresholds.get(key, 1.):
@@ -333,16 +350,17 @@ class DisplayPredictionBarGraph(BaseDisplay):
             else:
                 bar_color = (0, 128, 0)  # darker green
             # display key name
-            put_text(img, key, (x_text, y_pos), font_scale=1.2)
+            font_scale = 1.2
+            put_text(img, key, (x_text, y_pos), font_scale=font_scale)
             # display bar next to key name
             cv2.line(img, (x_bar_left, y_pos - 5), (x_bar_right, y_pos - 5),
                      bar_color, 10, cv2.LINE_AA)
             # display proba value next to bar
-            put_text(img, f"{proba:.2f}", (x_bar_right + 10, y_pos), font_scale=1.2)
+            put_text(img, f"{proba:.2f}", (x_bar_right + 10, y_pos), font_scale=font_scale)
             # display event counts
             if self.display_counts:
                 count = display_data[key]
-                put_text(img, f"{count}", (x_bar_left + self.bar_width + 100, y_pos), font_scale=1.2)
+                put_text(img, f"{count}", (x_bar_left + self.bar_length + 100, y_pos), font_scale=font_scale)
 
         return img
 
