@@ -148,8 +148,8 @@ PYTHONPATH=./ python examples/run_gesture_recognition.py
 
 #### Demo 2: Hand Gesture Event Detection
 
-`examples/run_gesture_detection.py` applies our pre-trained models to the detection of 6 hand gesture events 
-(4 swiping gestures + thumbs up + thumbs down). Compared to Demo 1, the model used in this case was trained 
+`examples/run_gesture_detection.py` applies our pre-trained models to the detection of 8 hand gesture events 
+(6 swiping gestures + thumbs up + thumbs down). Compared to Demo 1, the model used in this case was trained 
 to trigger the correct class for a short period of time right after the hand gesture occurred. This behavior 
 policy makes it easier to quickly trigger multiple hand gestures in a row. 
 
