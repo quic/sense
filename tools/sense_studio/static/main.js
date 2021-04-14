@@ -16,6 +16,8 @@ window.addEventListener(
 
 document.addEventListener("DOMContentLoaded", function () {
     let pathSearchInputs = document.getElementsByClassName('path-search');
+    let filePathSearchInputs = document.getElementsByClassName('file-path-search');
+
     for (input of pathSearchInputs) {
         const currentInput = input;
         new autoComplete({
@@ -23,26 +25,22 @@ document.addEventListener("DOMContentLoaded", function () {
             minChars: 1,
             cache: false,
             source: async function(term, response) {
-                await browseDirectory(term, '').then(r => response(r.subdirs));
+                browseDirectory(term, '').then(r => response(r.subdirs));
             },
             onSelect: function(event, term, item) {
                 currentInput.oninput();
             }
         });
     }
-});
 
-
-document.addEventListener("DOMContentLoaded", function () {
-    let pathSearchInputs = document.getElementsByClassName('file-path-search');
-    for (input of pathSearchInputs) {
+    for (input of filePathSearchInputs) {
         const currentInput = input;
         new autoComplete({
             selector: input,
             minChars: 1,
             cache: false,
             source: async function(term, response) {
-                await browseDirectory(term, '').then(r => response(r.subfiles));
+                browseDirectory(term, '').then(r => response(r.subdirs.concat(r.video_files)));
             },
             onSelect: function(event, term, item) {
                 currentInput.oninput();
