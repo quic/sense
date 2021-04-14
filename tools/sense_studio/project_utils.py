@@ -33,8 +33,11 @@ def lookup_project_path(project_name):
 
 def load_project_config(path):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
-    with open(config_path, 'r') as f:
-        config = json.load(f)
+    try:
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        config = None
     return config
 
 

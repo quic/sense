@@ -79,3 +79,7 @@ video {
     background: #0e73d8;
     color: #fff;
 }
+
+.line-height-normal {
+    line-height: normal;
+}
