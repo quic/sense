@@ -51,12 +51,14 @@ async function editNewProject() {
     let pathLabel = document.getElementById('newProjectPathLabel');
     let fullPathDiv = document.getElementById('fullPath');
     let createProjectButton = document.getElementById('createProject');
+    let projectFolder = document.getElementById('projectFolder');
 
     let name = nameInput.value;
     let path = pathInput.value;
 
     let directoriesResponse = await browseDirectory(path, name);
-    fullPathDiv.innerHTML = `<p class='uk-text-emphasis'>${path}<span class='uk-text-primary uk-text-bolder'>${name}</span></p>`;
+    fullPathDiv.innerHTML = `<p>${path}<span class='uk-text-primary uk-text-bolder'>/${name}</span></p>`;
+    projectFolder.value = `/${name}`;
 
     let disabled = false;
 
