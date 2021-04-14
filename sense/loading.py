@@ -14,6 +14,15 @@ from sense import backbone_networks
 with open(os.path.join(SOURCE_DIR, 'models.yml')) as f:
     MODELS = yaml.load(f, Loader=yaml.FullLoader)
 
+DOWNLOADABLE_CHECKPOINT_FILES = [
+    MODELS['StridedInflatedEfficientNet']['pro']['backbone'],
+    MODELS['StridedInflatedEfficientNet']['lite']['backbone'],
+    MODELS['StridedInflatedMobileNetV2']['pro']['backbone'],
+    MODELS['StridedInflatedMobileNetV2']['lite']['backbone'],
+    MODELS['StridedInflatedEfficientNet']['pro']['gesture_detection'],
+    MODELS['StridedInflatedEfficientNet']['lite']['gesture_detection'],
+]
+
 
 class ModelConfig:
     """
@@ -74,7 +83,8 @@ class ModelConfig:
             log_fn(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
-                load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
+                load_fn = (load_weights_except_on_travis if name in DOWNLOADABLE_CHECKPOINT_FILES
+                           else load_weights_from_resources)
                 weights[name] = load_fn(path)
 
             return weights
@@ -181,9 +191,9 @@ def load_weights_from_resources(checkpoint_path: str):
                                 'instructions.'.format(checkpoint_path))
 
 
-def load_backbone_weights(checkpoint_path: str):
+def load_weights_except_on_travis(checkpoint_path: str):
     """
-    Load backbone weights from a checkpoint file, unless Travis is used. Raises an error pointing
+    Load weights from a checkpoint file, unless Travis is used. Raises an error pointing
     to the SDK page in case weights are missing.
 
     :param checkpoint_path:
