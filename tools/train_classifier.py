@@ -46,6 +46,7 @@ from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
 from sense.loading import update_backbone_weights
+from tools.sense_studio.project_utils import load_project_config
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
 
@@ -124,12 +125,19 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     # Find label names
     label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
     label_names = [x for x in label_names if not x.startswith('.')]
-    label_counting = ['counting_background']
+    label_names_temporal = ['background']
 
-    for label in label_names:
-        label_counting += [f'{label}_position_1', f'{label}_position_2']
+    project_config = load_project_config(path_in)
+    if project_config:
+        for temporal_tags in project_config['classes'].values():
+            label_names_temporal.extend(temporal_tags)
+    else:
+        for label in label_names:
+            label_names_temporal.extend([f'{label}_tag1', f'{label}_tag2'])
 
-    label2int_temporal_annotation = {name: index for index, name in enumerate(label_counting)}
+    label_names_temporal = sorted(set(label_names_temporal))
+
+    label2int_temporal_annotation = {name: index for index, name in enumerate(label_names_temporal)}
     label2int = {name: index for index, name in enumerate(label_names)}
 
     extractor_stride = backbone_network.num_required_frames_per_layer_padding[0]
@@ -137,15 +145,34 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     # Create the data loaders
     features_dir = directories.get_features_dir(path_in, 'train', selected_config, num_layers_to_finetune)
     tags_dir = directories.get_tags_dir(path_in, 'train')
-    train_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
-                                        num_timesteps=num_timesteps, stride=extractor_stride,
-                                        temporal_annotation_only=temporal_training)
+    train_loader = generate_data_loader(
+        project_config,
+        features_dir,
+        tags_dir,
+        label_names,
+        label2int,
+        label2int_temporal_annotation,
+        num_timesteps=num_timesteps,
+        stride=extractor_stride,
+        temporal_annotation_only=temporal_training,
+    )
 
     features_dir = directories.get_features_dir(path_in, 'valid', selected_config, num_layers_to_finetune)
     tags_dir = directories.get_tags_dir(path_in, 'valid')
-    valid_loader = generate_data_loader(features_dir, tags_dir, label_names, label2int, label2int_temporal_annotation,
-                                        num_timesteps=None, batch_size=1, shuffle=False, stride=extractor_stride,
-                                        temporal_annotation_only=temporal_training)
+    valid_loader = generate_data_loader(
+        project_config,
+        features_dir,
+        tags_dir,
+        label_names,
+        label2int,
+        label2int_temporal_annotation,
+        num_timesteps=None,
+        batch_size=1,
+        shuffle=False,
+        stride=extractor_stride,
+        temporal_annotation_only=temporal_training,
+    )
+
     # Check if the data is loaded fully
     if not train_loader or not valid_loader:
         log_fn("ERROR - \n "
@@ -155,7 +182,7 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     # Modify the network to generate the training network on top of the features
     if temporal_training:
-        num_output = len(label_counting)
+        num_output = len(label_names_temporal)
     else:
         num_output = len(label_names)
 
