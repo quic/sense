@@ -23,7 +23,6 @@ DOWNLOADABLE_CHECKPOINT_FILES = [
     MODELS['StridedInflatedEfficientNet']['lite']['gesture_detection'],
 ]
 
-
 class ModelConfig:
     """
     Object containing the model specifications for downstream tasks.
@@ -83,7 +82,7 @@ class ModelConfig:
             log_fn(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
-                load_fn = (load_weights_except_on_travis if name in DOWNLOADABLE_CHECKPOINT_FILES
+                load_fn = (load_weights_except_on_travis if path in DOWNLOADABLE_CHECKPOINT_FILES
                            else load_weights_from_resources)
                 weights[name] = load_fn(path)
 
