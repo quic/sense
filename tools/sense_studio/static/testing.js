@@ -10,26 +10,23 @@ function streamVideo(message) {
     frame.src = message.image;
 }
 
-async function getPathInputs(pathLabelId, pathInputId) {
-    let pathLabel = document.getElementById(pathLabelId);
-    let pathInput = document.getElementById(pathInputId);
+async function getInputVideoPath() {
+    let inputVideoPathLabel = document.getElementById('inputVideoPathLabel');
+    let inputVideoPath = document.getElementById('inputVideoPath');
     let project = document.getElementById('project');
 
     let name = project.value;
-    let path = pathInput.value;
+    let path = inputVideoPath.value;
 
     let directoriesResponse = await browseDirectory(path, name);
-    let disabled = false;
 
-    // Check that project path is filled and exists
+    // Check that input video path is filled and exists
     if (path === '') {
-        setFormWarning(pathLabel, pathInput, '');
-        disabled = true;
+        setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     } else if (!directoriesResponse.path_exists) {
-        setFormWarning(pathLabel, pathInput, 'This path does not exist');
-        disabled = true;
+        setFormWarning(inputVideoPathLabel, inputVideoPath, 'This path does not exist');
     } else {
-        setFormWarning(pathLabel, pathInput, '');
+        setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     }
 }
 
@@ -42,6 +39,7 @@ async function startTesting(url){
     let buttonTest = document.getElementById('btnTest');
     let buttonCancelTest = document.getElementById('btnCancelTest');
     let video_stream = document.getElementById('videoStream');
+    let frame = document.getElementById('frame');
 
     data = {
         classifier: classifier,
@@ -62,14 +60,13 @@ async function startTesting(url){
         socket.emit('stream_video', {status: 'Socket Connected'});
     });
 
-    socket.on('testing_images', function(message) {
+    socket.on('stream_frame', function(message) {
         streamVideo(message);
     });
 
     socket.on('success', function(message) {
         if (message.status === 'Complete') {
-            addTerminalMessage('Stopping Inference...');
-            streamVideo(message);
+            frame.removeAttribute('src');
             socket.disconnect();
             console.log('Socket Disconnected');
 
@@ -82,13 +79,11 @@ async function startTesting(url){
         addTerminalMessage(message.log);
     });
 
-    buttonTest.disabled = true;
-    buttonCancelTest.disabled = false;
-
     addTerminalMessage('Starting Inference...');
 }
 
 async function cancelTesting(url){
+    addTerminalMessage('Stopping Inference...');
     await asyncRequest(url);
 
     document.getElementById('btnTest').disabled = false;
@@ -98,10 +93,12 @@ async function cancelTesting(url){
 function toggleInputVideoField(){
     let inputVideoDiv = document.getElementById('inputVideoDiv');
     let inputSource = document.getElementsByName('inputSource');
+    let inputVideoPath = document.getElementById('inputVideoPath');
 
     for (let source of inputSource){
         if (source.value == 0 && source.checked){
             inputVideoDiv.classList.add('uk-hidden');
+            inputVideoPath.value = "";
         } else if(source.value == 1 && source.checked){
             inputVideoDiv.classList.remove('uk-hidden');
         }
@@ -110,11 +107,13 @@ function toggleInputVideoField(){
 
 function toggleOutputVideoField(){
     let outputVideoDiv = document.getElementById('outputVideoDiv');
-    let saveVideo = document.getElementsByName('saveVideo')[0];
+    let saveVideo = document.getElementById('saveVideo');
+    let outputVideoName = document.getElementById('outputVideoName');
 
     if (saveVideo.checked){
         outputVideoDiv.classList.remove('uk-hidden');
     } else{
         outputVideoDiv.classList.add('uk-hidden');
+        outputVideoName.value = "";
     }
 }
