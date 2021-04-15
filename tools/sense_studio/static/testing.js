@@ -92,16 +92,14 @@ async function cancelTesting(url){
 
 function toggleInputVideoField(){
     let inputVideoDiv = document.getElementById('inputVideoDiv');
-    let inputSource = document.getElementsByName('inputSource');
+    let inputSource = document.getElementsByName('inputSource')[0];
     let inputVideoPath = document.getElementById('inputVideoPath');
 
-    for (let source of inputSource){
-        if (source.value == 0 && source.checked){
-            inputVideoDiv.classList.add('uk-hidden');
-            inputVideoPath.value = "";
-        } else if(source.value == 1 && source.checked){
-            inputVideoDiv.classList.remove('uk-hidden');
-        }
+    if (inputSource.value == 0 && inputSource.checked){
+        inputVideoDiv.classList.add('uk-hidden');
+        inputVideoPath.value = "";
+    } else {
+        inputVideoDiv.classList.remove('uk-hidden');
     }
 }
 
