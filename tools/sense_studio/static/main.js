@@ -51,7 +51,6 @@ async function editNewProject() {
     let pathLabel = document.getElementById('newProjectPathLabel');
     let fullPathDiv = document.getElementById('fullPath');
     let createProjectButton = document.getElementById('createProject');
-    let projectFolder = document.getElementById('projectFolder');
 
     let name = nameInput.value;
     let path = pathInput.value;
