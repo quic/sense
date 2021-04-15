@@ -56,9 +56,11 @@ async function editNewProject() {
     let path = pathInput.value;
 
     let directoriesResponse = await browseDirectory(path, name);
-    fullPathDiv.innerHTML = directoriesResponse.full_project_path;
 
     let disabled = false;
+
+    // Display project name with a different style
+    fullPathDiv.innerHTML = `<p>${path}/<span class='uk-text-primary uk-text-bolder'>${name}</span></p>`;
 
     // Check that project name is filled, unique and not yet present in directory
     if (name === '') {
