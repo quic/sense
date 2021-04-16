@@ -16,8 +16,8 @@
         <input type="hidden" id="project" name="project" value="{{ project }}">
         <input type="hidden" id="path" name="path" value="{{ path }}">
 
-        <div class="uk-child-width-1-1@s uk-grid-small" uk-grid>
-            <div>
+        <div class="uk-grid-small uk-grid-match" uk-grid>
+            <div class="uk-width-1-1">
                 <label class="uk-form-label" for="classifier">Custom Classifier</label>
                  <div class="uk-form-controls">
                     <select class="uk-select {{ 'uk-form-danger' if not classifiers }}" id="classifier">
@@ -31,37 +31,38 @@
                     </select>
                 </div>
             </div>
-        </div>
 
-        <div class="uk-child-width-1-2@s uk-grid-small" uk-grid>
             <div>
-                <label class="uk-form-label" for="title">Window Title</label>
-                <div class="uk-form-controls">
-                    <div class="uk-inline uk-width-1-1">
-                        <span class="uk-form-icon" uk-icon="icon: pencil"></span>
-                        <input class="uk-input" type="text" id="title" placeholder="Title" autocomplete="off" />
+                <div class="uk-child-width-1-2 uk-grid-small uk-grid-match" uk-grid>
+                    <div>
+                        <label class="uk-form-label" for="title">Window Title</label>
+                        <div class="uk-form-controls">
+                            <div class="uk-width-1-1 uk-inline">
+                                <span class="uk-form-icon" uk-icon="icon: pencil"></span>
+                                <input class="uk-input" type="text" id="title" placeholder="Title" autocomplete="off" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="uk-form-label">Choose Input Source</label>
+                         <div class="uk-form-controls">
+                             <div class="uk-inline uk-width-1-1">
+                                <label>
+                                    <input class="uk-radio" type="radio" name="inputSource" value="0" onclick="toggleInputVideoField();" checked>
+                                    &nbsp;&nbsp;Use Webcam
+                                </label>
+                                <label class="uk-margin-large-left">
+                                    <input class="uk-radio" type="radio" name="inputSource" value="1" onclick="toggleInputVideoField();">
+                                    &nbsp;&nbsp;Input Video
+                                </label>
+                             </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div>
-                <label class="uk-form-label">Choose Input Source</label>
-                 <div class="uk-form-controls">
-                     <div class="uk-inline uk-width-1-1">
-                        <label>
-                            <input class="uk-radio" type="radio" name="inputSource" value="0" onclick="toggleInputVideoField();" checked>
-                            &nbsp;&nbsp;Use Webcam
-                        </label>
-                        <label class="uk-margin-large-left">
-                            <input class="uk-radio" type="radio" name="inputSource" value="1" onclick="toggleInputVideoField();">
-                            &nbsp;&nbsp;Input Video
-                        </label>
-                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div id="inputVideoDiv" class="uk-child-width-1-1@s uk-grid-small uk-hidden" uk-grid>
-            <div>
+            <div id="inputVideoDiv" class="uk-width-1-1 uk-hidden">
                 <label class="uk-form-label" for="inputVideoPath">Input video path  <span class="uk-label">.mp4</span></label>
                 <label class="uk-form-label uk-text-danger" id="inputVideoPathLabel"></label>
                 <div class="uk-form-controls">
@@ -72,10 +73,8 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div id="outputVideoDiv" class="uk-child-width-1-1@s uk-grid-small uk-hidden" uk-grid>
-             <div>
+            <div id="outputVideoDiv" class="uk-width-1-1 uk-hidden">
                 <label class="uk-form-label" for="outputVideoName">
                     Output video name ({{ output_path_prefix }}..) <span class="uk-label">.mp4</span>
                 </label>
@@ -87,21 +86,14 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="uk-child-width-1-1@s uk-grid-small" uk-grid>
-            <div>
-                 <div class="uk-form-controls">
-                     <div class="uk-width-1-1">
-                        <label>
-                            <input class="uk-checkbox" type="checkbox" id="saveVideo" onclick="toggleOutputVideoField();">
-                            &nbsp;&nbsp;Save Output Video
-                        </label>
-                     </div>
+            <div class="uk-width-1-1">
+                 <div class="uk-form-controls uk-width-1-1">
+                    <input class="uk-checkbox" type="checkbox" id="saveVideo" onclick="toggleOutputVideoField();">
+                        &nbsp;&nbsp;Save Output Video
                 </div>
             </div>
         </div>
-
         <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTest" type="button" tabindex="0"
                 onclick="startTesting('{{ url_for('.start_testing') }}');"
                 {% if not classifiers %} disabled {% endif %}>
