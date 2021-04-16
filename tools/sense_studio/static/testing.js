@@ -25,6 +25,8 @@ async function getInputVideoPath() {
         setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     } else if (!directoriesResponse.path_exists) {
         setFormWarning(inputVideoPathLabel, inputVideoPath, 'This path does not exist');
+    } else if (directoriesResponse.path_exists && !path.endsWith('.mp4')) {
+        setFormWarning(inputVideoPathLabel, inputVideoPath, 'This path does not contain a video file');
     } else {
         setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     }
@@ -32,8 +34,10 @@ async function getInputVideoPath() {
 
 async function startTesting(url){
     let classifier = document.getElementById('classifier').value;
-    let inputVideoPath = document.getElementById('inputVideoPath').value;
-    let outputVideoName = document.getElementById('outputVideoName').value;
+    let inputSource = document.getElementsByName('inputSource')[0];
+    let saveVideo = document.getElementById('saveVideo');
+    let inputVideoPath = (inputSource.checked) ? '' : document.getElementById('inputVideoPath').value;
+    let outputVideoName = (saveVideo.checked) ? document.getElementById('outputVideoName').value : '';
     let path = document.getElementById('path').value;
     let title = document.getElementById('title').value;
     let buttonTest = document.getElementById('btnTest');
@@ -95,9 +99,8 @@ function toggleInputVideoField(){
     let inputSource = document.getElementsByName('inputSource')[0];
     let inputVideoPath = document.getElementById('inputVideoPath');
 
-    if (inputSource.value == 0 && inputSource.checked){
+    if (inputSource.checked){
         inputVideoDiv.classList.add('uk-hidden');
-        inputVideoPath.value = "";
     } else {
         inputVideoDiv.classList.remove('uk-hidden');
     }
@@ -110,8 +113,7 @@ function toggleOutputVideoField(){
 
     if (saveVideo.checked){
         outputVideoDiv.classList.remove('uk-hidden');
-    } else{
+    } else {
         outputVideoDiv.classList.add('uk-hidden');
-        outputVideoName.value = "";
     }
 }
