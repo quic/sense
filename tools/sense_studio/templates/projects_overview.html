@@ -18,6 +18,7 @@
                 <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST" action="{{ url_for('create_project') }}">
                     <div class="uk-card-body">
                         <span class="uk-text-muted uk-text-center" id="fullPath"></span>
+
                         <div>
                             <label class="uk-form-label uk-text-danger" id="newProjectNameLabel"></label>
                             <div class="uk-inline uk-width-1-1">
@@ -36,7 +37,7 @@
                             </div>
                         </div>
 
-                        <button class="uk-button uk-button-default uk-width-1-1 uk-margin-top" type="submit" id="createProject" disabled>
+                        <button class="uk-button uk-button-default uk-width-1-1" type="submit" id="createProject" disabled>
                             <span uk-icon="icon: file-edit"></span>
                             Create
                         </button>
