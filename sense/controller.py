@@ -71,56 +71,159 @@ class Controller:
         self.video_recorder = None  # created in `display_prediction`
         self.video_recorder_raw = None  # created in `display_prediction`
 
-    def run_inference(self):
+    def run_inference(self, path_in: str = Optional[None]):
         runtime_error = None
 
         self._start_inference()
 
-        while True:
-            try:
-                self.frame_index += 1
+        if path_in:
 
-                # Grab frame if possible
-                img_tuple = self.video_stream.get_image()
-                # If not possible, stop
-                if img_tuple is None:
+            video_fps = self.video_stream.video_source.get_fps()
+            video_frames = self.video_stream.video_source.get_frames()
+            design_fps = self.inference_engine.fps
+            sample_rate = design_fps / video_fps
+            img_tuple = None
+
+            i = 0
+            j = 0
+
+            if sample_rate <= 1:
+                indices = np.arange(0, video_frames, 1. / sample_rate)
+                offset = int((video_frames - indices[-1]) / 2)
+                sampled_frames = (indices + offset).astype(np.int32)
+
+                while j < len(sampled_frames):
+                    try:
+                        self.frame_index += 1
+
+                        # Grab frame if possible
+                        img_tuple = self.video_stream.get_image()
+                        # If not possible, stop
+                        if img_tuple is None:
+                            break
+
+                        if i == sampled_frames[j]:
+                            i += 1
+                            j += 1
+
+                            prediction_postprocessed = self.unpack(img_tuple)
+
+                            # Apply callbacks
+                            if not all(callback(prediction_postprocessed) for callback in self.callbacks):
+                                break
+
+                        else:
+                            i += 1
+
+                    except Exception as e:
+                        runtime_error = e
+                        break
+
+                    # Press escape to exit
+                    if cv2.waitKey(1) == 27:
+                        break
+
+            elif sample_rate > 1:
+                num_frames = int(sample_rate * video_frames)
+                indices = np.array(list(range(num_frames)))
+                indices = (indices / sample_rate).astype(int)
+                indices = np.clip(indices, 0, video_frames - 1)
+                sampled_frames = indices.astype(np.int32)
+
+                while j < len(sampled_frames):
+                    try:
+                        self.frame_index += 1
+
+                        # Grab frame if possible
+                        if j == 0:
+                            img_tuple = self.video_stream.get_image()
+
+                            # If not possible, stop
+                            if img_tuple is None:
+                                break
+
+                        elif sampled_frames[j] == sampled_frames[j - 1]:
+                            img_tuple = img_tuple
+
+                            # If not possible, stop
+                            if img_tuple is None:
+                                break
+
+                        elif sampled_frames[j] != sampled_frames[j - 1]:
+                            img_tuple = self.video_stream.get_image()
+
+                            # If not possible, stop
+                            if img_tuple is None:
+                                break
+
+                        j += 1
+
+                        prediction_postprocessed = self.unpack(img_tuple)
+
+                        # Apply callbacks
+                        if not all(callback(prediction_postprocessed) for callback in self.callbacks):
+                            break
+
+                    except Exception as e:
+                        runtime_error = e
+                        break
+
+                    # Press escape to exit
+                    if cv2.waitKey(1) == 27:
+                        break
+
+        else:
+            while True:
+                try:
+                    self.frame_index += 1
+
+                    # Grab frame if possible
+                    img_tuple = self.video_stream.get_image()
+                    # If not possible, stop
+                    if img_tuple is None:
+                        break
+
+                    prediction_postprocessed = self.unpack(img_tuple)
+
+                    # Apply callbacks
+                    if not all(callback(prediction_postprocessed) for callback in self.callbacks):
+                        break
+
+                except Exception as e:
+                    runtime_error = e
                     break
 
-                # Unpack
-                img, numpy_img = img_tuple
-
-                self.clip = np.roll(self.clip, -1, 1)
-                self.clip[:, -1, :, :, :] = numpy_img
-
-                if self.frame_index == self.inference_engine.step_size:
-                    # A new clip is ready
-                    self.inference_engine.put_nowait(self.clip)
-
-                self.frame_index = self.frame_index % self.inference_engine.step_size
-
-                # Get predictions
-                prediction = self.inference_engine.get_nowait()
-
-                prediction_postprocessed = self.postprocess_prediction(prediction)
-
-                self.display_prediction(img, prediction_postprocessed)
-
-                # Apply callbacks
-                if not all(callback(prediction_postprocessed) for callback in self.callbacks):
+                # Press escape to exit
+                if cv2.waitKey(1) == 27:
                     break
-
-            except Exception as e:
-                runtime_error = e
-                break
-
-            # Press escape to exit
-            if cv2.waitKey(1) == 27:
-                break
 
         self._stop_inference()
+        self.video_stream.video_source.release()
 
         if runtime_error:
             raise runtime_error
+
+    def unpack(self, img_tuple):
+        # Unpack
+        img, numpy_img = img_tuple
+
+        self.clip = np.roll(self.clip, -1, 1)
+        self.clip[:, -1, :, :, :] = numpy_img
+
+        if self.frame_index == self.inference_engine.step_size:
+            # A new clip is ready
+            self.inference_engine.put_nowait(self.clip)
+
+        self.frame_index = self.frame_index % self.inference_engine.step_size
+
+        # Get predictions
+        prediction = self.inference_engine.get_nowait()
+
+        prediction_postprocessed = self.postprocess_prediction(prediction)
+
+        self.display_prediction(img, prediction_postprocessed)
+
+        return prediction_postprocessed
 
     def postprocess_prediction(self, prediction):
         post_processed_data = {}
