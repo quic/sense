@@ -74,6 +74,13 @@
                 </div>
             </div>
 
+            <div class="uk-width-1-1">
+                 <div class="uk-form-controls uk-width-1-1">
+                    <input class="uk-checkbox" type="checkbox" id="saveVideo" onclick="toggleOutputVideoField();">
+                        &nbsp;&nbsp;Save Output Video
+                </div>
+            </div>
+
             <div id="outputVideoDiv" class="uk-width-1-1 uk-hidden">
                 <label class="uk-form-label" for="outputVideoName">
                     Output video name ({{ output_path_prefix }}..) <span class="uk-label">.mp4</span>
@@ -86,14 +93,8 @@
                     </div>
                 </div>
             </div>
-
-            <div class="uk-width-1-1">
-                 <div class="uk-form-controls uk-width-1-1">
-                    <input class="uk-checkbox" type="checkbox" id="saveVideo" onclick="toggleOutputVideoField();">
-                        &nbsp;&nbsp;Save Output Video
-                </div>
-            </div>
         </div>
+
         <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTest" type="button" tabindex="0"
                 onclick="startTesting('{{ url_for('.start_testing') }}');"
                 {% if not classifiers %} disabled {% endif %}>
