@@ -155,8 +155,9 @@ def extract_frames(video_path, inference_engine, path_frames=None, return_frames
         return None
 
     # Read frames from video
-    video_source = camera.VideoSource(size=inference_engine.expected_frame_size, filename=video_path)
-    video_fps = video_source.get_fps()
+    video_source = camera.VideoSource(size=inference_engine.expected_frame_size,
+                                      filename=video_path,
+                                      target_fps=inference_engine.fps)
     frames = []
 
     while True:
@@ -167,7 +168,7 @@ def extract_frames(video_path, inference_engine, path_frames=None, return_frames
             image, image_rescaled = images
             frames.append(image_rescaled)
 
-    frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
+    frames = np.array(frames)
 
     # Save frames if a path was provided
     if save_frames:
