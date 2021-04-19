@@ -28,7 +28,7 @@ class Controller:
             path_in: str = Optional[None],
             path_out: str = Optional[None],
             use_gpu: bool = True,
-            signal_event: Optional[multiprocessing.Event] = None):
+            stop_event: Optional[multiprocessing.Event] = None):
         """
         :param neural_network:
             The neural network that produces the predictions for the camera image.
@@ -51,8 +51,8 @@ class Controller:
             If provided, store the captured video in a file in this location
         :param use_gpu:
             If True, run the model on the GPU
-        :param signal_event:
-            Event for signalling to stop model inference. (If signal = -1, stop inference)
+        :param stop_event:
+            Event for signalling to stop model inference
         """
         self.inference_engine = InferenceEngine(neural_network, use_gpu=use_gpu)
         video_source = VideoSource(
@@ -76,7 +76,7 @@ class Controller:
         self.path_out = path_out
         self.video_recorder = None  # created in `display_prediction`
         self.video_recorder_raw = None  # created in `display_prediction`
-        self.signal_event = signal_event
+        self.stop_event = stop_event
 
     def run_inference(self):
         runtime_error = None
@@ -125,9 +125,8 @@ class Controller:
                 break
 
             # Press cancel on sense-studio testing page to stop inference
-            if self.signal_event:
-                if self.signal_event.is_set():
-                    break
+            if self.stop_event and self.stop_event.is_set():
+                break
 
         self._stop_inference()
 

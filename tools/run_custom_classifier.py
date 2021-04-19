@@ -34,7 +34,7 @@ from sense.loading import update_backbone_weights
 
 
 def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_classifier=None, title=None, use_gpu=True,
-                          display_fn=None, signal_event=None):
+                          display_fn=None, stop_event=None):
 
     # Load backbone network according to config file
     backbone_model_config, backbone_weights = load_backbone_model_from_config(custom_classifier)
@@ -89,7 +89,7 @@ def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_class
         path_in=path_in,
         path_out=path_out,
         use_gpu=use_gpu,
-        signal_event=signal_event,
+        stop_event=stop_event,
     )
     controller.run_inference()
 

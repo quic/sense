@@ -24,7 +24,7 @@ testing_bp = Blueprint('testing_bp', __name__)
 
 test_process: Optional[multiprocessing.Process] = None
 queue_testing_output: Optional[multiprocessing.Queue] = None
-signal_event: Optional[multiprocessing.Event] = None
+stop_event: Optional[multiprocessing.Event] = None
 
 
 @testing_bp.route('/<string:project>', methods=['GET'])
@@ -68,9 +68,9 @@ def start_testing():
     ctx = multiprocessing.get_context('spawn')
 
     global queue_testing_output
-    global signal_event
+    global stop_event
     queue_testing_output = ctx.Queue()
-    signal_event = ctx.Event()
+    stop_event = ctx.Event()
 
     testing_kwargs = {
         'path_in': path_in,
@@ -79,7 +79,7 @@ def start_testing():
         'title': title,
         'use_gpu': config['use_gpu'],
         'display_fn': queue_testing_output.put,
-        'signal_event': signal_event,
+        'stop_event': stop_event,
     }
 
     global test_process
@@ -92,14 +92,14 @@ def start_testing():
 @testing_bp.route('/cancel-testing')
 def cancel_testing():
     global test_process
-    global signal_event
+    global stop_event
     if test_process:
         # Send signal to stop inference
-        signal_event.set()
+        stop_event.set()
         # Wait until process is complete
         test_process.join()
         test_process = None
-        signal_event.clear()
+        stop_event.clear()
 
     return jsonify(success=True)
 
