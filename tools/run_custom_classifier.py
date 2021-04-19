@@ -33,7 +33,7 @@ from sense.loading import load_backbone_model_from_config
 from sense.loading import update_backbone_weights
 
 
-def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_classifier=None, title=None, use_gpu=True,
+def run_custom_classifier(custom_classifier, camera_id=0, path_in=None, path_out=None, title=None, use_gpu=True,
                           display_fn=None, stop_event=None):
 
     # Load backbone network according to config file
@@ -97,18 +97,18 @@ def run_custom_classifier(camera_id=0, path_in=None, path_out=None, custom_class
 if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
+    _custom_classifier = args['--custom_classifier']
     _camera_id = int(args['--camera_id'] or 0)
     _path_in = args['--path_in'] or None
     _path_out = args['--path_out'] or None
-    _custom_classifier = args['--custom_classifier'] or None
     _title = args['--title'] or None
     _use_gpu = args['--use_gpu']
 
     run_custom_classifier(
+        custom_classifier=_custom_classifier,
         camera_id=_camera_id,
         path_in=_path_in,
         path_out=_path_out,
-        custom_classifier=_custom_classifier,
         title=_title,
-        use_gpu=_use_gpu
+        use_gpu=_use_gpu,
     )

@@ -73,9 +73,9 @@ def start_testing():
     stop_event = ctx.Event()
 
     testing_kwargs = {
+        'custom_classifier': custom_classifier,
         'path_in': path_in,
         'path_out': path_out,
-        'custom_classifier': custom_classifier,
         'title': title,
         'use_gpu': config['use_gpu'],
         'display_fn': queue_testing_output.put,
