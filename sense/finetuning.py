@@ -147,19 +147,6 @@ def generate_data_loader(project_config, features_dir, tags_dir, label_names, la
         return None
 
 
-def uniform_frame_sample(video, sample_rate):
-    """
-    Uniformly sample video frames according to the provided sample_rate.
-    """
-    depth = video.shape[0]
-    if sample_rate < 1.:
-        indices = np.arange(0, depth, 1. / sample_rate)
-        offset = int((depth - indices[-1]) / 2)
-        sampled_frames = (indices + offset).astype(np.int32)
-        return video[sampled_frames]
-    return video
-
-
 def extract_frames(video_path, inference_engine, path_frames=None, return_frames=True):
     save_frames = path_frames is not None and not os.path.exists(path_frames)
 

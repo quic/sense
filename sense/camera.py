@@ -8,6 +8,25 @@ from typing import Optional
 from typing import Tuple
 
 
+def uniform_frame_sample(video, sample_rate):
+    """
+    Uniformly sample video frames according to the provided sample_rate.
+    """
+    available_frames = video.shape[0]
+    required_frames = np.round(sample_rate * available_frames).astype(np.int32)
+
+    # Get evenly spaced indices. When upsampling, include both endpoints.
+    new_indices = np.linspace(0, available_frames - 1, num=required_frames, endpoint=sample_rate >= 1.)
+
+    # Center the indices
+    offset = ((available_frames - 1) - new_indices[-1]) / 2
+    new_indices += offset
+
+    # Round to closest integers
+    new_indices = new_indices.round().astype(np.int32)
+    return video[new_indices]
+
+
 class VideoSource:
     """
     VideoSource captures frames from a camera or a video source file.
