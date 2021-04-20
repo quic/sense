@@ -107,7 +107,7 @@ def browse_directory():
     project_dir = project_utils.get_folder_name_for_project(project)
     full_path = os.path.join(path, project_dir)
 
-    video_files = [f for f in glob.glob(f'{path}*.mp4') if os.path.isfile(f)] if os.path.isabs(path) else []
+    video_files = [f for f in glob.glob(f'{path}*.mp4')]
     projects = project_utils.load_project_overview_config()
 
     return jsonify(
