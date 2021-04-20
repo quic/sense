@@ -1,5 +1,4 @@
 import base64
-import glob
 import multiprocessing
 import os
 import queue
@@ -34,16 +33,20 @@ def testing_page(project):
     output_path_prefix = os.path.join(os.path.basename(path), 'output_videos', '')
 
     classifiers = []
-    default_checkpoint = os.path.join(path, 'checkpoints', 'best_classifier.checkpoint')
-    if os.path.exists(default_checkpoint):
-        classifiers.append('checkpoints/')
+    checkpoints_path = os.path.join(path, 'checkpoints')
+    if os.path.exists(checkpoints_path):
+        # Add main checkpoints directory if best_classifier is available
+        default_checkpoint = os.path.join(checkpoints_path, 'best_classifier.checkpoint')
+        if os.path.exists(default_checkpoint):
+            classifiers.append(os.path.join('checkpoints', ''))
 
-    # If classifier checkpoint exist, get the path of sub-directory from checkpoints
-    classifiers.extend([os.path.join('checkpoints', d) for d in os.listdir(os.path.join(path, 'checkpoints'))
-                        if os.path.exists(os.path.join(path, 'checkpoints', d, 'best_classifier.checkpoint'))
-                        and os.path.isdir(os.path.join(path, 'checkpoints', d))])
+        # Add sub-directories of checkpoints directory if best_classifier is available in there
+        classifiers.extend([os.path.join('checkpoints', d, '')
+                            for d in os.listdir(checkpoints_path)
+                            if os.path.isdir(os.path.join(checkpoints_path, d))
+                            and os.path.exists(os.path.join(checkpoints_path, d, 'best_classifier.checkpoint'))])
 
-    classifiers = natsorted(classifiers, alg=ns.IC)
+        classifiers = natsorted(classifiers, alg=ns.IC)
 
     return render_template('testing.html', project=project, path=path, output_path_prefix=output_path_prefix,
                            classifiers=classifiers)
@@ -53,17 +56,19 @@ def testing_page(project):
 def start_testing():
     data = request.json
     path_in = data['inputVideoPath']
-    path_out = data['outputVideoName']
+    output_video_name = data['outputVideoName']
     title = data['title']
     path = data['path']
     custom_classifier = os.path.join(path, data['classifier'])
 
     config = project_utils.load_project_config(path)
-    output_dir = os.path.join(path, 'output_videos')
-    os.makedirs(output_dir, exist_ok=True)
 
-    if path_out:
-        path_out = os.path.join(output_dir, path_out + '.mp4')
+    if output_video_name:
+        output_dir = os.path.join(path, 'output_videos')
+        os.makedirs(output_dir, exist_ok=True)
+        path_out = os.path.join(output_dir, output_video_name + '.mp4')
+    else:
+        path_out = None
 
     ctx = multiprocessing.get_context('spawn')
 
@@ -108,6 +113,7 @@ def cancel_testing():
 def stream_video(msg):
     global test_process
     global queue_testing_output
+
     try:
         while test_process.is_alive():
             try:
@@ -119,7 +125,7 @@ def stream_video(msg):
                     frame = cv2.imencode('.jpg', output)[1].tobytes()
                     # Encode frame in base64 version and remove utf-8 encoding
                     frame = base64.b64encode(frame).decode('utf-8')
-                    emit('stream_frame', {'image': f"data:image/jpeg;base64,{frame}"})
+                    emit('stream_frame', {'image': f'data:image/jpeg;base64,{frame}'})
             except queue.Empty:
                 # No message received during the last second
                 pass

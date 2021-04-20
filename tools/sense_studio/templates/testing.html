@@ -12,13 +12,14 @@
     <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
         <span uk-icon="icon: folder"></span> {{ path }}
     </div>
+
     <form class="uk-form-stacked">
         <input type="hidden" id="project" name="project" value="{{ project }}">
         <input type="hidden" id="path" name="path" value="{{ path }}">
 
-        <div class="uk-grid-small uk-grid-match" uk-grid>
-            <div class="uk-width-1-1">
-                <label class="uk-form-label" for="classifier">Custom Classifier</label>
+        <div class="uk-child-width-1-1 uk-grid-small uk-grid-match" uk-grid>
+            <div>
+                <label class="uk-form-label" for="classifier">Trained Classifier</label>
                  <div class="uk-form-controls">
                     <select class="uk-select {{ 'uk-form-danger' if not classifiers }}" id="classifier">
                         {% if classifiers %}
@@ -32,56 +33,55 @@
                 </div>
             </div>
 
-            <div>
-                <div class="uk-child-width-1-1 uk-grid-small uk-grid-match" uk-grid>
-                    <div class="uk-hidden">
-                        <label class="uk-form-label" for="title">Window Title</label>
-                        <div class="uk-form-controls">
-                            <div class="uk-width-1-1 uk-inline">
-                                <span class="uk-form-icon" uk-icon="icon: pencil"></span>
-                                <input class="uk-input" type="text" id="title" placeholder="Title" autocomplete="off" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="uk-form-label">Choose Input Source</label>
-                         <div class="uk-form-controls">
-                             <div class="uk-inline uk-width-1-1">
-                                <label>
-                                    <input class="uk-radio" type="radio" name="inputSource" value="0" onclick="toggleInputVideoField();" checked>
-                                    &nbsp;&nbsp;Use Webcam
-                                </label>
-                                <label class="uk-margin-large-left">
-                                    <input class="uk-radio" type="radio" name="inputSource" value="1" onclick="toggleInputVideoField();">
-                                    &nbsp;&nbsp;Input Video
-                                </label>
-                             </div>
-                        </div>
+            <div class="uk-hidden">
+                <label class="uk-form-label" for="title">Window Title</label>
+                <div class="uk-form-controls">
+                    <div class="uk-width-1-1 uk-inline">
+                        <span class="uk-form-icon" uk-icon="icon: pencil"></span>
+                        <input class="uk-input" type="text" id="title" placeholder="Title" autocomplete="off" />
                     </div>
                 </div>
             </div>
 
-            <div id="inputVideoDiv" class="uk-width-1-1 uk-hidden">
-                <label class="uk-form-label" for="inputVideoPath">Input video path  <span class="uk-label">.mp4</span></label>
+            <div>
+                <label class="uk-form-label">Input Source</label>
+                 <div class="uk-form-controls">
+                     <div class="uk-inline uk-width-1-1">
+                        <label>
+                            <input class="uk-radio" type="radio" name="inputSource" value="0"
+                                   autocomplete="off" onclick="toggleInputVideoField();" checked>
+                            Webcam
+                        </label>
+                        <label class="uk-margin-large-left">
+                            <input class="uk-radio" type="radio" name="inputSource" value="1"
+                                   autocomplete="off" onclick="toggleInputVideoField();">
+                            Input Video
+                        </label>
+                     </div>
+                </div>
+            </div>
+
+            <div id="inputVideoDiv" class="uk-hidden">
+                <label class="uk-form-label" for="inputVideoPath">Input video path <span class="uk-label">.mp4</span></label>
                 <label class="uk-form-label uk-text-danger" id="inputVideoPathLabel"></label>
                 <div class="uk-form-controls">
                     <div class="uk-inline uk-width-1-1">
                         <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
                         <input class="uk-input file-path-search" type="text" id="inputVideoPath" placeholder="/path/to/input-video"
-                               autocomplete="off" oninput="getInputVideoPath();">
+                               autocomplete="off" oninput="editInputVideoPath();">
                     </div>
                 </div>
             </div>
 
-            <div class="uk-width-1-1">
+            <div>
                  <div class="uk-form-controls uk-width-1-1">
-                    <input class="uk-checkbox" type="checkbox" id="saveVideo" onclick="toggleOutputVideoField();">
-                        &nbsp;&nbsp;Save Output Video
+                    <input class="uk-checkbox" type="checkbox" id="saveVideo" autocomplete="off"
+                           onclick="toggleOutputVideoField();">
+                        Save Output Video
                 </div>
             </div>
 
-            <div id="outputVideoDiv" class="uk-width-1-1 uk-hidden">
+            <div id="outputVideoDiv" class="uk-hidden">
                 <label class="uk-form-label" for="outputVideoName">
                     Output video name ({{ output_path_prefix }}..) <span class="uk-label">.mp4</span>
                 </label>
@@ -106,8 +106,8 @@
         </button>
     </form>
 
-    <!--    Output video streaming frame-wise (Automatically filled) -->
-    <div id="videoStream" class="uk-margin uk-text-center">
+    <!-- Output video streaming frame-wise (Automatically filled) -->
+    <div class="uk-margin uk-text-center">
         <h4> Output Video Stream</h4>
         <div class="uk-section uk-section-muted uk-padding-remove-vertical uk-inline">
             <img id="frame" height="480" width="640">

@@ -25,8 +25,8 @@ class Controller:
             results_display: DisplayResults,
             callbacks: Optional[List[Callable]] = None,
             camera_id: int = 0,
-            path_in: str = Optional[None],
-            path_out: str = Optional[None],
+            path_in: Optional[str] = None,
+            path_out: Optional[str] = None,
             use_gpu: bool = True,
             stop_event: Optional[multiprocessing.Event] = None):
         """

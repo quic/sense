@@ -10,7 +10,7 @@ function streamVideo(message) {
     frame.src = message.image;
 }
 
-async function getInputVideoPath() {
+async function editInputVideoPath() {
     let inputVideoPathLabel = document.getElementById('inputVideoPathLabel');
     let inputVideoPath = document.getElementById('inputVideoPath');
     let project = document.getElementById('project');
@@ -25,24 +25,23 @@ async function getInputVideoPath() {
         setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     } else if (!directoriesResponse.path_exists) {
         setFormWarning(inputVideoPathLabel, inputVideoPath, 'This path does not exist');
-    } else if (directoriesResponse.path_exists && !path.endsWith('.mp4')) {
-        setFormWarning(inputVideoPathLabel, inputVideoPath, 'This path does not contain a video file');
+    } else if (!path.endsWith('.mp4')) {
+        setFormWarning(inputVideoPathLabel, inputVideoPath, 'Please provide a valid .mp4 file');
     } else {
         setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     }
 }
 
-async function startTesting(url){
+async function startTesting(url) {
     let classifier = document.getElementById('classifier').value;
-    let inputSource = document.getElementsByName('inputSource')[0];
+    let webcamInput = document.getElementsByName('inputSource')[0];
     let saveVideo = document.getElementById('saveVideo');
-    let inputVideoPath = (inputSource.checked) ? '' : document.getElementById('inputVideoPath').value;
+    let inputVideoPath = (webcamInput.checked) ? '' : document.getElementById('inputVideoPath').value;
     let outputVideoName = (saveVideo.checked) ? document.getElementById('outputVideoName').value : '';
     let path = document.getElementById('path').value;
     let title = document.getElementById('title').value;
     let buttonTest = document.getElementById('btnTest');
     let buttonCancelTest = document.getElementById('btnCancelTest');
-    let video_stream = document.getElementById('videoStream');
     let frame = document.getElementById('frame');
 
     data = {
@@ -86,7 +85,7 @@ async function startTesting(url){
     addTerminalMessage('Starting Inference...');
 }
 
-async function cancelTesting(url){
+async function cancelTesting(url) {
     addTerminalMessage('Stopping Inference...');
     await asyncRequest(url);
 
@@ -94,24 +93,22 @@ async function cancelTesting(url){
     document.getElementById('btnCancelTest').disabled = true;
 }
 
-function toggleInputVideoField(){
+function toggleInputVideoField() {
     let inputVideoDiv = document.getElementById('inputVideoDiv');
-    let inputSource = document.getElementsByName('inputSource')[0];
-    let inputVideoPath = document.getElementById('inputVideoPath');
+    let webcamInput = document.getElementsByName('inputSource')[0];
 
-    if (inputSource.checked){
+    if (webcamInput.checked) {
         inputVideoDiv.classList.add('uk-hidden');
     } else {
         inputVideoDiv.classList.remove('uk-hidden');
     }
 }
 
-function toggleOutputVideoField(){
+function toggleOutputVideoField() {
     let outputVideoDiv = document.getElementById('outputVideoDiv');
     let saveVideo = document.getElementById('saveVideo');
-    let outputVideoName = document.getElementById('outputVideoName');
 
-    if (saveVideo.checked){
+    if (saveVideo.checked) {
         outputVideoDiv.classList.remove('uk-hidden');
     } else {
         outputVideoDiv.classList.add('uk-hidden');

@@ -118,7 +118,7 @@ def send_training_logs(msg):
             data = f.read()
         img_base64 = base64.b64encode(data).decode('utf-8')
         if img_base64:
-            emit('success', {'status': 'Complete', 'img': f"data:image/png;base64,{img_base64}"})
+            emit('success', {'status': 'Complete', 'img': f'data:image/png;base64,{img_base64}'})
         else:
             emit('failed', {'status': 'Failed'})
     else:
