@@ -36,18 +36,32 @@ async function startTesting(url) {
     let classifier = document.getElementById('classifier').value;
     let webcamInput = document.getElementsByName('inputSource')[0];
     let saveVideo = document.getElementById('saveVideo');
-    let inputVideoPath = (webcamInput.checked) ? '' : document.getElementById('inputVideoPath').value;
-    let outputVideoName = (saveVideo.checked) ? document.getElementById('outputVideoName').value : '';
+    let inputVideoPath = document.getElementById('inputVideoPath');
+    let inputVideoPathValue = (webcamInput.checked) ? '' : inputVideoPath.value;
+    let inputVideoPathLabel = document.getElementById('inputVideoPathLabel');
+    let outputVideoName = document.getElementById('outputVideoName');
+    let outputVideoNameValue = (saveVideo.checked) ? outputVideoName.value : '';
+    let outputVideoNameLabel = document.getElementById('outputVideoNameLabel');
     let path = document.getElementById('path').value;
     let title = document.getElementById('title').value;
     let buttonTest = document.getElementById('btnTest');
     let buttonCancelTest = document.getElementById('btnCancelTest');
     let frame = document.getElementById('frame');
 
+    if (!inputVideoPathValue || !inputVideoPathValue.endsWith('.mp4')) {
+        setFormWarning(inputVideoPathLabel, inputVideoPath, 'Please provide a valid .mp4 file');
+        return false;
+    }
+
+    if (saveVideo.checked && !outputVideoNameValue) {
+        setFormWarning(outputVideoNameLabel, outputVideoName, 'Please provide a video name');
+        return false;
+    }
+
     data = {
         classifier: classifier,
-        inputVideoPath: inputVideoPath,
-        outputVideoName: outputVideoName,
+        inputVideoPath: inputVideoPathValue,
+        outputVideoName: outputVideoNameValue,
         path: path,
         title: title,
     };
