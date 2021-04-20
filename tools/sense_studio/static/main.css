@@ -30,6 +30,10 @@ video {
     margin-bottom: 15px; /* Keep margin at the bottom while container is overflowing */
 }
 
+#testTerminal > :last-child {
+    margin-bottom: 15px; /* Keep margin at the bottom while container is overflowing */
+}
+
 .monospace-font {
     font-family: "Ubuntu Mono", monospace;
 }
