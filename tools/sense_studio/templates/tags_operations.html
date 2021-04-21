@@ -9,6 +9,56 @@
 {% block main %}
 <div class="uk-container uk-container-xsmall">
     <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Assign Tags</h1>
-    <h1>{{ project }}</h1>
+     <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+        <span uk-icon="icon: folder"></span> {{ path }}
+    </div>
+
+    <form class="uk-form-stacked" method="POST" action="{{ url_for('.create_tag_in_project_tags', project=project) }}"
+          onsubmit="return createProjectTag({{ project_tags }});">
+        <input type="hidden" id="project" name="project" value="{{ project }}">
+        <input type="hidden" id="path" name="path" value="{{ path }}">
+
+        <div class="uk-child-width-1-1 uk-grid-small" uk-grid>
+            <div>
+                <label class="uk-form-label" for="tag">Tag name</label>
+                <label class="uk-form-label uk-text-danger" id="tagLabel"></label>
+                <div class="uk-form-controls uk-width-1-1">
+                    <input class="uk-input" type="text" id="tag" name="tag" placeholder="Tag name" autocomplete="off" oninput="checkIfTagExist({{ project_tags }});">
+                </div>
+            </div>
+            <div>
+                <button type="submit" class="uk-button uk-button-primary" uk-tooltip="Add Tag"><span uk-icon="icon: plus"></span> Add</button>
+            </div>
+        </div>
+    </form>
+
+    <h3 class="uk-heading-line uk-text-center"><span>Project Tags</span></h3>
+
+    <div class="uk-child-width-1-1 uk-grid-small uk-grid-match uk-margin-top" uk-grid>
+        <div>
+            <div class="uk-child-width-1-3 uk-grid-small uk-grid-match" uk-grid>
+                {% for tag_idx, tag_name in project_tags.items() %}
+                    <div class="uk-form-control">
+                        <div class="uk-inline uk-width-1-1">
+                            <a class="uk-form-icon uk-icon-link" id="editTag_{{ tag_idx }}"
+                               uk-icon="icon: file-edit" uk-tooltip="Edit Tag" onclick="editProjectTag({{ tag_idx }});"></a>
+                            <a class="uk-form-icon uk-icon-link uk-hidden" id="closeTag_{{ tag_idx }}"
+                               uk-icon="icon: close" uk-tooltip="Close Tag" onclick="closeProjectTag({{ tag_idx }});"></a>
+                            <input class="uk-input" type="text" placeholder="Tag name" autocomplete="off" id="tag_{{ tag_idx }}" value="{{ tag_name }}" disabled>
+                            <a class="uk-form-icon uk-icon-link uk-form-icon-flip" id="removeTag_{{ tag_idx }}"
+                               uk-icon="icon: trash" uk-tooltip="Remove Tag" onclick="removeProjectTag({{ tag_idx }});"></a>
+                            <a class="uk-form-icon uk-icon-link uk-form-icon-flip uk-hidden" id="saveTag_{{ tag_idx }}"
+                               uk-icon="icon: check" uk-tooltip="Save Tag" onclick="saveProjectTag({{ tag_idx }});"></a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='tags_operations.js') }}"></script>
 {% endblock %}
