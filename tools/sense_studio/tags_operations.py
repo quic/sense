@@ -43,8 +43,19 @@ def create_tag_in_project_tags():
     return redirect(url_for('tags_operations_bp.tags_page', project=project))
 
 
+@tags_operations_bp.route('/remove-project-tag', methods=['POST'])
 def remove_tag_from_project_tags():
-    pass
+    data = request.json
+    path = data['path']
+    tag_idx = data['tagIdx']
+    project_config = project_utils.load_project_config(path)
+    project_tags = project_config['project_tags']
+
+    project_tags = {tag_name: tag_index for tag_name, tag_index in project_tags.items() if tag_index != int(tag_idx)}
+    project_config['project_tags'] = project_tags
+
+    project_utils.write_project_config(path, project_config)
+    return jsonify(success=True)
 
 
 def edit_tag_in_project_tags():

@@ -1,5 +1,4 @@
 function createProjectTag(projectTags) {
-    console.log('Create PROJECT TAGS');
     if (tag.value == '') {
         setFormWarning(tagLabel, tag, 'Enter a proper unique tag name');
         return false;
@@ -23,23 +22,35 @@ function checkIfTagExist(projectTags) {
 }
 
 
-function editProjectTag(tag_idx) {
+function editProjectTag(tagIdx) {
     console.log('EDIT PROJECT TAGS');
-    console.log(tag_idx);
+    console.log(tagIdx);
 }
 
-function saveProjectTag(tag_idx) {
+function saveProjectTag(tagIdx) {
     console.log('Save PROJECT TAGS');
-    console.log(tag_idx);
+    console.log(tagIdx);
 }
 
-function removeProjectTag(tag_idx) {
-    console.log('REMOVE PROJECT TAGS');
-    console.log(tag_idx);
+
+async function removeProjectTag(tagIdx, url) {
+    let path = document.getElementById('path').value;
+    let error = document.getElementById('error');
+    data = {
+        path: path,
+        tagIdx: tagIdx,
+    };
+
+    let response = await asyncRequest(url, data);
+    if (!response.success) {
+        error.innerHTML = 'Error in removing tag from project tags';
+        return false;
+    }
+    return true;
 }
 
-function closeProjectTag(tag_idx) {
-    console.log('CLOSE PROJECT TAGS');
-    console.log(tag_idx);
+function cancelEditProjectTag(tagIdx) {
+    console.log('CANCEL EDIT PROJECT TAGS');
+    console.log(tagIdx);
 }
 
