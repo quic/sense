@@ -8,7 +8,7 @@
 
 {% block main %}
     <div class="uk-container uk-container-xsmall">
-        <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Assign Tags</h1>
+        <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Tags</h1>
          <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
             <span uk-icon="icon: folder"></span> {{ path }}
         </div>
@@ -23,7 +23,7 @@
                     <label class="uk-form-label" for="tag">Tag name</label>
                     <label class="uk-form-label uk-text-danger" id="tagLabel"></label>
                     <div class="uk-form-controls uk-width-1-1">
-                        <input class="uk-input" type="text" id="tag" name="tag" placeholder="Tag name" autocomplete="off" oninput="checkIfTagExist({{ project_tags }});">
+                        <input class="uk-input" type="text" id="tag" name="tag" placeholder="Tag name" autocomplete="off" oninput="return checkIfTagExist({{ project_tags }}, 'tag', 'tagLabel');">
                     </div>
                 </div>
                 <div>
@@ -40,20 +40,22 @@
                     <div>
                         <div class="uk-form-control">
                             <div class="uk-form-width-large">
-                                <input class="uk-input uk-form-blank" type="text" placeholder="Tag name" autocomplete="off" id="tag_{{ tag_idx }}" value="{{ tag_name }}" disabled>
+                                <input class="uk-input uk-form-blank" type="text" placeholder="Tag name" autocomplete="off"
+                                       oninput="return checkIfTagExist({{ project_tags }}, 'tag_{{ tag_idx }}', 'error');" id="tag_{{ tag_idx }}" value="{{ tag_name }}" disabled>
                             </div>
                         </div>
                     </div>
                     <div>
                        <div id="editTag_{{ tag_idx }}">
                             <a class="uk-button uk-button-primary" uk-tooltip="Edit Tag"
-                                onclick="editProjectTag({{ tag_idx }});">
+                                onclick="editProjectTag('{{ tag_idx }}');">
                                 <span uk-icon="icon: file-edit"></span>
                             </a>
                        </div>
-                        <div id="saveTag_{{ tag_idx }}">
-                            <a class="uk-button uk-button-link uk-hidden" uk-icon="icon: check" uk-tooltip="Save Tag"
-                               onclick="saveProjectTag({{ tag_idx }});">
+                        <div class="uk-hidden" id="saveTag_{{ tag_idx }}">
+                            <a class="uk-button uk-button-primary" uk-tooltip="Save Tag"
+                               onclick="saveProjectTag('{{ tag_idx }}', '{{ url_for('.edit_tag_in_project_tags') }}', {{ project_tags }});">
+                                <span uk-icon="icon: check"></span>
                             </a>
                         </div>
                     </div>
@@ -65,15 +67,15 @@
                             <p>
                                 Remove tag from the project tags in the config.
                             </p>
-                            <a class="uk-button uk-button-danger" href="{{ url_for('.tags_page', project=project) }}"
+                            <a class="uk-button uk-button-danger"
                                 onclick="removeProjectTag('{{ tag_idx }}', '{{ url_for('.remove_tag_from_project_tags') }}');">
                                 <span uk-icon="icon: trash"></span> REMOVE
                             </a>
                         </div>
                     </div>
-                    <div>
-                        <a class="uk-button uk-button-danger uk-hidden" id="closeTag_{{ tag_idx }}"
-                           uk-icon="icon: close" uk-tooltip="Close Tag" onclick="closeProjectTag({{ tag_idx }});">
+                    <div class="uk-hidden" id="cancel_{{ tag_idx }}">
+                        <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="cancelEditProjectTag('{{ tag_idx }}');">
+                            <span uk-icon="icon: close"></span>
                         </a>
                     </div>
                 </div>
@@ -85,5 +87,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='tags_operations.js') }}"></script>
+    <script src="{{ url_for('static', filename='project_tags.js') }}"></script>
 {% endblock %}
