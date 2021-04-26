@@ -77,4 +77,3 @@ def edit_tag_in_project_tags():
     project_config['project_tags'] = updated_tags
     project_utils.write_project_config(path, project_config)
     return jsonify(success=True)
-
