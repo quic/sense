@@ -375,7 +375,8 @@ class DisplayResults:
             title: str, display_ops: List[BaseDisplay],
             border_size_top: int = 30,
             border_size_right: int = 0,
-            window_size: Tuple[int, int] = (480, 640)):
+            window_size: Tuple[int, int] = (480, 640),
+    ):
         """
         :param title:
             Title of the image frame on display.
