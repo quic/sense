@@ -291,6 +291,11 @@ python tools/conversion/convert_to_tflite.py --classifier=custom_classifier --pa
 -->
 <!-- Describe how developers can contribute --> 
 
+## Gallery
+
+Our [gallery](https://github.com/TwentyBN/sense/wiki/gallery) lists cool external projects that were built using Sense. Check it out! 
+
+
 ## Citation
 
 We now have a [blogpost](https://medium.com/twentybn/towards-situated-visual-ai-via-end-to-end-learning-on-video-clips-2832bd9d519f) you can cite:
