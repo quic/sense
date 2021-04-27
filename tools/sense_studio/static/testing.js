@@ -48,9 +48,11 @@ async function startTesting(url) {
     let buttonCancelTest = document.getElementById('btnCancelTest');
     let frame = document.getElementById('frame');
 
-    if (!inputVideoPathValue || !inputVideoPathValue.endsWith('.mp4')) {
-        setFormWarning(inputVideoPathLabel, inputVideoPath, 'Please provide a valid .mp4 file');
-        return false;
+    if (!webcamInput.checked) {
+        if (!inputVideoPathValue || !inputVideoPathValue.endsWith('.mp4')) {
+            setFormWarning(inputVideoPathLabel, inputVideoPath, 'Please provide a valid .mp4 file');
+            return false;
+        }
     }
 
     if (saveVideo.checked && !outputVideoNameValue) {
@@ -110,9 +112,12 @@ async function cancelTesting(url) {
 function toggleInputVideoField() {
     let inputVideoDiv = document.getElementById('inputVideoDiv');
     let webcamInput = document.getElementsByName('inputSource')[0];
+    let inputVideoPath = document.getElementById('inputVideoPath');
+    let inputVideoPathLabel = document.getElementById('inputVideoPathLabel');
 
     if (webcamInput.checked) {
         inputVideoDiv.classList.add('uk-hidden');
+        setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     } else {
         inputVideoDiv.classList.remove('uk-hidden');
     }
@@ -121,10 +126,25 @@ function toggleInputVideoField() {
 function toggleOutputVideoField() {
     let outputVideoDiv = document.getElementById('outputVideoDiv');
     let saveVideo = document.getElementById('saveVideo');
+    let outputVideoNameLabel = document.getElementById('outputVideoNameLabel');
+    let outputVideoName = document.getElementById('outputVideoName');
 
     if (saveVideo.checked) {
         outputVideoDiv.classList.remove('uk-hidden');
     } else {
         outputVideoDiv.classList.add('uk-hidden');
+        setFormWarning(outputVideoNameLabel, outputVideoName, '');
+    }
+}
+
+function checkOutputVideoName() {
+    let outputVideoNameLabel = document.getElementById('outputVideoNameLabel');
+    let outputVideoName = document.getElementById('outputVideoName');
+    let outputVideoNameValue = outputVideoName.value;
+
+    if (outputVideoNameValue === '') {
+        setFormWarning(outputVideoNameLabel, outputVideoName, 'Please provide a video name');
+    } else {
+        setFormWarning(outputVideoNameLabel, outputVideoName, '');
     }
 }
