@@ -314,7 +314,8 @@ class DisplayPredictionBarGraph(BaseDisplay):
             thresholds: Dict[str, float] = None,
             bar_length: int = 100,
             display_counts: bool = False,
-            **kwargs):
+            **kwargs,
+    ):
         """
         :param keys:
             List of class names that should be displayed.
