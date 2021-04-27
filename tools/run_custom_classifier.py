@@ -30,7 +30,6 @@ from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import build_backbone_network
 from sense.loading import load_backbone_model_from_config
-from sense.loading import update_backbone_weights
 
 
 if __name__ == "__main__":
@@ -49,11 +48,9 @@ if __name__ == "__main__":
     # Load custom classifier
     checkpoint_classifier = torch.load(os.path.join(custom_classifier, 'best_classifier.checkpoint'))
 
-    # Update original weights in case some intermediate layers have been finetuned
-    update_backbone_weights(backbone_weights, checkpoint_classifier)
-
     # Create backbone network
-    backbone_network = build_backbone_network(backbone_model_config, backbone_weights)
+    backbone_network = build_backbone_network(backbone_model_config, backbone_weights,
+                                              weights_finetuned=checkpoint_classifier)
 
     with open(os.path.join(custom_classifier, 'label2int.json')) as file:
         class2int = json.load(file)
