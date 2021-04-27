@@ -341,26 +341,33 @@ class DisplayPredictionBarGraph(BaseDisplay):
     def display(self, img, display_data):
         results = dict(display_data['sorted_predictions'])
 
+        font_scale = 1.2
+
         for index, key in enumerate(self.keys):
             proba = results[key]
-            size_text = cv2.getTextSize(key, FONT, 1.2, 1)[0]
+
+            size_text = cv2.getTextSize(key, FONT, font_scale, 1)[0]
             x_text = self.x_offset - size_text[0]
             x_bar_left = self.x_offset + 10
             x_bar_right = x_bar_left + int(self.bar_length * proba)
             y_pos = 25 * (index + 1) + self.y_offset
+
             # determine color of the bar
             if proba > self.thresholds.get(key, 1.):
                 bar_color = (0, 255, 0)  # bright green
             else:
                 bar_color = (0, 128, 0)  # darker green
+
             # display key name
-            font_scale = 1.2
             put_text(img, key, (x_text, y_pos), font_scale=font_scale)
+
             # display bar next to key name
             cv2.line(img, (x_bar_left, y_pos - 5), (x_bar_right, y_pos - 5),
                      bar_color, 10, cv2.LINE_AA)
+
             # display proba value next to bar
             put_text(img, f"{proba:.2f}", (x_bar_right + 10, y_pos), font_scale=font_scale)
+
             # display event counts
             if self.display_counts:
                 count = display_data[key]
