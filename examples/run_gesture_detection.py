@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
-Real time detection of 6 hand gestures.
+Real time detection of 6 hand gesture events. Compared to `run_gesture_recognition`, the models used
+in this script were trained to trigger the correct class only for a short period of time right after
+the hand gesture occurred. This behavior policy makes it easier to quickly trigger multiple hand
+gestures in a row.
 
 Usage:
   run_gesture_detection.py [--camera_id=CAMERA_ID]
