@@ -57,8 +57,8 @@ class TestVideoSource(unittest.TestCase):
             video_source = VideoSource(camera_id=0)
         assert video_source._frames is None
         assert video_source.get_image() is not None
-        
-        
+
+
 class TestVideoStream(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -110,4 +110,3 @@ class TestVideoWriter(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
