@@ -320,7 +320,7 @@ class DisplayPredictionBarGraph(BaseDisplay):
             List of class names that should be displayed.
         :param thresholds:
             A dictionary specifying a threshold for each class name. The color of the corresponding
-            bar in the graph will change when the probability passes above the threshold.
+            bar in the graph will change when the probability passes the threshold.
         :param bar_length:
             Length of the bars in the bar graph.
         :param display_counts:
