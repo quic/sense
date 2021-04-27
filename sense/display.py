@@ -220,9 +220,12 @@ class DisplayClassnameOverlay(BaseDisplay):
             Font scale factor for modifying the font size.
         :param thickness:
             Thickness of the lines used to draw the text.
-        :param border_size:
-            Height of the border on top of the video display. Used for correctly centering the displayed class name
-            on the video.
+        :param border_size_top:
+            Height of the border on top of the video display. Used for correctly centering
+            the displayed class name on the video.
+        :param border_size_right:
+            Width of the border added to the right of the video display. Used for correctly centering
+            the displayed class name on the video.
         """
         super().__init__(**kwargs)
         self.thresholds = thresholds
