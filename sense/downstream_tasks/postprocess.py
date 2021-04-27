@@ -106,9 +106,13 @@ class ExerciceSpecificRepCounter:
 
 class EventCounter(PostProcessor):
     """
-    Count how many times a certain event, tied to a specific model class, occurs. For one occurrence
-    to be counted, the class probability should pass the provided threshold and then decrease below
-    half the provided threshold. In other words, this object detects and counts probability spikes.
+    Count how many times a certain event, tied to a specific model class, occurs.
+
+    This class implements a locking mechanism that prevents counting multiple occurrences
+    when the class probability remains above the provided threshold for multiple consecutive
+    time-steps. More precisely, the class probability should first decrease below half the
+    provided threshold before another occurrence can be counted. In other words, this object
+    detects and counts probability spikes.
     """
 
     def __init__(self, key, key_idx, threshold, **kwargs):
