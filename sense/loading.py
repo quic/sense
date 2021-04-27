@@ -51,15 +51,40 @@ class ModelConfig:
 
         self.model_name = model_name
         self.version = version
+        self.combined_model_name = f'{self.model_name}-{self.version}'
+
         self.feature_converters = feature_converters
 
-    def get_path_weights(self):
+    def check_weight_files(self):
         model_weights = MODELS[self.model_name][self.version]
-        return {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
+        path_weights = {name: model_weights[name] for name in ['backbone'] + self.feature_converters}
+        files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
+
+        return path_weights, files_exist
+
+    def weights_available(self):
+        _, files_exist = self.check_weight_files()
+        return files_exist
+
+    def load_weights(self, log_fn=print):
+        path_weights, files_exist = self.check_weight_files()
+
+        path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
+        if files_exist or running_on_travis():
+            log_fn(f'Weights found:\n{path_weights_string}')
+            weights = {}
+            for name, path in path_weights.items():
+                load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
+                weights[name] = load_fn(path)
+
+            return weights
+        else:
+            log_fn(f'Could not find at least one of the following files:\n{path_weights_string}')
+            return None
 
 
 def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_name=None,
-                         requested_version=None) -> Optional[Tuple[ModelConfig, dict]]:
+                         requested_version=None, log_fn=print) -> Optional[Tuple[ModelConfig, dict]]:
     """
     Returns the model weights for the appropriate backbone and classifier head based on
     a list of compatible model configs. The first available config is returned.
@@ -70,6 +95,8 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         Name of a specific model to use (i.e. StridedInflatedEfficientNet or StridedInflatedMobileNetV2)
     :param requested_version:
         Version of the model to use (i.e. pro or lite)
+    :param log_fn:
+        Function to use for logging messages
     :return:
         First available model config and dictionary of model weights
     """
@@ -84,29 +111,39 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
 
     # Check if not empty
     if not model_config_list:
-        raise Exception(f'Could not find a model configuration matching requested parameters:\n'
-                        f'\tmodel_name={requested_model_name}\n'
-                        f'\tversion={requested_version}')
+        msg = (f'ERROR - Could not find a model configuration matching requested parameters:\n'
+               f'\tmodel_name={requested_model_name}\n'
+               f'\tversion={requested_version}')
+        log_fn(msg)
+        raise Exception(msg)
 
     for model_config in model_config_list:
-        path_weights = model_config.get_path_weights()
-        path_weights_string = json.dumps(path_weights, indent=4, sort_keys=True)  # used in prints
+        weights = model_config.load_weights(log_fn)
 
-        files_exist = all(os.path.exists(prepend_resources_path(path)) for path in path_weights.values())
-        if files_exist or running_on_travis():
-            print(f'Weights found:\n{path_weights_string}')
-            weights = {}
-            for name, path in path_weights.items():
-                load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
-                weights[name] = load_fn(path)
-
+        if weights is not None:
             return model_config, weights
-        else:
-            print(f'Could not find at least one of the following files:\n{path_weights_string}')
 
-    raise Exception('ERROR - Weights file missing. To download, please go to '
-                    'https://20bn.com/licensing/sdk/evaluation and follow the '
-                    'instructions.')
+    msg = ('ERROR - Weights files missing. To download, please go to https://20bn.com/licensing/sdk/evaluation and'
+           'follow the instructions.')
+    log_fn(msg)
+    raise Exception(msg)
+
+
+def load_backbone_model_from_config(checkpoint_path: str) -> Tuple[ModelConfig, dict]:
+    """
+    Load the backbone model that was used in training for the given model checkpoint as indicated in the 'config.json'
+    file. If there is no config file, StridedInflatedEfficientNet-pro will be used per default.
+    """
+    config_file = os.path.join(checkpoint_path, 'config.json')
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as cf:
+            config = json.load(cf)
+            backbone_model_config = ModelConfig(config['backbone_name'], config['backbone_version'], [])
+    else:
+        # Assume StridedInflatedEfficientNet-pro was used
+        backbone_model_config = ModelConfig('StridedInflatedEfficientNet', 'pro', [])
+
+    return backbone_model_config, backbone_model_config.load_weights()['backbone']
 
 
 def prepend_resources_path(checkpoint_path):
@@ -156,6 +193,23 @@ def load_backbone_weights(checkpoint_path: str):
         return load_weights_from_resources(checkpoint_path)
     else:
         print('Weights are not loaded on Travis.')
+        return {}
+
+
+def update_backbone_weights(backbone_weights: dict, checkpoint: dict):
+    """
+    Update the backbone weights with all matching weights from the given checkpoint. Those weights
+    are then removed from the checkpoint.
+
+    :param backbone_weights:
+        Dictionary of original weights for the backbone network.
+    :param checkpoint:
+        Dictionary of weights from a training checkpoint. Might contain some of the backbone
+        weights, which will be copied over and then removed.
+    """
+    finetuned_layer_names = set(backbone_weights.keys()).intersection(checkpoint.keys())
+    for key in finetuned_layer_names:
+        backbone_weights[key] = checkpoint.pop(key)
 
 
 def build_backbone_network(selected_config: ModelConfig, weights: dict):

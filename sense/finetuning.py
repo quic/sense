@@ -1,20 +1,23 @@
 import glob
 import itertools
 import json
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
 from PIL import Image
+from sklearn.metrics import confusion_matrix
+
 from sense import camera
 from sense import engine
-from sklearn.metrics import confusion_matrix
-from os.path import join
-
+from sense import SPLITS
+from sense.engine import InferenceEngine
 from sense.utils import clean_pipe_state_dict_key
+from tools import directories
+from tools.sense_studio import utils
 
 MODEL_TEMPORAL_DEPENDENCY = 45
 MODEL_TEMPORAL_STRIDE = 4
@@ -94,42 +97,36 @@ class FeaturesDataset(torch.utils.data.Dataset):
         return [features, self.labels[idx], temporal_annotation]
 
 
-def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label2int,
+def generate_data_loader(project_config, features_dir, tags_dir, label_names, label2int,
                          label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
-                         stride=4, path_annotations=None, temporal_annotation_only=False,
+                         stride=4, temporal_annotation_only=False,
                          full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
     # Find pre-computed features and derive corresponding labels
-    tags_dir = os.path.join(dataset_dir, tags_dir)
-    features_dir = os.path.join(dataset_dir, features_dir)
     labels_string = []
     temporal_annotation = []
-    if not path_annotations:
-        # Use all pre-computed features
-        features = []
-        labels = []
-        for label in label_names:
-            feature_temp = glob.glob(f'{features_dir}/{label}/*.npy')
-            features += feature_temp
-            labels += [label2int[label]] * len(feature_temp)
-            labels_string += [label] * len(feature_temp)
-    else:
-        with open(path_annotations, 'r') as f:
-            annotations = json.load(f)
-        features = ['{}/{}/{}.npy'.format(features_dir, entry['label'],
-                                          os.path.splitext(os.path.basename(entry['file']))[0])
-                    for entry in annotations]
-        labels = [label2int[entry['label']] for entry in annotations]
-        labels_string = [entry['label'] for entry in annotations]
 
-    # check if annotation exist for each video
+    # Use all pre-computed features
+    features = []
+    labels = []
+    for label in label_names:
+        feature_temp = glob.glob(os.path.join(features_dir, label, '*.npy'))
+        features += feature_temp
+        labels += [label2int[label]] * len(feature_temp)
+        labels_string += [label] * len(feature_temp)
+
+    # Check if temporal annotations exist for each video
     for label, feature in zip(labels_string, features):
-        classe_mapping = {0: "counting_background",
-                          1: f'{label}_position_1', 2:
-                              f'{label}_position_2'}
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
-        if os.path.isfile(temporal_annotation_file):
+        if os.path.isfile(temporal_annotation_file) and temporal_annotation_only:
+            if project_config:
+                tag1, tag2 = project_config['classes'][label]
+            else:
+                tag1 = f'{label}_tag1'
+                tag2 = f'{label}_tag2'
+            class_mapping = {0: 'background', 1: tag1, 2: tag2}
+
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
-            annotation = np.array([label2int_temporal_annotation[classe_mapping[y]] for y in annotation])
+            annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
             temporal_annotation.append(annotation)
         else:
             temporal_annotation.append(None)
@@ -139,36 +136,30 @@ def generate_data_loader(dataset_dir, features_dir, tags_dir, label_names, label
         labels = [x for x, y in zip(labels, temporal_annotation) if y is not None]
         temporal_annotation = [x for x in temporal_annotation if x is not None]
 
-    # Build dataloader
+    # Build data-loader
     dataset = FeaturesDataset(features, labels, temporal_annotation,
                               num_timesteps=num_timesteps, stride=stride,
                               full_network_minimum_frames=full_network_minimum_frames)
-    data_loader = torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
-
-    return data_loader
-
-
-def uniform_frame_sample(video, sample_rate):
-    """
-    Uniformly sample video frames according to the provided sample_rate.
-    """
-
-    depth = video.shape[0]
-    if sample_rate < 1.:
-        indices = np.arange(0, depth, 1. / sample_rate)
-        offset = int((depth - indices[-1]) / 2)
-        sampled_frames = (indices + offset).astype(np.int32)
-        return video[sampled_frames]
-    return video
+    try:
+        return torch.utils.data.DataLoader(dataset, shuffle=shuffle, batch_size=batch_size)
+    except ValueError:
+        # The project is temporal, but annotations do not exist for train or valid.
+        return None
 
 
-def compute_features(video_path, path_out, inference_engine, num_timesteps=1, path_frames=None,
-                     batch_size=None):
-    video_source = camera.VideoSource(camera_id=None,
-                                      size=inference_engine.expected_frame_size,
-                                      filename=video_path)
-    video_fps = video_source.get_fps()
+def extract_frames(video_path, inference_engine, path_frames=None, return_frames=True):
+    save_frames = path_frames is not None and not os.path.exists(path_frames)
+
+    if not save_frames and not return_frames:
+        # Nothing to do
+        return None
+
+    # Read frames from video
+    video_source = camera.VideoSource(size=inference_engine.expected_frame_size,
+                                      filename=video_path,
+                                      target_fps=inference_engine.fps)
     frames = []
+
     while True:
         images = video_source.get_image()
         if images is None:
@@ -176,112 +167,142 @@ def compute_features(video_path, path_out, inference_engine, num_timesteps=1, pa
         else:
             image, image_rescaled = images
             frames.append(image_rescaled)
-    frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
 
+    frames = np.array(frames)
+
+    # Save frames if a path was provided
+    if save_frames:
+        os.makedirs(path_frames)
+
+        for idx, frame in enumerate(frames[::MODEL_TEMPORAL_STRIDE]):
+            Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
+                os.path.join(path_frames, f'{idx}.jpg'), quality=50)
+
+    return frames
+
+
+def compute_features(path_features, inference_engine, frames, batch_size=None, num_timesteps=1):
     # Compute how many frames are padded to the left in order to "warm up" the model -- removing previous predictions
-    # from the internal states --  with the first image, and to ensure we have enough frames in the video.
+    # from the internal states -- with the first image, and to ensure we have enough frames in the video.
     # We also want the first non padding frame to output a feature
     frames_to_add = MODEL_TEMPORAL_STRIDE * (MODEL_TEMPORAL_DEPENDENCY // MODEL_TEMPORAL_STRIDE + 1) - 1
 
-    # Possible improvement : investigate if a symmetric or reflect padding could be better for
+    # Possible improvement: investigate if a symmetric or reflect padding could be better for
     # temporal annotation prediction instead of the static first frame
-    frames = np.pad(frames, ((frames_to_add, 0), (0, 0), (0, 0), (0, 0)),
-                    mode='edge')
-
-    # Inference
+    frames = np.pad(frames, ((frames_to_add, 0), (0, 0), (0, 0), (0, 0)), mode='edge')
     clip = frames[None].astype(np.float32)
 
-    # Run the model on padded frames in order to remove the state in the current model comming
+    # Run the model on padded frames in order to remove the state in the current model coming
     # from the previous video.
     pre_features = inference_engine.infer(clip[:, 0:frames_to_add + 1], batch_size=batch_size)
 
     # Depending on the number of layers we finetune, we keep the number of features from padding
-    # equal to the temporal dependancy of the model.
-    temporal_dependancy_features = np.array(pre_features)[-num_timesteps:]
+    # equal to the temporal dependency of the model.
+    temporal_dependency_features = np.array(pre_features)[-num_timesteps:]
 
-    # predictions of the actual video frames
+    # Predictions of the actual video frames
     predictions = inference_engine.infer(clip[:, frames_to_add + 1:], batch_size=batch_size)
-    predictions = np.concatenate([temporal_dependancy_features, predictions], axis=0)
+    predictions = np.concatenate([temporal_dependency_features, predictions], axis=0)
     features = np.array(predictions)
-    os.makedirs(os.path.dirname(path_out), exist_ok=True)
-    np.save(path_out, features)
 
-    if path_frames is not None:
-        os.makedirs(os.path.dirname(path_frames), exist_ok=True)
-        frames_to_save = []
-        # remove the padded frames. extract frames starting at the first one (feature for the
-        # first frame)
-        for e, frame in enumerate(frames[frames_to_add:]):
-            if e % MODEL_TEMPORAL_STRIDE == 0:
-                frames_to_save.append(frame)
-
-        for e, frame in enumerate(frames_to_save):
-            Image.fromarray(frame[:, :, ::-1]).resize((400, 300)).save(
-                os.path.join(path_frames, str(e) + '.jpg'), quality=50)
+    # Save features
+    os.makedirs(os.path.dirname(path_features), exist_ok=True)
+    np.save(path_features, features)
 
 
-def compute_frames_features(inference_engine, split, label, dataset_path):
-    # Get data-set from path, given split and label
-    folder = join(dataset_path, f'videos_{split}', label)
+def compute_frames_and_features(inference_engine: InferenceEngine, project_path: str, videos_dir: str,
+                                frames_dir: str, features_dir: str):
+    """
+    Split the videos in the given directory into frames and compute features on each frame.
+    Results are stored in the given directories for frames and features.
 
-    # Create features and frames folders for the given split and label
-    features_folder = join(dataset_path, f'features_{split}', label)
-    frames_folder = join(dataset_path, f'frames_{split}', label)
-    os.makedirs(features_folder, exist_ok=True)
-    os.makedirs(frames_folder, exist_ok=True)
+    :param inference_engine:
+        Initialized InferenceEngine that can be used for computing the features.
+    :param project_path:
+        The path of the current project.
+    :param videos_dir:
+        Directory where the videos are stored.
+    :param frames_dir:
+        Directory where frames should be stored. One sub-directory will be created per video with extracted frames as
+        numbered .jpg files in there.
+    :param features_dir:
+        Directory where computed features should be stored. One .npy file will be created per video.
+    """
+    # Create features and frames folders
+    os.makedirs(features_dir, exist_ok=True)
+    os.makedirs(frames_dir, exist_ok=True)
 
     # Loop through all videos for the given class-label
-    videos = glob.glob(folder + '/*.mp4')
-    for e, video_path in enumerate(videos):
-        print(f"\r  Class: \"{label}\"  -->  Processing video {e + 1} / {len(videos)}", end="")
-        path_frames = join(frames_folder, os.path.basename(video_path).replace(".mp4", ""))
-        path_features = join(features_folder, os.path.basename(video_path).replace(".mp4", ".npy"))
-        if not os.path.isfile(path_features):
-            os.makedirs(path_frames, exist_ok=True)
-            compute_features(video_path, path_features, inference_engine,
-                             num_timesteps=1, path_frames=path_frames, batch_size=64)
+    videos = glob.glob(os.path.join(videos_dir, '*.mp4'))
+    num_videos = len(videos)
+    for idx, video_path in enumerate(videos):
+        print(f'\r  {videos_dir}  -->  Processing video {idx + 1} / {num_videos}',
+              end='' if idx < (num_videos - 1) else '\n')
+
+        video_name = os.path.basename(video_path).replace('.mp4', '')
+        path_frames = os.path.join(frames_dir, video_name)
+        path_features = os.path.join(features_dir, f'{video_name}.npy')
+
+        features_needed = (utils.get_project_setting(project_path, 'assisted_tagging')
+                           and not os.path.exists(path_features))
+
+        frames = extract_frames(video_path=video_path,
+                                inference_engine=inference_engine,
+                                path_frames=path_frames,
+                                return_frames=features_needed)
+
+        if features_needed:
+            compute_features(path_features=path_features,
+                             inference_engine=inference_engine,
+                             frames=frames,
+                             batch_size=64,
+                             num_timesteps=1)
 
 
-def extract_features(path_in, net, num_layers_finetune, use_gpu, num_timesteps=1):
+def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1, log_fn=print):
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
     # extract features
-    for dataset in ["train", "valid"]:
-        videos_dir = os.path.join(path_in, f"videos_{dataset}")
-        features_dir = os.path.join(path_in, f"features_{dataset}_num_layers_to_finetune={num_layers_finetune}")
+    for split in SPLITS:
+        videos_dir = directories.get_videos_dir(path_in, split)
+        features_dir = directories.get_features_dir(path_in, split, model_config, num_layers_finetune)
         video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
 
-        print(f"\nFound {len(video_files)} videos to process in the {dataset}set")
-
+        num_videos = len(video_files)
+        log_fn(f"\nFound {num_videos} videos to process in the {split}-set")
         for video_index, video_path in enumerate(video_files):
-            print(f"\rExtract features from video {video_index + 1} / {len(video_files)}",
-                  end="")
-            path_out = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
+            log_fn(f'\rExtract features from video {video_index + 1} / {num_videos}')
+            path_features = video_path.replace(videos_dir, features_dir).replace(".mp4", ".npy")
 
-            if os.path.isfile(path_out):
-                print("\n\tSkipped - feature was already precomputed.")
+            if os.path.isfile(path_features):
+                log_fn("\tSkipped - feature was already precomputed.")
             else:
                 # Read all frames
-                compute_features(video_path, path_out, inference_engine,
-                                 num_timesteps=num_timesteps, path_frames=None, batch_size=16)
+                frames = extract_frames(video_path=video_path,
+                                        inference_engine=inference_engine)
+                compute_features(path_features=path_features,
+                                 inference_engine=inference_engine,
+                                 frames=frames,
+                                 batch_size=16,
+                                 num_timesteps=num_timesteps)
 
-        print('\n')
+        log_fn('\n')
 
 
 def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False):
+                   temporal_annotation_training=False, log_fn=print, confmat_event=None):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
     best_state_dict = None
-    best_top1 = 0.
-    best_loss = 9999
+    best_top1 = -1.
+    best_loss = float('inf')
 
     for epoch in range(0, num_epochs):  # loop over the dataset multiple times
         new_lr = lr_schedule.get(epoch)
         if new_lr:
-            print(f"update lr to {new_lr}")
+            log_fn(f"update lr to {new_lr}")
             for param_group in optimizer.param_groups:
                 param_group['lr'] = new_lr
 
@@ -293,14 +314,14 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
         valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
 
-        print('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f' % (epoch + 1, train_loss, train_top1,
-                                                                                      valid_loss, valid_top1))
+        log_fn('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f'
+               % (epoch + 1, train_loss, train_top1, valid_loss, valid_top1))
 
         if not temporal_annotation_training:
             if valid_top1 > best_top1:
                 best_top1 = valid_top1
                 best_state_dict = net.state_dict().copy()
-                save_confusion_matrix(path_out, cnf_matrix, label_names)
+                save_confusion_matrix(path_out, cnf_matrix, label_names, confmat_event=confmat_event)
         else:
             if valid_loss < best_loss:
                 best_loss = valid_loss
@@ -312,7 +333,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                             for key, value in model_state_dict.items()}
         torch.save(model_state_dict, os.path.join(path_out, "last_classifier.checkpoint"))
 
-    print('Finished Training')
+    log_fn('Finished Training')
     return best_state_dict
 
 
@@ -389,7 +410,9 @@ def save_confusion_matrix(
         classes,
         normalize=False,
         title='Confusion matrix',
-        cmap=plt.cm.Blues):
+        cmap=plt.cm.Blues,
+        confmat_event=None,
+):
     """
     This function creates a matplotlib figure out of the provided confusion matrix and saves it
     to a file. The provided numpy array is also saved. Normalization can be applied by setting
@@ -425,3 +448,6 @@ def save_confusion_matrix(
     plt.close()
 
     np.save(os.path.join(path_out, 'confusion_matrix.npy'), confusion_matrix_array)
+
+    if confmat_event is not None:
+        confmat_event.set()

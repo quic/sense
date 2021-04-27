@@ -1,46 +1,69 @@
 import unittest
 from unittest.mock import patch
 
-import cv2
-import numpy as np
 import os
+import numpy as np
+import cv2
 
-import sense.camera as camera
+from sense.camera import uniform_frame_sample
+from sense.camera import VideoSource
+from sense.camera import VideoStream
+from sense.camera import VideoWriter
 
-VIDEO_PATH = os.path.join(os.getcwd(), 'tests', 'resources', 'test_video.mp4')
+VIDEO_PATH = os.path.join(os.path.dirname(__file__), 'resources', 'test_video.mp4')
+
+
+class TestUniformFrameSample(unittest.TestCase):
+
+    VIDEO = np.array([1, 2, 3, 4, 5, 6])
+
+    def test_upsampling(self):
+        upsampled_video = uniform_frame_sample(self.VIDEO, 1.5)
+        assert np.array_equal(upsampled_video, [1, 2, 2, 3, 3, 4, 5, 5, 6])
+
+    def test_downsampling(self):
+        downsampled_video = uniform_frame_sample(self.VIDEO, 0.5)
+        assert np.array_equal(downsampled_video, [2, 3, 5])
+
+    def test_no_change(self):
+        same_video = uniform_frame_sample(self.VIDEO, 1.0)
+        assert np.array_equal(same_video, self.VIDEO)
 
 
 class TestVideoSource(unittest.TestCase):
 
-    def setUp(self) -> None:
-        self.video = camera.VideoSource(filename=VIDEO_PATH)
+    def test_from_file(self):
+        video_source = VideoSource(filename=VIDEO_PATH)
+        assert video_source._frames is None
+        assert video_source.get_image() is not None
 
-    @patch('sense.camera.VideoSource.pad_to_square')
-    def test_get_image(self, mock_pad_to_square):
-        square_img_path = os.path.join(os.getcwd(), 'tests', 'resources', 'square_SENSE.png')
-        square_img = cv2.imread(square_img_path)
-        mock_pad_to_square.return_value = square_img
-        img, scaled_img = self.video.get_image()
-        self.assertTrue(mock_pad_to_square)
-        assert img.shape == scaled_img.shape
+    def test_from_file_change_fps(self):
+        video_source = VideoSource(filename=VIDEO_PATH, target_fps=5)
+        assert video_source._frames is not None  # Frames should be pre-computed and resampled
+        assert video_source.get_image() is not None
 
-    def test_pad_to_square(self):
-        img_path = os.path.join(os.getcwd(), 'tests', 'resources', 'SENSE.png')
-        img = cv2.imread(img_path)
-        max_length = max(img.shape[0:2])
-        new_img = self.video.pad_to_square(img)
-        assert new_img.shape == (max_length, max_length, 3)
+    def test_from_camera(self):
+        class MockVideoSource:
+            def __init__(self, *args):
+                pass
 
-    def test_fps(self):
-        fps = self.video.get_fps()
-        assert fps == 12.0
+            def set(self, *args):
+                pass
 
+            def read(self):
+                return True, np.zeros((2, 3))
 
+        with patch('cv2.VideoCapture', MockVideoSource):
+            video_source = VideoSource(camera_id=0)
+        assert video_source._frames is None
+        assert video_source.get_image() is not None
+        
+        
 class TestVideoStream(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.video = camera.VideoSource(filename=VIDEO_PATH)
-        self.stream = camera.VideoStream(video_source=self.video, fps=12.0)
+        self.video = VideoSource(filename=VIDEO_PATH)
+        self.stream = VideoStream(video_source=self.video, fps=12.0)
 
     def test_stop(self):
         self.stream.stop()
@@ -61,8 +84,8 @@ class TestVideoStream(unittest.TestCase):
 class TestVideoWriter(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.output_video_path = os.path.join(os.getcwd(), 'tests', 'resources', 'test_writer.mp4')
-        self.videowriter = camera.VideoWriter(path=self.output_video_path, fps=12.0, resolution=(40, 30))
+        self.output_video_path = os.path.join(os.path.dirname(__file__), 'resources', 'test_writer.mp4')
+        self.videowriter = VideoWriter(path=self.output_video_path, fps=12.0, resolution=(40, 30))
 
     def test_write(self):
         input_video_path = VIDEO_PATH
