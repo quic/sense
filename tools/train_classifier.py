@@ -124,8 +124,11 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     # Find label names
     label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
+    label_names.sort()
     label_names = [x for x in label_names if not x.startswith('.')]
     label_names_temporal = ['background']
+    # class name for temporal training confusion matrix
+    label_names_temporal_cm = label_names_temporal + label_names
 
     project_config = load_project_config(path_in)
     if project_config:
@@ -228,7 +231,8 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     # Train model
     best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
-                                           label_names, path_out, temporal_annotation_training=temporal_training,
+                                           label_names, label_names_temporal_cm, path_out,
+                                           temporal_annotation_training=temporal_training,
                                            log_fn=log_fn, confmat_event=confmat_event)
 
     # Save best model
