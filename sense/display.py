@@ -370,7 +370,7 @@ class DisplayPredictionBarGraph(BaseDisplay):
 
             # display event counts
             if self.display_counts:
-                count = display_data[key]
+                count = display_data['counting'][key]
                 put_text(img, f"{count}", (x_bar_left + self.bar_length + 100, y_pos), font_scale=font_scale)
 
         return img

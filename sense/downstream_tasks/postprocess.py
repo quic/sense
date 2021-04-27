@@ -104,7 +104,7 @@ class ExerciceSpecificRepCounter:
                 self.count += 1
 
 
-class EventCounter(PostProcessor):
+class EventCounter:
     """
     Count how many times a certain event, tied to a specific model class, occurs.
 
@@ -115,7 +115,7 @@ class EventCounter(PostProcessor):
     detects and counts probability spikes.
     """
 
-    def __init__(self, key, key_idx, threshold, **kwargs):
+    def __init__(self, key, key_idx, threshold):
         """
         :param key:
             The name of the class that should be counted.
@@ -124,20 +124,45 @@ class EventCounter(PostProcessor):
         :param threshold:
             The threshold that should be reached for a probability spike to be counted.
         """
-
-        super().__init__(**kwargs)
         self.key = key
         self.key_idx = key_idx
         self.threshold = threshold
         self.count = 0
         self.active = False
 
-    def postprocess(self, classif_output):
+    def process(self, classif_output):
         if classif_output is not None:
             if self.active and classif_output[self.key_idx] < (self.threshold / 2.):
                 self.active = False
             elif not self.active and classif_output[self.key_idx] > self.threshold:
                 self.active = True
                 self.count += 1
-
         return {self.key: self.count}
+
+
+class PostprocessEventCounts(PostProcessor):
+    """
+    This class wraps a list of EventCounters and can therefore count how many times certain
+    events occur.
+    """
+
+    def __init__(self, keys, label2int, label2threshold, **kwargs):
+        """
+        :param keys:
+            The list of classes that should be counted.
+        :param label2int:
+            Dictionary that indicates the index of each class in the predicted probability tensor.
+        :param label2threshold:
+            Dictionary that indicates the threshold to use for each class.
+        """
+        super().__init__(**kwargs)
+        self.event_counters = [
+            EventCounter(key, label2int[key], label2threshold[key]) for key in keys
+        ]
+
+    def postprocess(self, classif_output):
+        event_counts = {}
+        for event_counter in self.event_counters:
+            event_counts.update(event_counter.process(classif_output))
+
+        return {'counting': event_counts}
