@@ -1,0 +1,125 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} Testing {% endblock %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock navigation %}
+
+{% block main %}
+<div class="uk-container uk-container-xsmall">
+    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Testing</h1>
+    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+        <span uk-icon="icon: folder"></span> {{ path }}
+    </div>
+
+    <form class="uk-form-stacked">
+        <input type="hidden" id="project" name="project" value="{{ project }}">
+        <input type="hidden" id="path" name="path" value="{{ path }}">
+
+        <div class="uk-child-width-1-1 uk-grid-small uk-grid-match" uk-grid>
+            <div>
+                <label class="uk-form-label" for="classifier">Trained Classifier</label>
+                 <div class="uk-form-controls">
+                    <select class="uk-select {{ 'uk-form-danger' if not classifiers }}" id="classifier">
+                        {% if classifiers %}
+                            {% for classifier in classifiers %}
+                                <option>{{ classifier }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">No classifiers to select from</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="uk-hidden">
+                <label class="uk-form-label" for="title">Window Title</label>
+                <div class="uk-form-controls">
+                    <div class="uk-width-1-1 uk-inline">
+                        <span class="uk-form-icon" uk-icon="icon: pencil"></span>
+                        <input class="uk-input" type="text" id="title" placeholder="Title" autocomplete="off" />
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="uk-form-label">Input Source</label>
+                 <div class="uk-form-controls">
+                     <div class="uk-inline uk-width-1-1">
+                        <label>
+                            <input class="uk-radio" type="radio" name="inputSource" value="0"
+                                   autocomplete="off" onclick="toggleInputVideoField();" checked>
+                            Webcam
+                        </label>
+                        <label class="uk-margin-large-left">
+                            <input class="uk-radio" type="radio" name="inputSource" value="1"
+                                   autocomplete="off" onclick="toggleInputVideoField();">
+                            Input Video
+                        </label>
+                     </div>
+                </div>
+            </div>
+
+            <div id="inputVideoDiv" class="uk-hidden">
+                <label class="uk-form-label" for="inputVideoPath">Input video path <span class="uk-label">.mp4</span></label>
+                <label class="uk-form-label uk-text-danger" id="inputVideoPathLabel"></label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
+                        <input class="uk-input file-path-search" type="text" id="inputVideoPath" placeholder="/path/to/input-video"
+                               autocomplete="off" oninput="checkInputFields();">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                 <div class="uk-form-controls uk-width-1-1">
+                    <input class="uk-checkbox" type="checkbox" id="saveVideo" autocomplete="off"
+                           onclick="toggleOutputVideoField();">
+                        Save Output Video
+                </div>
+            </div>
+
+            <div id="outputVideoDiv" class="uk-hidden">
+                <label class="uk-form-label" for="outputVideoName">
+                    Output video name ({{ output_path_prefix }}..) <span class="uk-label">.mp4</span>
+                </label>
+                <label class="uk-form-label uk-text-danger" id="outputVideoNameLabel"></label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
+                        <input class="uk-input" type="text" id="outputVideoName" placeholder="Output video name"
+                               autocomplete="off" oninput="checkInputFields();">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTest" type="button" tabindex="0"
+                onclick="startTesting('{{ url_for('.start_testing') }}');"
+                {% if not classifiers %} disabled {% endif %}>
+            Test model
+        </button>
+        <button class="uk-button uk-button-danger" id="btnCancelTest" type="button" tabindex="1"
+                onclick="cancelTesting('{{ url_for('.cancel_testing') }}');" disabled>
+            Cancel
+        </button>
+    </form>
+
+    <!-- Output video streaming frame-wise (Automatically filled) -->
+    <div class="uk-margin uk-text-center">
+        <h4> Output Video Stream</h4>
+        <div class="uk-section uk-section-muted uk-padding-remove-vertical uk-inline">
+            <img id="frame" height="480" width="640">
+        </div>
+    </div>
+
+    <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small uk-margin-top"></div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='testing.js') }}"></script>
+{% endblock %}
