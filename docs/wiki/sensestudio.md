@@ -34,9 +34,7 @@ recording parameters, etc.
 New classes can be added from the `Project Details` tab. Creating a
 new class automatically updates the video folder structure and project config. 
 
-**NOTE**: Class names can be edited directly on SenseStudio from the `Project Details` page. 
-Updating it in `project_config.json` may break SenseStudio if the relevant folder names are not
-updated.
+**NOTE**: Class names can be edited directly on SenseStudio from the `Project Details` page.
 
 ---
 
@@ -69,19 +67,24 @@ tags, and a summary of the number of available videos that have been annotated. 
 can be defined in addition to a default background class. Names can be edited by clicking on the edit icon 
 on the card. 
 
-When ready to annotate your videos, click on the "Annotate" button. This will automatically process
-the available videos to:
-1. Extract single frames from your videos 
-2. Precompute features on those frames
+When ready to annotate your videos, click on the "Annotate" button. On first click the videos in the
+selected folder will be pre-processed to split the file into individual frames and set up the 
+correct folder structure. This may take some time depending on how many videos you have.
 
 You can then click on the video you want to annotate and be presented with a grid-view of each 
 frame where the appropriate tag can be selected. Remember to click `Submit` at the bottom of the 
 page when you are finished to return to the previous page.
 
-**NOTE:** The model will perform best on annotations that occur after the first 2-3 seconds of the video
+**NOTE:** The model may not perform well on annotations within the first 2-3 seconds of the video and so
+it is recommended that you collect videos with a small buffer at the beginning.
 
 ## Training
 
 Once the dataset has been prepared, you can train your new custom classifier directly from SenseStudio
 from the `Training` tab. 
+
+## Testing
+
+To evaluate your model, you can run live inference on your webcam stream or provide a local video
+for the model to perform predictions on. Both options can be found on the "Testing" page.
 
