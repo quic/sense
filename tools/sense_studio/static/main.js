@@ -16,6 +16,8 @@ window.addEventListener(
 
 document.addEventListener("DOMContentLoaded", function () {
     let pathSearchInputs = document.getElementsByClassName('path-search');
+    let filePathSearchInputs = document.getElementsByClassName('file-path-search');
+
     for (input of pathSearchInputs) {
         const currentInput = input;
         new autoComplete({
@@ -30,8 +32,22 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-});
 
+    for (input of filePathSearchInputs) {
+        const currentInput = input;
+        new autoComplete({
+            selector: input,
+            minChars: 1,
+            cache: false,
+            source: async function(term, response) {
+                browseDirectory(term, '').then(r => response(r.subdirs.concat(r.video_files)));
+            },
+            onSelect: function(event, term, item) {
+                currentInput.oninput();
+            }
+        });
+    }
+});
 
 function setFormWarning(label, input, text) {
     label.innerHTML = text;
@@ -56,7 +72,11 @@ async function editNewProject() {
     let path = pathInput.value;
 
     let directoriesResponse = await browseDirectory(path, name);
-    fullPathDiv.innerHTML = directoriesResponse.full_project_path;
+
+    // Show project path and highlight the name of the folder that will be created
+    pathPrefix = directoriesResponse.project_path_prefix
+    projectDir = directoriesResponse.project_dir
+    fullPathDiv.innerHTML = `<p>${pathPrefix}<span class='uk-text-primary uk-text-bolder'>${projectDir}</span></p>`;
 
     let disabled = false;
 
@@ -67,7 +87,7 @@ async function editNewProject() {
     } else if (!directoriesResponse.project_name_unique) {
         setFormWarning(nameLabel, nameInput, 'This project name is already used');
         disabled = true;
-    } else if (directoriesResponse.full_path_exists) {
+    } else if (directoriesResponse.project_dir_exists) {
         setFormWarning(nameLabel, nameInput, 'A directory with this name already exists in the chosen location');
         disabled = true;
     } else {

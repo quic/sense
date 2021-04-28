@@ -386,6 +386,7 @@ class DisplayResults:
             border_size_top: int = 30,
             border_size_right: int = 0,
             window_size: Tuple[int, int] = (480, 640),
+            display_fn=None
     ):
         """
         :param title:
@@ -408,12 +409,14 @@ class DisplayResults:
         self._window_title = 'Real-time SenseNet'
         self.border_size_top = border_size_top
         self.border_size_right = border_size_right
-        cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_KEEPRATIO)
-        cv2.resizeWindow(self._window_title,
-                         self.window_size[1] + self.border_size_right,
-                         self.window_size[0] + self.border_size_top)
+        if not display_fn:
+            cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_KEEPRATIO)
+            cv2.resizeWindow(self._window_title,
+                             self.window_size[1] + self.border_size_right,
+                             self.window_size[0] + self.border_size_top)
         self.title = title
         self.display_ops = display_ops
+        self.display_fn = display_fn
 
     def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
@@ -446,7 +449,10 @@ class DisplayResults:
             put_text(img, self.title, (middle, 20))
 
         # Show the image in a window
-        cv2.imshow(self._window_title, img)
+        if self.display_fn:
+            self.display_fn(img)
+        else:
+            cv2.imshow(self._window_title, img)
         return img
 
     def resize_to_fit_window(self, img):

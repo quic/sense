@@ -26,6 +26,7 @@ from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.testing import testing_bp
 from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
 
@@ -37,6 +38,7 @@ app.debug = True
 app.register_blueprint(annotation_bp, url_prefix='/annotation')
 app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
 app.register_blueprint(training_bp, url_prefix='/training')
+app.register_blueprint(testing_bp, url_prefix='/testing')
 
 socketio.init_app(app)
 
@@ -90,8 +92,9 @@ def browse_directory():
     """
     Browse the local file system starting at the given path and provide the following information:
     - project_name_unique: If the given project name is not yet registered in the projects list
-    - full_project_path: Full path constructed from base path and project name
-    - full_path_exists: If the full path exists
+    - project_path_prefix: The given path with a final separator, e.g. /data/
+    - project_dir: Name of the project directory generated from the project name
+    - project_dir_exists: If the project directory already exists in the given path
     - path_exists: If the given path exists
     - path_unique: If the given path is not yet registered for another project
     - subdirs: The list of sub-directories at the given path
@@ -101,17 +104,21 @@ def browse_directory():
     project = data['project']
 
     subdirs = [d for d in glob.glob(f'{path}*') if os.path.isdir(d)] if os.path.isabs(path) else []
-    full_path = os.path.join(path, project_utils.get_folder_name_for_project(project))
+    project_dir = project_utils.get_folder_name_for_project(project)
+    full_path = os.path.join(path, project_dir)
 
+    video_files = [f for f in glob.glob(f'{path}*.mp4')]
     projects = project_utils.load_project_overview_config()
 
     return jsonify(
         project_name_unique=project not in projects,
-        full_project_path=full_path,
-        full_path_exists=os.path.exists(full_path),
+        project_path_prefix=os.path.join(path, ''),  # Append a separator
+        project_dir=project_dir,
+        project_dir_exists=os.path.exists(full_path),
         path_exists=os.path.exists(path),
         path_unique=path not in [p['path'] for p in projects.values()],
         subdirs=subdirs,
+        video_files=video_files,
     )
 
 
