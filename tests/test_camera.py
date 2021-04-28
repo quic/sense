@@ -1,9 +1,9 @@
+import os
 import unittest
 from unittest.mock import patch
 
-import os
-import numpy as np
 import cv2
+import numpy as np
 
 from sense.camera import uniform_frame_sample
 from sense.camera import VideoSource
