@@ -53,8 +53,10 @@ async function startTesting(url) {
             socket.disconnect();
             console.log('Socket Disconnected');
 
-            buttonTest.disabled = false;
             buttonCancelTest.disabled = true;
+
+            // Enable Test button again depending on input fields
+            checkInputFields();
         }
     });
 
@@ -69,8 +71,10 @@ async function cancelTesting(url) {
     addTerminalMessage('Stopping Inference...');
     await asyncRequest(url);
 
-    document.getElementById('btnTest').disabled = false;
     document.getElementById('btnCancelTest').disabled = true;
+
+    // Enable Test button again depending on input fields
+    checkInputFields();
 }
 
 function toggleInputVideoField() {
@@ -111,6 +115,7 @@ async function checkInputFields() {
     let outputVideoNameValue = outputVideoName.value;
 
     let buttonTest = document.getElementById('btnTest');
+    let buttonCancelTest = document.getElementById('btnCancelTest');
 
     let project = document.getElementById('project');
     let projectName = project.value;
@@ -136,6 +141,7 @@ async function checkInputFields() {
         setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     }
 
+    // Check that output video name is provided if video should be saved
     if (!saveVideo.checked) {
         setFormWarning(outputVideoNameLabel, outputVideoName, '');
     } else if (!outputVideoNameValue) {
@@ -144,6 +150,11 @@ async function checkInputFields() {
     } else {
         // Name provided
         setFormWarning(outputVideoNameLabel, outputVideoName, '');
+    }
+
+    // Don't enable the Test button, if the model is currently running (i.e. Cancel button is enabled)
+    if (!buttonCancelTest.disabled) {
+        disabled = true;
     }
 
     buttonTest.disabled = disabled;
