@@ -10,55 +10,19 @@ function streamVideo(message) {
     frame.src = message.image;
 }
 
-async function editInputVideoPath() {
-    let inputVideoPathLabel = document.getElementById('inputVideoPathLabel');
-    let inputVideoPath = document.getElementById('inputVideoPath');
-    let project = document.getElementById('project');
-
-    let name = project.value;
-    let path = inputVideoPath.value;
-
-    let directoriesResponse = await browseDirectory(path, name);
-
-    // Check that input video path is filled and exists
-    if (path === '') {
-        setFormWarning(inputVideoPathLabel, inputVideoPath, '');
-    } else if (!directoriesResponse.path_exists) {
-        setFormWarning(inputVideoPathLabel, inputVideoPath, 'This path does not exist');
-    } else if (!path.endsWith('.mp4')) {
-        setFormWarning(inputVideoPathLabel, inputVideoPath, 'Please provide a valid .mp4 file');
-    } else {
-        setFormWarning(inputVideoPathLabel, inputVideoPath, '');
-    }
-}
-
 async function startTesting(url) {
     let classifier = document.getElementById('classifier').value;
     let webcamInput = document.getElementsByName('inputSource')[0];
     let saveVideo = document.getElementById('saveVideo');
     let inputVideoPath = document.getElementById('inputVideoPath');
     let inputVideoPathValue = (webcamInput.checked) ? '' : inputVideoPath.value;
-    let inputVideoPathLabel = document.getElementById('inputVideoPathLabel');
     let outputVideoName = document.getElementById('outputVideoName');
     let outputVideoNameValue = (saveVideo.checked) ? outputVideoName.value : '';
-    let outputVideoNameLabel = document.getElementById('outputVideoNameLabel');
     let path = document.getElementById('path').value;
     let title = document.getElementById('title').value;
     let buttonTest = document.getElementById('btnTest');
     let buttonCancelTest = document.getElementById('btnCancelTest');
     let frame = document.getElementById('frame');
-
-    if (!webcamInput.checked) {
-        if (!inputVideoPathValue || !inputVideoPathValue.endsWith('.mp4')) {
-            setFormWarning(inputVideoPathLabel, inputVideoPath, 'Please provide a valid .mp4 file');
-            return false;
-        }
-    }
-
-    if (saveVideo.checked && !outputVideoNameValue) {
-        setFormWarning(outputVideoNameLabel, outputVideoName, 'Please provide a video name');
-        return false;
-    }
 
     data = {
         classifier: classifier,
@@ -110,41 +74,77 @@ async function cancelTesting(url) {
 }
 
 function toggleInputVideoField() {
-    let inputVideoDiv = document.getElementById('inputVideoDiv');
     let webcamInput = document.getElementsByName('inputSource')[0];
-    let inputVideoPath = document.getElementById('inputVideoPath');
-    let inputVideoPathLabel = document.getElementById('inputVideoPathLabel');
+    let inputVideoDiv = document.getElementById('inputVideoDiv');
 
     if (webcamInput.checked) {
         inputVideoDiv.classList.add('uk-hidden');
-        setFormWarning(inputVideoPathLabel, inputVideoPath, '');
     } else {
         inputVideoDiv.classList.remove('uk-hidden');
     }
+
+    checkInputFields();
 }
 
 function toggleOutputVideoField() {
-    let outputVideoDiv = document.getElementById('outputVideoDiv');
     let saveVideo = document.getElementById('saveVideo');
-    let outputVideoNameLabel = document.getElementById('outputVideoNameLabel');
-    let outputVideoName = document.getElementById('outputVideoName');
+    let outputVideoDiv = document.getElementById('outputVideoDiv');
 
     if (saveVideo.checked) {
         outputVideoDiv.classList.remove('uk-hidden');
     } else {
         outputVideoDiv.classList.add('uk-hidden');
-        setFormWarning(outputVideoNameLabel, outputVideoName, '');
     }
+
+    checkInputFields();
 }
 
-function checkOutputVideoName() {
+async function checkInputFields() {
+    let webcamInput = document.getElementsByName('inputSource')[0];
+    let inputVideoPathLabel = document.getElementById('inputVideoPathLabel');
+    let inputVideoPath = document.getElementById('inputVideoPath');
+    let inputVideoPathValue = inputVideoPath.value;
+
+    let saveVideo = document.getElementById('saveVideo');
     let outputVideoNameLabel = document.getElementById('outputVideoNameLabel');
     let outputVideoName = document.getElementById('outputVideoName');
     let outputVideoNameValue = outputVideoName.value;
 
-    if (outputVideoNameValue === '') {
-        setFormWarning(outputVideoNameLabel, outputVideoName, 'Please provide a video name');
+    let buttonTest = document.getElementById('btnTest');
+
+    let project = document.getElementById('project');
+    let projectName = project.value;
+
+    let directoriesResponse = await browseDirectory(inputVideoPathValue, projectName);
+
+    let disabled = false;
+
+    // Check that input video path is filled and exists if not streaming from webcam
+    if (webcamInput.checked) {
+        setFormWarning(inputVideoPathLabel, inputVideoPath, '');
+    } else if (inputVideoPathValue === '') {
+        setFormWarning(inputVideoPathLabel, inputVideoPath, 'Please provide an input video');
+        disabled = true;
+    } else if (!directoriesResponse.path_exists) {
+        setFormWarning(inputVideoPathLabel, inputVideoPath, 'This path does not exist');
+        disabled = true;
+    } else if (!inputVideoPathValue.endsWith('.mp4')) {
+        setFormWarning(inputVideoPathLabel, inputVideoPath, 'Please provide a valid .mp4 file');
+        disabled = true;
     } else {
+        // Correct path provided
+        setFormWarning(inputVideoPathLabel, inputVideoPath, '');
+    }
+
+    if (!saveVideo.checked) {
+        setFormWarning(outputVideoNameLabel, outputVideoName, '');
+    } else if (!outputVideoNameValue) {
+        setFormWarning(outputVideoNameLabel, outputVideoName, 'Please provide a video name');
+        disabled = true;
+    } else {
+        // Name provided
         setFormWarning(outputVideoNameLabel, outputVideoName, '');
     }
+
+    buttonTest.disabled = disabled;
 }
