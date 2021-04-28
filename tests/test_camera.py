@@ -88,9 +88,7 @@ class TestVideoWriter(unittest.TestCase):
         self.videowriter = VideoWriter(path=self.output_video_path, fps=12.0, resolution=(40, 30))
 
     def test_write(self):
-        input_video_path = VIDEO_PATH
-        input_video = cv2.VideoCapture(input_video_path)
-        output_video_path = self.output_video_path
+        input_video = cv2.VideoCapture(VIDEO_PATH)
 
         while True:
             ret, frame = input_video.read()
@@ -100,8 +98,15 @@ class TestVideoWriter(unittest.TestCase):
 
         input_video.release()
         self.videowriter.release()
-        output_video = cv2.VideoCapture(output_video_path)
-        self.assertTrue(output_video.isOpened())
+        output_video = cv2.VideoCapture(self.output_video_path)
+
+        # Check whether new output file is the same as the original
+        while True:
+            ret, frame_in = input_video.read()
+            _, frame_out = output_video.read()
+            if not ret:
+                break
+            assert np.all([frame_in, frame_out])
 
     def test_release(self):
         self.videowriter.release()
