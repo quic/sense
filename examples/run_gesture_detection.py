@@ -70,7 +70,7 @@ if __name__ == "__main__":
     # Create a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
                                             num_out=len(INT2LAB))
-    gesture_classifier.load_state_dict(weights['gesture_detection'], strict=False)
+    gesture_classifier.load_state_dict(weights['gesture_detection'])
     gesture_classifier.eval()
 
     # Concatenate backbone network and logistic regression
