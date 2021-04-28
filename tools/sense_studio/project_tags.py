@@ -17,7 +17,7 @@ def tags_page(project):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
     project_config = project_utils.load_project_config(path)
-    project_tags = project_config['project_tags']
+    project_tags = project_config.get('project_tags', {})
     project_tags = {v: k for k, v in project_tags.items()}
 
     return render_template('project_tags.html', path=path, project=project, project_tags=project_tags)
