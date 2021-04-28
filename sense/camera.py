@@ -8,6 +8,25 @@ from typing import Optional
 from typing import Tuple
 
 
+def uniform_frame_sample(video, sample_rate):
+    """
+    Uniformly sample video frames according to the provided sample_rate.
+    """
+    available_frames = video.shape[0]
+    required_frames = np.round(sample_rate * available_frames).astype(np.int32)
+
+    # Get evenly spaced indices. When upsampling, include both endpoints.
+    new_indices = np.linspace(0, available_frames - 1, num=required_frames, endpoint=sample_rate >= 1.)
+
+    # Center the indices
+    offset = ((available_frames - 1) - new_indices[-1]) / 2
+    new_indices += offset
+
+    # Round to closest integers
+    new_indices = new_indices.round().astype(np.int32)
+    return video[new_indices]
+
+
 class VideoSource:
     """
     VideoSource captures frames from a camera or a video source file.
@@ -17,7 +36,8 @@ class VideoSource:
                  filename: str = None,
                  size: Tuple[int, int] = None,
                  camera_id: int = 0,
-                 preserve_aspect_ratio: bool = True):
+                 preserve_aspect_ratio: bool = True,
+                 target_fps: Optional[int] = None):
         """
         :param filename:
             Path to a video file.
@@ -27,23 +47,57 @@ class VideoSource:
             Device index for the camera.
         :param preserve_aspect_ratio:
             Whether to preserve the aspect ratio of the video frames.
+        :param target_fps:
+            Framerate that the video should be sampled to. If None is given, framerate of the video is left unchanged.
+            Only relevant if the video is read from a file.
         """
         self.size = size
         self.preserve_aspect_ratio = preserve_aspect_ratio
+
+        self._frames = None
+        self._frame_idx = 0
+
         if filename:
             self._cam = cv2.VideoCapture(filename)
+
+            if target_fps is not None:
+                self._frames = self._read_and_resample_frames(target_fps)
         else:
             self._cam = cv2.VideoCapture(camera_id)
             self._cam.set(3, 480)  # Set frame width to 480
             self._cam.set(4, 640)  # Set frame height to 640
+
+    def _read_and_resample_frames(self, target_fps):
+        video_fps = self._cam.get(cv2.CAP_PROP_FPS)
+
+        video = []
+        ret, frame = self._cam.read()
+        while ret:
+            video.append(frame)
+            ret, frame = self._cam.read()
+
+        return uniform_frame_sample(np.array(video), target_fps / video_fps)
+
+    def _get_frame(self):
+        if self._frames is not None:
+            if self._frame_idx < len(self._frames):
+                frame = self._frames[self._frame_idx]
+                self._frame_idx += 1
+                return frame
+        else:
+            ret, frame = self._cam.read()
+            if ret:
+                return frame
+
+        return None
 
     def get_image(self) -> Optional[Tuple[np.ndarray, np.ndarray]]:
         """
         Capture image from video stream frame-by-frame.
         The captured image and a scaled copy of the image are returned.
         """
-        ret, img = self._cam.read()
-        if ret:
+        img = self._get_frame()
+        if img is not None:
             img_copy = img.copy()
             if self.preserve_aspect_ratio:
                 img_copy = self.pad_to_square(img)
@@ -61,10 +115,6 @@ class VideoSource:
         pad_left = int((square_size - img.shape[1]) / 2)
         pad_right = square_size - img.shape[1] - pad_left
         return cv2.copyMakeBorder(img, pad_top, pad_bottom, pad_left, pad_right, cv2.BORDER_CONSTANT)
-
-    def get_fps(self) -> float:
-        """Return the frame rate of the video source."""
-        return self._cam.get(cv2.CAP_PROP_FPS)
 
 
 class VideoStream(Thread):

@@ -58,7 +58,8 @@ class Controller:
         video_source = VideoSource(
             camera_id=camera_id,
             size=self.inference_engine.expected_frame_size,
-            filename=path_in
+            filename=path_in,
+            target_fps=self.inference_engine.fps,
         )
         self.video_stream = VideoStream(video_source, self.inference_engine.fps)
 
