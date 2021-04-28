@@ -84,16 +84,9 @@
 </li>
 
 <li>
-    <a href="#">Testing</a>
-    <div class="uk-navbar-dropdown uk-navbar-dropdown-width-2">
-        <div class="uk-nav-header">Coming soon!</div>
-        <div class="uk-text-muted">
-            For now, run this script:
-        </div>
-        <div>
-            <code>ssense/tools/run_custom_classifier.py</code>
-        </div>
-    </div>
+    <a href="{{ url_for('testing_bp.testing_page', project=project) }}" class="uk-navbar-item">
+        Testing
+    </a>
 </li>
 
 <li>
