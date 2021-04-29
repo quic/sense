@@ -2,7 +2,6 @@ SenseStudio is our one-stop, web-based platform to quickly get you started with
 developing your own classifier. On this page you will find some tips and more 
 detailed instructions on making the most of the tools we provide.
 
----
 
 ## Setting up your project
 
@@ -27,7 +26,6 @@ Projects are initialised with the following structure:
 The project config stores project details and settings such as time created, classes, video
 recording parameters, etc.
 
----
 
 ## Creating New Classes
 
@@ -36,7 +34,6 @@ new class automatically updates the video folder structure and project config.
 
 **NOTE**: Class names can be edited directly on SenseStudio from the `Project Details` page.
 
----
 
 ## Video Recording
 
@@ -54,7 +51,6 @@ the action from the background.
 
 **Note**: Remember to allow permissions to access the camera when requested.
 
----
 
 ## Temporal Annotations
 
@@ -78,10 +74,12 @@ page when you are finished to return to the previous page.
 **NOTE:** The model may not perform well on annotations within the first 2-3 seconds of the video and so
 it is recommended that you collect videos with a small buffer at the beginning.
 
+
 ## Training
 
 Once the dataset has been prepared, you can train your new custom classifier directly from SenseStudio
 from the `Training` tab. 
+
 
 ## Testing
 
