@@ -344,3 +344,48 @@ async function toggleAssistedTagging(path, split, label) {
     // Reload page to update predictions
     window.location.reload();
 }
+
+async function addSelectedTagToClass(idx, className, path)  {
+    console.log('tag selected');
+    console.log(idx, className);
+
+    let chosenTag = document.getElementById(`selectTag_${idx}`);
+    let tagIndex = chosenTag.value;
+
+    let selectedTagsList = document.getElementById(`selectedTagsList_${className}`);
+    let optionIndex = chosenTag.selectedIndex;
+
+    let tagName = chosenTag.options[optionIndex].text;
+    console.log(tagName, tagIndex);
+
+    data = {
+        className: className,
+        tagIndex: tagIndex,
+        path: path,
+    };
+
+    let response = await asyncRequest('/assign-tag-to-class', data);
+
+    if (response.success) {
+        chosenTag.remove(optionIndex);
+        chosenTag.selectedIndex = "0";
+        let addTagInList = `<li id="tag_${className}_${tagIndex}">
+                                <span uk-icon="icon: tag"></span>
+                                    ${tagName}
+                                <a class="uk-float-right">
+                                    <span uk-icon="icon: close"
+                                      onclick="deselectTagFromList('${tagIndex}','${className}', '${path}');">
+                                    </span>
+                                </a>
+                            </li>`;
+        console.log(addTagInList);
+        selectedTagsList.insertAdjacentHTML('beforeend', addTagInList);
+    }
+}
+
+
+async function deselectTagFromList(idx, tagIndex, className, path) {
+    console.log('deselected Tag');
+    let chosenTag = document.getElementById(`selectTag_${idx}`);
+
+}
