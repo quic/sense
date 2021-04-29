@@ -1,3 +1,7 @@
+This is a fork of [TwentyBN/sense](https://github.com/TwentyBN/sense). Check out the [blog posts](https://corneliusboehm.github.io/sense/) on this fork to see some of the demo applications that can quickly be built leveraging the transfer learning power of `sense`.
+
+---
+
 <div align="center">
 
 <img src="docs/imgs/sense_core_logo.svg" height="140px">
