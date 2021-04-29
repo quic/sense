@@ -34,6 +34,7 @@ import os
 import sys
 
 from docopt import docopt
+from natsort import natsorted
 import torch.utils.data
 
 from sense.downstream_tasks.nn_utils import LogisticRegression
@@ -124,7 +125,7 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     # Find label names
     label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
-    label_names.sort()
+    label_names = natsorted(label_names)
     label_names = [x for x in label_names if not x.startswith('.')]
     label_names_temporal = ['background']
 
