@@ -256,7 +256,7 @@ PYTHONPATH=./ python tools/run_custom_classifier.py --custom_classifier=/path/to
 You can further improve your model's performance by training on top of temporally annotated data; 
 individually tagged frames that identify the event locally in the video versus treating every frame with the same 
 label. For instructions on how to prepare your data with temporal annotations, refer to this 
-[page](https://github.com/TwentyBN/sense/wiki/tools#temporal-annotations-tool).
+[page](https://github.com/TwentyBN/sense/wiki/SenseStudio#temporal-annotations).
 
 After preparing the temporal annotations for your dataset in SenseStudio, you can run the training with the
 `Temporal Annotations` flag enabled to train on those frame-wise tags instead of the whole-video classes.
