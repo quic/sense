@@ -209,8 +209,10 @@ def project_details(project):
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
             }
-
-    return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'])
+    project_tags = config.get('project_tags', {})
+    project_tags = {v: k for k, v in project_tags.items()}
+    return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
+                           project_tags=project_tags)
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])

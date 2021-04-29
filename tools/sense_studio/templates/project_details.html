@@ -87,17 +87,17 @@
                             </div>
                         </div>
 
-                        <div class="temporal {{ 'uk-hidden' if not config.temporal }}" >
-                            <h4>Tags</h4>
-                            <div class="uk-inline uk-width-1-1">
-                                <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                                <input class="uk-input" type="text" name="tag1" placeholder="Tag 1">
-                            </div>
-                            <div class="uk-inline uk-width-1-1 uk-margin">
-                                <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                                <input class="uk-input" type="text" name="tag2" placeholder="Tag 2">
-                            </div>
-                        </div>
+<!--                        <div class="temporal {{ 'uk-hidden' if not config.temporal }}" >-->
+<!--                            <h4>Tags</h4>-->
+<!--                            <div class="uk-inline uk-width-1-1">-->
+<!--                                <span class="uk-form-icon" uk-icon="icon: tag"></span>-->
+<!--                                <input class="uk-input" type="text" name="tag1" placeholder="Tag 1">-->
+<!--                            </div>-->
+<!--                            <div class="uk-inline uk-width-1-1 uk-margin">-->
+<!--                                <span class="uk-form-icon" uk-icon="icon: tag"></span>-->
+<!--                                <input class="uk-input" type="text" name="tag2" placeholder="Tag 2">-->
+<!--                            </div>-->
+<!--                        </div>-->
 
                         <button class="uk-button uk-button-default uk-width-1-1" type="submit" id="addClass" disabled>
                             <span uk-icon="icon: plus"></span>
@@ -139,6 +139,22 @@
 
                 <div class="uk-card-body temporal {{ 'uk-hidden' if not config.temporal }}">
                     <h4>Tags</h4>
+                    <form>
+                        <div class="uk-form-controls uk-width-medium">
+                            <select class="uk-select" id="projectTags" >
+                                {% if project_tags %}
+                                    {% for tag_index, tag_name in project_tags.items() %}
+                                        <option value="{{ tag_index }}">{{ tag_name }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="">No tags available</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div>
+                            <a class="" uk-tooltip="Select Tag"><span uk-icon="icon: plus"></span></a>
+                        </div>
+                    </form>
                     <ul class="uk-list">
                         {% for tag in tags %}
                         <li>
