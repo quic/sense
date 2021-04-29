@@ -36,7 +36,7 @@ def create_tag_in_project_tags():
         max_tag_index = max(project_tags.items(), key=lambda kv: kv[1])[1]
         project_tags[tag_name] = max_tag_index + 1
     else:
-        project_tags[tag_name] = 0
+        project_tags[tag_name] = 1
 
     project_config['project_tags'] = project_tags
     project_utils.write_project_config(path, project_config)

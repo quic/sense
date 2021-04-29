@@ -228,7 +228,7 @@ def add_class(project):
 
     # Update project config
     config = project_utils.load_project_config(path)
-    config['classes'][class_name] = [tag1, tag2]
+    config['classes'][class_name] = []
     project_utils.write_project_config(path, config)
 
     # Setup directory structure
@@ -338,6 +338,23 @@ def remove_class(project, class_name):
     project_utils.write_project_config(path, config)
 
     return redirect(url_for("project_details", project=project))
+
+
+@app.route('/assign-tag-to-class', methods=['POST'])
+def assign_tag_to_class():
+    """
+    Assign selected tag to class in project config.
+    """
+    data = request.json
+    path = data['path']
+    tag_index = data['tagIndex']
+    class_name = data['className']
+
+    project_config = project_utils.load_project_config(path)
+    project_config['classes'][class_name].append(int(tag_index))
+
+    project_utils.write_project_config(path, project_config)
+    return jsonify(success=True)
 
 
 @app.after_request
