@@ -34,6 +34,7 @@ import os
 import sys
 
 from docopt import docopt
+from natsort import natsorted
 import torch.utils.data
 
 from sense.downstream_tasks.nn_utils import LogisticRegression
@@ -124,6 +125,7 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     # Find label names
     label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
+    label_names = natsorted(label_names)
     label_names = [x for x in label_names if not x.startswith('.')]
     label_names_temporal = ['background']
 
@@ -228,8 +230,9 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     # Train model
     best_model_state_dict = training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule,
-                                           label_names, path_out, temporal_annotation_training=temporal_training,
-                                           log_fn=log_fn, confmat_event=confmat_event)
+                                           label_names, label_names_temporal, path_out,
+                                           temporal_annotation_training=temporal_training, log_fn=log_fn,
+                                           confmat_event=confmat_event)
 
     # Save best model
     if isinstance(net, Pipe):
