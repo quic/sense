@@ -290,8 +290,8 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
         log_fn('\n')
 
 
-def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False, log_fn=print, confmat_event=None):
+def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, label_names_temporal,
+                   path_out, temporal_annotation_training=False, log_fn=print, confmat_event=None):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -307,11 +307,12 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 param_group['lr'] = new_lr
 
         net.train()
-        train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, optimizer,
-                                                       use_gpu,
+        train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, label_names_temporal,
+                                                       optimizer, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
         net.eval()
-        valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
+        valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, label_names_temporal,
+                                                       None, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
 
         log_fn('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f'
@@ -326,6 +327,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
             if valid_loss < best_loss:
                 best_loss = valid_loss
                 best_state_dict = net.state_dict().copy()
+                save_confusion_matrix(path_out, cnf_matrix, label_names_temporal, confmat_event=confmat_event)
 
         # save the last checkpoint
         model_state_dict = net.state_dict().copy()
@@ -337,7 +339,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
     return best_state_dict
 
 
-def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False,
+def run_epoch(data_loader, net, criterion, label_names_temporal, optimizer=None, use_gpu=False,
               temporal_annotation_training=False):
     running_loss = 0.0
     epoch_top_predictions = []
@@ -399,7 +401,10 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False,
     top1 = np.mean(epoch_labels == epoch_top_predictions)
     loss = running_loss / len(data_loader)
 
-    cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions)
+    if temporal_annotation_training:
+        cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions, labels=range(0, len(label_names_temporal)))
+    else:
+        cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions)
 
     return loss, top1, cnf_matrix
 
