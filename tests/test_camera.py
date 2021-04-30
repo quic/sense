@@ -108,7 +108,7 @@ class TestVideoWriter(unittest.TestCase):
             _, frame_out = output_video.read()
             if not ret:
                 break
-            assert (np.isclose(frame_in, frame_out, atol=50)).all()
+            assert np.allclose(frame_in, frame_out, atol=50)
 
         # Delete output file on test completion
         os.remove(self.output_video_path)
