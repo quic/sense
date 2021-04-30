@@ -343,17 +343,34 @@ def remove_class(project, class_name):
 @app.route('/assign-tag-to-class', methods=['POST'])
 def assign_tag_to_class():
     """
-    Assign selected tag to class in project config.
+    Assign selected tag to class label in project config.
     """
     data = request.json
     path = data['path']
     tag_index = data['tagIndex']
     class_name = data['className']
 
-    project_config = project_utils.load_project_config(path)
-    project_config['classes'][class_name].append(int(tag_index))
+    config = project_utils.load_project_config(path)
+    config['classes'][class_name].append(int(tag_index))
 
-    project_utils.write_project_config(path, project_config)
+    project_utils.write_project_config(path, config)
+    return jsonify(success=True)
+
+
+@app.route('/remove-tag-from-class', methods=['POST'])
+def remove_tag_from_class():
+    """
+    Removed selected tag from class label in project config.
+    """
+    data = request.json
+    path = data['path']
+    tag_index = data['tagIndex']
+    class_name = data['className']
+
+    config = project_utils.load_project_config(path)
+    config['classes'][class_name].remove(int(tag_index))
+
+    project_utils.write_project_config(path, config)
     return jsonify(success=True)
 
 
