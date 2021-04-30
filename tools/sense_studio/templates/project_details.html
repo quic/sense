@@ -152,9 +152,11 @@
                                     {% for tag_idx in selected_tags %}
                                         <li id="tagList{{ outer_loop_index }}-{{ tag_idx }}">
                                             <span uk-icon="icon: tag"></span>
-                                                {{ project_tags[tag_idx] }}
+                                            {{ project_tags[tag_idx] }}
                                             <a class="uk-float-right">
-                                                <span uk-icon="icon: close" onclick="deselectTagFromList('{{ outer_loop_index }}', '{{ tag_idx }}','{{ project_tags[tag_idx] }}', '{{ path }}', '{{ class }}');"></span>
+                                                <span uk-icon="icon: close"
+                                                      onclick="deselectTagFromList('{{ outer_loop_index }}', '{{ tag_idx }}','{{ project_tags[tag_idx] }}', '{{ path }}', '{{ class }}');">
+                                                </span>
                                             </a>
                                         </li>
                                     {% endfor %}

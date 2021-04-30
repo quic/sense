@@ -367,10 +367,10 @@ async function addSelectedTagToClass(idx, className, path)  {
         selectTagDropdown.selectedIndex = "0";
         let addTagInList = `<li id="tagList${idx}-${tagIndex}">
                                 <span uk-icon="icon: tag"></span>
-                                    ${tagName}
+                                ${tagName}
                                 <a class="uk-float-right">
                                     <span uk-icon="icon: close"
-                                      onclick="deselectTagFromList('${tagIndex}','${className}', '${path}');">
+                                          onclick="deselectTagFromList('${idx}, '${tagIndex}', '${tagName}', '${path}', '${className}');">
                                     </span>
                                 </a>
                             </li>`;
