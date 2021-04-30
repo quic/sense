@@ -16,8 +16,8 @@ project_tags_bp = Blueprint('project_tags_bp', __name__)
 def tags_page(project):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
-    project_config = project_utils.load_project_config(path)
-    project_tags = project_config.get('project_tags', {})
+    config = project_utils.load_project_config(path)
+    project_tags = config.get('project_tags', {})
     project_tags = {v: k for k, v in project_tags.items()}
 
     return render_template('project_tags.html', path=path, project=project, project_tags=project_tags)
@@ -28,18 +28,18 @@ def create_tag_in_project_tags():
     data = request.form
     project = data['project']
     path = data['path']
-    project_config = project_utils.load_project_config(path)
+    config = project_utils.load_project_config(path)
     tag_name = data['tag']
 
-    project_tags = project_config.get('project_tags', {})
+    project_tags = config.get('project_tags', {})
     if project_tags:
         max_tag_index = max(project_tags.items(), key=lambda kv: kv[1])[1]
         project_tags[tag_name] = max_tag_index + 1
     else:
         project_tags[tag_name] = 1
 
-    project_config['project_tags'] = project_tags
-    project_utils.write_project_config(path, project_config)
+    config['project_tags'] = project_tags
+    project_utils.write_project_config(path, config)
     return redirect(url_for('project_tags_bp.tags_page', project=project))
 
 
@@ -47,14 +47,21 @@ def create_tag_in_project_tags():
 def remove_tag_from_project_tags():
     data = request.json
     path = data['path']
-    tag_idx = data['tagIdx']
-    project_config = project_utils.load_project_config(path)
-    project_tags = project_config['project_tags']
+    remove_tag_idx = int(data['tagIdx'])
+    config = project_utils.load_project_config(path)
+    project_tags = config['project_tags']
 
-    project_tags = {tag_name: tag_index for tag_name, tag_index in project_tags.items() if tag_index != int(tag_idx)}
-    project_config['project_tags'] = project_tags
+    # Remove tag from the project tags list
+    project_tags = {tag_name: tag_index for tag_name, tag_index in project_tags.items() if tag_index != remove_tag_idx}
+    config['project_tags'] = project_tags
 
-    project_utils.write_project_config(path, project_config)
+    # Remove tag from the classes
+    for class_label, tags in config['classes'].items():
+        if remove_tag_idx in tags:
+            tags.remove(remove_tag_idx)
+            config['classes'][class_label] = tags
+
+    project_utils.write_project_config(path, config)
     return jsonify(success=True)
 
 
@@ -64,8 +71,8 @@ def edit_tag_in_project_tags():
     path = data['path']
     tag_idx = data['tagIdx']
     new_tag_name = data['newTagName']
-    project_config = project_utils.load_project_config(path)
-    project_tags = project_config['project_tags']
+    config = project_utils.load_project_config(path)
+    project_tags = config['project_tags']
 
     updated_tags = {}
     for tag_name, tag_index in project_tags.items():
@@ -74,6 +81,6 @@ def edit_tag_in_project_tags():
         else:
             updated_tags[tag_name] = tag_index
 
-    project_config['project_tags'] = updated_tags
-    project_utils.write_project_config(path, project_config)
+    config['project_tags'] = updated_tags
+    project_utils.write_project_config(path, config)
     return jsonify(success=True)
