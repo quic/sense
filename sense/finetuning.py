@@ -97,7 +97,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
         return [features, self.labels[idx], temporal_annotation]
 
 
-def generate_data_loader(features_dir, tags_dir, label_names, label2int,
+def generate_data_loader(project_config, features_dir, tags_dir, label_names, label2int,
                          label2int_temporal_annotation, num_timesteps=5, batch_size=16, shuffle=True,
                          stride=4, temporal_annotation_only=False,
                          full_network_minimum_frames=MODEL_TEMPORAL_DEPENDENCY):
@@ -114,13 +114,17 @@ def generate_data_loader(features_dir, tags_dir, label_names, label2int,
         labels += [label2int[label]] * len(feature_temp)
         labels_string += [label] * len(feature_temp)
 
-    # check if annotation exist for each video
+    # Check if temporal annotations exist for each video
     for label, feature in zip(labels_string, features):
-        class_mapping = {0: "counting_background",
-                         1: f'{label}_position_1',
-                         2: f'{label}_position_2'}
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file) and temporal_annotation_only:
+            if project_config:
+                tag1, tag2 = project_config['classes'][label]
+            else:
+                tag1 = f'{label}_tag1'
+                tag2 = f'{label}_tag2'
+            class_mapping = {0: 'background', 1: tag1, 2: tag2}
+
             annotation = json.load(open(temporal_annotation_file))["time_annotation"]
             annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
             temporal_annotation.append(annotation)
@@ -143,19 +147,6 @@ def generate_data_loader(features_dir, tags_dir, label_names, label2int,
         return None
 
 
-def uniform_frame_sample(video, sample_rate):
-    """
-    Uniformly sample video frames according to the provided sample_rate.
-    """
-    depth = video.shape[0]
-    if sample_rate < 1.:
-        indices = np.arange(0, depth, 1. / sample_rate)
-        offset = int((depth - indices[-1]) / 2)
-        sampled_frames = (indices + offset).astype(np.int32)
-        return video[sampled_frames]
-    return video
-
-
 def extract_frames(video_path, inference_engine, path_frames=None, return_frames=True):
     save_frames = path_frames is not None and not os.path.exists(path_frames)
 
@@ -164,8 +155,9 @@ def extract_frames(video_path, inference_engine, path_frames=None, return_frames
         return None
 
     # Read frames from video
-    video_source = camera.VideoSource(size=inference_engine.expected_frame_size, filename=video_path)
-    video_fps = video_source.get_fps()
+    video_source = camera.VideoSource(size=inference_engine.expected_frame_size,
+                                      filename=video_path,
+                                      target_fps=inference_engine.fps)
     frames = []
 
     while True:
@@ -176,7 +168,7 @@ def extract_frames(video_path, inference_engine, path_frames=None, return_frames
             image, image_rescaled = images
             frames.append(image_rescaled)
 
-    frames = uniform_frame_sample(np.array(frames), inference_engine.fps / video_fps)
+    frames = np.array(frames)
 
     # Save frames if a path was provided
     if save_frames:
@@ -298,8 +290,8 @@ def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, n
         log_fn('\n')
 
 
-def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, path_out,
-                   temporal_annotation_training=False, log_fn=print, confmat_event=None):
+def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_schedule, label_names, label_names_temporal,
+                   path_out, temporal_annotation_training=False, log_fn=print, confmat_event=None):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
@@ -315,11 +307,12 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
                 param_group['lr'] = new_lr
 
         net.train()
-        train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, optimizer,
-                                                       use_gpu,
+        train_loss, train_top1, cnf_matrix = run_epoch(train_loader, net, criterion, label_names_temporal,
+                                                       optimizer, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
         net.eval()
-        valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, None, use_gpu,
+        valid_loss, valid_top1, cnf_matrix = run_epoch(valid_loader, net, criterion, label_names_temporal,
+                                                       None, use_gpu,
                                                        temporal_annotation_training=temporal_annotation_training)
 
         log_fn('[%d] train loss: %.3f train top1: %.3f valid loss: %.3f top1: %.3f'
@@ -334,6 +327,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
             if valid_loss < best_loss:
                 best_loss = valid_loss
                 best_state_dict = net.state_dict().copy()
+                save_confusion_matrix(path_out, cnf_matrix, label_names_temporal, confmat_event=confmat_event)
 
         # save the last checkpoint
         model_state_dict = net.state_dict().copy()
@@ -345,7 +339,7 @@ def training_loops(net, train_loader, valid_loader, use_gpu, num_epochs, lr_sche
     return best_state_dict
 
 
-def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False,
+def run_epoch(data_loader, net, criterion, label_names_temporal, optimizer=None, use_gpu=False,
               temporal_annotation_training=False):
     running_loss = 0.0
     epoch_top_predictions = []
@@ -407,7 +401,10 @@ def run_epoch(data_loader, net, criterion, optimizer=None, use_gpu=False,
     top1 = np.mean(epoch_labels == epoch_top_predictions)
     loss = running_loss / len(data_loader)
 
-    cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions)
+    if temporal_annotation_training:
+        cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions, labels=range(0, len(label_names_temporal)))
+    else:
+        cnf_matrix = confusion_matrix(epoch_labels, epoch_top_predictions)
 
     return loss, top1, cnf_matrix
 

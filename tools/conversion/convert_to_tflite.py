@@ -162,7 +162,7 @@ if __name__ == "__main__":
             raise ValueError("You have to provide the name and version for the backbone model")
 
         model_config = ModelConfig(backbone_name, backbone_version, [classifier_name])
-        weights = model_config.get_weights()
+        weights = model_config.load_weights()
 
     backbone_settings = SUPPORTED_BACKBONE_CONVERSIONS.get(backbone_name)
     if not backbone_settings:

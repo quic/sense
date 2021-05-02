@@ -21,7 +21,16 @@ video {
     height: 500px;
 }
 
+#testTerminal{
+    overflow: auto;
+    height: 150px;
+}
+
 #terminal > :last-child {
+    margin-bottom: 15px; /* Keep margin at the bottom while container is overflowing */
+}
+
+#testTerminal > :last-child {
     margin-bottom: 15px; /* Keep margin at the bottom while container is overflowing */
 }
 
@@ -73,4 +82,8 @@ video {
 .label-blue {
     background: #0e73d8;
     color: #fff;
+}
+
+.line-height-normal {
+    line-height: normal;
 }

@@ -7,8 +7,8 @@ docopt                  ==0.6.2       # MIT
 matplotlib              ==3.3.2       # BSD
 scikit-learn            ==0.23.2      # BSD
 Flask                   ==1.1.2       # BSD
-Pillow                  ==8.0.1       # HPND
-ffmpeg-python           ==0.2.0       # GNU-GPL
+Pillow                  ==8.1.1       # HPND
+ffmpeg-python           ==0.2.0       # Apache 2.0
 simpleaudio             ==1.0.4       # MIT
 natsort                 ==7.1.1       # MIT
 Flask-SocketIO          ==5.0.1       # MIT
