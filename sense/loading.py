@@ -14,6 +14,15 @@ from sense import backbone_networks
 with open(os.path.join(SOURCE_DIR, 'models.yml')) as f:
     MODELS = yaml.load(f, Loader=yaml.FullLoader)
 
+DOWNLOADABLE_CHECKPOINT_FILES = [
+    MODELS['StridedInflatedEfficientNet']['pro']['backbone'],
+    MODELS['StridedInflatedEfficientNet']['lite']['backbone'],
+    MODELS['StridedInflatedMobileNetV2']['pro']['backbone'],
+    MODELS['StridedInflatedMobileNetV2']['lite']['backbone'],
+    MODELS['StridedInflatedEfficientNet']['pro']['gesture_detection'],
+    MODELS['StridedInflatedEfficientNet']['lite']['gesture_detection'],
+]
+
 
 class ModelConfig:
     """
@@ -74,7 +83,8 @@ class ModelConfig:
             log_fn(f'Weights found:\n{path_weights_string}')
             weights = {}
             for name, path in path_weights.items():
-                load_fn = load_backbone_weights if name == 'backbone' else load_weights_from_resources
+                load_fn = (load_weights_except_on_travis if path in DOWNLOADABLE_CHECKPOINT_FILES
+                           else load_weights_from_resources)
                 weights[name] = load_fn(path)
 
             return weights
@@ -181,9 +191,9 @@ def load_weights_from_resources(checkpoint_path: str):
                                 'instructions.'.format(checkpoint_path))
 
 
-def load_backbone_weights(checkpoint_path: str):
+def load_weights_except_on_travis(checkpoint_path: str):
     """
-    Load backbone weights from a checkpoint file, unless Travis is used. Raises an error pointing
+    Load weights from a checkpoint file, unless Travis is used. Raises an error pointing
     to the SDK page in case weights are missing.
 
     :param checkpoint_path:
@@ -212,7 +222,8 @@ def update_backbone_weights(backbone_weights: dict, checkpoint: dict):
         backbone_weights[key] = checkpoint.pop(key)
 
 
-def build_backbone_network(selected_config: ModelConfig, weights: dict):
+def build_backbone_network(selected_config: ModelConfig, weights: dict,
+                           weights_finetuned: dict = None):
     """
     Creates a backbone network and load provided weights, unless Travis is used.
 
@@ -220,11 +231,18 @@ def build_backbone_network(selected_config: ModelConfig, weights: dict):
         An instance of ModelConfig, specifying the backbone architecture name.
     :param weights:
         A model state dict.
+    :param  weights_finetuned:
+        A state dict that contains the finetuned weights of a subset of the model layers.
     :return:
         A backbone network, with pre-trained weights.
     """
     backbone_network = getattr(backbone_networks, selected_config.model_name)()
     if not running_on_travis():
+        if weights_finetuned:
+            # Update weights of layers that were finetuned
+            weights_finetuned = {key: weight for key, weight in weights_finetuned.items()
+                                 if key in weights}
+            weights = {**weights, **weights_finetuned}
         backbone_network.load_state_dict(weights)
     backbone_network.eval()
     return backbone_network

@@ -102,3 +102,38 @@ class ExerciceSpecificRepCounter:
             if classif_output[self.inverse_mapping[self.position0]] > self.threshold:
                 self.position = 0
                 self.count += 1
+
+
+class EventCounter(PostProcessor):
+    """
+    Count how many times a certain event, tied to a specific model class, occurs. For one occurrence
+    to be counted, the class probability should pass the provided threshold and then decrease below
+    half the provided threshold. In other words, this object detects and counts probability spikes.
+    """
+
+    def __init__(self, key, key_idx, threshold, **kwargs):
+        """
+        :param key:
+            The name of the class that should be counted.
+        :param key_idx:
+            The index of the counted class in the predicted probability tensor.
+        :param threshold:
+            The threshold that should be reached for a probability spike to be counted.
+        """
+
+        super().__init__(**kwargs)
+        self.key = key
+        self.key_idx = key_idx
+        self.threshold = threshold
+        self.count = 0
+        self.active = False
+
+    def postprocess(self, classif_output):
+        if classif_output is not None:
+            if self.active and classif_output[self.key_idx] < (self.threshold / 2.):
+                self.active = False
+            elif not self.active and classif_output[self.key_idx] > self.threshold:
+                self.active = True
+                self.count += 1
+
+        return {self.key: self.count}
