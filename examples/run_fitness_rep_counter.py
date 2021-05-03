@@ -100,7 +100,7 @@ if __name__ == "__main__":
         sense.display.DisplayExerciseRepCounts()
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops,
-                                                   border_size=100)
+                                                   border_size_top=100)
 
     # Run live inference
     controller = Controller(

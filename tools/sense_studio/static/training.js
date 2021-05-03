@@ -53,11 +53,7 @@ async function startTraining(url) {
             buttonTrain.disabled = false;
             buttonCancelTrain.disabled = true;
 
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                confusionMatrix.src = `data:image/png;base64,${e.target.result}`;
-            };
-            reader.readAsBinaryString(new Blob([message.img]));
+            confusionMatrix.src = message.img;
         }
     });
 

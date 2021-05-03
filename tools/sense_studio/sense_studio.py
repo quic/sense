@@ -26,6 +26,7 @@ from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
 from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.testing import testing_bp
 from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
 
@@ -37,6 +38,7 @@ app.debug = True
 app.register_blueprint(annotation_bp, url_prefix='/annotation')
 app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
 app.register_blueprint(training_bp, url_prefix='/training')
+app.register_blueprint(testing_bp, url_prefix='/testing')
 
 socketio.init_app(app)
 
@@ -105,6 +107,7 @@ def browse_directory():
     project_dir = project_utils.get_folder_name_for_project(project)
     full_path = os.path.join(path, project_dir)
 
+    video_files = [f for f in glob.glob(f'{path}*.mp4')]
     projects = project_utils.load_project_overview_config()
 
     return jsonify(
@@ -115,6 +118,7 @@ def browse_directory():
         path_exists=os.path.exists(path),
         path_unique=path not in [p['path'] for p in projects.values()],
         subdirs=subdirs,
+        video_files=video_files,
     )
 
 

@@ -160,7 +160,7 @@ class TestDisplayResults(unittest.TestCase):
         img = np.ones(shape=(height, width, 3))
         test_show = base_display.DisplayResults(title="Demo", display_ops=[])
         resized_img = test_show.resize_to_fit_window(img)
-        assert img.shape[0] + test_show.border_size == resized_img.shape[0]
+        assert img.shape[0] + test_show.border_size_top == resized_img.shape[0]
 
 
 if __name__ == '__main__':
