@@ -220,11 +220,10 @@ def add_class(project):
     """
     Add a new class to the given project.
     """
+    data = request.form
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
-
-    # Get class name and tags
-    class_name, tag1, tag2 = utils.get_class_name_and_tags(request.form)
+    class_name = data['className']
 
     # Update project config
     config = project_utils.load_project_config(path)
@@ -279,17 +278,20 @@ def edit_class(project, class_name):
     """
     Edit the class name and tags for an existing class in the given project.
     """
+    data = request.form
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
     path = project_utils.lookup_project_path(project)
 
-    # Get new class name and tags
-    new_class_name, new_tag1, new_tag2 = utils.get_class_name_and_tags(request.form)
-
     # Update project config
     config = project_utils.load_project_config(path)
+
+    # Get new class name and tags
+    new_class_name = data['className']
+    new_class_tags = config['classes'][class_name]
+
     del config['classes'][class_name]
-    config['classes'][new_class_name] = [new_tag1, new_tag2]
+    config['classes'][new_class_name] = new_class_tags
     project_utils.write_project_config(path, config)
 
     # Update directory names
