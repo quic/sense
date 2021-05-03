@@ -35,6 +35,7 @@ import sys
 
 from docopt import docopt
 from natsort import natsorted
+from natsort import ns
 import torch.utils.data
 
 from sense.downstream_tasks.nn_utils import LogisticRegression
@@ -125,21 +126,23 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     # Find label names
     label_names = os.listdir(directories.get_videos_dir(path_in, 'train'))
-    label_names = natsorted(label_names)
+    label_names = natsorted(label_names, alg=ns.IC)
     label_names = [x for x in label_names if not x.startswith('.')]
-    label_names_temporal = ['background']
+    label_names_temporal = []
 
     project_config = load_project_config(path_in)
     if project_config:
-        for temporal_tags in project_config['classes'].values():
+        for temporal_tags in project_config['project_tags'].keys():
             label_names_temporal.extend(temporal_tags)
+        label_names_temporal = sorted(set(label_names_temporal))
+        label2int_temporal_annotation = project_config['project_tags']
     else:
+        label_names_temporal.extend(['background'])
         for label in label_names:
             label_names_temporal.extend([f'{label}_tag1', f'{label}_tag2'])
+        label_names_temporal = sorted(set(label_names_temporal))
+        label2int_temporal_annotation = {name: index for index, name in enumerate(label_names_temporal)}
 
-    label_names_temporal = sorted(set(label_names_temporal))
-
-    label2int_temporal_annotation = {name: index for index, name in enumerate(label_names_temporal)}
     label2int = {name: index for index, name in enumerate(label_names)}
 
     extractor_stride = backbone_network.num_required_frames_per_layer_padding[0]

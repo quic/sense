@@ -60,7 +60,7 @@ def setup_new_project(project_name, path, config=None):
             'name': project_name,
             'date_created': datetime.date.today().isoformat(),
             'project_tags': {
-                'Background': 0,
+                'background': 0,
             },
             'classes': {},
             'use_gpu': False,
