@@ -239,10 +239,7 @@ def build_backbone_network(selected_config: ModelConfig, weights: dict,
     backbone_network = getattr(backbone_networks, selected_config.model_name)()
     if not running_on_travis():
         if weights_finetuned:
-            # Update weights of layers that were finetuned
-            weights_finetuned = {key: weight for key, weight in weights_finetuned.items()
-                                 if key in weights}
-            weights = {**weights, **weights_finetuned}
+            update_backbone_weights(weights, weights_finetuned)
         backbone_network.load_state_dict(weights)
     backbone_network.eval()
     return backbone_network

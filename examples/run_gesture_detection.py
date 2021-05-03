@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
-Real time detection of 6 hand gestures.
+Real time detection of 6 hand gesture events. Compared to `run_gesture_recognition`, the models used
+in this script were trained to trigger the correct class only for a short period of time right after
+the hand gesture occurred. This behavior policy makes it easier to quickly trigger multiple hand
+gestures in a row.
 
 Usage:
   run_gesture_detection.py [--camera_id=CAMERA_ID]
@@ -30,7 +33,7 @@ from sense.downstream_tasks.gesture_detection import ENABLED_LABELS
 from sense.downstream_tasks.gesture_detection import LAB_THRESHOLDS
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.postprocess import EventCounter
+from sense.downstream_tasks.postprocess import PostprocessEventCounts
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import get_relevant_weights
 from sense.loading import build_backbone_network
@@ -67,17 +70,15 @@ if __name__ == "__main__":
     # Create a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
                                             num_out=len(INT2LAB))
-    gesture_classifier.load_state_dict(weights['gesture_detection'], strict=False)
+    gesture_classifier.load_state_dict(weights['gesture_detection'])
     gesture_classifier.eval()
 
     # Concatenate backbone network and logistic regression
     net = Pipe(backbone_network, gesture_classifier)
 
     postprocessor = [
-        PostprocessClassificationOutput(INT2LAB, smoothing=1)
-    ]
-    postprocessor += [
-        EventCounter(key, LAB2INT[key], LAB_THRESHOLDS[key]) for key in ENABLED_LABELS
+        PostprocessClassificationOutput(INT2LAB, smoothing=1),
+        PostprocessEventCounts(ENABLED_LABELS, LAB2INT, LAB_THRESHOLDS)
     ]
 
     border_size_top = 0

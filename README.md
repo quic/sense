@@ -42,7 +42,7 @@ This is a fork of [TwentyBN/sense](https://github.com/TwentyBN/sense). Check out
 ---
 
 <!-- Add some bullet points for what this repo provides-->
-`sense`is an inference engine to serve powerful neural networks for action recognition, with a low
+`sense` is an inference engine to serve powerful neural networks for action recognition, with a low
  computational footprint. In this repository, we provide: 
  - Two models out-of-the-box pre-trained on millions of videos of humans performing 
  actions in front of, and interacting with, a camera. Both neural networks are small, efficient, and run smoothly in real time on a CPU.

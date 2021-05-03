@@ -220,9 +220,12 @@ class DisplayClassnameOverlay(BaseDisplay):
             Font scale factor for modifying the font size.
         :param thickness:
             Thickness of the lines used to draw the text.
-        :param border_size:
-            Height of the border on top of the video display. Used for correctly centering the displayed class name
-            on the video.
+        :param border_size_top:
+            Height of the border on top of the video display. Used for correctly centering
+            the displayed class name on the video.
+        :param border_size_right:
+            Width of the border added to the right of the video display. Used for correctly centering
+            the displayed class name on the video.
         """
         super().__init__(**kwargs)
         self.thresholds = thresholds
@@ -314,13 +317,14 @@ class DisplayPredictionBarGraph(BaseDisplay):
             thresholds: Dict[str, float] = None,
             bar_length: int = 100,
             display_counts: bool = False,
-            **kwargs):
+            **kwargs,
+    ):
         """
         :param keys:
             List of class names that should be displayed.
         :param thresholds:
             A dictionary specifying a threshold for each class name. The color of the corresponding
-            bar in the graph will change when the probability passes above the threshold.
+            bar in the graph will change when the probability passes the threshold.
         :param bar_length:
             Length of the bars in the bar graph.
         :param display_counts:
@@ -337,29 +341,36 @@ class DisplayPredictionBarGraph(BaseDisplay):
     def display(self, img, display_data):
         results = dict(display_data['sorted_predictions'])
 
+        font_scale = 1.2
+
         for index, key in enumerate(self.keys):
             proba = results[key]
-            size_text = cv2.getTextSize(key, FONT, 1.2, 1)[0]
+
+            size_text = cv2.getTextSize(key, FONT, font_scale, 1)[0]
             x_text = self.x_offset - size_text[0]
             x_bar_left = self.x_offset + 10
             x_bar_right = x_bar_left + int(self.bar_length * proba)
             y_pos = 25 * (index + 1) + self.y_offset
+
             # determine color of the bar
             if proba > self.thresholds.get(key, 1.):
                 bar_color = (0, 255, 0)  # bright green
             else:
                 bar_color = (0, 128, 0)  # darker green
+
             # display key name
-            font_scale = 1.2
             put_text(img, key, (x_text, y_pos), font_scale=font_scale)
+
             # display bar next to key name
             cv2.line(img, (x_bar_left, y_pos - 5), (x_bar_right, y_pos - 5),
                      bar_color, 10, cv2.LINE_AA)
+
             # display proba value next to bar
             put_text(img, f"{proba:.2f}", (x_bar_right + 10, y_pos), font_scale=font_scale)
+
             # display event counts
             if self.display_counts:
-                count = display_data[key]
+                count = display_data['counting'][key]
                 put_text(img, f"{count}", (x_bar_left + self.bar_length + 100, y_pos), font_scale=font_scale)
 
         return img
@@ -374,7 +385,9 @@ class DisplayResults:
             title: str, display_ops: List[BaseDisplay],
             border_size_top: int = 30,
             border_size_right: int = 0,
-            window_size: Tuple[int, int] = (480, 640)):
+            window_size: Tuple[int, int] = (480, 640),
+            display_fn=None
+    ):
         """
         :param title:
             Title of the image frame on display.
@@ -396,12 +409,14 @@ class DisplayResults:
         self._window_title = 'Real-time SenseNet'
         self.border_size_top = border_size_top
         self.border_size_right = border_size_right
-        cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_KEEPRATIO)
-        cv2.resizeWindow(self._window_title,
-                         self.window_size[1] + self.border_size_right,
-                         self.window_size[0] + self.border_size_top)
+        if not display_fn:
+            cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_KEEPRATIO)
+            cv2.resizeWindow(self._window_title,
+                             self.window_size[1] + self.border_size_right,
+                             self.window_size[0] + self.border_size_top)
         self.title = title
         self.display_ops = display_ops
+        self.display_fn = display_fn
 
     def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
@@ -434,7 +449,10 @@ class DisplayResults:
             put_text(img, self.title, (middle, 20))
 
         # Show the image in a window
-        cv2.imshow(self._window_title, img)
+        if self.display_fn:
+            self.display_fn(img)
+        else:
+            cv2.imshow(self._window_title, img)
         return img
 
     def resize_to_fit_window(self, img):
