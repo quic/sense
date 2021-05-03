@@ -369,8 +369,8 @@ async function addSelectedTagToClass(idx, className, path)  {
                                 <span uk-icon="icon: tag"></span>
                                 ${tagName}
                                 <a class="uk-float-right">
-                                    <span uk-icon="icon: close"
-                                          onclick="deselectTagFromList('${idx}, '${tagIndex}', '${tagName}', '${path}', '${className}');">
+                                    <span uk-icon="icon: close" class="uk-text-danger"
+                                          onclick="deselectTagFromList('${idx}', '${tagIndex}', '${tagName}', '${path}', '${className}');">
                                     </span>
                                 </a>
                             </li>`;
