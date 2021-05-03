@@ -80,6 +80,11 @@ def annotate(project, split, label, idx):
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
 
+    config = project_utils.load_project_config(path)
+    project_tags = {tag_index: tag_name for tag_name, tag_index in config['project_tags'].items()}
+    class_tags = config['classes'][label]
+    class_tags.sort()
+
     _, model_config = utils.load_feature_extractor(path)
 
     frames_dir = directories.get_frames_dir(path, split, label)
@@ -125,7 +130,8 @@ def annotate(project, split, label, idx):
 
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx], project_config=config,
-                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos))
+                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos),
+                           project_tags=project_tags, class_tags=class_tags)
 
 
 @annotation_bp.route('/submit-annotation', methods=['POST'])

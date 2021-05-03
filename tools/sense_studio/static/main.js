@@ -273,25 +273,26 @@ const buttonClasses = [
 ]
 
 
-function assignTag(frameIdx, selectedTagIdx) {
+function assignTag(frameIdx, selectedTagIdx,  classTagIdx) {
     let tagInput = document.getElementById(`${frameIdx}_tag`);
     tagInput.value = selectedTagIdx;
 
-    for (const tagIdx of [0, 1, 2]) {
+    for (const tagIdx of classTagIdx) {
+
         let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
 
         if (tagIdx == selectedTagIdx) {
-            button.classList.add(buttonClasses[tagIdx]);
+            button.classList.add('button-green');
         } else {
-            button.classList.remove(buttonClasses[tagIdx]);
+            button.classList.remove('button-green');
         }
     }
 }
 
 
-function initTagButtons(annotations) {
+function initTagButtons(annotations, classTagIdx) {
     for (let frameIdx = 0; frameIdx < annotations.length; frameIdx++) {
-        assignTag(frameIdx, annotations[frameIdx]);
+        assignTag(frameIdx, annotations[frameIdx], classTagIdx);
     }
 }
 
