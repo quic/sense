@@ -127,37 +127,29 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
         return img
 
 
-class DisplayRepCounts(BaseDisplay):
+class DisplayCounts(BaseDisplay):
 
     lateral_offset = DisplayMETandCalories.lateral_offset
 
     def __init__(self, y_offset=40):
         super().__init__(y_offset)
 
+    def display_count(self, activity, count, img, y_pos):
+        put_text(img, f'{activity}: {count}', (10 + self.lateral_offset, y_pos))
+
     def display(self, img, display_data):
         counters = display_data['counting']
-        index = 0
-        for activity, count in counters.items():
+        for index, (activity, count) in enumerate(counters.items()):
             y_pos = 20 * (index + 1) + self.y_offset
-            put_text(img, 'Exercise: {}'.format(activity[0:50]), (10, y_pos))
-            put_text(img, 'Count: {}'.format(count), (10 + self.lateral_offset, y_pos))
-            index += 1
+            self.display_count(activity, count, img, y_pos)
         return img
 
 
-class DisplayRepCounts2(BaseDisplay):
+class DisplayExerciseRepCounts(DisplayCounts):
 
-    lateral_offset = DisplayMETandCalories.lateral_offset
-
-    def __init__(self, keys, y_offset=60):
-        super().__init__(y_offset)
-        self.keys = keys
-
-    def display(self, img, display_data):
-        for index, key in enumerate(self.keys):
-            y_pos = 20 * (index + 1) + self.y_offset
-            put_text(img, f'{key}: {display_data[key]}', (10 + self.lateral_offset, y_pos))
-        return img
+    def display_count(self, activity, count, img, y_pos):
+        put_text(img, f'Exercise: {activity[0:50]}', (10, y_pos))
+        put_text(img, f'Count: {count}', (10 + self.lateral_offset, y_pos))
 
 
 class DisplayFPS(BaseDisplay):

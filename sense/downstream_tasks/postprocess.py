@@ -1,4 +1,5 @@
 from collections import deque
+from typing import List
 
 import numpy as np
 
@@ -53,77 +54,53 @@ class PostprocessClassificationOutput(PostProcessor):
         }
 
 
-class PostprocessRepCounts(PostProcessor):
+class AggregatedPostProcessors(PostProcessor):
+    """
+    This class wraps a list of PostProcessors and stores their results under the same key in the output dictionary.
+    """
 
-    def __init__(self, mapping_dict, threshold=0.4, **kwargs):
+    def __init__(self, post_processors: List[PostProcessor], out_key: str, **kwargs):
+        """
+        :param post_processors:
+            List of PostProcessors whose results will be stored together in the output dictionary.
+        :param out_key:
+            Key for storing the aggregated results.
+        """
         super().__init__(**kwargs)
-        self.mapping = mapping_dict
-        self.threshold = threshold
-        self.jumping_jack_counter = TwoPositionsRepCounter(
-            mapping_dict,
-            "counting - jumping_jacks_position=arms_down",
-            "counting - jumping_jacks_position=arms_up",
-            threshold)
-        self.squats_counter = TwoPositionsRepCounter(
-            mapping_dict,
-            "counting - squat_position=high",
-            "counting - squat_position=low",
-            threshold)
+        self.post_processors = post_processors
+        self.out_key = out_key
 
     def postprocess(self, classif_output):
-        if classif_output is not None:
-            self.jumping_jack_counter.postprocess(classif_output)
-            self.squats_counter.postprocess(classif_output)
+        output = {}
+        for processor in self.post_processors:
+            output.update(processor.postprocess(classif_output))
 
-        return {
-            'counting': {
-                "jumping_jacks": self.jumping_jack_counter.count,
-                "squats": self.squats_counter.count
-            }
-        }
+        return {self.out_key: output}
 
 
-class TwoPositionsRepCounter(PostProcessor):
+class TwoPositionsCounter(PostProcessor):
+    """
+    Count actions that are defined by alternating between two positions.
+    """
 
-    def __init__(self, mapping, position0, position1, threshold0, threshold1, out_key, **kwargs):
+    def __init__(self, pos0_idx: int, pos1_idx: int, threshold0: float, threshold1: float, out_key: str, **kwargs):
         super().__init__(**kwargs)
+        self.pos0 = pos0_idx
+        self.pos1 = pos1_idx
         self.threshold0 = threshold0
         self.threshold1 = threshold1
-        self.position0 = mapping[position0]
-        self.position1 = mapping[position1]
         self.count = 0
-        self.position = 0
+        self.current_position = 0
         self.out_key = out_key
 
     def postprocess(self, classif_output):
         if classif_output is not None:
-            if self.position == 0:
-                if classif_output[self.position1] > self.threshold1:
-                    self.position = 1
+            if self.current_position == 0:
+                if classif_output[self.pos1] > self.threshold1:
+                    self.current_position = 1
             else:
-                if classif_output[self.position0] > self.threshold0:
-                    self.position = 0
+                if classif_output[self.pos0] > self.threshold0:
+                    self.current_position = 0
                     self.count += 1
-
-        return {self.out_key: self.count}
-
-
-class OnePositionRepCounter(PostProcessor):
-
-    def __init__(self, mapping, position, threshold, out_key, **kwargs):
-        super().__init__(**kwargs)
-        self.threshold = threshold
-        self.position = mapping[position]
-        self.count = 0
-        self.active = False
-        self.out_key = out_key
-
-    def postprocess(self, classif_output):
-        if classif_output is not None:
-            if self.active and classif_output[self.position] < self.threshold:
-                self.active = False
-            elif not self.active and classif_output[self.position] > self.threshold:
-                self.active = True
-                self.count += 1
 
         return {self.out_key: self.count}
