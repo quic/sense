@@ -117,7 +117,7 @@ class EventCounter(PostProcessor):
     detects and counts probability spikes.
     """
 
-    def __init__(self, key, key_idx, threshold, **kwargs):
+    def __init__(self, key, key_idx, threshold, out_key=None, **kwargs):
         """
         :param key:
             The name of the class that should be counted.
@@ -125,11 +125,14 @@ class EventCounter(PostProcessor):
             The index of the counted class in the predicted probability tensor.
         :param threshold:
             The threshold that should be reached for a probability spike to be counted.
+        :param out_key:
+            Optional key for storing the output. If none is given, the input key will be used instead.
         """
         super().__init__(**kwargs)
         self.key = key
         self.key_idx = key_idx
         self.threshold = threshold
+        self.out_key = out_key or key
         self.count = 0
         self.active = False
 
@@ -140,4 +143,4 @@ class EventCounter(PostProcessor):
             elif not self.active and classif_output[self.key_idx] > self.threshold:
                 self.active = True
                 self.count += 1
-        return {self.key: self.count}
+        return {self.out_key: self.count}

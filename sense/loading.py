@@ -21,6 +21,7 @@ DOWNLOADABLE_CHECKPOINT_FILES = [
     MODELS['StridedInflatedMobileNetV2']['lite']['backbone'],
     MODELS['StridedInflatedEfficientNet']['pro']['gesture_detection'],
     MODELS['StridedInflatedEfficientNet']['lite']['gesture_detection'],
+    MODELS['StridedInflatedEfficientNet']['pro']['volleyball_counter'],
 ]
 
 
