@@ -6,9 +6,19 @@ queuelib                ==1.5.0       # BSD
 docopt                  ==0.6.2       # MIT
 matplotlib              ==3.3.2       # BSD
 scikit-learn            ==0.23.2      # BSD
+Flask                   ==1.1.2       # BSD
+Pillow                  ==8.1.1       # HPND
+ffmpeg-python           ==0.2.0       # Apache 2.0
+simpleaudio             ==1.0.4       # MIT
+natsort                 ==7.1.1       # MIT
+Flask-SocketIO          ==5.0.1       # MIT
+python-engineio         ==4.0.1       # MIT
+python-socketio         ==5.1.0       # MIT
 
-# Dependencies needed for converting Pytorch models to CoreML
-tensorflow              ==1.14.0
-keras                   ==2.2.4
-coremltools             ==3.3
-h5py                    ==2.10.0
+# Dependencies needed for converting Pytorch models to tensorflow Lite
+tensorflow              ==2.3.1      # Apache 2.0
+Keras                   ==2.4.3      # Apache 2.0
+
+# unit tests
+pycodestyle             ==2.5.0          # MIT
+pytest                  ==5.4.3          # MIT

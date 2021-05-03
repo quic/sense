@@ -1,0 +1,80 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} Record video {% endblock %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock navigation %}
+
+{% block main %}
+<div class="uk-container uk-container-xsmall">
+    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Video Recording</h1>
+    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+        <div>
+            <span uk-icon="icon: folder"></span> {{ path }}
+        </div>
+        <div>
+            <span uk-icon="icon: bookmark"></span> {{ label }}
+        </div>
+        <div>
+            <span uk-icon="icon: git-fork"></span> {{ split }}
+        </div>
+    </div>
+
+    <form class="uk-form-stacked">
+        <div class="uk-grid-match" uk-grid>
+            <div class="uk-width-small">
+                <label class="uk-form-label" for="countdown">Countdown</label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: future"></span>
+                        <input class="uk-input" type="number" id="countdown" value="{{ countdown }}" min="0"
+                               onchange="enableSetDefaultsButton();">
+                    </div>
+                </div>
+            </div>
+
+            <div class="uk-width-small">
+                <label class="uk-form-label" for="duration">Duration</label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: clock"></span>
+                        <input class="uk-input" type="number" id="duration" value="{{ recording }}" min="1"
+                               onchange="enableSetDefaultsButton();">
+                    </div>
+                </div>
+            </div>
+
+            <div class="uk-width-auto">
+                <div class="uk-margin-auto-top">
+                    <button class="uk-button uk-button-default" type="button" id="setDefaultButton"
+                            onclick="setTimerDefault('{{ path }}');" disabled>
+                        Save as defaults
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="uk-margin">
+            <button class="uk-button uk-button-primary" type="button" id="recordVideoButton"
+               onclick="recordVideo('{{ url_for('video_recording_bp.save_video', project=project, label=label, split=split) }}');">
+                <span uk-icon="icon: video-camera"></span>
+                Record
+            </button>
+        </div>
+    </form>
+
+    <div class="uk-margin uk-text-center">
+        <div class="uk-section uk-section-muted uk-padding-remove-vertical uk-inline">
+            <video id="player" width="640" height="480" autoplay></video>
+            <div class="uk-overlay uk-overlay-default uk-position-top uk-text-large uk-hidden uk-padding-small" id="textOverlay">
+                <!-- Automatically filled -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='video_recording.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} Video List {% endblock %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock navigation %}
+
+{% block main %}
+<div class="uk-container uk-container-xsmall">
+    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Video Annotation</h1>
+    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+        <div>
+            <span uk-icon="icon: folder"></span> {{ path }}
+        </div>
+        <div>
+            <span uk-icon="icon: bookmark"></span> {{ label }}
+        </div>
+        <div>
+            <span uk-icon="icon: git-fork"></span> {{ split }}
+        </div>
+    </div>
+    <div uk-filter="target: .video-list">
+        <div class="uk-flex uk-flex-center">
+            <ul class="uk-subnav uk-subnav-pill">
+                <li class="uk-text-large uk-text-bold uk-margin">Filter</li>
+                <li uk-filter-control><a href="#">All</a></li>
+                <li uk-filter-control=".video-tagged"><a href="#">Tagged</a></li>
+                <li uk-filter-control=".video-untagged"><a href="#">Untagged</a></li>
+            </ul>
+        </div>
+        <table class="uk-box-shadow-medium uk-background-muted uk-table uk-table-small uk-width-auto uk-text-medium uk-align-right">
+            <tr>
+                <td class="uk-text-bold">Total</td>
+                <td class="uk-text-right uk-text-light">{{ num_videos }}</td>
+            </tr>
+            <tr>
+                <td class="uk-text-bold">Tagged</td>
+                <td class="uk-text-right uk-text-light">{{ num_tagged }}</td>
+            </tr>
+            <tr>
+                <td class="uk-text-bold">Untagged</td>
+                <td class="uk-text-right uk-text-light">{{ num_untagged }}</td>
+            </tr>
+        </table>
+        <div class="video-list uk-grid-small uk-child-width-1-1" uk-grid>
+            {% for video, tagged, id in video_list %}
+            <div class="{{ 'video-tagged' if tagged else 'video-untagged' }}">
+                <a class="uk-card uk-card-body uk-card-default uk-card-small uk-card-hover uk-link-toggle"
+                   href="{{ url_for('annotation_bp.annotate', project=project, split=split, label=label, idx=id) }}">
+                    <div class="uk-link-heading" uk-grid>
+                        <div class="uk-width-expand">
+                            <span uk-icon="icon: play"></span>
+                            {{ video }}
+                        </div>
+                        {% if tagged %}
+                        <div class="uk-width-auto">
+                            <span uk-icon="icon: check"></span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
