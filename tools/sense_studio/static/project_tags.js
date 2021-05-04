@@ -26,26 +26,18 @@ function checkIfTagExist(projectTags, tagId, error) {
 
 
 function editProjectTag(tagIdx) {
-    let editTag = document.getElementById(`editTag_${tagIdx}`);
-    let removeTag = document.getElementById(`removeTag_${tagIdx}`);
-    let cancel = document.getElementById(`cancel_${tagIdx}`);
-    let saveTag = document.getElementById(`saveTag_${tagIdx}`);
-    let tag = document.getElementById(`tag_${tagIdx}`);
+    let tagShow = document.getElementById(`tagShow${tagIdx}`);
+    let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
 
-    tag.disabled = false;
-    editTag.classList.add('uk-hidden');
-    removeTag.classList.add('uk-hidden');
-    cancel.classList.remove('uk-hidden');
-    saveTag.classList.remove('uk-hidden');
+    tagEdit.classList.remove('uk-hidden');
+    tagShow.classList.add('uk-hidden');
 }
 
 
 async function saveProjectTag(tagIdx, url, projectTags) {
-    let editTag = document.getElementById(`editTag_${tagIdx}`);
-    let removeTag = document.getElementById(`removeTag_${tagIdx}`);
-    let cancel = document.getElementById(`cancel_${tagIdx}`);
-    let saveTag = document.getElementById(`saveTag_${tagIdx}`);
     let tag = document.getElementById(`tag_${tagIdx}`);
+    let tagShow = document.getElementById(`tagShow${tagIdx}`);
+    let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
     let path = document.getElementById('path').value;
     let project = document.getElementById('project').value;
 
@@ -61,11 +53,9 @@ async function saveProjectTag(tagIdx, url, projectTags) {
     let response = await asyncRequest(url, data);
 
     if (response.success) {
-        tag.disabled = true;
-        editTag.classList.remove('uk-hidden');
-        removeTag.classList.remove('uk-hidden');
-        cancel.classList.add('uk-hidden');
-        saveTag.classList.add('uk-hidden');
+        tagEdit.classList.add('uk-hidden');
+        tagShow.classList.remove('uk-hidden');
+        window.location.href = `/tags/${project}`;
     }
 }
 
@@ -86,10 +76,8 @@ async function removeProjectTag(tagIdx, url) {
 
 
 function cancelEditProjectTag(tagIdx) {
-    let editTag = document.getElementById(`editTag_${tagIdx}`);
-    let removeTag = document.getElementById(`removeTag_${tagIdx}`);
-    let cancel = document.getElementById(`cancel_${tagIdx}`);
-    let saveTag = document.getElementById(`saveTag_${tagIdx}`);
+    let tagShow = document.getElementById(`tagShow${tagIdx}`);
+    let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
     let tag = document.getElementById(`tag_${tagIdx}`);
     let project = document.getElementById('project').value;
     let error = document.getElementById('error');
@@ -97,9 +85,6 @@ function cancelEditProjectTag(tagIdx) {
     setFormWarning(error, tag, '');
 
     tag.value = tag.attributes.value.value;
-    tag.disabled = true;
-    editTag.classList.remove('uk-hidden');
-    removeTag.classList.remove('uk-hidden');
-    cancel.classList.add('uk-hidden');
-    saveTag.classList.add('uk-hidden');
+    tagEdit.classList.add('uk-hidden');
+    tagShow.classList.remove('uk-hidden');
 }

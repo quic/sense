@@ -35,51 +35,48 @@
         <h3 class="uk-heading-line uk-text-center"><span>Project Tags</span></h3>
         <h5 id="error" class="uk-text-danger uk-text-center"></h5>
         <form>
-            <div class="uk-grid-small uk-grid-match uk-margin-top uk-flex-center" uk-grid>
+            <div class="uk-child-width-1-1@m uk-child-width-1-2@l uk-grid-small uk-grid-match" uk-grid>
                 {% for tag_idx, tag_name in project_tags.items() %}
-                    <div>
-                        <div class="uk-form-control">
-                            <div class="uk-form-width-large">
-                                <input class="uk-input uk-form-blank" type="text" placeholder="Tag name" autocomplete="off"
-                                       oninput="return checkIfTagExist({{ project_tags }}, 'tag_{{ tag_idx }}', 'error');" id="tag_{{ tag_idx }}" value="{{ tag_name }}" disabled>
+                    <div class="uk-card uk-card-default uk-card-header">
+                        <div id="tagEdit{{ tag_idx }}" class="uk-hidden">
+                            <div class="uk-form-control">
+                                <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                                    <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                                    <input class="uk-input" type="text" placeholder="Tag name" autocomplete="off"
+                                           oninput="return checkIfTagExist({{ project_tags }}, 'tag_{{ tag_idx }}', 'error');" id="tag_{{ tag_idx }}"
+                                           value="{{ tag_name }}" autocomplete="off">
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div>
-                       <div id="editTag_{{ tag_idx }}">
-                            <a class="uk-button uk-button-default" uk-tooltip="Edit Tag"
-                                onclick="editProjectTag('{{ tag_idx }}');">
-                                <span uk-icon="icon: file-edit"></span>
-                            </a>
-                       </div>
-                        <div class="uk-hidden" id="saveTag_{{ tag_idx }}">
                             <a class="uk-button uk-button-primary" uk-tooltip="Save Tag"
                                onclick="saveProjectTag('{{ tag_idx }}', '{{ url_for('.edit_tag_in_project_tags') }}', {{ project_tags }});">
                                 <span uk-icon="icon: check"></span>
                             </a>
-                        </div>
-                    </div>
-
-                <div>
-                    <div class="uk-width-auto" id="removeTag_{{ tag_idx }}">
-                        <a class="uk-button uk-button-danger" href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Tag"></a>
-                        <div uk-dropdown="mode: click; pos:bottom-justify">
-                            <p>
-                                Remove tag from the project tags in the config.
-                            </p>
-                            <a class="uk-button uk-button-danger"
-                                onclick="removeProjectTag('{{ tag_idx }}', '{{ url_for('.remove_tag_from_project_tags') }}');">
-                                <span uk-icon="icon: trash"></span> REMOVE
+                            <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="cancelEditProjectTag('{{ tag_idx }}');">
+                                <span uk-icon="icon: close"></span>
                             </a>
                         </div>
-                    </div>
-                    <div class="uk-hidden" id="cancel_{{ tag_idx }}">
-                        <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="cancelEditProjectTag('{{ tag_idx }}');">
-                            <span uk-icon="icon: close"></span>
-                        </a>
-                    </div>
-                </div>
 
+                        <div id="tagShow{{ tag_idx }}" uk-grid>
+                            <div class="uk-width-expand">
+                                <h3 class="uk-card-title uk-float-left">{{ tag_name }}</h3>
+                            </div>
+                            <div class="uk-width-auto">
+                                <a uk-icon="icon: file-edit" uk-tooltip="Edit Tag" onclick="editProjectTag('{{ tag_idx }}');"></a>
+                           </div>
+                            <div class="uk-width-auto">
+                                <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Tag"></a>
+                                <div uk-dropdown="mode: click; pos:bottom-justify">
+                                    <p>
+                                        Remove tag from the project tags in the config.
+                                    </p>
+                                    <a class="uk-button uk-button-danger"
+                                        onclick="removeProjectTag('{{ tag_idx }}', '{{ url_for('.remove_tag_from_project_tags') }}');">
+                                        <span uk-icon="icon: trash"></span> REMOVE
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 {% endfor %}
             </div>
         </form>
