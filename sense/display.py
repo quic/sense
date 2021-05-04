@@ -145,7 +145,7 @@ class DisplayExerciseRepCounts(DisplayCounts):
 
     def display_count(self, activity, count, img, y_pos):
         put_text(img, f'Exercise: {activity[0:50]}', (10, y_pos))
-        put_text(img, f'Count: {count}', (10 + self.lateral_offset, y_pos))
+        put_text(img, f'Count: {count}', (10 + self.x_offset, y_pos))
 
 
 class DisplayFPS(BaseDisplay):
