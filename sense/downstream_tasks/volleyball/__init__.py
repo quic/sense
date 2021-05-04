@@ -1,4 +1,16 @@
-LAB2INT = {
+LAB2INT_CLASSIFICATION = {
+    "holding_ball": 0,
+    "forearm_passing": 1,
+    "pokey": 2,
+    "dropping_ball": 3,
+    "doing_nothing": 4,
+    "bouncing_ball": 5,
+    "one_arm_passing": 6,
+    "leaving_screen": 7,
+    "overhead_passing": 8
+}
+
+LAB2INT_COUNTING = {
     "counting_background": 0,
     "holding_ball_position_1": 1,
     "holding_ball_position_2": 2,
@@ -20,4 +32,7 @@ LAB2INT = {
     "overhead_passing_position_2": 18
 }
 
-INT2LAB = {value: key for key, value in LAB2INT.items()}
+INT2LAB_CLASSIFICATION = {value: key for key, value in LAB2INT_CLASSIFICATION.items()}
+INT2LAB_COUNTING = {value: key for key, value in LAB2INT_COUNTING.items()}
+
+CLASSIFICATION_THRESHOLDS = {key: 0.5 for key in LAB2INT_CLASSIFICATION}

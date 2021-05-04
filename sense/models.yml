@@ -14,7 +14,8 @@ StridedInflatedEfficientNet:
     gesture_detection: gesture_detection/sien_last_9_layers.ckpt
     met_converter: calorie_estimation/sien_met_converter.ckpt
     rep_counter: fitness_rep_counting/sien_logreg.ckpt
-    volleyball_counter: volleyball/sien_9layers.ckpt
+    volleyball_classifier: volleyball/sien_9layers_classifier.ckpt
+    volleyball_counter: volleyball/sien_9layers_counter.ckpt
 
 StridedInflatedMobileNetV2:
 
