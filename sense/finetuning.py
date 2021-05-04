@@ -93,7 +93,6 @@ class FeaturesDataset(torch.utils.data.Dataset):
                 features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
         if temporal_annotation is None or len(temporal_annotation) == 0:
-            # TODO: Still necessary?
             temporal_annotation = np.array([-100])
         return [features, self.labels[idx], temporal_annotation]
 
