@@ -389,15 +389,14 @@ class DisplayResults:
     """
     def __init__(
             self,
-            title: str, display_ops: List[BaseDisplay],
+            display_ops: List[BaseDisplay],
+            title: Optional[str] = None,
             border_size_top: int = 30,
             border_size_right: int = 0,
             window_size: Tuple[int, int] = (480, 640),
             display_fn=None
     ):
         """
-        :param title:
-            Title of the image frame on display.
         :param display_ops:
             Additional options to be displayed on top of the image frame.
             Display options are class objects that implement the `display(self, img, display_data)` method.
@@ -405,6 +404,8 @@ class DisplayResults:
                 - DisplayMETandCalories
                 - DisplayDetailedMETandCalories
                 - DisplayTopKClassificationOutputs
+        :param title:
+            Title of the image frame on display.
         :param border_size_top:
             Thickness of the top display border.
         :param border_size_right:
