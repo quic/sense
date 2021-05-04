@@ -355,7 +355,8 @@ def assign_tag_to_class():
     config = project_utils.load_project_config(path)
     class_tags = config['classes'][class_name]
     class_tags.append(int(tag_index))
-    config['classes'][class_name] = class_tags.sort()
+    class_tags.sort()
+    config['classes'][class_name] = class_tags
 
     project_utils.write_project_config(path, config)
     return jsonify(success=True)

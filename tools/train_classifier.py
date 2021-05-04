@@ -133,7 +133,7 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     project_config = load_project_config(path_in)
     if project_config:
         for temporal_tags in project_config['project_tags'].keys():
-            label_names_temporal.extend(temporal_tags)
+            label_names_temporal.extend([temporal_tags])
         label_names_temporal = sorted(set(label_names_temporal))
         label2int_temporal_annotation = project_config['project_tags']
     else:

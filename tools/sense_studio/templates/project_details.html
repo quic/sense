@@ -120,10 +120,10 @@
                             <div class="uk-width-expand">
                                 <h3 class="uk-card-title uk-float-left">{{ class }}</h3>
                             </div>
-                            <div class="uk-width-auto">
+                            <div class="uk-width-auto uk-text-center">
                                 <a uk-icon="icon: file-edit; ratio: 1.1" onclick="editClass('{{ outer_loop_index }}', true);" uk-tooltip="Edit Class"></a>
                             </div>
-                            <div class="uk-width-auto">
+                            <div class="uk-width-auto uk-text-center">
                                 <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Delete Class"></a>
                                 <div uk-dropdown="mode: click; pos:bottom-justify">
                                     <p>
@@ -144,7 +144,7 @@
                                     <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ outer_loop_index }}"></label>
                                     <div class="uk-inline uk-width-1-1 uk-margin-bottom">
                                         <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                                        <input class="uk-input" type="text" id="editClassName{{ outer_loop_index }}" name="className"
+                                        <input class="uk-input uk-form-medium" type="text" id="editClassName{{ outer_loop_index }}" name="className"
                                                placeholder="Class Name" value="{{ class }}" autocomplete="off"
                                                oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ outer_loop_index }}');">
                                     </div>
