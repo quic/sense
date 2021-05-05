@@ -51,6 +51,12 @@ class BaseDisplay:
         self.x_offset = x_offset
         self.y_offset = y_offset
 
+    def initialize(self):
+        """
+        Called once the setup is done and the inference is ready to start.
+        """
+        pass
+
     def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
         Method to be implemented by subclasses.
@@ -189,8 +195,13 @@ class DisplayFPS(BaseDisplay):
         self.default_text_color = (44, 176, 82)
         self.running_delta_time_inference = 1. / expected_inference_fps if expected_inference_fps else 0
         self.running_delta_time_camera = 1. / expected_camera_fps if expected_camera_fps else 0
-        self.last_update_time_camera = time.perf_counter()
-        self.last_update_time_inference = time.perf_counter()
+        self.last_update_time_camera = None
+        self.last_update_time_inference = None
+
+    def initialize(self):
+        now = time.perf_counter()
+        self.last_update_time_camera = now
+        self.last_update_time_inference = now
 
     def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
 
@@ -447,6 +458,13 @@ class DisplayResults:
         self.title = title
         self.display_ops = display_ops
         self.display_fn = display_fn
+
+    def initialize(self):
+        """
+        Initialize all contained display operations. Called once the setup is done and the inference is ready to start.
+        """
+        for display_op in self.display_ops:
+            display_op.initialize()
 
     def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
