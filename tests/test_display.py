@@ -60,7 +60,7 @@ class TestDisplayRepCounts(unittest.TestCase):
     def test_display(self, mock_put_text):
         test_display = base_display.DisplayExerciseRepCounts()
         test_display.display(self.img, self.display_data)
-        mock_put_text.assert_called_with(self.img, 'Count: 10', (360, 60))
+        mock_put_text.assert_called_with(self.img, 'Count: 10', (360, 60), color=(255, 255, 255))
 
 
 class TestDisplayClassnameOverlay(unittest.TestCase):
