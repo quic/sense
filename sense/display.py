@@ -156,8 +156,8 @@ class DisplayCounts(BaseDisplay):
         counters = display_data['counting']
         for index, (activity, count) in enumerate(counters.items()):
             if (self.highlight_changes
-                and (len(self.previous_counts) == 0
-                     or self.previous_counts[0].get(activity, 0) < count)):
+                    and self.previous_counts
+                    and self.previous_counts[0].get(activity, 0) < count):
                 color = (44, 176, 82)
             else:
                 color = (255, 255, 255)
