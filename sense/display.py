@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 
+from collections import deque
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -127,25 +128,46 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
 
 class DisplayCounts(BaseDisplay):
 
-    def __init__(self, y_offset=40, **kwargs):
+    def __init__(self, y_offset=40, highlight_changes=False, highlight_duration=3., fps=16, **kwargs):
+        """
+        :param y_offset:
+            Vertical offset for showing the counts.
+        :param highlight_changes:
+            True if updated counts should be highlighted for some time.
+        :param highlight_duration:
+            The number of sections that an updated count should be highlighted.
+        :param fps:
+            The frame rate at which the display will be updated.
+        """
         super().__init__(y_offset=y_offset, **kwargs)
+        self.highlight_changes = highlight_changes
+        self.previous_counts = deque(maxlen=int(highlight_duration * fps))
 
-    def display_count(self, activity, count, img, y_pos):
-        put_text(img, f'{activity}: {count}', (10 + self.x_offset, y_pos))
+    def display_count(self, activity, count, img, y_pos, color):
+        put_text(img, f'{activity}: {count}', (10 + self.x_offset, y_pos), color=color)
 
     def display(self, img, display_data):
         counters = display_data['counting']
         for index, (activity, count) in enumerate(counters.items()):
+            if (self.highlight_changes
+                and (len(self.previous_counts) == 0
+                     or self.previous_counts[0].get(activity, 0) < count)):
+                color = (44, 176, 82)
+            else:
+                color = (255, 255, 255)
             y_pos = 20 * (index + 1) + self.y_offset
-            self.display_count(activity, count, img, y_pos)
+            self.display_count(activity, count, img, y_pos, color)
+
+        self.previous_counts.append(counters)
+
         return img
 
 
 class DisplayExerciseRepCounts(DisplayCounts):
 
-    def display_count(self, activity, count, img, y_pos):
-        put_text(img, f'Exercise: {activity[0:50]}', (10, y_pos))
-        put_text(img, f'Count: {count}', (10 + self.x_offset, y_pos))
+    def display_count(self, activity, count, img, y_pos, color):
+        put_text(img, f'Exercise: {activity[0:50]}', (10, y_pos), color=color)
+        put_text(img, f'Count: {count}', (10 + self.x_offset, y_pos), color=color)
 
 
 class DisplayFPS(BaseDisplay):
