@@ -58,7 +58,7 @@
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/reactive-gesture-demo-pr/docs/gifs/hand_gesture_event_detection.gif" width="600px">
+    <img src="https://raw.githubusercontent.com/TwentyBN/sense/reactive-gesture-demo-pr/docs/gifs/hand_gesture_event_detection.gif" width="600px" height="300px">
 </p>
 
 ###### Fitness Activity Tracker and Calorie Estimation
