@@ -266,18 +266,11 @@ function loading(element, message, url) {
 }
 
 
-const buttonClasses = [
-    'button-grey',
-    'button-blue',
-    'button-green',
-]
-
-
-function assignTag(frameIdx, selectedTagIdx,  classTagIdx) {
+function assignTag(frameIdx, selectedTagIdx,  classTagIndices) {
     let tagInput = document.getElementById(`${frameIdx}_tag`);
     tagInput.value = selectedTagIdx;
 
-    for (const tagIdx of classTagIdx) {
+    for (const tagIdx of classTagIndices) {
 
         let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
 
@@ -290,9 +283,9 @@ function assignTag(frameIdx, selectedTagIdx,  classTagIdx) {
 }
 
 
-function initTagButtons(annotations, classTagIdx) {
+function initTagButtons(annotations, classTagIndices) {
     for (let frameIdx = 0; frameIdx < annotations.length; frameIdx++) {
-        assignTag(frameIdx, annotations[frameIdx], classTagIdx);
+        assignTag(frameIdx, annotations[frameIdx], classTagIndices);
     }
 }
 
@@ -346,9 +339,9 @@ async function toggleAssistedTagging(path, split, label) {
     window.location.reload();
 }
 
-async function addSelectedTagToClass(idx, className, path)  {
-    let selectedTagsList = document.getElementById(`selectedTagsList${idx}`);
-    let selectTagDropdown = document.getElementById(`selectTag${idx}`);
+async function addSelectedTagToClass(classIdx, className, path)  {
+    let selectedTagsList = document.getElementById(`selectedTagsList${classIdx}`);
+    let selectTagDropdown = document.getElementById(`selectTag${classIdx}`);
 
     let tagIndex = selectTagDropdown.value;
     let optionIndex = selectTagDropdown.selectedIndex;
@@ -366,24 +359,24 @@ async function addSelectedTagToClass(idx, className, path)  {
         // Remove tag from the dropdown
         selectTagDropdown.remove(optionIndex);
         selectTagDropdown.selectedIndex = "0";
-        let addTagInList = `<li id="tagList${idx}-${tagIndex}">
-                                <span uk-icon="icon: tag"></span>
-                                ${tagName}
-                                <a class="uk-float-right">
-                                    <span uk-icon="icon: close" class="uk-text-danger"
-                                          onclick="deselectTagFromList('${idx}', '${tagIndex}', '${tagName}', '${path}', '${className}');">
-                                    </span>
-                                </a>
-                            </li>`;
+        let tagListItem = `<li id="tagList${classIdx}-${tagIndex}">
+                               <span uk-icon="icon: tag"></span>
+                               ${tagName}
+                               <a class="uk-float-right">
+                                   <span uk-icon="icon: close" class="uk-text-danger"
+                                         onclick="deselectTagFromList('${classIdx}', '${tagIndex}', '${tagName}', '${path}', '${className}');">
+                                   </span>
+                               </a>
+                           </li>`;
         // Add selected tag from dropdown to tag list
-        selectedTagsList.insertAdjacentHTML('beforeend', addTagInList);
+        selectedTagsList.insertAdjacentHTML('beforeend', tagListItem);
     }
 }
 
 
-async function deselectTagFromList(idx, tagIndex, tagName, path, className) {
-    let selectTagDropdown = document.getElementById(`selectTag${idx}`);
-    let selectedTagFromList = document.getElementById(`tagList${idx}-${tagIndex}`);
+async function deselectTagFromList(classIdx, tagIndex, tagName, path, className) {
+    let selectTagDropdown = document.getElementById(`selectTag${classIdx}`);
+    let selectedTagFromList = document.getElementById(`tagList${classIdx}-${tagIndex}`);
 
     data = {
         path: path,
@@ -420,7 +413,7 @@ function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation) {
         setFormWarning(errorLabel, tag, 'This tag name already exist');
         disabled = true;
     } else {
-         setFormWarning(errorLabel, tag, '');
+        setFormWarning(errorLabel, tag, '');
     }
 
     tagButton.disabled = disabled;
