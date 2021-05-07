@@ -31,11 +31,62 @@ def lookup_project_path(project_name):
     return projects[project_name]['path']
 
 
+def _backwards_compatibility_update(path, config):
+    updated = False
+
+    if 'use_gpu' not in config:
+        config['use_gpu'] = False
+        updated = True
+
+    if 'temporal' not in config:
+        config['temporal'] = False
+        updated = True
+
+    if 'assisted_tagging' not in config:
+        config['assisted_tagging'] = False
+        updated = True
+
+    if 'video_recording' not in config:
+        config['video_recording'] = {
+            'countdown': 3,
+            'recording': 5,
+        }
+        updated = True
+
+    if 'project_tags' not in config:
+        # Collect class-wise tags
+        old_classes = config['classes']
+        project_tags_list = []
+        for class_name, class_tags in old_classes.items():
+            project_tags_list.extend(class_tags)
+
+        # Assign project-wide unique indices to tags
+        project_tags = {tag_name: idx + 1 for idx, tag_name in enumerate(project_tags_list)}
+        project_tags['background'] = 0
+        config['project_tags'] = project_tags
+
+        # Setup class dictionary with tag indices
+        config['classes'] = {
+            class_name: [project_tags[tag_name] for tag_name in class_tags]
+            for class_name, class_tags in old_classes.items()
+        }
+
+        updated = True
+
+    if updated:
+        # Save updated config
+        write_project_config(path, config)
+
+    return config
+
+
 def load_project_config(path):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
     try:
         with open(config_path, 'r') as f:
             config = json.load(f)
+
+        config = _backwards_compatibility_update(path, config)
     except FileNotFoundError:
         config = None
     return config
