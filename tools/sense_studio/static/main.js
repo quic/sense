@@ -423,7 +423,7 @@ function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation) {
          setFormWarning(errorLabel, tag, '');
     }
 
-    addTag.disabled = disabled;
+    tagButton.disabled = disabled;
 }
 
 
