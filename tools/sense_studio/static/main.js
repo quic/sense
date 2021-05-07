@@ -429,44 +429,6 @@ function editProjectTag(tagIdx) {
 }
 
 
-async function saveProjectTag(tagIdx, url, projectTags) {
-    let tag = document.getElementById(`tag${tagIdx}`);
-    let tagShow = document.getElementById(`tagShow${tagIdx}`);
-    let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
-    let path = document.getElementById('path').value;
-    let project = document.getElementById('projectName').value;
-
-    data = {
-        path: path,
-        tagIdx: tagIdx,
-        newTagName: tag.value,
-    };
-
-    let response = await asyncRequest(url, data);
-
-    if (response.success) {
-        tagEdit.classList.add('uk-hidden');
-        tagShow.classList.remove('uk-hidden');
-        window.location.href = `/project/${project}`;
-    }
-}
-
-
-async function removeProjectTag(tagIdx, url) {
-    let project = document.getElementById('projectName').value;
-    let path = document.getElementById('path').value;
-    data = {
-        path: path,
-        tagIdx: tagIdx,
-    };
-
-    let response = await asyncRequest(url, data);
-    if (response.success) {
-        window.location.href = `/project/${project}`;
-    }
-}
-
-
 function cancelEditProjectTag(tagIdx) {
     let tagShow = document.getElementById(`tagShow${tagIdx}`);
     let tagEdit = document.getElementById(`tagEdit${tagIdx}`);

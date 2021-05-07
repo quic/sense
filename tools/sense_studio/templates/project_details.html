@@ -118,7 +118,7 @@
                                     Remove tag from the config. All annotations with this tag will be lost.
                                 </p>
                                 <a class="uk-button uk-button-danger"
-                                    onclick="removeProjectTag('{{ tag_idx }}', '{{ url_for('project_tags_bp.remove_tag_from_project_tags', project=project) }}');">
+                                    href="{{ url_for('project_tags_bp.remove_tag_from_project_tags', project=project, remove_tag_idx=tag_idx) }}">
                                     <span uk-icon="icon: trash"></span> REMOVE
                                 </a>
                             </div>
@@ -126,17 +126,16 @@
                     </div>
 
                     <div id="tagEdit{{ tag_idx }}" class="uk-hidden">
-                        <form>
+                        <form method="POST" action="{{ url_for('project_tags_bp.edit_tag_in_project_tags', project=project, tag_idx=tag_idx) }}">
                             <div class="uk-form-control">
                                 <div class="uk-inline uk-width-1-1 uk-margin-bottom">
                                     <span class="uk-form-icon" uk-icon="icon: tag"></span>
                                     <input class="uk-input" type="text" placeholder="Tag name" autocomplete="off"
-                                           oninput="checkIfTagExist({{ project_tags }}, 'tag{{ tag_idx }}', 'error', 'saveTag{{ tag_idx }}');" id="tag{{ tag_idx }}"
-                                           value="{{ tag_name }}" autocomplete="off">
+                                           oninput="checkIfTagExist({{ project_tags }}, 'tag{{ tag_idx }}', 'error', 'saveTag{{ tag_idx }}');"
+                                           id="tag{{ tag_idx }}" name="newTagName" value="{{ tag_name }}" autocomplete="off">
                                 </div>
                             </div>
-                            <button class="uk-button uk-button-primary" type="button" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}"
-                               onclick="saveProjectTag('{{ tag_idx }}', '{{ url_for('project_tags_bp.edit_tag_in_project_tags', project=project) }}', {{ project_tags }});">
+                            <button class="uk-button uk-button-primary" type="submit" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}">
                                 <span uk-icon="icon: check"></span>
                             </button>
                             <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="cancelEditProjectTag('{{ tag_idx }}');">

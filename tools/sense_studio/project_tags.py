@@ -28,15 +28,13 @@ def create_tag_in_project_tags(project):
 
     config['project_tags'] = project_tags
     project_utils.write_project_config(path, config)
-    return redirect(url_for("project_details", project=project))
+    return redirect(url_for('project_details', project=project))
 
 
-@project_tags_bp.route('/remove-project-tag/<string:project>', methods=['POST'])
-def remove_tag_from_project_tags(project):
-    data = request.json
+@project_tags_bp.route('/remove-project-tag/<string:project>/<int:remove_tag_idx>')
+def remove_tag_from_project_tags(project, remove_tag_idx):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
-    remove_tag_idx = int(data['tagIdx'])
     config = project_utils.load_project_config(path)
     project_tags = config['project_tags']
 
@@ -51,18 +49,17 @@ def remove_tag_from_project_tags(project):
             config['classes'][class_label] = tags
 
     project_utils.write_project_config(path, config)
-    return jsonify(success=True)
+    return redirect(url_for('project_details', project=project))
 
 
-@project_tags_bp.route('/edit-project-tag/<string:project>', methods=['POST'])
-def edit_tag_in_project_tags(project):
+@project_tags_bp.route('/edit-project-tag/<string:project>/<int:tag_idx>', methods=['POST'])
+def edit_tag_in_project_tags(project, tag_idx):
     data = request.json
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
-    tag_idx = data['tagIdx']
-    new_tag_name = data['newTagName']
     config = project_utils.load_project_config(path)
     project_tags = config['project_tags']
+    new_tag_name = data['newTagName']
 
     updated_tags = {}
     for tag_name, tag_index in project_tags.items():
