@@ -183,16 +183,16 @@
 
     <div class="uk-child-width-1-2@m uk-child-width-1-3@l" uk-grid>
         {% for class, selected_tags in config.classes|dictsort %}
-            {% set outer_loop_index = loop.index %}
+            {% set class_idx = loop.index %}
             <div>
                 <div class="uk-card uk-card-default uk-card-hover">
                     <div class="uk-card-header">
-                        <div id="classShow{{ outer_loop_index }}" uk-grid>
+                        <div id="classShow{{ class_idx }}" class="uk-grid-small" uk-grid>
                             <div class="uk-width-expand">
                                 <h3 class="uk-card-title uk-float-left">{{ class }}</h3>
                             </div>
                             <div class="uk-width-auto uk-text-center">
-                                <a uk-icon="icon: file-edit; ratio: 1.1" onclick="editClass('{{ outer_loop_index }}', true);" uk-tooltip="Edit Class"></a>
+                                <a uk-icon="icon: pencil; ratio: 1.1" onclick="editClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
                             </div>
                             <div class="uk-width-auto uk-text-center">
                                 <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Delete Class"></a>
@@ -209,21 +209,21 @@
                             </div>
                         </div>
 
-                        <div id="classEdit{{ outer_loop_index }}" class="uk-hidden">
+                        <div id="classEdit{{ class_idx }}" class="uk-hidden">
                             <form method="POST" action="{{ url_for('edit_class', project=project, class_name=class) }}">
                                 <div>
-                                    <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ outer_loop_index }}"></label>
+                                    <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ class_idx }}"></label>
                                     <div class="uk-inline uk-width-1-1 uk-margin-bottom">
                                         <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                                        <input class="uk-input" type="text" id="editClassName{{ outer_loop_index }}" name="className"
+                                        <input class="uk-input" type="text" id="editClassName{{ class_idx }}" name="className"
                                                placeholder="Class Name" value="{{ class }}" autocomplete="off"
-                                               oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ outer_loop_index }}');">
+                                               oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ class_idx }}');">
                                     </div>
                                 </div>
-                                 <button class="uk-button uk-button-primary" type="submit" id="submitEditClass{{ outer_loop_index }}" uk-tooltip="Save Changes">
+                                <button class="uk-button uk-button-primary" type="submit" id="submitEditClass{{ class_idx }}" uk-tooltip="Save Changes">
                                     <span uk-icon="icon: check"></span>
                                 </button>
-                                <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="editClass('{{ outer_loop_index }}', false);">
+                                <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="editClass('{{ class_idx }}', false);">
                                     <span uk-icon="icon: close"></span>
                                 </a>
                             </form>
@@ -232,41 +232,34 @@
 
                     <div class="uk-card-body temporal {{ 'uk-hidden' if not config.temporal }}">
                         <h4>Tags</h4>
-                        <div>
-                            <form>
-                                <div class="uk-form-controls uk-width-medium">
-                                    <select class="uk-select" id="selectTag{{ outer_loop_index }}" onchange="addSelectedTagToClass('{{ outer_loop_index }}', '{{ class }}', '{{ path }}');">
-                                        <option value="">...</option>
-                                        {% if project_tags %}
-                                            {% for tag_index, tag_name in project_tags.items() %}
-                                                {% if tag_index not in selected_tags %}
-                                                    <option value="{{ tag_index }}">{{ tag_name }}</option>
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% else %}
-                                            <option value="">No tags available</option>
-                                        {% endif %}
-                                    </select>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="uk-width-1-1 uk-margin-top">
-                            <ul id="selectedTagsList{{ outer_loop_index }}" class="uk-list">
-                                {% if selected_tags %}
-                                    {% for tag_idx in selected_tags %}
-                                        <li id="tagList{{ outer_loop_index }}-{{ tag_idx }}">
-                                            <span uk-icon="icon: tag"></span>
-                                            {{ project_tags[tag_idx] }}
-                                            <a class="uk-float-right">
-                                                <span uk-icon="icon: close" class="uk-text-danger"
-                                                      onclick="deselectTagFromList('{{ outer_loop_index }}', '{{ tag_idx }}','{{ project_tags[tag_idx] }}', '{{ path }}', '{{ class }}');">
-                                                </span>
-                                            </a>
-                                        </li>
-                                    {% endfor %}
-                                {% endif %}
-                            </ul>
-                        </div>
+                        <select class="uk-select" id="selectTag{{ class_idx }}"
+                                onchange="addSelectedTagToClass('{{ class_idx }}', '{{ class }}', '{{ path }}');">
+                            {% if project_tags %}
+                                <option value="">Select tags...</option>
+                                {% for tag_index, tag_name in project_tags.items() %}
+                                    {% if tag_index not in selected_tags %}
+                                        <option value="{{ tag_index }}">{{ tag_name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <option value="">No tags available</option>
+                            {% endif %}
+                        </select>
+                        <ul id="selectedTagsList{{ class_idx }}" class="uk-list uk-margin-top">
+                            {% if selected_tags %}
+                                {% for tag_idx in selected_tags %}
+                                    <li id="tagList{{ class_idx }}-{{ tag_idx }}">
+                                        <span uk-icon="icon: tag"></span>
+                                        {{ project_tags[tag_idx] }}
+                                        <a class="uk-float-right">
+                                            <span uk-icon="icon: close" class="uk-text-danger"
+                                                  onclick="deselectTagFromList('{{ class_idx }}', '{{ tag_idx }}','{{ project_tags[tag_idx] }}', '{{ path }}', '{{ class }}');">
+                                            </span>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
                     </div>
 
                     <div class="uk-card-footer">
