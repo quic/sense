@@ -49,36 +49,6 @@ video {
     color: #fff;
 }
 
-.label-green {
-    background: #00cc00;
-    color: #fff;
-}
-
-.button-grey {
-    background: #9f9f9f;
-    color: #fff;
-}
-
-.button-grey:focus, .button-grey:hover {
-    background: #8f8f8f;
-    color: #fff;
-}
-
-.label-grey {
-    background: #9f9f9f;
-    color: #fff;
-}
-
-.button-blue {
-    background: #0e73d8;
-    color: #fff;
-}
-
-.button-blue:focus, .button-blue:hover {
-    background: #0c66c0;
-    color: #fff;
-}
-
 .label-blue {
     background: #0e73d8;
     color: #fff;
