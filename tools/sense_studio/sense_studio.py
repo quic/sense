@@ -153,11 +153,8 @@ def update_project():
     project_name = data['projectName']
     path = data['path']
 
-    try:
-        # Check for existing config file
-        config = project_utils.load_project_config(path)
-    except FileNotFoundError:
-        config = None
+    # Check for existing config file (might be None)
+    config = project_utils.load_project_config(path)
 
     # Make sure the directory is correctly set up
     project_utils.setup_new_project(project_name, path, config)
@@ -175,13 +172,12 @@ def import_project():
     data = request.form
     path = data['path']
 
-    try:
-        # Check for existing config file and make sure project name is unique
-        config = project_utils.load_project_config(path)
+    # Check for existing config file and make sure project name is unique
+    config = project_utils.load_project_config(path)
+    if config:
         project_name = project_utils.get_unique_project_name(config['name'])
-    except FileNotFoundError:
+    else:
         # Use folder name as project name and make sure it is unique
-        config = None
         project_name = project_utils.get_unique_project_name(os.path.basename(path))
 
     # Make sure the directory is correctly set up
