@@ -17,11 +17,11 @@ def create_tag_in_project_tags(project):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
     config = project_utils.load_project_config(path)
-    tag_name = data['tag']
+    tag_name = data['newTagName']
 
     project_tags = config.get('project_tags', {})
     if project_tags:
-        max_tag_index = max(project_tags.items(), key=lambda kv: kv[1])[1]
+        max_tag_index = max(project_tags.values())
         project_tags[tag_name] = max_tag_index + 1
     else:
         project_tags[tag_name] = 1

@@ -210,7 +210,7 @@ def project_details(project):
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
             }
     project_tags = config.get('project_tags', {})
-    project_tags = {v: k for k, v in project_tags.items()}
+    project_tags = {tag_idx: tag_name for tag_name, tag_idx in project_tags.items()}
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
                            project_tags=project_tags)
 
@@ -276,22 +276,20 @@ def toggle_project_setting():
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
 def edit_class(project, class_name):
     """
-    Edit the class name and tags for an existing class in the given project.
+    Edit the name for an existing class in the given project.
     """
     data = request.form
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
     path = project_utils.lookup_project_path(project)
+    new_class_name = data['className']
 
     # Update project config
     config = project_utils.load_project_config(path)
-
-    # Get new class name and tags
-    new_class_name = data['className']
-    new_class_tags = config['classes'][class_name]
+    tags = config['classes'][class_name]
 
     del config['classes'][class_name]
-    config['classes'][new_class_name] = new_class_tags
+    config['classes'][new_class_name] = tags
     project_utils.write_project_config(path, config)
 
     # Update directory names
@@ -365,7 +363,7 @@ def assign_tag_to_class():
 @app.route('/remove-tag-from-class', methods=['POST'])
 def remove_tag_from_class():
     """
-    Removed selected tag from class label in project config.
+    Remove selected tag from class label in project config.
     """
     data = request.json
     path = data['path']
