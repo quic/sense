@@ -135,10 +135,10 @@
                                            value="{{ tag_name }}" autocomplete="off">
                                 </div>
                             </div>
-                            <a class="uk-button uk-button-primary" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}"
+                            <button class="uk-button uk-button-primary" type="button" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}"
                                onclick="saveProjectTag('{{ tag_idx }}', '{{ url_for('project_tags_bp.edit_tag_in_project_tags', project=project) }}', {{ project_tags }});">
                                 <span uk-icon="icon: check"></span>
-                            </a>
+                            </button>
                             <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="cancelEditProjectTag('{{ tag_idx }}');">
                                 <span uk-icon="icon: close"></span>
                             </a>
