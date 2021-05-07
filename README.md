@@ -51,21 +51,21 @@
 ###### Gesture Recognition
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/gesture_recognition_1.gif" width="300px">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/gesture_recognition_2.gif" width="300px">
+    <img src="docs/gifs/gesture_recognition_1.gif" width="300px">
+    <img src="docs/gifs/gesture_recognition_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/reactive-gesture-demo-pr/docs/gifs/hand_gesture_event_detection.gif" width="600px" height="300px">
+    <img src="docs/gifs/hand_gesture_event_detection.gif" width="600px" height="300px">
 </p>
 
 ###### Fitness Activity Tracker and Calorie Estimation
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/fitness_tracking_1.gif" width="300px">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/fitness_tracking_2.gif" width="300px">
+    <img src="docs/gifs/fitness_tracking_1.gif" width="300px">
+    <img src="docs/gifs/fitness_tracking_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1f1y0wg7Y1kpSBwKSEFx1TDoD5lGA8DtQ/view?usp=sharing))*
