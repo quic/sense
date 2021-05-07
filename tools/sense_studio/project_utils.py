@@ -71,6 +71,27 @@ def _backwards_compatibility_update(path, config):
             for class_name, class_tags in old_classes.items()
         }
 
+        # Translate existing annotations
+        for split in SPLITS:
+            tags_dir = directories.get_tags_dir(path, split)
+
+            for label in os.listdir(tags_dir):
+                label_dir = os.path.join(tags_dir, label)
+                label_tags = old_classes[label]
+                label_tags.insert(0, 'background')
+
+                for video_name in os.listdir(label_dir):
+                    annotation_file = os.path.join(label_dir, video_name)
+                    with open(annotation_file, 'r') as f:
+                        annotation_data = json.load(f)
+
+                    # Translate relative indices [0, 1, 2] to their names and then to their new absolute indices
+                    new_annotations = [project_tags[label_tags[idx]] for idx in annotation_data['time_annotation']]
+                    annotation_data['time_annotation'] = new_annotations
+
+                    with open(annotation_file, 'w') as f:
+                        json.dump(annotation_data, f, indent=2)
+
         updated = True
 
     if updated:

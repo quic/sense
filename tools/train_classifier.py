@@ -132,16 +132,15 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     project_config = load_project_config(path_in)
     if project_config:
         project_tags = project_config['project_tags']
-        label_names_temporal = natsorted(project_tags.keys(), alg=ns.IC)
-        label2int_temporal_annotation = project_tags
+        label_names_temporal = project_tags.keys()
     else:
         label_names_temporal = ['background']
         for label in label_names:
             label_names_temporal.extend([f'{label}_tag1', f'{label}_tag2'])
-        label_names_temporal = natsorted(set(label_names_temporal), alg=ns.IC)
-        label2int_temporal_annotation = {name: index for index, name in enumerate(label_names_temporal)}
+    label_names_temporal = natsorted(label_names_temporal, alg=ns.IC)
 
     label2int = {name: index for index, name in enumerate(label_names)}
+    label2int_temporal_annotation = {name: index for index, name in enumerate(label_names_temporal)}
 
     extractor_stride = backbone_network.num_required_frames_per_layer_padding[0]
 

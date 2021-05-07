@@ -104,7 +104,6 @@ def generate_data_loader(project_config, features_dir, tags_dir, label_names, la
     # Find pre-computed features and derive corresponding labels
     labels_string = []
     temporal_annotation = []
-    project_tags = {}
 
     # Use all pre-computed features
     features = []
@@ -116,22 +115,21 @@ def generate_data_loader(project_config, features_dir, tags_dir, label_names, la
         labels_string += [label] * len(feature_temp)
 
     if project_config:
-        project_tags = {tag_index: tag_name for tag_name, tag_index in project_config['project_tags'].items()}
+        tag_mapping = {tag_index: tag_name for tag_name, tag_index in project_config['project_tags'].items()}
 
     # Check if temporal annotations exist for each video
     for label, feature in zip(labels_string, features):
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file) and temporal_annotation_only:
-            if project_config:
-                class_mapping = {tag_index: project_tags[tag_index] for tag_index in project_config['classes'][label]}
-            else:
+            if not project_config:
                 tag1 = f'{label}_tag1'
                 tag2 = f'{label}_tag2'
-                class_mapping = {0: 'background', 1: tag1, 2: tag2}
+                tag_mapping = {0: 'background', 1: tag1, 2: tag2}
 
-            annotation = json.load(open(temporal_annotation_file))["time_annotation"]
-            annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
-            temporal_annotation.append(annotation)
+            with open(temporal_annotation_file, 'r') as f:
+                annotations = json.load(f)['time_annotation']
+            annotations = np.array([label2int_temporal_annotation[tag_mapping[y]] for y in annotations])
+            temporal_annotation.append(annotations)
         else:
             temporal_annotation.append(None)
 
