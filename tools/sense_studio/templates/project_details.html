@@ -73,18 +73,18 @@
         <div>
             <button class="uk-button uk-button-default uk-width-1-1" type="submit">
                 <span uk-icon="icon: plus"></span>
-                Create New Tag
+                Add New Tag
             </button>
             <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
                 <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
                       action="{{ url_for('project_tags_bp.create_tag_in_project_tags', project=project) }}">
                     <div class="uk-card-body">
                         <div>
-                            <label class="uk-form-label uk-text-danger" id="tagLabel"></label>
+                            <label class="uk-form-label uk-text-danger" id="newTagLabel"></label>
                             <div class="uk-inline uk-width-1-1 uk-margin-bottom">
                                 <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                                <input class="uk-input" type="text" id="tag" name="tag" placeholder="Tag Name"
-                                       oninput="checkIfTagExist({{ project_tags }}, 'tag', 'tagLabel', 'addTag');" autocomplete="off">
+                                <input class="uk-input" type="text" id="newTagName" name="newTagName" placeholder="Tag Name"
+                                       oninput="checkIfTagExist({{ project_tags }}, 'newTagName', 'newTagLabel', 'addTag');" autocomplete="off">
                             </div>
                         </div>
 
@@ -100,21 +100,22 @@
 
     <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
         <h5 id="error" class="uk-text-danger uk-text-center"></h5>
-        <div class="uk-child-width-1-1@m uk-child-width-1-3@l uk-grid-small uk-grid-match" uk-grid>
+        <div class="uk-child-width-1-2@m uk-child-width-1-3@l uk-grid-match" uk-grid>
             {% for tag_idx, tag_name in project_tags.items() %}
-                <div class="uk-card uk-card-default uk-card-header">
-                    <div id="tagShow{{ tag_idx }}" uk-grid>
+            <div>
+                <div class="uk-card uk-card-default uk-card-hover uk-card-header">
+                    <div id="tagShow{{ tag_idx }}" class="uk-grid-small" uk-grid>
                         <div class="uk-width-expand">
                             <h3 class="uk-card-title uk-float-left">{{ tag_name }}</h3>
                         </div>
                         <div class="uk-width-auto">
                             <a uk-icon="icon: pencil; ratio: 1.1" uk-tooltip="Edit Tag" onclick="editProjectTag('{{ tag_idx }}');"></a>
-                       </div>
+                        </div>
                         <div class="uk-width-auto">
                             <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Tag"></a>
                             <div uk-dropdown="mode: click; pos:bottom-justify">
                                 <p>
-                                    Remove tag from the project tags in the config.
+                                    Remove tag from the config. All annotations with this tag will be lost.
                                 </p>
                                 <a class="uk-button uk-button-danger"
                                     onclick="removeProjectTag('{{ tag_idx }}', '{{ url_for('project_tags_bp.remove_tag_from_project_tags', project=project) }}');">
@@ -144,6 +145,7 @@
                         </form>
                     </div>
                 </div>
+            </div>
             {% endfor %}
         </div>
     </div>
@@ -195,7 +197,7 @@
                                 <a uk-icon="icon: pencil; ratio: 1.1" onclick="editClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
                             </div>
                             <div class="uk-width-auto uk-text-center">
-                                <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Delete Class"></a>
+                                <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Class"></a>
                                 <div uk-dropdown="mode: click; pos:bottom-justify">
                                     <p>
                                         Remove class from the local config.
@@ -203,7 +205,7 @@
                                     </p>
                                     <a class="uk-button uk-button-danger" href="{{ url_for('remove_class', project=project, class_name=class) }}">
                                         <span uk-icon="icon: trash"></span>
-                                        Delete Class
+                                        Remove
                                     </a>
                                 </div>
                             </div>
