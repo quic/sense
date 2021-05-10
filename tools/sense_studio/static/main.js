@@ -194,7 +194,6 @@ async function editAddClass(projectName) {
 
 
 async function editUpdateClass(projectName, originalClassName, index) {
-    console.log(`editClassName${index}`);
     let classNameInput = document.getElementById(`editClassName${index}`);
     let classNameLabel = document.getElementById(`editClassNameLabel${index}`);
     let editClassButton = document.getElementById(`submitEditClass${index}`);
@@ -293,6 +292,7 @@ function initTagButtons(annotations, classTagIndices) {
 function editClass(index, shouldEdit) {
     let classShow = document.getElementById(`classShow${index}`);
     let classEdit = document.getElementById(`classEdit${index}`);
+    let className = document.getElementById(`editClassName${index}`);
 
     if (shouldEdit) {
         classShow.classList.add('uk-hidden');
@@ -300,6 +300,7 @@ function editClass(index, shouldEdit) {
     } else {
         classShow.classList.remove('uk-hidden');
         classEdit.classList.add('uk-hidden');
+        className.value = className.attributes.value.value;
     }
 }
 
