@@ -5,7 +5,6 @@ import os
 import urllib
 
 from flask import Blueprint
-from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
@@ -15,7 +14,6 @@ from joblib import load
 from natsort import natsorted
 from natsort import ns
 
-from sense import SPLITS
 from sense.finetuning import compute_frames_and_features
 from tools import directories
 from tools.sense_studio import project_utils
@@ -81,7 +79,7 @@ def annotate(project, split, label, idx):
     split = urllib.parse.unquote(split)
 
     config = project_utils.load_project_config(path)
-    project_tags = {tag_index: tag_name for tag_name, tag_index in config['project_tags'].items()}
+    project_tags = config['project_tags']
     class_tags = config['classes'][label]
     class_tags.sort()
 

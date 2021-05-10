@@ -19,34 +19,31 @@ def create_tag_in_project_tags(project):
     config = project_utils.load_project_config(path)
     tag_name = data['newTagName']
 
-    project_tags = config.get('project_tags', {})
+    project_tags = config['project_tags']
     if project_tags:
-        max_tag_index = max(project_tags.values())
-        project_tags[tag_name] = max_tag_index + 1
+        max_tag_index = max(project_tags.keys())
+        project_tags[max_tag_index + 1] = tag_name
     else:
-        project_tags[tag_name] = 1
+        project_tags[1] = tag_name
 
-    config['project_tags'] = project_tags
     project_utils.write_project_config(path, config)
     return redirect(url_for('project_details', project=project))
 
 
-@project_tags_bp.route('/remove-project-tag/<string:project>/<int:remove_tag_idx>')
-def remove_tag_from_project_tags(project, remove_tag_idx):
+@project_tags_bp.route('/remove-project-tag/<string:project>/<int:tag_idx>')
+def remove_tag_from_project_tags(project, tag_idx):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
     config = project_utils.load_project_config(path)
     project_tags = config['project_tags']
 
     # Remove tag from the project tags list
-    project_tags = {tag_name: tag_index for tag_name, tag_index in project_tags.items() if tag_index != remove_tag_idx}
-    config['project_tags'] = project_tags
+    del project_tags[tag_idx]
 
     # Remove tag from the classes
     for class_label, tags in config['classes'].items():
-        if remove_tag_idx in tags:
-            tags.remove(remove_tag_idx)
-            config['classes'][class_label] = tags
+        if tag_idx in tags:
+            tags.remove(tag_idx)
 
     project_utils.write_project_config(path, config)
     return redirect(url_for('project_details', project=project))
@@ -61,13 +58,8 @@ def edit_tag_in_project_tags(project, tag_idx):
     project_tags = config['project_tags']
     new_tag_name = data['newTagName']
 
-    updated_tags = {}
-    for tag_name, tag_index in project_tags.items():
-        if tag_index == int(tag_idx):
-            updated_tags[new_tag_name] = tag_index
-        else:
-            updated_tags[tag_name] = tag_index
+    # Update tag name
+    project_tags[tag_idx] = new_tag_name
 
-    config['project_tags'] = updated_tags
     project_utils.write_project_config(path, config)
     return jsonify(success=True)

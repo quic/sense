@@ -205,8 +205,7 @@ def project_details(project):
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
             }
-    project_tags = config.get('project_tags', {})
-    project_tags = {tag_idx: tag_name for tag_name, tag_idx in project_tags.items()}
+    project_tags = config['project_tags']
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
                            project_tags=project_tags)
 

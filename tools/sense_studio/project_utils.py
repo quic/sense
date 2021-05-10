@@ -61,13 +61,14 @@ def _backwards_compatibility_update(path, config):
             project_tags_list.extend(class_tags)
 
         # Assign project-wide unique indices to tags
-        project_tags = {tag_name: idx + 1 for idx, tag_name in enumerate(project_tags_list)}
-        project_tags['background'] = 0
+        project_tags = {idx + 1: tag_name for idx, tag_name in enumerate(project_tags_list)}
+        project_tags[0] = 'background'
         config['project_tags'] = project_tags
 
         # Setup class dictionary with tag indices
+        inverse_project_tags = {tag_name: tag_idx for tag_idx, tag_name in project_tags.items()}
         config['classes'] = {
-            class_name: [project_tags[tag_name] for tag_name in class_tags]
+            class_name: [inverse_project_tags[tag_name] for tag_name in class_tags]
             for class_name, class_tags in old_classes.items()
         }
 
@@ -86,7 +87,8 @@ def _backwards_compatibility_update(path, config):
                         annotation_data = json.load(f)
 
                     # Translate relative indices [0, 1, 2] to their names and then to their new absolute indices
-                    new_annotations = [project_tags[label_tags[idx]] for idx in annotation_data['time_annotation']]
+                    new_annotations = [inverse_project_tags[label_tags[idx]]
+                                       for idx in annotation_data['time_annotation']]
                     annotation_data['time_annotation'] = new_annotations
 
                     with open(annotation_file, 'w') as f:
@@ -132,7 +134,7 @@ def setup_new_project(project_name, path, config=None):
             'name': project_name,
             'date_created': datetime.date.today().isoformat(),
             'project_tags': {
-                'background': 0,
+                0: 'background',
             },
             'classes': {},
             'use_gpu': False,

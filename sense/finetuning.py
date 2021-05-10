@@ -115,7 +115,7 @@ def generate_data_loader(project_config, features_dir, tags_dir, label_names, la
         labels_string += [label] * len(feature_temp)
 
     if project_config:
-        tag_mapping = {tag_index: tag_name for tag_name, tag_index in project_config['project_tags'].items()}
+        tag_mapping = project_config['project_tags']
 
     # Check if temporal annotations exist for each video
     for label, feature in zip(labels_string, features):
