@@ -434,7 +434,7 @@ function cancelEditProjectTag(tagIdx) {
     let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
     let tag = document.getElementById(`tag${tagIdx}`);
     let project = document.getElementById('projectName').value;
-    let error = document.getElementById('error');
+    let error = document.getElementById(`tagEditError${tagIdx}`);
 
     setFormWarning(error, tag, '');
 
