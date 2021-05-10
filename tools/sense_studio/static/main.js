@@ -399,7 +399,7 @@ async function deselectTagFromList(classIdx, tagIndex, tagName, path, className)
 
 ///////////////////////////////////////////// Project Tags Operations //////////////////////////////////////////////////
 
-function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation) {
+function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation, originalTagName) {
     let tag = document.getElementById(tagId);
     let errorLabel = document.getElementById(errorLabelId);
     let tagButton = document.getElementById(tagOperation);
@@ -410,7 +410,7 @@ function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation) {
     if (tag.value === '') {
         setFormWarning(errorLabel, tag, '');
         disabled = true;
-    } else if (projectTagNames.includes(tag.value)) {
+    } else if (tag.value !== originalTagName && projectTagNames.includes(tag.value)) {
         setFormWarning(errorLabel, tag, 'This tag name already exist');
         disabled = true;
     } else {
