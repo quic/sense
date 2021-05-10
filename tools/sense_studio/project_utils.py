@@ -194,12 +194,12 @@ def get_unique_project_name(base_name):
 
 def get_project_setting(path, setting):
     config = load_project_config(path)
-    return config.get(setting, False)
+    return config[setting]
 
 
 def toggle_project_setting(path, setting):
     config = load_project_config(path)
-    current_status = config.get(setting, False)
+    current_status = config[setting]
 
     new_status = not current_status
     config[setting] = new_status
@@ -211,8 +211,8 @@ def toggle_project_setting(path, setting):
 def get_timer_default(path):
     """Get the default countdown and recording duration (in seconds) for video-recording."""
     config = load_project_config(path)
-    countdown = config.get('video_recording', {}).get('countdown', 3)
-    duration = config.get('video_recording', {}).get('recording', 5)
+    countdown = config['video_recording']['countdown']
+    duration = config['video_recording']['recording']
 
     return countdown, duration
 
@@ -220,7 +220,7 @@ def get_timer_default(path):
 def set_timer_default(path, countdown, recording):
     """Set the new default countdown and recording duration (in seconds) for video-recording."""
     config = load_project_config(path)
-    video_recording = config.get('video_recording', {})
+    video_recording = config['video_recording']
 
     video_recording['countdown'] = countdown
     video_recording['recording'] = recording
