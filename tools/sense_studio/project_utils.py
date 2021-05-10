@@ -96,6 +96,9 @@ def _backwards_compatibility_update(path, config):
                         json.dump(annotation_data, f, indent=2)
 
         updated = True
+    else:
+        # Translate string keys to integers (because JSON does not store integer keys)
+        config['project_tags'] = {int(idx_str): tag_name for idx_str, tag_name in config['project_tags'].items()}
 
     if updated:
         # Save updated config
