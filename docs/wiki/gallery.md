@@ -12,3 +12,14 @@ This repo applies Sense pretrained models to gesture control for smart TVs.
 <p align="center">
     <img src="https://raw.githubusercontent.com/guillaumebrg/sense-for-smartTVs/master/resources/smarttv_gesture_control/video_test.gif" width="400px">
 </p>
+
+
+### [RisottoStone](https://github.com/sunny-panchal/sense)
+
+A cooking assistant to help you decipher the secrets of the perfect Risotto. 
+More details can be found 
+in this [post](https://sunnypanchal.ca/project/risotto-stone/)
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/sunny-panchal/sense/master/docs/gifs/keep_stirring_1.gif" width="400px">
+</p>
