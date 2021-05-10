@@ -134,7 +134,7 @@
                                 <div class="uk-inline">
                                     <span class="uk-form-icon" uk-icon="icon: tag"></span>
                                     <input class="uk-input" type="text" placeholder="Tag name" autocomplete="off"
-                                           oninput="checkIfTagExist({{ project_tags }}, 'tag{{ tag_idx }}', 'tagEditError{{ tag_idx }}', 'saveTag{{ tag_idx }}', {{ tag_name }});"
+                                           oninput="checkIfTagExist({{ project_tags }}, 'tag{{ tag_idx }}', 'tagEditError{{ tag_idx }}', 'saveTag{{ tag_idx }}', '{{ tag_name }}');"
                                            id="tag{{ tag_idx }}" name="newTagName" value="{{ tag_name }}" autocomplete="off">
                                 </div>
                             </div>

@@ -79,8 +79,11 @@ def annotate(project, split, label, idx):
     split = urllib.parse.unquote(split)
 
     config = project_utils.load_project_config(path)
-    project_tags = config['project_tags']
-    class_tags = config['classes'][label]
+    project_tags = config['project_tags'].copy()
+    project_tags[0] = 'background'
+
+    class_tags = config['classes'][label].copy()
+    class_tags.append(0)  # Always add 'background'
     class_tags.sort()
 
     _, model_config = utils.load_feature_extractor(path)

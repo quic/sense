@@ -24,6 +24,7 @@ def create_tag_in_project_tags(project):
         max_tag_index = max(project_tags.keys())
         project_tags[max_tag_index + 1] = tag_name
     else:
+        # 0 is reserved for 'background'
         project_tags[1] = tag_name
 
     project_utils.write_project_config(path, config)
@@ -51,7 +52,7 @@ def remove_tag_from_project_tags(project, tag_idx):
 
 @project_tags_bp.route('/edit-project-tag/<string:project>/<int:tag_idx>', methods=['POST'])
 def edit_tag_in_project_tags(project, tag_idx):
-    data = request.json
+    data = request.form
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
     config = project_utils.load_project_config(path)
@@ -62,4 +63,4 @@ def edit_tag_in_project_tags(project, tag_idx):
     project_tags[tag_idx] = new_tag_name
 
     project_utils.write_project_config(path, config)
-    return jsonify(success=True)
+    return redirect(url_for('project_details', project=project))

@@ -403,7 +403,7 @@ function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation, origina
     let tag = document.getElementById(tagId);
     let errorLabel = document.getElementById(errorLabelId);
     let tagButton = document.getElementById(tagOperation);
-    projectTagNames = Object.values(projectTags);
+    let projectTagNames = Object.values(projectTags);
 
     let disabled = false;
 
@@ -412,6 +412,9 @@ function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation, origina
         disabled = true;
     } else if (tag.value !== originalTagName && projectTagNames.includes(tag.value)) {
         setFormWarning(errorLabel, tag, 'This tag name already exist');
+        disabled = true;
+    } else if (tag.value === 'background') {
+        setFormWarning(errorLabel, tag, 'This name is reserved');
         disabled = true;
     } else {
         setFormWarning(errorLabel, tag, '');
