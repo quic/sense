@@ -126,21 +126,24 @@
                     </div>
 
                     <div id="tagEdit{{ tag_idx }}" class="uk-hidden">
-                        <form method="POST" action="{{ url_for('project_tags_bp.edit_tag_in_project_tags', project=project, tag_idx=tag_idx) }}">
-                            <div class="uk-form-control">
-                                <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                        <form method="POST" class="uk-grid-small"
+                              action="{{ url_for('project_tags_bp.edit_tag_in_project_tags', project=project, tag_idx=tag_idx) }}" uk-grid>
+                            <div class="uk-form-control uk-width-expand">
+                                <div class="uk-inline">
                                     <span class="uk-form-icon" uk-icon="icon: tag"></span>
                                     <input class="uk-input" type="text" placeholder="Tag name" autocomplete="off"
                                            oninput="checkIfTagExist({{ project_tags }}, 'tag{{ tag_idx }}', 'error', 'saveTag{{ tag_idx }}');"
                                            id="tag{{ tag_idx }}" name="newTagName" value="{{ tag_name }}" autocomplete="off">
                                 </div>
                             </div>
-                            <button class="uk-button uk-button-primary" type="submit" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}">
-                                <span uk-icon="icon: check"></span>
-                            </button>
-                            <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="cancelEditProjectTag('{{ tag_idx }}');">
-                                <span uk-icon="icon: close"></span>
-                            </a>
+                            <div class="uk-width-auto">
+                                <button class="uk-button uk-button-primary narrow-button" type="submit" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}">
+                                    <span uk-icon="icon: check"></span>
+                                </button>
+                                <a class="uk-button uk-button-danger narrow-button" uk-tooltip="Cancel" onclick="cancelEditProjectTag('{{ tag_idx }}');">
+                                    <span uk-icon="icon: close"></span>
+                                </a>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -211,22 +214,25 @@
                         </div>
 
                         <div id="classEdit{{ class_idx }}" class="uk-hidden">
-                            <form method="POST" action="{{ url_for('edit_class', project=project, class_name=class) }}">
-                                <div>
+                            <form method="POST" class="uk-grid-small"
+                                  action="{{ url_for('edit_class', project=project, class_name=class) }}" uk-grid>
+                                <div class="uk-width-expand">
                                     <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ class_idx }}"></label>
-                                    <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                                    <div class="uk-inline">
                                         <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
                                         <input class="uk-input" type="text" id="editClassName{{ class_idx }}" name="className"
                                                placeholder="Class Name" value="{{ class }}" autocomplete="off"
                                                oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ class_idx }}');">
                                     </div>
                                 </div>
-                                <button class="uk-button uk-button-primary" type="submit" id="submitEditClass{{ class_idx }}" uk-tooltip="Save Changes">
-                                    <span uk-icon="icon: check"></span>
-                                </button>
-                                <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="editClass('{{ class_idx }}', false);">
-                                    <span uk-icon="icon: close"></span>
-                                </a>
+                                <div class="uk-width-auto">
+                                    <button class="uk-button uk-button-primary narrow-button" type="submit" id="submitEditClass{{ class_idx }}" uk-tooltip="Save Changes">
+                                        <span uk-icon="icon: check"></span>
+                                    </button>
+                                    <a class="uk-button uk-button-danger narrow-button" uk-tooltip="Cancel" onclick="editClass('{{ class_idx }}', false);">
+                                        <span uk-icon="icon: close"></span>
+                                    </a>
+                                </div>
                             </form>
                         </div>
                     </div>

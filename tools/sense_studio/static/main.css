@@ -57,3 +57,8 @@ video {
 .line-height-normal {
     line-height: normal;
 }
+
+.narrow-button {
+    padding-left: 10px;
+    padding-right: 10px;
+}
