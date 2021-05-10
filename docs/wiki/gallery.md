@@ -23,3 +23,12 @@ in this [post](https://sunnypanchal.ca/project/risotto-stone/)
 <p align="center">
     <img src="https://raw.githubusercontent.com/sunny-panchal/sense/master/docs/gifs/keep_stirring_1.gif" width="400px">
 </p>
+
+### [Badminton Shot Recognition](https://github.com/YasheshSavani/sense)
+
+Learn about different badminton shots and make your game perfect!
+in this [post](https://yasheshsavani.github.io/sense/templates/badminton_shot_recognition.html)
+
+<p align="center">
+    <img src="https://github.com/YasheshSavani/sense/blob/gh-pages/assets/badminton_shots/badminton_output.gif" width="400px">
+</p>
