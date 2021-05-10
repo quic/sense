@@ -20,12 +20,9 @@ def create_tag_in_project_tags(project):
     tag_name = data['newTagName']
 
     project_tags = config['project_tags']
-    if project_tags:
-        max_tag_index = max(project_tags.keys())
-        project_tags[max_tag_index + 1] = tag_name
-    else:
-        # 0 is reserved for 'background'
-        project_tags[1] = tag_name
+    new_tag_index = config['max_tag_index'] + 1
+    project_tags[new_tag_index] = tag_name
+    config['max_tag_index'] = new_tag_index
 
     project_utils.write_project_config(path, config)
     return redirect(url_for('project_details', project=project))

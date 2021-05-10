@@ -63,6 +63,7 @@ def _backwards_compatibility_update(path, config):
         # Assign project-wide unique indices to tags (0 is reserved for 'background')
         project_tags = {idx + 1: tag_name for idx, tag_name in enumerate(project_tags_list)}
         config['project_tags'] = project_tags
+        config['max_tag_index'] = len(project_tags_list)
 
         # Setup class dictionary with tag indices
         inverse_project_tags = {tag_name: tag_idx for tag_idx, tag_name in project_tags.items()}
@@ -134,6 +135,7 @@ def setup_new_project(project_name, path, config=None):
             'name': project_name,
             'date_created': datetime.date.today().isoformat(),
             'project_tags': {},
+            'max_tag_index': 0,
             'classes': {},
             'use_gpu': False,
             'temporal': False,
