@@ -77,7 +77,7 @@
             </button>
             <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
                 <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
-                      action="{{ url_for('project_tags_bp.create_tag_in_project_tags', project=project) }}">
+                      action="{{ url_for('tags_bp.create_tag', project=project) }}">
                     <div class="uk-card-body">
                         <div>
                             <label class="uk-form-label uk-text-danger" id="newTagLabel"></label>
@@ -117,7 +117,7 @@
                                     Remove tag from the config. All annotations with this tag will be lost.
                                 </p>
                                 <a class="uk-button uk-button-danger"
-                                    href="{{ url_for('project_tags_bp.remove_tag_from_project_tags', project=project, tag_idx=tag_idx) }}">
+                                    href="{{ url_for('tags_bp.remove_tag', project=project, tag_idx=tag_idx) }}">
                                     <span uk-icon="icon: trash"></span> REMOVE
                                 </a>
                             </div>
@@ -126,7 +126,7 @@
 
                     <div id="tagEdit{{ tag_idx }}" class="uk-hidden">
                         <form method="POST" class="uk-grid-small"
-                              action="{{ url_for('project_tags_bp.edit_tag_in_project_tags', project=project, tag_idx=tag_idx) }}" uk-grid>
+                              action="{{ url_for('tags_bp.edit_tag', project=project, tag_idx=tag_idx) }}" uk-grid>
                             <div class="uk-width-1-1">
                                 <label id="tagEditError{{ tag_idx }}" class="uk-form-label uk-text-danger"></label>
                             </div>
