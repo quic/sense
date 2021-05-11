@@ -39,18 +39,18 @@ video {
 }
 
 /* Additional colors for buttons and labels */
-.button-green {
-    background: #00cc00;
+.button-grey {
+    background: #9f9f9f;
     color: #fff;
 }
 
-.button-green:focus, .button-green:hover {
-    background: #00b300;
+.button-grey:focus, .button-grey:hover {
+    background: #8f8f8f;
     color: #fff;
 }
 
-.label-blue {
-    background: #0e73d8;
+.label-grey {
+    background: #9f9f9f;
     color: #fff;
 }
 

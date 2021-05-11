@@ -272,11 +272,12 @@ function assignTag(frameIdx, selectedTagIdx,  classTagIndices) {
     for (const tagIdx of classTagIndices) {
 
         let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
+        let buttonColor = tagIdx == 0 ? 'button-grey' : 'uk-button-primary';
 
         if (tagIdx == selectedTagIdx) {
-            button.classList.add('button-green');
+            button.classList.add(buttonColor);
         } else {
-            button.classList.remove('button-green');
+            button.classList.remove(buttonColor);
         }
     }
 }
