@@ -126,10 +126,18 @@ def generate_data_loader(project_config, features_dir, tags_dir, label_names, la
                 tag1 = f'{label}_tag1'
                 tag2 = f'{label}_tag2'
                 tag_mapping = {0: 'background', 1: tag1, 2: tag2}
+                class_tags = {0, 1, 2}
+            else:
+                class_tags = set(project_config['classes'][label])
 
             with open(temporal_annotation_file, 'r') as f:
                 annotations = json.load(f)['time_annotation']
-            annotations = np.array([label2int_temporal_annotation[tag_mapping[y]] for y in annotations])
+
+            # Translate tags to class names and then to integer labels for this training run
+            # Reset tags that have been removed from a class to 'background'
+            annotations = np.array([label2int_temporal_annotation[tag_mapping[y]] if y in class_tags
+                                    else label2int_temporal_annotation['background']
+                                    for y in annotations])
             temporal_annotation.append(annotations)
         else:
             temporal_annotation.append(None)

@@ -110,6 +110,9 @@ def annotate(project, split, label, idx):
             features = np.load(features_path).mean(axis=(2, 3))
             classes = list(logreg.predict(features))
 
+            # Reset tags that have been removed from the class to 'background'
+            classes = [tag_idx if tag_idx in class_tags else 0 for tag_idx in classes]
+
     # Natural sort images, so that they are sorted by number
     images = natsorted(images, alg=ns.IC)
     # Extract image file name (without full path) and include class label
@@ -121,6 +124,9 @@ def annotate(project, split, label, idx):
         with open(annotations_file, 'r') as f:
             data = json.load(f)
             annotations = data['time_annotation']
+
+            # Reset tags that have been removed from the class to 'background'
+            annotations = [tag_idx if tag_idx in class_tags else 0 for tag_idx in annotations]
     else:
         # Use "background" label for all frames per default
         annotations = [0] * len(images)
