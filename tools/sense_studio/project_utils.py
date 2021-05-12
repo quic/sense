@@ -75,24 +75,22 @@ def _backwards_compatibility_update(path, config):
 
         # Translate existing annotations
         for split in SPLITS:
-            tags_dir = directories.get_tags_dir(path, split)
+            for label, label_tags in old_classes.items():
+                tags_dir = directories.get_tags_dir(path, split, label)
+                if os.path.exists(tags_dir):
+                    label_tags = ['background'] + label_tags
 
-            for label in os.listdir(tags_dir):
-                label_dir = os.path.join(tags_dir, label)
-                label_tags = old_classes[label]
-                label_tags.insert(0, 'background')
+                    for video_name in os.listdir(tags_dir):
+                        annotation_file = os.path.join(tags_dir, video_name)
+                        with open(annotation_file, 'r') as f:
+                            annotation_data = json.load(f)
 
-                for video_name in os.listdir(label_dir):
-                    annotation_file = os.path.join(label_dir, video_name)
-                    with open(annotation_file, 'r') as f:
-                        annotation_data = json.load(f)
+                        # Translate relative indices [0, 1, 2] to their names and then to their new absolute indices
+                        new_annotations = [inverse_tags[label_tags[idx]] for idx in annotation_data['time_annotation']]
+                        annotation_data['time_annotation'] = new_annotations
 
-                    # Translate relative indices [0, 1, 2] to their names and then to their new absolute indices
-                    new_annotations = [inverse_tags[label_tags[idx]] for idx in annotation_data['time_annotation']]
-                    annotation_data['time_annotation'] = new_annotations
-
-                    with open(annotation_file, 'w') as f:
-                        json.dump(annotation_data, f, indent=2)
+                        with open(annotation_file, 'w') as f:
+                            json.dump(annotation_data, f, indent=2)
 
         updated = True
     else:
