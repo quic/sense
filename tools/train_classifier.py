@@ -131,10 +131,6 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     label_names = natsorted(label_names, alg=ns.IC)
     label_names = [x for x in label_names if not x.startswith('.')]
 
-    # finetune the model
-    extract_features(path_in, label_names, selected_config, backbone_network, num_layers_to_finetune, use_gpu,
-                     num_timesteps=num_timesteps, log_fn=log_fn)
-
     label_names_temporal = ['background']
     if project_config:
         tags = project_config['tags']
@@ -146,6 +142,10 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     label2int = {name: index for index, name in enumerate(label_names)}
     label2int_temporal_annotation = {name: index for index, name in enumerate(label_names_temporal)}
+
+    # Extract features for all videos
+    extract_features(path_in, label_names, selected_config, backbone_network, num_layers_to_finetune, use_gpu,
+                     num_timesteps=num_timesteps, log_fn=log_fn)
 
     extractor_stride = backbone_network.num_required_frames_per_layer_padding[0]
 
