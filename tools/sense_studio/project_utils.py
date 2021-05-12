@@ -31,11 +31,86 @@ def lookup_project_path(project_name):
     return projects[project_name]['path']
 
 
+def _backwards_compatibility_update(path, config):
+    updated = False
+
+    if 'use_gpu' not in config:
+        config['use_gpu'] = False
+        updated = True
+
+    if 'temporal' not in config:
+        config['temporal'] = False
+        updated = True
+
+    if 'assisted_tagging' not in config:
+        config['assisted_tagging'] = False
+        updated = True
+
+    if 'video_recording' not in config:
+        config['video_recording'] = {
+            'countdown': 3,
+            'recording': 5,
+        }
+        updated = True
+
+    if 'tags' not in config:
+        # Collect class-wise tags
+        old_classes = config['classes']
+        tags_list = []
+        for class_name, class_tags in old_classes.items():
+            tags_list.extend(class_tags)
+
+        # Assign project-wide unique indices to tags (0 is reserved for 'background')
+        tags = {idx + 1: tag_name for idx, tag_name in enumerate(sorted(tags_list))}
+        config['tags'] = tags
+        config['max_tag_index'] = len(tags_list)
+
+        # Setup class dictionary with tag indices
+        inverse_tags = {tag_name: tag_idx for tag_idx, tag_name in tags.items()}
+        inverse_tags['background'] = 0
+        config['classes'] = {
+            class_name: [inverse_tags[tag_name] for tag_name in class_tags]
+            for class_name, class_tags in old_classes.items()
+        }
+
+        # Translate existing annotations
+        for split in SPLITS:
+            for label, label_tags in old_classes.items():
+                tags_dir = directories.get_tags_dir(path, split, label)
+                if os.path.exists(tags_dir):
+                    label_tags = ['background'] + label_tags
+
+                    for video_name in os.listdir(tags_dir):
+                        annotation_file = os.path.join(tags_dir, video_name)
+                        with open(annotation_file, 'r') as f:
+                            annotation_data = json.load(f)
+
+                        # Translate relative indices [0, 1, 2] to their names and then to their new absolute indices
+                        new_annotations = [inverse_tags[label_tags[idx]] for idx in annotation_data['time_annotation']]
+                        annotation_data['time_annotation'] = new_annotations
+
+                        with open(annotation_file, 'w') as f:
+                            json.dump(annotation_data, f, indent=2)
+
+        updated = True
+    else:
+        # Translate string keys to integers (because JSON does not store integer keys)
+        config['tags'] = {int(idx_str): tag_name for idx_str, tag_name in config['tags'].items()}
+
+    if updated:
+        # Save updated config
+        write_project_config(path, config)
+
+    return config
+
+
 def load_project_config(path):
     config_path = os.path.join(path, PROJECT_CONFIG_FILE)
     try:
         with open(config_path, 'r') as f:
             config = json.load(f)
+
+        config = _backwards_compatibility_update(path, config)
     except FileNotFoundError:
         config = None
     return config
@@ -59,6 +134,8 @@ def setup_new_project(project_name, path, config=None):
         config = {
             'name': project_name,
             'date_created': datetime.date.today().isoformat(),
+            'tags': {},
+            'max_tag_index': 0,
             'classes': {},
             'use_gpu': False,
             'temporal': False,
@@ -114,12 +191,12 @@ def get_unique_project_name(base_name):
 
 def get_project_setting(path, setting):
     config = load_project_config(path)
-    return config.get(setting, False)
+    return config[setting]
 
 
 def toggle_project_setting(path, setting):
     config = load_project_config(path)
-    current_status = config.get(setting, False)
+    current_status = config[setting]
 
     new_status = not current_status
     config[setting] = new_status
@@ -131,8 +208,8 @@ def toggle_project_setting(path, setting):
 def get_timer_default(path):
     """Get the default countdown and recording duration (in seconds) for video-recording."""
     config = load_project_config(path)
-    countdown = config.get('video_recording', {}).get('countdown', 3)
-    duration = config.get('video_recording', {}).get('recording', 5)
+    countdown = config['video_recording']['countdown']
+    duration = config['video_recording']['recording']
 
     return countdown, duration
 
@@ -140,7 +217,7 @@ def get_timer_default(path):
 def set_timer_default(path, countdown, recording):
     """Set the new default countdown and recording duration (in seconds) for video-recording."""
     config = load_project_config(path)
-    video_recording = config.get('video_recording', {})
+    video_recording = config['video_recording']
 
     video_recording['countdown'] = countdown
     video_recording['recording'] = recording

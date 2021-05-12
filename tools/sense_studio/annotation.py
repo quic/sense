@@ -5,7 +5,6 @@ import os
 import urllib
 
 from flask import Blueprint
-from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
@@ -15,7 +14,6 @@ from joblib import load
 from natsort import natsorted
 from natsort import ns
 
-from sense import SPLITS
 from sense.finetuning import compute_frames_and_features
 from tools import directories
 from tools.sense_studio import project_utils
@@ -80,6 +78,14 @@ def annotate(project, split, label, idx):
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
 
+    config = project_utils.load_project_config(path)
+    tags = config['tags'].copy()
+    tags[0] = 'background'
+
+    class_tags = config['classes'][label].copy()
+    class_tags.append(0)  # Always add 'background'
+    class_tags.sort()
+
     _, model_config = utils.load_feature_extractor(path)
 
     frames_dir = directories.get_frames_dir(path, split, label)
@@ -104,6 +110,9 @@ def annotate(project, split, label, idx):
             features = np.load(features_path).mean(axis=(2, 3))
             classes = list(logreg.predict(features))
 
+            # Reset tags that have been removed from the class to 'background'
+            classes = [tag_idx if tag_idx in class_tags else 0 for tag_idx in classes]
+
     # Natural sort images, so that they are sorted by number
     images = natsorted(images, alg=ns.IC)
     # Extract image file name (without full path) and include class label
@@ -115,17 +124,17 @@ def annotate(project, split, label, idx):
         with open(annotations_file, 'r') as f:
             data = json.load(f)
             annotations = data['time_annotation']
+
+            # Reset tags that have been removed from the class to 'background'
+            annotations = [tag_idx if tag_idx in class_tags else 0 for tag_idx in annotations]
     else:
         # Use "background" label for all frames per default
         annotations = [0] * len(images)
 
-    # Read tags from config
-    config = project_utils.load_project_config(path)
-    tags = config['classes'][label]
-
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx], project_config=config,
-                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos))
+                           split=split, label=label, path=path, project=project, n_videos=len(videos),
+                           tags=tags, class_tags=class_tags)
 
 
 @annotation_bp.route('/submit-annotation', methods=['POST'])

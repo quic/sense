@@ -45,6 +45,7 @@
     </div>
 
     <input type="hidden" id="projectName" value="{{ project }}">
+    <input type="hidden" id="path" value="{{ path }}">
 
     <div class="uk-margin-medium-top" uk-alert>
         <a class="uk-alert-close" uk-close></a>
@@ -61,6 +62,95 @@
                     certain actions.
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="uk-margin-medium-top uk-margin-medium-bottom temporal {{ 'uk-hidden' if not config.temporal }}" uk-grid>
+        <div>
+            <h1>Tags</h1>
+        </div>
+
+        <div>
+            <button class="uk-button uk-button-default uk-width-1-1" type="submit">
+                <span uk-icon="icon: plus"></span>
+                Add New Tag
+            </button>
+            <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
+                <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
+                      action="{{ url_for('tags_bp.create_tag', project=project) }}">
+                    <div class="uk-card-body">
+                        <div>
+                            <label class="uk-form-label uk-text-danger" id="newTagLabel"></label>
+                            <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                                <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                                <input class="uk-input" type="text" id="newTagName" name="newTagName" placeholder="Tag Name"
+                                       oninput="checkIfTagExist({{ tags }}, 'newTagName', 'newTagLabel', 'addTag');" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <button class="uk-button uk-button-default uk-width-1-1" type="submit" id="addTag" disabled>
+                            <span uk-icon="icon: plus"></span>
+                            Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
+        <div class="uk-child-width-1-2@m uk-child-width-1-3@l uk-grid-match" uk-grid>
+            {% for tag_idx, tag_name in tags.items()|sort(attribute='1') %}
+            <div>
+                <div class="uk-card uk-card-default uk-card-hover uk-card-header">
+                    <div id="tagShow{{ tag_idx }}" class="uk-grid-small" uk-grid>
+                        <div class="uk-width-expand">
+                            <h3 class="uk-card-title uk-float-left">{{ tag_name }}</h3>
+                        </div>
+                        <div class="uk-width-auto">
+                            <a uk-icon="icon: pencil; ratio: 1.1" uk-tooltip="Edit Tag" onclick="editTag('{{ tag_idx }}');"></a>
+                        </div>
+                        <div class="uk-width-auto">
+                            <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Tag"></a>
+                            <div uk-dropdown="mode: click; pos:bottom-justify">
+                                <p>
+                                    Remove tag from the config. All annotations with this tag will be lost.
+                                </p>
+                                <a class="uk-button uk-button-danger"
+                                    href="{{ url_for('tags_bp.remove_tag', project=project, tag_idx=tag_idx) }}">
+                                    <span uk-icon="icon: trash"></span> REMOVE
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tagEdit{{ tag_idx }}" class="uk-hidden">
+                        <form method="POST" class="uk-grid-small"
+                              action="{{ url_for('tags_bp.edit_tag', project=project, tag_idx=tag_idx) }}" uk-grid>
+                            <div class="uk-width-1-1">
+                                <label id="tagEditError{{ tag_idx }}" class="uk-form-label uk-text-danger"></label>
+                            </div>
+                            <div class="uk-form-control uk-width-expand uk-margin-remove-top">
+                                <div class="uk-inline">
+                                    <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                                    <input class="uk-input" type="text" placeholder="Tag name" autocomplete="off"
+                                           oninput="checkIfTagExist({{ tags }}, 'tag{{ tag_idx }}', 'tagEditError{{ tag_idx }}', 'saveTag{{ tag_idx }}', '{{ tag_name }}');"
+                                           id="tag{{ tag_idx }}" name="newTagName" value="{{ tag_name }}" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="uk-width-auto uk-margin-remove-top">
+                                <button class="uk-button uk-button-primary narrow-button" type="submit" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}">
+                                    <span uk-icon="icon: check"></span>
+                                </button>
+                                <a class="uk-button uk-button-danger narrow-button" uk-tooltip="Cancel" onclick="cancelEditTag('{{ tag_idx }}');">
+                                    <span uk-icon="icon: close"></span>
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 
@@ -87,18 +177,6 @@
                             </div>
                         </div>
 
-                        <div class="temporal {{ 'uk-hidden' if not config.temporal }}" >
-                            <h4>Tags</h4>
-                            <div class="uk-inline uk-width-1-1">
-                                <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                                <input class="uk-input" type="text" name="tag1" placeholder="Tag 1">
-                            </div>
-                            <div class="uk-inline uk-width-1-1 uk-margin">
-                                <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                                <input class="uk-input" type="text" name="tag2" placeholder="Tag 2">
-                            </div>
-                        </div>
-
                         <button class="uk-button uk-button-default uk-width-1-1" type="submit" id="addClass" disabled>
                             <span uk-icon="icon: plus"></span>
                             Add
@@ -110,124 +188,131 @@
     </div>
 
     <div class="uk-child-width-1-2@m uk-child-width-1-3@l" uk-grid>
-        {% for class, tags in config.classes|dictsort %}
-        <div id="classShow{{ loop.index }}">
-            <div class="uk-card uk-card-default uk-card-hover">
-                <div class="uk-card-header">
-                    <div uk-grid>
-                        <div class="uk-width-expand">
-                            <h3 class="uk-card-title uk-float-left">{{ class }}</h3>
+        {% for class, selected_tags in config.classes.items()|sort %}
+            {% set class_idx = loop.index %}
+            <div>
+                <div class="uk-card uk-card-default uk-card-hover">
+                    <div class="uk-card-header">
+                        <div id="classShow{{ class_idx }}" class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand">
+                                <h3 class="uk-card-title uk-float-left">{{ class }}</h3>
+                            </div>
+                            <div class="uk-width-auto uk-text-center">
+                                <a uk-icon="icon: pencil; ratio: 1.1" onclick="editClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
+                            </div>
+                            <div class="uk-width-auto uk-text-center">
+                                <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Class"></a>
+                                <div uk-dropdown="mode: click; pos:bottom-justify">
+                                    <p>
+                                        Remove class from the local config.
+                                        No data will be deleted.
+                                    </p>
+                                    <a class="uk-button uk-button-danger" href="{{ url_for('remove_class', project=project, class_name=class) }}">
+                                        <span uk-icon="icon: trash"></span>
+                                        Remove
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                        <div class="uk-width-auto">
-                            <button uk-icon="icon: file-edit; ratio: 1.1" onclick="editClass('{{ loop.index }}', true)"></button>
+
+                        <div id="classEdit{{ class_idx }}" class="uk-hidden">
+                            <form method="POST" class="uk-grid-small"
+                                  action="{{ url_for('edit_class', project=project, class_name=class) }}" uk-grid>
+                                <div class="uk-width-1-1">
+                                    <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ class_idx }}"></label>
+                                </div>
+                                <div class="uk-width-expand uk-margin-remove-top">
+                                    <div class="uk-inline">
+                                        <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                                        <input class="uk-input" type="text" id="editClassName{{ class_idx }}" name="className"
+                                               placeholder="Class Name" value="{{ class }}" autocomplete="off"
+                                               oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ class_idx }}');">
+                                    </div>
+                                </div>
+                                <div class="uk-width-auto uk-margin-remove-top">
+                                    <button class="uk-button uk-button-primary narrow-button" type="submit" id="submitEditClass{{ class_idx }}" uk-tooltip="Save Changes">
+                                        <span uk-icon="icon: check"></span>
+                                    </button>
+                                    <a class="uk-button uk-button-danger narrow-button" uk-tooltip="Cancel" onclick="editClass('{{ class_idx }}', false);">
+                                        <span uk-icon="icon: close"></span>
+                                    </a>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                </div>
 
-                <div class="uk-card-body temporal {{ 'uk-hidden' if not config.temporal }}">
-                    <h4>Tags</h4>
-                    <ul class="uk-list">
-                        {% for tag in tags %}
-                        <li>
-                            <span uk-icon="icon: tag"></span>
-                            {{ tag }}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <div class="uk-card-footer">
-                    <h4>Videos</h4>
-                    <h5>
-                        Train: {{ stats[class].train.total }}
-                        <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
-                            ({{ stats[class].train.tagged }} annotated)
-                        </span>
-                    </h5>
-                    <div class="uk-button-group">
-                        <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
-                            <span uk-icon="icon: video-camera"></span>
-                            Record
-                        </a>
-                        <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-                           onclick="loading(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}');">
-                            <span uk-icon="icon: file-edit"></span>
-                            <span>Annotate</span>
-                        </button>
+                    <div class="uk-card-body temporal {{ 'uk-hidden' if not config.temporal }}">
+                        <h4>Tags</h4>
+                        <select class="uk-select" id="selectTag{{ class_idx }}"
+                                onchange="addSelectedTagToClass('{{ class_idx }}', '{{ class }}', '{{ path }}');">
+                            {% if tags %}
+                                <option value="">Select tags...</option>
+                                {% for tag_index, tag_name in tags.items()|sort(attribute='1') %}
+                                    {% if tag_index not in selected_tags %}
+                                        <option value="{{ tag_index }}">{{ tag_name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <option value="">No tags available</option>
+                            {% endif %}
+                        </select>
+                        <ul id="selectedTagsList{{ class_idx }}" class="uk-list uk-margin-top">
+                            {% if selected_tags %}
+                                {% for tag_idx in selected_tags %}
+                                    <li id="tagList{{ class_idx }}-{{ tag_idx }}">
+                                        <span uk-icon="icon: tag"></span>
+                                        {{ tags[tag_idx] }}
+                                        <a class="uk-float-right">
+                                            <span uk-icon="icon: close" class="uk-text-danger"
+                                                  onclick="deselectTagFromList('{{ class_idx }}', '{{ tag_idx }}','{{ tags[tag_idx] }}', '{{ path }}', '{{ class }}');">
+                                            </span>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
                     </div>
 
-                    <h5>
-                        Valid: {{ stats[class].valid.total }}
-                        <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
-                            ({{ stats[class].valid.tagged }} annotated)
-                        </span>
-                    </h5>
-                    <div class="uk-button-group">
-                        <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
-                            <span uk-icon="icon: video-camera"></span>
-                            Record
-                        </a>
-                        <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-                           onclick="loading(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}');">
-                            <span uk-icon="icon: file-edit"></span>
-                            <span>Annotate</span>
-                        </button>
+                    <div class="uk-card-footer">
+                        <h4>Videos</h4>
+                        <h5>
+                            Train: {{ stats[class].train.total }}
+                            <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
+                                ({{ stats[class].train.tagged }} annotated)
+                            </span>
+                        </h5>
+                        <div class="uk-button-group">
+                            <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
+                                <span uk-icon="icon: video-camera"></span>
+                                Record
+                            </a>
+                            <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+                               onclick="loading(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}');">
+                                <span uk-icon="icon: file-edit"></span>
+                                <span>Annotate</span>
+                            </button>
+                        </div>
+
+                        <h5>
+                            Valid: {{ stats[class].valid.total }}
+                            <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
+                                ({{ stats[class].valid.tagged }} annotated)
+                            </span>
+                        </h5>
+                        <div class="uk-button-group">
+                            <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
+                                <span uk-icon="icon: video-camera"></span>
+                                Record
+                            </a>
+                            <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+                               onclick="loading(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}');">
+                                <span uk-icon="icon: file-edit"></span>
+                                <span>Annotate</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div id="classEdit{{ loop.index }}" class="uk-hidden">
-            <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
-                  action="{{ url_for('edit_class', project=project, class_name=class) }}">
-                <div class="uk-card-body">
-                    <div>
-                        <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ loop.index }}"></label>
-                        <div class="uk-inline uk-width-1-1 uk-margin-bottom">
-                            <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                            <input class="uk-input" type="text" id="editClassName{{ loop.index }}" name="className"
-                                   placeholder="Class Name" value="{{ class }}" autocomplete="off"
-                                   oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ loop.index }}')">
-                        </div>
-                    </div>
-
-                    <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
-                        <h4>Tags</h4>
-                        <div class="uk-inline uk-width-1-1">
-                            <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                            <input class="uk-input" type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" >
-                        </div>
-                        <div class="uk-inline uk-width-1-1 uk-margin">
-                            <span class="uk-form-icon" uk-icon="icon: tag"></span>
-                            <input class="uk-input" type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" >
-                        </div>
-                    </div>
-
-                    <button class="uk-button uk-button-default uk-width-1-1" type="button" onclick="editClass('{{ loop.index }}', false)">
-                        <span uk-icon="icon: close"></span>
-                        Cancel
-                    </button>
-                    <button class="uk-button uk-button-default uk-width-1-1 uk-margin" type="submit" id="submitEditClass{{ loop.index }}">
-                        <span uk-icon="icon: check"></span>
-                        Save Changes
-                    </button>
-                    <button class="uk-button uk-button-default uk-width-1-1" type="button">
-                        <span uk-icon="icon: trash"></span>
-                        Delete Class
-                    </button>
-                    <div uk-dropdown="mode: click; pos:bottom-justify">
-                        <p>
-                            Remove class from the local config.
-                            No data will be deleted.
-                        </p>
-                        <a class="uk-button uk-button-danger" href="{{ url_for('remove_class', project=project, class_name=class) }}">
-                            <span uk-icon="icon: trash"></span>
-                            Delete Class
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
         {% endfor %}
     </div>
 </div>

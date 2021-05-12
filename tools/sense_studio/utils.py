@@ -10,6 +10,7 @@ from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
 from tools import directories
+from tools.sense_studio.project_utils import load_project_config
 from tools.sense_studio.project_utils import get_project_setting
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
@@ -47,22 +48,6 @@ def is_image_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 
-def get_class_name_and_tags(form_data):
-    """
-    Extract 'className', 'tag1' and 'tag2' from the given form data and make sure that the tags
-    are not empty or the same.
-    """
-    class_name = form_data['className']
-    tag1 = form_data['tag1'] or f'{class_name}_tag1'
-    tag2 = form_data['tag2'] or f'{class_name}_tag2'
-
-    if tag2 == tag1:
-        tag1 = f'{tag1}_1'
-        tag2 = f'{tag2}_2'
-
-    return class_name, tag1, tag2
-
-
 def train_logreg(path, split, label):
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
@@ -73,54 +58,43 @@ def train_logreg(path, split, label):
     tags_dir = directories.get_tags_dir(path, split, label)
     logreg_dir = directories.get_logreg_dir(path, model_config, label)
     logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
+    project_config = load_project_config(path)
+    class_tags = project_config['classes'][label]
 
-    annotations = os.listdir(tags_dir) if os.path.exists(tags_dir) else None
-
-    if not annotations:
+    if not os.path.exists(tags_dir):
         return
 
-    features = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotations]
-    annotations = [os.path.join(tags_dir, x) for x in annotations]
-    x = []
-    y = []
+    annotation_files = os.listdir(tags_dir)
 
-    class_weight = {0: 0.5}
+    feature_files = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotation_files]
+    annotation_files = [os.path.join(tags_dir, x) for x in annotation_files]
+    all_features = []
+    all_annotations = []
 
-    for feature in features:
-        feature = np.load(feature)
+    for feature_file in feature_files:
+        features = np.load(feature_file)
 
-        for f in feature:
-            x.append(f.mean(axis=(1, 2)))
+        for f in features:
+            all_features.append(f.mean(axis=(1, 2)))
 
-    for annotation in annotations:
-        with open(annotation, 'r') as f:
-            annotation = json.load(f)['time_annotation']
+    for annotation_file in annotation_files:
+        with open(annotation_file, 'r') as f:
+            annotations = json.load(f)['time_annotation']
 
-        pos1 = np.where(np.array(annotation).astype(int) == 1)[0]
+        all_annotations.extend(annotations)
 
-        if len(pos1) > 0:
-            class_weight.update({1: 2})
+    # Reset tags that have been removed from the class to 'background'
+    all_annotations = [tag_idx if tag_idx in class_tags else 0 for tag_idx in all_annotations]
 
-            for p in pos1:
-                if p + 1 < len(annotation):
-                    annotation[p + 1] = 1
+    # Use low class weight for background and higher weight for all present tags
+    annotated_tags = set(all_annotations)
+    class_weight = {tag: 2 for tag in annotated_tags}
+    class_weight[0] = 0.5
 
-        pos1 = np.where(np.array(annotation).astype(int) == 2)[0]
+    all_features = np.array(all_features)
+    all_annotations = np.array(all_annotations)
 
-        if len(pos1) > 0:
-            class_weight.update({2: 2})
-
-            for p in pos1:
-                if p + 1 < len(annotation):
-                    annotation[p + 1] = 2
-
-        for a in annotation:
-            y.append(a)
-
-    x = np.array(x)
-    y = np.array(y)
-
-    if len(class_weight) > 1:
+    if len(annotated_tags) > 1:
         logreg = LogisticRegression(C=0.1, class_weight=class_weight)
-        logreg.fit(x, y)
+        logreg.fit(all_features, all_annotations)
         dump(logreg, logreg_path)

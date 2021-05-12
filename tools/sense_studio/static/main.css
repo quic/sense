@@ -39,21 +39,6 @@ video {
 }
 
 /* Additional colors for buttons and labels */
-.button-green {
-    background: #00cc00;
-    color: #fff;
-}
-
-.button-green:focus, .button-green:hover {
-    background: #00b300;
-    color: #fff;
-}
-
-.label-green {
-    background: #00cc00;
-    color: #fff;
-}
-
 .button-grey {
     background: #9f9f9f;
     color: #fff;
@@ -69,21 +54,11 @@ video {
     color: #fff;
 }
 
-.button-blue {
-    background: #0e73d8;
-    color: #fff;
-}
-
-.button-blue:focus, .button-blue:hover {
-    background: #0c66c0;
-    color: #fff;
-}
-
-.label-blue {
-    background: #0e73d8;
-    color: #fff;
-}
-
 .line-height-normal {
     line-height: normal;
+}
+
+.narrow-button {
+    padding-left: 10px;
+    padding-right: 10px;
 }

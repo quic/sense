@@ -194,7 +194,6 @@ async function editAddClass(projectName) {
 
 
 async function editUpdateClass(projectName, originalClassName, index) {
-    console.log(`editClassName${index}`);
     let classNameInput = document.getElementById(`editClassName${index}`);
     let classNameLabel = document.getElementById(`editClassNameLabel${index}`);
     let editClassButton = document.getElementById(`submitEditClass${index}`);
@@ -266,32 +265,27 @@ function loading(element, message, url) {
 }
 
 
-const buttonClasses = [
-    'button-grey',
-    'button-blue',
-    'button-green',
-]
-
-
-function assignTag(frameIdx, selectedTagIdx) {
+function assignTag(frameIdx, selectedTagIdx,  classTagIndices) {
     let tagInput = document.getElementById(`${frameIdx}_tag`);
     tagInput.value = selectedTagIdx;
 
-    for (const tagIdx of [0, 1, 2]) {
+    for (const tagIdx of classTagIndices) {
+
         let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
+        let buttonColor = tagIdx == 0 ? 'button-grey' : 'uk-button-primary';
 
         if (tagIdx == selectedTagIdx) {
-            button.classList.add(buttonClasses[tagIdx]);
+            button.classList.add(buttonColor);
         } else {
-            button.classList.remove(buttonClasses[tagIdx]);
+            button.classList.remove(buttonColor);
         }
     }
 }
 
 
-function initTagButtons(annotations) {
+function initTagButtons(annotations, classTagIndices) {
     for (let frameIdx = 0; frameIdx < annotations.length; frameIdx++) {
-        assignTag(frameIdx, annotations[frameIdx]);
+        assignTag(frameIdx, annotations[frameIdx], classTagIndices);
     }
 }
 
@@ -299,6 +293,7 @@ function initTagButtons(annotations) {
 function editClass(index, shouldEdit) {
     let classShow = document.getElementById(`classShow${index}`);
     let classEdit = document.getElementById(`classEdit${index}`);
+    let className = document.getElementById(`editClassName${index}`);
 
     if (shouldEdit) {
         classShow.classList.add('uk-hidden');
@@ -306,6 +301,7 @@ function editClass(index, shouldEdit) {
     } else {
         classShow.classList.remove('uk-hidden');
         classEdit.classList.add('uk-hidden');
+        className.value = className.attributes.value.value;
     }
 }
 
@@ -343,4 +339,111 @@ async function toggleAssistedTagging(path, split, label) {
 
     // Reload page to update predictions
     window.location.reload();
+}
+
+async function addSelectedTagToClass(classIdx, className, path)  {
+    let selectedTagsList = document.getElementById(`selectedTagsList${classIdx}`);
+    let selectTagDropdown = document.getElementById(`selectTag${classIdx}`);
+
+    let tagIndex = selectTagDropdown.value;
+    let optionIndex = selectTagDropdown.selectedIndex;
+    let tagName = selectTagDropdown.options[optionIndex].text;
+
+    data = {
+        className: className,
+        tagIndex: tagIndex,
+        path: path,
+    };
+
+    let response = await asyncRequest('/assign-tag-to-class', data);
+
+    if (response.success) {
+        // Remove tag from the dropdown
+        selectTagDropdown.remove(optionIndex);
+        selectTagDropdown.selectedIndex = "0";
+        let tagListItem = `<li id="tagList${classIdx}-${tagIndex}">
+                               <span uk-icon="icon: tag"></span>
+                               ${tagName}
+                               <a class="uk-float-right">
+                                   <span uk-icon="icon: close" class="uk-text-danger"
+                                         onclick="deselectTagFromList('${classIdx}', '${tagIndex}', '${tagName}', '${path}', '${className}');">
+                                   </span>
+                               </a>
+                           </li>`;
+        // Add selected tag from dropdown to tag list
+        selectedTagsList.insertAdjacentHTML('beforeend', tagListItem);
+    }
+}
+
+
+async function deselectTagFromList(classIdx, tagIndex, tagName, path, className) {
+    let selectTagDropdown = document.getElementById(`selectTag${classIdx}`);
+    let selectedTagFromList = document.getElementById(`tagList${classIdx}-${tagIndex}`);
+
+    data = {
+        path: path,
+        tagIndex: tagIndex,
+        className: className,
+    };
+
+    let response = await asyncRequest('/remove-tag-from-class', data);
+
+    if (response.success) {
+        // Remove tag from selected tag list of the class
+        selectedTagFromList.parentNode.removeChild(selectedTagFromList);
+
+        // Add tag back to the dropdown of the class
+        let tagOption = `<option value="${tagIndex}">${tagName}</option>`;
+        selectTagDropdown.insertAdjacentHTML('beforeend', tagOption);
+    }
+}
+
+///////////////////////////////////////////// Tag Operations //////////////////////////////////////////////////
+
+function checkIfTagExist(tags, tagId, errorLabelId, tagOperation, originalTagName) {
+    let tag = document.getElementById(tagId);
+    let errorLabel = document.getElementById(errorLabelId);
+    let tagButton = document.getElementById(tagOperation);
+    let tagNames = Object.values(tags);
+
+    let disabled = false;
+
+    if (tag.value === '') {
+        setFormWarning(errorLabel, tag, '');
+        disabled = true;
+    } else if (tag.value !== originalTagName && tagNames.includes(tag.value)) {
+        setFormWarning(errorLabel, tag, 'This tag name already exist');
+        disabled = true;
+    } else if (tag.value.toLowerCase() === 'background') {
+        setFormWarning(errorLabel, tag, 'This name is reserved');
+        disabled = true;
+    } else {
+        setFormWarning(errorLabel, tag, '');
+    }
+
+    tagButton.disabled = disabled;
+}
+
+
+function editTag(tagIdx) {
+    let tagShow = document.getElementById(`tagShow${tagIdx}`);
+    let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
+
+    tagEdit.classList.remove('uk-hidden');
+    tagShow.classList.add('uk-hidden');
+}
+
+
+function cancelEditTag(tagIdx) {
+    let tagShow = document.getElementById(`tagShow${tagIdx}`);
+    let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
+    let tag = document.getElementById(`tag${tagIdx}`);
+    let project = document.getElementById('projectName').value;
+    let error = document.getElementById(`tagEditError${tagIdx}`);
+
+    setFormWarning(error, tag, '');
+
+    tag.value = tag.attributes.value.value;
+    tagEdit.classList.add('uk-hidden');
+    tagShow.classList.remove('uk-hidden');
 }

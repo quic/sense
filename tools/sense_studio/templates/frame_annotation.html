@@ -86,6 +86,7 @@
 
         <div class="uk-child-width-1-2@s uk-child-width-1-3@m uk-child-width-1-4@l" uk-grid>
             {% for img, pred_class in images %}
+            {% set img_index = loop.index0 %}
             <div>
                 <input type="hidden" id="{{ loop.index0 }}_tag" name="{{ loop.index0 }}_tag" value="0">
                 <div class="uk-card uk-card-default">
@@ -94,28 +95,10 @@
                     </div>
                     <div class="uk-card-body">
                         <div class="{{ 'uk-hidden' if not project_config.assisted_tagging }}">
-                            {% if pred_class == 0 %}
-                                <div class="uk-label label-grey">
+                            {% if pred_class >= 0 %}
+                                <div class="uk-label {{ 'label-grey' if pred_class == 0 }} uk-margin">
                                     <span class="uk-text-bolder">
-                                        Background
-                                    </span>
-                                    <span class="uk-text-lowercase uk-text-small">
-                                        predicted
-                                    </span>
-                                </div>
-                            {% elif pred_class == 1 %}
-                                <div class="uk-label label-blue">
-                                    <span class="uk-text-bolder">
-                                        {{ tags[0] }}
-                                    </span>
-                                    <span class=".uk-text-meta">
-                                        predicted
-                                    </span>
-                                </div>
-                            {% elif pred_class == 2 %}
-                                <div class="uk-label label-green">
-                                    <span class="uk-text-bolder">
-                                        {{ tags[1] }}
+                                        {{ tags[pred_class] }}
                                     </span>
                                     <span class="uk-text-lowercase uk-text-small">
                                         predicted
@@ -123,25 +106,16 @@
                                 </div>
                             {% endif %}
                         </div>
-                        <div class="uk-grid-collapse uk-margin">
-                            <div>
-                                <button type="button" class="uk-button uk-width-1-1"
-                                        id="{{ loop.index0 }}_tag0" onclick="assignTag({{ loop.index0 }}, 0);">
-                                    Background
-                                </button>
-                            </div>
-                            <div>
-                                <button type="button" class="uk-button uk-width-1-1"
-                                        id="{{ loop.index0 }}_tag1" onclick="assignTag({{ loop.index0 }}, 1);">
-                                    {{ tags[0] }}
-                                </button>
-                            </div>
-                            <div>
-                                <button type="button" class="uk-button uk-width-1-1"
-                                        id="{{ loop.index0 }}_tag2" onclick="assignTag({{ loop.index0 }}, 2);">
-                                    {{ tags[1] }}
-                                </button>
-                            </div>
+                        <div class="uk-grid-collapse">
+                            {% for tag_index in class_tags %}
+                                <div>
+                                    <button type="button" class="uk-button uk-width-1-1"
+                                            id="{{ img_index }}_tag{{ tag_index }}"
+                                            onclick="assignTag({{ img_index }}, {{ tag_index }}, {{ class_tags }});">
+                                        {{ tags[tag_index] }}
+                                    </button>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -157,6 +131,6 @@
 
 {% block scripts %}
 <script>
-    initTagButtons({{ annotations }});
+    initTagButtons({{ annotations }},  {{ class_tags }});
 </script>
 {% endblock %}
