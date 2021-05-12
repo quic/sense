@@ -71,8 +71,8 @@ def train_logreg(path, split, label):
     all_features = []
     all_annotations = []
 
-    for features in feature_files:
-        features = np.load(features)
+    for feature_file in feature_files:
+        features = np.load(feature_file)
 
         for f in features:
             all_features.append(f.mean(axis=(1, 2)))
@@ -88,13 +88,13 @@ def train_logreg(path, split, label):
 
     # Use low class weight for background and higher weight for all present tags
     annotated_tags = set(all_annotations)
-    class_weight = {0: 0.5}
-    class_weight.update({tag: 2 for tag in annotated_tags})
+    class_weight = {tag: 2 for tag in annotated_tags}
+    class_weight[0] = 0.5
 
     all_features = np.array(all_features)
     all_annotations = np.array(all_annotations)
 
-    if len(class_weight) > 1:
+    if len(annotated_tags) > 1:
         logreg = LogisticRegression(C=0.1, class_weight=class_weight)
         logreg.fit(all_features, all_annotations)
         dump(logreg, logreg_path)
