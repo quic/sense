@@ -120,10 +120,6 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
         fine_tuned_layers = backbone_network.cnn[-num_layers_to_finetune:]
         backbone_network.cnn = backbone_network.cnn[0:-num_layers_to_finetune]
 
-    # finetune the model
-    extract_features(path_in, selected_config, backbone_network, num_layers_to_finetune, use_gpu,
-                     num_timesteps=num_timesteps, log_fn=log_fn)
-
     project_config = load_project_config(path_in)
 
     # Find label names
@@ -134,6 +130,10 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     label_names = natsorted(label_names, alg=ns.IC)
     label_names = [x for x in label_names if not x.startswith('.')]
+
+    # finetune the model
+    extract_features(path_in, label_names, selected_config, backbone_network, num_layers_to_finetune, use_gpu,
+                     num_timesteps=num_timesteps, log_fn=log_fn)
 
     label_names_temporal = ['background']
     if project_config:
