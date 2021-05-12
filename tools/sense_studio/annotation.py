@@ -79,8 +79,8 @@ def annotate(project, split, label, idx):
     split = urllib.parse.unquote(split)
 
     config = project_utils.load_project_config(path)
-    project_tags = config['project_tags'].copy()
-    project_tags[0] = 'background'
+    tags = config['tags'].copy()
+    tags[0] = 'background'
 
     class_tags = config['classes'][label].copy()
     class_tags.append(0)  # Always add 'background'
@@ -131,14 +131,10 @@ def annotate(project, split, label, idx):
         # Use "background" label for all frames per default
         annotations = [0] * len(images)
 
-    # Read tags from config
-    config = project_utils.load_project_config(path)
-    tags = config['classes'][label]
-
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx], project_config=config,
-                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos),
-                           project_tags=project_tags, class_tags=class_tags)
+                           split=split, label=label, path=path, project=project, n_videos=len(videos),
+                           tags=tags, class_tags=class_tags)
 
 
 @annotation_bp.route('/submit-annotation', methods=['POST'])

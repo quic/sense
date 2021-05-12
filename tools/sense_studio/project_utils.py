@@ -53,23 +53,23 @@ def _backwards_compatibility_update(path, config):
         }
         updated = True
 
-    if 'project_tags' not in config:
+    if 'tags' not in config:
         # Collect class-wise tags
         old_classes = config['classes']
-        project_tags_list = []
+        tags_list = []
         for class_name, class_tags in old_classes.items():
-            project_tags_list.extend(class_tags)
+            tags_list.extend(class_tags)
 
         # Assign project-wide unique indices to tags (0 is reserved for 'background')
-        project_tags = {idx + 1: tag_name for idx, tag_name in enumerate(project_tags_list)}
-        config['project_tags'] = project_tags
-        config['max_tag_index'] = len(project_tags_list)
+        tags = {idx + 1: tag_name for idx, tag_name in enumerate(tags_list)}
+        config['tags'] = tags
+        config['max_tag_index'] = len(tags_list)
 
         # Setup class dictionary with tag indices
-        inverse_project_tags = {tag_name: tag_idx for tag_idx, tag_name in project_tags.items()}
-        inverse_project_tags['background'] = 0
+        inverse_tags = {tag_name: tag_idx for tag_idx, tag_name in tags.items()}
+        inverse_tags['background'] = 0
         config['classes'] = {
-            class_name: [inverse_project_tags[tag_name] for tag_name in class_tags]
+            class_name: [inverse_tags[tag_name] for tag_name in class_tags]
             for class_name, class_tags in old_classes.items()
         }
 
@@ -88,8 +88,7 @@ def _backwards_compatibility_update(path, config):
                         annotation_data = json.load(f)
 
                     # Translate relative indices [0, 1, 2] to their names and then to their new absolute indices
-                    new_annotations = [inverse_project_tags[label_tags[idx]]
-                                       for idx in annotation_data['time_annotation']]
+                    new_annotations = [inverse_tags[label_tags[idx]] for idx in annotation_data['time_annotation']]
                     annotation_data['time_annotation'] = new_annotations
 
                     with open(annotation_file, 'w') as f:
@@ -98,7 +97,7 @@ def _backwards_compatibility_update(path, config):
         updated = True
     else:
         # Translate string keys to integers (because JSON does not store integer keys)
-        config['project_tags'] = {int(idx_str): tag_name for idx_str, tag_name in config['project_tags'].items()}
+        config['tags'] = {int(idx_str): tag_name for idx_str, tag_name in config['tags'].items()}
 
     if updated:
         # Save updated config
@@ -137,7 +136,7 @@ def setup_new_project(project_name, path, config=None):
         config = {
             'name': project_name,
             'date_created': datetime.date.today().isoformat(),
-            'project_tags': {},
+            'tags': {},
             'max_tag_index': 0,
             'classes': {},
             'use_gpu': False,

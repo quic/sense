@@ -29,7 +29,7 @@ from tools.sense_studio.annotation import annotation_bp
 from tools.sense_studio.testing import testing_bp
 from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
-from tools.sense_studio.project_tags import tags_bp
+from tools.sense_studio.tags import tags_bp
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
@@ -196,7 +196,7 @@ def project_details(project):
     config = project_utils.load_project_config(path)
 
     stats = {}
-    for class_name, tags in config['classes'].items():
+    for class_name in config['classes']:
         stats[class_name] = {}
         for split in SPLITS:
             videos_dir = directories.get_videos_dir(path, split, class_name)
@@ -205,9 +205,9 @@ def project_details(project):
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
             }
-    project_tags = config['project_tags']
+    tags = config['tags']
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
-                           project_tags=project_tags)
+                           tags=tags)
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
