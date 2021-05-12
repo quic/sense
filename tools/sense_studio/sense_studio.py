@@ -29,7 +29,7 @@ from tools.sense_studio.annotation import annotation_bp
 from tools.sense_studio.testing import testing_bp
 from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
-from tools.sense_studio.project_tags import project_tags_bp
+from tools.sense_studio.tags import tags_bp
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
@@ -39,7 +39,7 @@ app.register_blueprint(annotation_bp, url_prefix='/annotation')
 app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(testing_bp, url_prefix='/testing')
-app.register_blueprint(project_tags_bp, url_prefix='/tags')
+app.register_blueprint(tags_bp, url_prefix='/tags')
 
 socketio.init_app(app)
 
@@ -153,11 +153,8 @@ def update_project():
     project_name = data['projectName']
     path = data['path']
 
-    try:
-        # Check for existing config file
-        config = project_utils.load_project_config(path)
-    except FileNotFoundError:
-        config = None
+    # Check for existing config file (might be None)
+    config = project_utils.load_project_config(path)
 
     # Make sure the directory is correctly set up
     project_utils.setup_new_project(project_name, path, config)
@@ -175,13 +172,12 @@ def import_project():
     data = request.form
     path = data['path']
 
-    try:
-        # Check for existing config file and make sure project name is unique
-        config = project_utils.load_project_config(path)
+    # Check for existing config file and make sure project name is unique
+    config = project_utils.load_project_config(path)
+    if config:
         project_name = project_utils.get_unique_project_name(config['name'])
-    except FileNotFoundError:
+    else:
         # Use folder name as project name and make sure it is unique
-        config = None
         project_name = project_utils.get_unique_project_name(os.path.basename(path))
 
     # Make sure the directory is correctly set up
@@ -200,7 +196,7 @@ def project_details(project):
     config = project_utils.load_project_config(path)
 
     stats = {}
-    for class_name, tags in config['classes'].items():
+    for class_name in config['classes']:
         stats[class_name] = {}
         for split in SPLITS:
             videos_dir = directories.get_videos_dir(path, split, class_name)
@@ -209,10 +205,9 @@ def project_details(project):
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
             }
-    project_tags = config.get('project_tags', {})
-    project_tags = {tag_idx: tag_name for tag_name, tag_idx in project_tags.items()}
+    tags = config['tags']
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
-                           project_tags=project_tags)
+                           tags=tags)
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
@@ -354,7 +349,6 @@ def assign_tag_to_class():
     class_tags = config['classes'][class_name]
     class_tags.append(int(tag_index))
     class_tags.sort()
-    config['classes'][class_name] = class_tags
 
     project_utils.write_project_config(path, config)
     return jsonify(success=True)

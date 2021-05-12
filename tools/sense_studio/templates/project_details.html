@@ -77,14 +77,14 @@
             </button>
             <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
                 <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
-                      action="{{ url_for('project_tags_bp.create_tag_in_project_tags', project=project) }}">
+                      action="{{ url_for('tags_bp.create_tag', project=project) }}">
                     <div class="uk-card-body">
                         <div>
                             <label class="uk-form-label uk-text-danger" id="newTagLabel"></label>
                             <div class="uk-inline uk-width-1-1 uk-margin-bottom">
                                 <span class="uk-form-icon" uk-icon="icon: tag"></span>
                                 <input class="uk-input" type="text" id="newTagName" name="newTagName" placeholder="Tag Name"
-                                       oninput="checkIfTagExist({{ project_tags }}, 'newTagName', 'newTagLabel', 'addTag');" autocomplete="off">
+                                       oninput="checkIfTagExist({{ tags }}, 'newTagName', 'newTagLabel', 'addTag');" autocomplete="off">
                             </div>
                         </div>
 
@@ -99,9 +99,8 @@
     </div>
 
     <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
-        <h5 id="error" class="uk-text-danger uk-text-center"></h5>
         <div class="uk-child-width-1-2@m uk-child-width-1-3@l uk-grid-match" uk-grid>
-            {% for tag_idx, tag_name in project_tags.items() %}
+            {% for tag_idx, tag_name in tags.items()|sort(attribute='1') %}
             <div>
                 <div class="uk-card uk-card-default uk-card-hover uk-card-header">
                     <div id="tagShow{{ tag_idx }}" class="uk-grid-small" uk-grid>
@@ -109,7 +108,7 @@
                             <h3 class="uk-card-title uk-float-left">{{ tag_name }}</h3>
                         </div>
                         <div class="uk-width-auto">
-                            <a uk-icon="icon: pencil; ratio: 1.1" uk-tooltip="Edit Tag" onclick="editProjectTag('{{ tag_idx }}');"></a>
+                            <a uk-icon="icon: pencil; ratio: 1.1" uk-tooltip="Edit Tag" onclick="editTag('{{ tag_idx }}');"></a>
                         </div>
                         <div class="uk-width-auto">
                             <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Tag"></a>
@@ -118,7 +117,7 @@
                                     Remove tag from the config. All annotations with this tag will be lost.
                                 </p>
                                 <a class="uk-button uk-button-danger"
-                                    onclick="removeProjectTag('{{ tag_idx }}', '{{ url_for('project_tags_bp.remove_tag_from_project_tags', project=project) }}');">
+                                    href="{{ url_for('tags_bp.remove_tag', project=project, tag_idx=tag_idx) }}">
                                     <span uk-icon="icon: trash"></span> REMOVE
                                 </a>
                             </div>
@@ -126,22 +125,27 @@
                     </div>
 
                     <div id="tagEdit{{ tag_idx }}" class="uk-hidden">
-                        <form>
-                            <div class="uk-form-control">
-                                <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                        <form method="POST" class="uk-grid-small"
+                              action="{{ url_for('tags_bp.edit_tag', project=project, tag_idx=tag_idx) }}" uk-grid>
+                            <div class="uk-width-1-1">
+                                <label id="tagEditError{{ tag_idx }}" class="uk-form-label uk-text-danger"></label>
+                            </div>
+                            <div class="uk-form-control uk-width-expand uk-margin-remove-top">
+                                <div class="uk-inline">
                                     <span class="uk-form-icon" uk-icon="icon: tag"></span>
                                     <input class="uk-input" type="text" placeholder="Tag name" autocomplete="off"
-                                           oninput="checkIfTagExist({{ project_tags }}, 'tag{{ tag_idx }}', 'error', 'saveTag{{ tag_idx }}');" id="tag{{ tag_idx }}"
-                                           value="{{ tag_name }}" autocomplete="off">
+                                           oninput="checkIfTagExist({{ tags }}, 'tag{{ tag_idx }}', 'tagEditError{{ tag_idx }}', 'saveTag{{ tag_idx }}', '{{ tag_name }}');"
+                                           id="tag{{ tag_idx }}" name="newTagName" value="{{ tag_name }}" autocomplete="off">
                                 </div>
                             </div>
-                            <button class="uk-button uk-button-primary" type="button" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}"
-                               onclick="saveProjectTag('{{ tag_idx }}', '{{ url_for('project_tags_bp.edit_tag_in_project_tags', project=project) }}', {{ project_tags }});">
-                                <span uk-icon="icon: check"></span>
-                            </button>
-                            <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="cancelEditProjectTag('{{ tag_idx }}');">
-                                <span uk-icon="icon: close"></span>
-                            </a>
+                            <div class="uk-width-auto uk-margin-remove-top">
+                                <button class="uk-button uk-button-primary narrow-button" type="submit" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}">
+                                    <span uk-icon="icon: check"></span>
+                                </button>
+                                <a class="uk-button uk-button-danger narrow-button" uk-tooltip="Cancel" onclick="cancelEditTag('{{ tag_idx }}');">
+                                    <span uk-icon="icon: close"></span>
+                                </a>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -184,7 +188,7 @@
     </div>
 
     <div class="uk-child-width-1-2@m uk-child-width-1-3@l" uk-grid>
-        {% for class, selected_tags in config.classes|dictsort %}
+        {% for class, selected_tags in config.classes.items()|sort %}
             {% set class_idx = loop.index %}
             <div>
                 <div class="uk-card uk-card-default uk-card-hover">
@@ -212,22 +216,27 @@
                         </div>
 
                         <div id="classEdit{{ class_idx }}" class="uk-hidden">
-                            <form method="POST" action="{{ url_for('edit_class', project=project, class_name=class) }}">
-                                <div>
+                            <form method="POST" class="uk-grid-small"
+                                  action="{{ url_for('edit_class', project=project, class_name=class) }}" uk-grid>
+                                <div class="uk-width-1-1">
                                     <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ class_idx }}"></label>
-                                    <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                                </div>
+                                <div class="uk-width-expand uk-margin-remove-top">
+                                    <div class="uk-inline">
                                         <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
                                         <input class="uk-input" type="text" id="editClassName{{ class_idx }}" name="className"
                                                placeholder="Class Name" value="{{ class }}" autocomplete="off"
                                                oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ class_idx }}');">
                                     </div>
                                 </div>
-                                <button class="uk-button uk-button-primary" type="submit" id="submitEditClass{{ class_idx }}" uk-tooltip="Save Changes">
-                                    <span uk-icon="icon: check"></span>
-                                </button>
-                                <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="editClass('{{ class_idx }}', false);">
-                                    <span uk-icon="icon: close"></span>
-                                </a>
+                                <div class="uk-width-auto uk-margin-remove-top">
+                                    <button class="uk-button uk-button-primary narrow-button" type="submit" id="submitEditClass{{ class_idx }}" uk-tooltip="Save Changes">
+                                        <span uk-icon="icon: check"></span>
+                                    </button>
+                                    <a class="uk-button uk-button-danger narrow-button" uk-tooltip="Cancel" onclick="editClass('{{ class_idx }}', false);">
+                                        <span uk-icon="icon: close"></span>
+                                    </a>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -236,9 +245,9 @@
                         <h4>Tags</h4>
                         <select class="uk-select" id="selectTag{{ class_idx }}"
                                 onchange="addSelectedTagToClass('{{ class_idx }}', '{{ class }}', '{{ path }}');">
-                            {% if project_tags %}
+                            {% if tags %}
                                 <option value="">Select tags...</option>
-                                {% for tag_index, tag_name in project_tags.items() %}
+                                {% for tag_index, tag_name in tags.items()|sort(attribute='1') %}
                                     {% if tag_index not in selected_tags %}
                                         <option value="{{ tag_index }}">{{ tag_name }}</option>
                                     {% endif %}
@@ -252,10 +261,10 @@
                                 {% for tag_idx in selected_tags %}
                                     <li id="tagList{{ class_idx }}-{{ tag_idx }}">
                                         <span uk-icon="icon: tag"></span>
-                                        {{ project_tags[tag_idx] }}
+                                        {{ tags[tag_idx] }}
                                         <a class="uk-float-right">
                                             <span uk-icon="icon: close" class="uk-text-danger"
-                                                  onclick="deselectTagFromList('{{ class_idx }}', '{{ tag_idx }}','{{ project_tags[tag_idx] }}', '{{ path }}', '{{ class }}');">
+                                                  onclick="deselectTagFromList('{{ class_idx }}', '{{ tag_idx }}','{{ tags[tag_idx] }}', '{{ path }}', '{{ class }}');">
                                             </span>
                                         </a>
                                     </li>

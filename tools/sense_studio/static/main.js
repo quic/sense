@@ -194,7 +194,6 @@ async function editAddClass(projectName) {
 
 
 async function editUpdateClass(projectName, originalClassName, index) {
-    console.log(`editClassName${index}`);
     let classNameInput = document.getElementById(`editClassName${index}`);
     let classNameLabel = document.getElementById(`editClassNameLabel${index}`);
     let editClassButton = document.getElementById(`submitEditClass${index}`);
@@ -273,11 +272,12 @@ function assignTag(frameIdx, selectedTagIdx,  classTagIndices) {
     for (const tagIdx of classTagIndices) {
 
         let button = document.getElementById(`${frameIdx}_tag${tagIdx}`);
+        let buttonColor = tagIdx == 0 ? 'button-grey' : 'uk-button-primary';
 
         if (tagIdx == selectedTagIdx) {
-            button.classList.add('button-green');
+            button.classList.add(buttonColor);
         } else {
-            button.classList.remove('button-green');
+            button.classList.remove(buttonColor);
         }
     }
 }
@@ -293,6 +293,7 @@ function initTagButtons(annotations, classTagIndices) {
 function editClass(index, shouldEdit) {
     let classShow = document.getElementById(`classShow${index}`);
     let classEdit = document.getElementById(`classEdit${index}`);
+    let className = document.getElementById(`editClassName${index}`);
 
     if (shouldEdit) {
         classShow.classList.add('uk-hidden');
@@ -300,6 +301,7 @@ function editClass(index, shouldEdit) {
     } else {
         classShow.classList.remove('uk-hidden');
         classEdit.classList.add('uk-hidden');
+        className.value = className.attributes.value.value;
     }
 }
 
@@ -396,21 +398,24 @@ async function deselectTagFromList(classIdx, tagIndex, tagName, path, className)
     }
 }
 
-///////////////////////////////////////////// Project Tags Operations //////////////////////////////////////////////////
+///////////////////////////////////////////// Tag Operations //////////////////////////////////////////////////
 
-function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation) {
+function checkIfTagExist(tags, tagId, errorLabelId, tagOperation, originalTagName) {
     let tag = document.getElementById(tagId);
     let errorLabel = document.getElementById(errorLabelId);
     let tagButton = document.getElementById(tagOperation);
-    projectTagNames = Object.values(projectTags);
+    let tagNames = Object.values(tags);
 
     let disabled = false;
 
     if (tag.value === '') {
         setFormWarning(errorLabel, tag, '');
         disabled = true;
-    } else if (projectTagNames.includes(tag.value)) {
+    } else if (tag.value !== originalTagName && tagNames.includes(tag.value)) {
         setFormWarning(errorLabel, tag, 'This tag name already exist');
+        disabled = true;
+    } else if (tag.value.toLowerCase() === 'background') {
+        setFormWarning(errorLabel, tag, 'This name is reserved');
         disabled = true;
     } else {
         setFormWarning(errorLabel, tag, '');
@@ -420,7 +425,7 @@ function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation) {
 }
 
 
-function editProjectTag(tagIdx) {
+function editTag(tagIdx) {
     let tagShow = document.getElementById(`tagShow${tagIdx}`);
     let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
 
@@ -429,50 +434,12 @@ function editProjectTag(tagIdx) {
 }
 
 
-async function saveProjectTag(tagIdx, url, projectTags) {
-    let tag = document.getElementById(`tag${tagIdx}`);
-    let tagShow = document.getElementById(`tagShow${tagIdx}`);
-    let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
-    let path = document.getElementById('path').value;
-    let project = document.getElementById('projectName').value;
-
-    data = {
-        path: path,
-        tagIdx: tagIdx,
-        newTagName: tag.value,
-    };
-
-    let response = await asyncRequest(url, data);
-
-    if (response.success) {
-        tagEdit.classList.add('uk-hidden');
-        tagShow.classList.remove('uk-hidden');
-        window.location.href = `/project/${project}`;
-    }
-}
-
-
-async function removeProjectTag(tagIdx, url) {
-    let project = document.getElementById('projectName').value;
-    let path = document.getElementById('path').value;
-    data = {
-        path: path,
-        tagIdx: tagIdx,
-    };
-
-    let response = await asyncRequest(url, data);
-    if (response.success) {
-        window.location.href = `/project/${project}`;
-    }
-}
-
-
-function cancelEditProjectTag(tagIdx) {
+function cancelEditTag(tagIdx) {
     let tagShow = document.getElementById(`tagShow${tagIdx}`);
     let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
     let tag = document.getElementById(`tag${tagIdx}`);
     let project = document.getElementById('projectName').value;
-    let error = document.getElementById('error');
+    let error = document.getElementById(`tagEditError${tagIdx}`);
 
     setFormWarning(error, tag, '');
 
