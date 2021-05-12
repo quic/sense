@@ -270,15 +270,18 @@ def compute_frames_and_features(inference_engine: InferenceEngine, project_path:
                              num_timesteps=1)
 
 
-def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1, log_fn=print):
+def extract_features(path_in, label_names, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1,
+                     log_fn=print):
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
     # extract features
     for split in SPLITS:
+        video_files = []
         videos_dir = directories.get_videos_dir(path_in, split)
         features_dir = directories.get_features_dir(path_in, split, model_config, num_layers_finetune)
-        video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
+        for label in label_names:
+            video_files.extend(glob.glob(os.path.join(videos_dir, label, "*.mp4")))
 
         num_videos = len(video_files)
         log_fn(f"\nFound {num_videos} videos to process in the {split}-set")
