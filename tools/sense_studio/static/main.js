@@ -398,23 +398,23 @@ async function deselectTagFromList(classIdx, tagIndex, tagName, path, className)
     }
 }
 
-///////////////////////////////////////////// Project Tags Operations //////////////////////////////////////////////////
+///////////////////////////////////////////// Tag Operations //////////////////////////////////////////////////
 
-function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation, originalTagName) {
+function checkIfTagExist(tags, tagId, errorLabelId, tagOperation, originalTagName) {
     let tag = document.getElementById(tagId);
     let errorLabel = document.getElementById(errorLabelId);
     let tagButton = document.getElementById(tagOperation);
-    let projectTagNames = Object.values(projectTags);
+    let tagNames = Object.values(tags);
 
     let disabled = false;
 
     if (tag.value === '') {
         setFormWarning(errorLabel, tag, '');
         disabled = true;
-    } else if (tag.value !== originalTagName && projectTagNames.includes(tag.value)) {
+    } else if (tag.value !== originalTagName && tagNames.includes(tag.value)) {
         setFormWarning(errorLabel, tag, 'This tag name already exist');
         disabled = true;
-    } else if (tag.value === 'background') {
+    } else if (tag.value.toLowerCase() === 'background') {
         setFormWarning(errorLabel, tag, 'This name is reserved');
         disabled = true;
     } else {
@@ -425,7 +425,7 @@ function checkIfTagExist(projectTags, tagId, errorLabelId, tagOperation, origina
 }
 
 
-function editProjectTag(tagIdx) {
+function editTag(tagIdx) {
     let tagShow = document.getElementById(`tagShow${tagIdx}`);
     let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
 
@@ -434,7 +434,7 @@ function editProjectTag(tagIdx) {
 }
 
 
-function cancelEditProjectTag(tagIdx) {
+function cancelEditTag(tagIdx) {
     let tagShow = document.getElementById(`tagShow${tagIdx}`);
     let tagEdit = document.getElementById(`tagEdit${tagIdx}`);
     let tag = document.getElementById(`tag${tagIdx}`);

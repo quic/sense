@@ -137,8 +137,8 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
 
     label_names_temporal = ['background']
     if project_config:
-        project_tags = project_config['project_tags']
-        label_names_temporal.extend(project_tags.values())
+        tags = project_config['tags']
+        label_names_temporal.extend(tags.values())
     else:
         for label in label_names:
             label_names_temporal.extend([f'{label}_tag1', f'{label}_tag2'])
