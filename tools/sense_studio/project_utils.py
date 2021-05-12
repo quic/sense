@@ -61,7 +61,7 @@ def _backwards_compatibility_update(path, config):
             tags_list.extend(class_tags)
 
         # Assign project-wide unique indices to tags (0 is reserved for 'background')
-        tags = {idx + 1: tag_name for idx, tag_name in enumerate(tags_list)}
+        tags = {idx + 1: tag_name for idx, tag_name in enumerate(sorted(tags_list))}
         config['tags'] = tags
         config['max_tag_index'] = len(tags_list)
 
