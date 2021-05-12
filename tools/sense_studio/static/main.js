@@ -414,7 +414,7 @@ function checkIfTagExist(tags, tagId, errorLabelId, tagOperation, originalTagNam
     } else if (tag.value !== originalTagName && tagNames.includes(tag.value)) {
         setFormWarning(errorLabel, tag, 'This tag name already exist');
         disabled = true;
-    } else if (tag.value === 'background') {
+    } else if (tag.value.toLowerCase() === 'background') {
         setFormWarning(errorLabel, tag, 'This name is reserved');
         disabled = true;
     } else {
