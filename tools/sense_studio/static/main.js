@@ -333,9 +333,9 @@ async function toggleMakeProjectTemporal(path) {
 }
 
 
-async function toggleAssistedTagging(path, split, label) {
+async function toggleAssistedTagging(path, label) {
     let response = await asyncRequest('/toggle-project-setting',
-                                      {path: path, setting: 'assisted_tagging', split: split, label: label});
+                                      {path: path, setting: 'assisted_tagging', label: label});
 
     // Reload page to update predictions
     window.location.reload();
