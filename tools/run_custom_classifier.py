@@ -37,7 +37,7 @@ def run_custom_classifier(custom_classifier, camera_id=0, path_in=None, path_out
                           display_fn=None, stop_event=None):
 
     # Load backbone network according to config file
-    backbone_model_config, backbone_weights = load_backbone_model_from_config(custom_classifier)
+    backbone_model_config, backbone_weights, model_kwargs = load_backbone_model_from_config(custom_classifier)
 
     try:
         # Load custom classifier
@@ -54,7 +54,7 @@ def run_custom_classifier(custom_classifier, camera_id=0, path_in=None, path_out
     update_backbone_weights(backbone_weights, checkpoint_classifier)
 
     # Create backbone network
-    backbone_network = build_backbone_network(backbone_model_config, backbone_weights)
+    backbone_network = build_backbone_network(backbone_model_config, backbone_weights, **model_kwargs)
 
     with open(os.path.join(custom_classifier, 'label2int.json')) as file:
         class2int = json.load(file)

@@ -129,7 +129,7 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
     raise Exception(msg)
 
 
-def load_backbone_model_from_config(checkpoint_path: str) -> Tuple[ModelConfig, dict]:
+def load_backbone_model_from_config(checkpoint_path: str) -> Tuple[ModelConfig, dict, dict]:
     """
     Load the backbone model that was used in training for the given model checkpoint as indicated in the 'config.json'
     file. If there is no config file, StridedInflatedEfficientNet-pro will be used per default.
@@ -138,12 +138,16 @@ def load_backbone_model_from_config(checkpoint_path: str) -> Tuple[ModelConfig, 
     if os.path.exists(config_file):
         with open(config_file, 'r') as cf:
             config = json.load(cf)
-            backbone_model_config = ModelConfig(config['backbone_name'], config['backbone_version'], [])
+        backbone_model_config = ModelConfig(config['backbone_name'], config['backbone_version'], [])
+        model_kwargs = {
+            'fps': config['model_fps'],
+        }
     else:
         # Assume StridedInflatedEfficientNet-pro was used
         backbone_model_config = ModelConfig('StridedInflatedEfficientNet', 'pro', [])
+        model_kwargs = {}
 
-    return backbone_model_config, backbone_model_config.load_weights()['backbone']
+    return backbone_model_config, backbone_model_config.load_weights()['backbone'], model_kwargs
 
 
 def prepend_resources_path(checkpoint_path):
@@ -212,7 +216,7 @@ def update_backbone_weights(backbone_weights: dict, checkpoint: dict):
         backbone_weights[key] = checkpoint.pop(key)
 
 
-def build_backbone_network(selected_config: ModelConfig, weights: dict):
+def build_backbone_network(selected_config: ModelConfig, weights: dict, **model_kwargs):
     """
     Creates a backbone network and load provided weights, unless Travis is used.
 
@@ -223,7 +227,7 @@ def build_backbone_network(selected_config: ModelConfig, weights: dict):
     :return:
         A backbone network, with pre-trained weights.
     """
-    backbone_network = getattr(backbone_networks, selected_config.model_name)()
+    backbone_network = getattr(backbone_networks, selected_config.model_name)(**model_kwargs)
     if not running_on_travis():
         backbone_network.load_state_dict(weights)
     backbone_network.eval()

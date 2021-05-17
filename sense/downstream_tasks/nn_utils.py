@@ -15,7 +15,7 @@ class RealtimeNeuralNet(nn.Module):
             The temporal step size of the neural network, i.e. how many frames should be consumed before outputting
             the next prediction.
         :param fps:
-            The frame per second rate of the neural network.
+            The input frame per second rate of the neural network.
         :param expected_frame_size:
             The expected frame size of the neural network.
         """
