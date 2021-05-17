@@ -26,8 +26,8 @@
                             <select class="uk-select {{ 'uk-form-danger' if not examples }}" id="example" name="example"
                                     onchange="toggleIrrelevantFields();">
                                 {% if examples %}
-                                    {% for index, example in examples.items() %}
-                                        <option value="{{ index }}">{{ example }}</option>
+                                    {% for example in examples %}
+                                        <option value="{{ example }}">{{ example }}</option>
                                     {% endfor %}
                                 {% else %}
                                     <option value="">No examples available</option>

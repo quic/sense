@@ -1,9 +1,12 @@
 function toggleIrrelevantFields() {
     let example = document.getElementById('example');
     let metToCalorieConverters = document.getElementById('metToCalorieConverters');
-    let examplesNeedingMetConversion = ["0", "2"];
 
-    if (examplesNeedingMetConversion.includes(example.value)) {
+    // Script names containing MET converters (e.g. weight, height, age, gender)
+    // If add new example with any converter from above, add that script name here in below list (without .py)
+    let examplesWithMETConverters = ["run_calorie_estimation", "run_fitness_tracker"];
+
+    if (examplesWithMETConverters.includes(example.value)) {
         metToCalorieConverters.classList.remove('uk-hidden');
     } else {
         metToCalorieConverters.classList.add('uk-hidden');
@@ -23,12 +26,12 @@ function streamVideo(message) {
 }
 
 async function startDemo(url) {
-    let example = document.getElementById('example').value;
+    let example = document.getElementById('example');
     let weight = document.getElementById('weight').value;
     let age = document.getElementById('age').value;
     let height = document.getElementById('height').value;
     let gender = document.getElementById('gender').value;
-    let model = document.getElementById('modelName').value;
+    let modelName = document.getElementById('modelName').value;
     let webcamInput = document.getElementsByName('inputSource')[0];
     let saveVideo = document.getElementById('saveVideo');
     let inputVideoPath = document.getElementById('inputVideoPath');
@@ -42,14 +45,14 @@ async function startDemo(url) {
     let frame = document.getElementById('frame');
 
     data = {
-        example: example,
-        height: height,
-        weight: weight,
-        gender: gender,
-        age: age,
-        model: model,
+        example: example.options[example.selectedIndex].text,
+        modelName: modelName,
         inputVideoPath: inputVideoPathValue,
         outputVideoName: outputVideoNameValue,
+        height: height,
+        weight: weight,
+        age: age,
+        gender: gender,
         path: path,
         title: title,
     };
