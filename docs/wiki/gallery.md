@@ -1,5 +1,3 @@
-# Sense Gallery
-
 This document lists cool external projects that were built using Sense.
 
 If you've implemented your own application with Sense, please don't hesitate to add it to this gallery by submitting a 
