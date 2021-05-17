@@ -5,6 +5,7 @@ import os
 from joblib import dump
 from sklearn.linear_model import LogisticRegression
 
+from sense import SPLITS
 from sense.engine import InferenceEngine
 from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
@@ -48,40 +49,39 @@ def is_image_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ('png', 'jpg', 'jpeg', 'gif', 'bmp')
 
 
-def train_logreg(path, split, label):
+def train_logreg(path, label):
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
     """
     _, model_config = load_feature_extractor(path)
 
-    features_dir = directories.get_features_dir(path, split, model_config, label=label)
-    tags_dir = directories.get_tags_dir(path, split, label)
     logreg_dir = directories.get_logreg_dir(path, model_config, label)
     logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
     project_config = load_project_config(path)
     class_tags = project_config['classes'][label]
 
-    if not os.path.exists(tags_dir):
-        return
-
-    annotation_files = os.listdir(tags_dir)
-
-    feature_files = [os.path.join(features_dir, x.replace('.json', '.npy')) for x in annotation_files]
-    annotation_files = [os.path.join(tags_dir, x) for x in annotation_files]
     all_features = []
     all_annotations = []
 
-    for feature_file in feature_files:
-        features = np.load(feature_file)
+    for split in SPLITS:
+        features_dir = directories.get_features_dir(path, split, model_config, label=label)
+        tags_dir = directories.get_tags_dir(path, split, label)
 
-        for f in features:
-            all_features.append(f.mean(axis=(1, 2)))
+        if not os.path.exists(tags_dir):
+            continue
 
-    for annotation_file in annotation_files:
-        with open(annotation_file, 'r') as f:
-            annotations = json.load(f)['time_annotation']
+        video_tag_files = os.listdir(tags_dir)
 
-        all_annotations.extend(annotations)
+        for video_tag_file in video_tag_files:
+            feature_file = os.path.join(features_dir, video_tag_file.replace('.json', '.npy'))
+            annotation_file = os.path.join(tags_dir, video_tag_file)
+
+            features = np.load(feature_file)
+            for f in features:
+                all_features.append(f.mean(axis=(1, 2)))
+
+            with open(annotation_file, 'r') as f:
+                all_annotations.extend(json.load(f)['time_annotation'])
 
     # Reset tags that have been removed from the class to 'background'
     all_annotations = [tag_idx if tag_idx in class_tags else 0 for tag_idx in all_annotations]

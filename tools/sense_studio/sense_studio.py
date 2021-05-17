@@ -263,7 +263,7 @@ def toggle_project_setting():
                                     features_dir=features_dir)
 
         # Re-train the logistic regression model
-        utils.train_logreg(path=path, split=split, label=label)
+        utils.train_logreg(path=path, label=label)
 
     return jsonify(setting_status=new_status)
 

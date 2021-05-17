@@ -182,7 +182,7 @@ def submit_annotation():
                                     features_dir=features_dir)
 
         # Re-train the logistic regression model
-        utils.train_logreg(path=path, split=split, label=label)
+        utils.train_logreg(path=path, label=label)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('.show_video_list', project=project, split=split, label=label))
