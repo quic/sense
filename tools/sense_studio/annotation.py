@@ -194,7 +194,7 @@ def train_logreg(path, label):
     """
     (Re-)Train a logistic regression model on all annotations that have been submitted so far.
     """
-    inference_engine, model_config = project_utils.load_feature_extractor(path)
+    inference_engine, model_config = utils.load_feature_extractor(path)
 
     logreg_dir = directories.get_logreg_dir(path, model_config, label)
     logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
