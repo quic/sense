@@ -1,6 +1,6 @@
 {% extends 'skeleton.html' %}
 
-{% block title %} Training {% endblock %}
+{% block title %} Examples {% endblock %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
@@ -9,7 +9,10 @@
 {% block main %}
 <div class="uk-container uk-container-xsmall">
     <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Examples</h1>
-    <h1>{{ project }}</h1>
+    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+        <span uk-icon="icon: folder"></span> {{ path }}
+    </div>
+
     <form class="uk-form-stacked">
         <input type="hidden" id="project" name="project" value="{{ project }}">
         <input type="hidden" id="path" name="path" value="{{ path }}">
@@ -18,38 +21,25 @@
              <div>
                 <div class="uk-child-width-1-2@s uk-grid-small uk-grid-match" uk-grid>
                     <div class="uk-inline">
-                        <label class="uk-form-label" for="demo">Demo examples</label>
+                        <label class="uk-form-label" for="example">Examples</label>
                         <div class="uk-form-controls uk-width-1-1">
-                            <select class="uk-select {{ 'uk-form-danger' if not models }}" id="demo">
-                                {% if models %}
-                                    {% for model in models %}
-                                        <option>{{ model }}</option>
+                            <select class="uk-select {{ 'uk-form-danger' if not examples }}" id="example" name="example"
+                                    onchange="toggleIrrelevantFields();">
+                                {% if examples %}
+                                    {% for index, example in examples.items() %}
+                                        <option value="{{ index }}">{{ example }}</option>
                                     {% endfor %}
                                 {% else %}
-                                    <option value="">No models available</option>
+                                    <option value="">No examples available</option>
                                 {% endif %}
                             </select>
-                            {% if not models %}
-                                <div uk-dropdown>
-                                    <p>
-                                        Pre-trained backbone model weights couldn't be found.
-                                    </p>
-                                    To download, please go to
-                                    <a target="_blank" rel="noopener noreferrer" href="https://20bn.com/licensing/sdk/evaluation">
-                                        https://20bn.com/licensing/sdk/evaluation
-                                    </a>
-                                    and follow the instructions.
-                                    Then, extract the <code>backbone</code> folder into <code>sense/resources</code>.
-                                </div>
-                            {% endif %}
                         </div>
                     </div>
 
                     <div class="uk-inline">
                         <label class="uk-form-label" for="modelName">Backbone Model</label>
                         <div class="uk-form-controls uk-width-1-1">
-                            <select class="uk-select {{ 'uk-form-danger' if not models }}" id="modelName"
-                                    onchange="updateLayersToFinetuneSlider();">
+                            <select class="uk-select {{ 'uk-form-danger' if not models }}" id="modelName" name="modelName">
                                 {% if models %}
                                     {% for model in models %}
                                         <option>{{ model }}</option>
@@ -76,13 +66,13 @@
                 </div>
              </div>
 
-            <div>
+            <div id="metToCalorieConverters">
                 <div class="uk-child-width-1-4@s uk-grid-small uk-grid-match" uk-grid>
                     <div uk-tooltip="title: To convert predicted MET value to calories;">
                         <label class="uk-form-label" for="weight">Weight <em><b>(in kgs)</b></em></label>
                         <div class="uk-form-controls">
                             <div class="uk-width-1-1">
-                                <input class="uk-input" type="number" id="weight" value="70" min="30" step="1">
+                                <input class="uk-input" type="number" id="weight" name="weight" value="70" min="30" step="1">
                             </div>
                         </div>
                     </div>
@@ -90,7 +80,7 @@
                         <label class="uk-form-label" for="height">Height <em><b>(in cms)</b></em></label>
                         <div class="uk-form-controls">
                             <div class="uk-width-1-1">
-                                <input class="uk-input" type="number" id="height" value="170" min="50" step="1">
+                                <input class="uk-input" type="number" id="height" name="height" value="170" min="50" step="1">
                             </div>
                         </div>
                     </div>
@@ -98,7 +88,7 @@
                         <label class="uk-form-label" for="age">Age <em><b>(in years)</b></em></label>
                         <div class="uk-form-controls">
                             <div class="uk-width-1-1 uk-inline">
-                                <input class="uk-input" type="number" id="age" value="30" min="15" step="1">
+                                <input class="uk-input" type="number" id="age" name="age" value="30" min="15" step="1">
                             </div>
                         </div>
                     </div>
@@ -106,10 +96,10 @@
                         <label class="uk-form-label" for="gender">Gender</label>
                         <div class="uk-form-controls">
                             <div class="uk-width-1-1 uk-inline">
-                                <select class="uk-select" id="gender">
-                                <option value="male" selected>Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
+                                <select class="uk-select" id="gender" name="gender">
+                                    <option value="male" selected>Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
                                 </select>
                             </div>
                         </div>
@@ -184,11 +174,13 @@
             </div>
         </div>
 
-        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTrain" type="button" tabindex="0"
+        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnRunDemo" type="button" tabindex="0"
+                onclick="startDemo('{{ url_for('.start_running_example') }}');"
                 {% if not models %} disabled {% endif %}>
-            Run Demo
+            Run Example
         </button>
-        <button class="uk-button uk-button-danger" id="btnCancelTrain" type="button" tabindex="1" disabled>
+        <button class="uk-button uk-button-danger" id="btnCancelDemo" type="button" tabindex="1"
+                onclick="cancelDemo('{{ url_for('.cancel_running_example') }}');" disabled>
             Cancel
         </button>
     </form>
@@ -201,12 +193,11 @@
         </div>
     </div>
 
-    <div id="testTerminal" class="uk-section uk-section-secondary uk-padding-small uk-margin-top"></div>
+    <div id="demoTerminal" class="uk-section uk-section-secondary uk-padding-small uk-margin-top"></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='testing.js') }}"></script>
-    <script src="{{ url_for('static', filename='demos.js') }}"></script>
+    <script src="{{ url_for('static', filename='examples.js') }}"></script>
 {% endblock %}
 
