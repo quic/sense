@@ -7,9 +7,9 @@ from .mobilenet import StridedInflatedMobileNetV2
 
 class StridedInflatedEfficientNet(StridedInflatedMobileNetV2):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
 
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.cnn = nn.Sequential(
             ConvReLU(3, 32, 3, stride=2),
