@@ -1,4 +1,5 @@
 import datetime
+import importlib
 import json
 import os
 
@@ -231,7 +232,7 @@ def set_timer_default(path, countdown, recording):
 
 def get_examples():
     """Get indexed dictionary of examples from examples directory"""
-    examples = os.listdir(os.path.join(os.getcwd(), 'examples'))
+    examples = [example.split('.')[0]
+                for example in os.listdir(os.path.join(os.getcwd(), 'examples')) if not example.startswith('__')]
     examples = natsorted(examples, alg=ns.IC)
-    examples = {index: script_name.split('.')[0] for index, script_name in enumerate(examples)}
     return examples
