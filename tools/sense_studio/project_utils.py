@@ -2,6 +2,9 @@ import datetime
 import json
 import os
 
+from natsort import natsorted
+from natsort import ns
+
 from sense import SPLITS
 from tools import directories
 
@@ -224,3 +227,11 @@ def set_timer_default(path, countdown, recording):
     config['video_recording'] = video_recording
 
     write_project_config(path, config)
+
+
+def get_examples():
+    """Get indexed dictionary of examples from examples directory"""
+    examples = os.listdir(os.path.join(os.getcwd(), 'examples'))
+    examples = natsorted(examples, alg=ns.IC)
+    examples = {index: script_name.split('.')[0] for index, script_name in enumerate(examples)}
+    return examples
