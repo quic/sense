@@ -49,21 +49,8 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-if __name__ == "__main__":
-    # Parse arguments
-    args = docopt(__doc__)
-    weight = float(args['--weight'])
-    height = float(args['--height'])
-    age = float(args['--age'])
-    gender = args['--gender'] or None
-    camera_id = int(args['--camera_id'] or 0)
-    path_in = args['--path_in'] or None
-    path_out = args['--path_out'] or None
-    title = args['--title'] or None
-    model_name = args['--model_name'] or None
-    model_version = args['--model_version'] or None
-    use_gpu = args['--use_gpu']
-
+def run_fitness_tracker(model_name, model_version, path_in=None, path_out=None, weight=70.0, height=170.0, age=30.0,
+                        gender=None, title=None, camera_id=0, use_gpu=True, display_fn=None, stop_event=None, **kwargs):
     # Load weights
     selected_config, weights = get_relevant_weights(
         SUPPORTED_MODEL_CONFIGURATIONS,
@@ -107,9 +94,8 @@ if __name__ == "__main__":
                                                        threshold=0.5),
         sense.display.DisplayMETandCalories(y_offset=40),
     ]
-    display_results = sense.display.DisplayResults(title=title,
-                                                   display_ops=display_ops,
-                                                   border_size=50)
+    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops,
+                                                   border_size=50, display_fn=display_fn)
 
     # Run live inference
     controller = Controller(
@@ -120,6 +106,38 @@ if __name__ == "__main__":
         camera_id=camera_id,
         path_in=path_in,
         path_out=path_out,
-        use_gpu=use_gpu
+        use_gpu=use_gpu,
+        stop_event=stop_event,
     )
     controller.run_inference()
+
+
+if __name__ == "__main__":
+    # Parse arguments
+    args = docopt(__doc__)
+    _weight = float(args['--weight'])
+    _height = float(args['--height'])
+    _age = float(args['--age'])
+    _gender = args['--gender'] or None
+    _model_name = args['--model_name'] or None
+    _model_version = args['--model_version'] or None
+    _use_gpu = args['--use_gpu']
+    _camera_id = int(args['--camera_id'] or 0)
+    _path_in = args['--path_in'] or None
+    _path_out = args['--path_out'] or None
+    _title = args['--title'] or None
+
+    run_fitness_tracker(
+        model_name=_model_name,
+        model_version=_model_version,
+        path_in=_path_in,
+        path_out=_path_out,
+        weight=_weight,
+        height=_height,
+        age=_age,
+        gender=_gender,
+        title=_title,
+        camera_id=_camera_id,
+        use_gpu=_use_gpu
+    )
+

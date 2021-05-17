@@ -49,7 +49,8 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 
 
 def run_calorie_estimation(model_name, model_version, path_in=None, path_out=None, weight=70.0, height=170.0, age=30.0,
-                gender=None, title=None, camera_id=0, use_gpu=True, display_fn=None, stop_event=None, **kwargs):
+                           gender=None, title=None, camera_id=0, use_gpu=True, display_fn=None, stop_event=None,
+                           **kwargs):
 
     # Load weights
     selected_config, weights = get_relevant_weights(
