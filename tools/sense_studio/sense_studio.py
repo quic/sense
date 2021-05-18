@@ -246,10 +246,7 @@ def toggle_project_setting():
 
     # Update logreg model if assisted tagging was just enabled
     if setting == 'assisted_tagging' and new_status:
-        label = data['label']
-
-        # Re-train the logistic regression model
-        train_logreg(path=path, label=label)
+        train_logreg(path=path)
 
     return jsonify(setting_status=new_status)
 
@@ -289,10 +286,6 @@ def edit_class(project, class_name):
             data_dirs.extend([os.path.join(model_dir, tuned_layers)
                               for model_dir in model_dirs
                               for tuned_layers in os.listdir(model_dir)])
-
-    logreg_dir = directories.get_logreg_dir(path)
-    if os.path.exists(logreg_dir):
-        data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
 
     for base_dir in data_dirs:
         class_dir = os.path.join(base_dir, class_name)
