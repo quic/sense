@@ -6,15 +6,24 @@
 <div class="uk-container uk-container-xsmall">
     <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Demos</h1>
 
-    <form class="uk-form-stacked uk-margin-medium-top">
+    <form class="uk-form-stacked uk-margin-small-top">
+
         <div class="uk-child-width-1-1@s uk-grid-small uk-grid-match" uk-grid>
+            <div>
+                <div>
+                    <label class="uk-float-right">
+                        <input type="checkbox" id="gpuInput" class="uk-checkbox">
+                        Use GPU
+                    </label>
+                </div>
+            </div>
              <div>
                 <div class="uk-child-width-1-2@s uk-grid-small uk-grid-match" uk-grid>
                     <div class="uk-inline">
                         <label class="uk-form-label" for="demo">Demo</label>
                         <div class="uk-form-controls uk-width-1-1">
                             <select class="uk-select {{ 'uk-form-danger' if not demos }}" id="demo" name="demo"
-                                    onchange="toggleMETConverters();">
+                                    onchange="toggleMETConverters(); getSupportedModelsByDemo('{{ url_for('.get_supported_models') }}');">
                                 {% if demos %}
                                     {% for demo in demos %}
                                         <option value="{{ demo }}">{{ demo }}</option>
