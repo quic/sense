@@ -8,3 +8,4 @@ videos
 resources/coreml/*
 resources/backbone/*
 dataset
+demo_output_videos
