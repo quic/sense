@@ -2,21 +2,11 @@
 
 {% block title %} Demos {% endblock %}
 
-{% block navigation %}
-    {% include 'navigation.html' %}
-{% endblock navigation %}
-
 {% block main %}
 <div class="uk-container uk-container-xsmall">
     <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Demos</h1>
-    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
-        <span uk-icon="icon: folder"></span> {{ path }}
-    </div>
 
-    <form class="uk-form-stacked">
-        <input type="hidden" id="project" name="project" value="{{ project }}">
-        <input type="hidden" id="path" name="path" value="{{ path }}">
-
+    <form class="uk-form-stacked uk-margin-medium-top">
         <div class="uk-child-width-1-1@s uk-grid-small uk-grid-match" uk-grid>
              <div>
                 <div class="uk-child-width-1-2@s uk-grid-small uk-grid-match" uk-grid>
@@ -69,7 +59,7 @@
             <div id="metToCalorieConverters">
                 <div class="uk-child-width-1-4@s uk-grid-small uk-grid-match" uk-grid>
                     <div uk-tooltip="title: To convert predicted MET value to calories;">
-                        <label class="uk-form-label" for="weight">Weight <em><b>(in kgs)</b></em></label>
+                        <label class="uk-form-label" for="weight">Weight <b class="uk-text-muted">(in kgs)</b></label>
                         <div class="uk-form-controls">
                             <div class="uk-width-1-1">
                                 <input class="uk-input" type="number" id="weight" name="weight" value="70" min="30" step="1">
@@ -77,7 +67,7 @@
                         </div>
                     </div>
                     <div uk-tooltip="title: To convert predicted MET value to calories;">
-                        <label class="uk-form-label" for="height">Height <em><b>(in cms)</b></em></label>
+                        <label class="uk-form-label" for="height">Height <b class="uk-text-muted">(in cms)</b></label>
                         <div class="uk-form-controls">
                             <div class="uk-width-1-1">
                                 <input class="uk-input" type="number" id="height" name="height" value="170" min="50" step="1">
@@ -85,7 +75,7 @@
                         </div>
                     </div>
                     <div uk-tooltip="title: To convert predicted MET value to calories;">
-                        <label class="uk-form-label" for="age">Age <em><b>(in years)</b></em></label>
+                        <label class="uk-form-label" for="age">Age <b class="uk-text-muted">(in years)</b></label>
                         <div class="uk-form-controls">
                             <div class="uk-width-1-1 uk-inline">
                                 <input class="uk-input" type="number" id="age" name="age" value="30" min="15" step="1">

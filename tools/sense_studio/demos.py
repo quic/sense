@@ -29,23 +29,18 @@ queue_demo_output: Optional[multiprocessing.Queue] = None
 stop_event: Optional[multiprocessing.Event] = None
 
 
-@demos_bp.route('/<string:project>', methods=['GET'])
-def demos_page(project):
-    project = urllib.parse.unquote(project)
-    path = project_utils.lookup_project_path(project)
-    project_config = project_utils.load_project_config(path)
-    output_path_prefix = os.path.join(os.path.basename(path), 'output_videos', '')
-
+@demos_bp.route('/', methods=['GET'])
+def demos_page():
+    output_path_prefix = os.path.join(os.getcwd(), 'demo_output_videos', '')
     demos = project_utils.get_demos()
-    return render_template('demos.html', project=project, path=path, output_path_prefix=output_path_prefix,
-                           project_config=project_config, models=utils.get_available_backbone_models(),
-                           demos=demos)
+    return render_template('demos.html', output_path_prefix=output_path_prefix,
+                           models=utils.get_available_backbone_models(), demos=demos)
 
 
 @demos_bp.route('/start-demo', methods=['POST'])
 def start_demo():
     data = request.json
-    demo_script_fn = data['demo']
+    demo = data['demo']
     path_in = data['inputVideoPath']
     output_video_name = data['outputVideoName']
     title = data['title']
@@ -56,11 +51,12 @@ def start_demo():
     config = project_utils.load_project_config(path)
 
     if output_video_name:
-        output_dir = os.path.join(path, 'output_videos')
+        output_dir = os.path.join(os.getcwd(), 'demo_output_videos')
         os.makedirs(output_dir, exist_ok=True)
         path_out = os.path.join(output_dir, output_video_name + '.mp4')
     else:
         path_out = None
+
     ctx = multiprocessing.get_context('spawn')
 
     global queue_demo_output
@@ -84,7 +80,7 @@ def start_demo():
     }
 
     global demo_process
-    demo_process = ctx.Process(target=eval(demo_script_fn), kwargs=example_kwargs)
+    demo_process = ctx.Process(target=eval(demo), kwargs=example_kwargs)
     demo_process.start()
 
     return jsonify(success=True)
