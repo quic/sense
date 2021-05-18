@@ -140,4 +140,3 @@ if __name__ == "__main__":
         camera_id=_camera_id,
         use_gpu=_use_gpu
     )
-
