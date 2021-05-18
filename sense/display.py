@@ -45,7 +45,9 @@ class BaseDisplay:
     """
     Base display for all displays. Subclasses should overwrite the `display` method.
     """
-    def __init__(self, y_offset=20):
+
+    def __init__(self, x_offset=350, y_offset=20):
+        self.x_offset = x_offset
         self.y_offset = y_offset
 
     def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
@@ -69,13 +71,11 @@ class DisplayMETandCalories(BaseDisplay):
     Display Metabolic Equivalent of Task (MET) and Calories information on an image frame.
     """
 
-    lateral_offset = 350
-
     def display(self, img, display_data):
         offset = 10
         for key in ['Met value', 'Total calories']:
             put_text(img, "{}: {:.1f}".format(key, display_data[key]), (offset, self.y_offset))
-            offset += self.lateral_offset
+            offset += self.x_offset
         return img
 
 
@@ -102,8 +102,6 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
     Display Top K Classification output on an image frame.
     """
 
-    lateral_offset = DisplayMETandCalories.lateral_offset
-
     def __init__(self, top_k=1, threshold=0.2, **kwargs):
         """
         :param top_k:
@@ -122,17 +120,15 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
             y_pos = 20 * index + self.y_offset
             if proba >= self.threshold:
                 put_text(img, 'Activity: {}'.format(activity[0:50]), (10, y_pos))
-                put_text(img, 'Proba: {:0.2f}'.format(proba), (10 + self.lateral_offset,
+                put_text(img, 'Proba: {:0.2f}'.format(proba), (10 + self.x_offset,
                                                                y_pos))
         return img
 
 
 class DisplayRepCounts(BaseDisplay):
 
-    lateral_offset = DisplayMETandCalories.lateral_offset
-
-    def __init__(self, y_offset=40):
-        super().__init__(y_offset)
+    def __init__(self, y_offset=40, **kwargs):
+        super().__init__(y_offset=y_offset, **kwargs)
 
     def display(self, img, display_data):
         counters = display_data['counting']
@@ -140,7 +136,7 @@ class DisplayRepCounts(BaseDisplay):
         for activity, count in counters.items():
             y_pos = 20 * (index + 1) + self.y_offset
             put_text(img, 'Exercise: {}'.format(activity[0:50]), (10, y_pos))
-            put_text(img, 'Count: {}'.format(count), (10 + self.lateral_offset, y_pos))
+            put_text(img, 'Count: {}'.format(count), (10 + self.x_offset, y_pos))
             index += 1
         return img
 
@@ -211,7 +207,8 @@ class DisplayClassnameOverlay(BaseDisplay):
             duration: float = 2.,
             font_scale: float = 3.,
             thickness: int = 2,
-            border_size: int = 50,
+            border_size_top: int = 50,
+            border_size_right: int = 0,
             **kwargs
     ):
         """
@@ -223,16 +220,20 @@ class DisplayClassnameOverlay(BaseDisplay):
             Font scale factor for modifying the font size.
         :param thickness:
             Thickness of the lines used to draw the text.
-        :param border_size:
-            Height of the border on top of the video display. Used for correctly centering the displayed class name
-            on the video.
+        :param border_size_top:
+            Height of the border on top of the video display. Used for correctly centering
+            the displayed class name on the video.
+        :param border_size_right:
+            Width of the border added to the right of the video display. Used for correctly centering
+            the displayed class name on the video.
         """
         super().__init__(**kwargs)
         self.thresholds = thresholds
         self.duration = duration
         self.font_scale = font_scale
         self.thickness = thickness
-        self.border_size = border_size
+        self.border_size_top = border_size_top
+        self.border_size_right = border_size_right
 
         self._current_class_name = None
         self._start_time = None
@@ -245,10 +246,11 @@ class DisplayClassnameOverlay(BaseDisplay):
         text_size = cv2.getTextSize(text, FONT, font_scale, self.thickness)[0]
 
         height, width, _ = img.shape
-        height -= self.border_size
+        width -= self.border_size_right
+        height -= self.border_size_top
 
         x = int((width - text_size[0]) / 2)
-        y = int((height + text_size[1]) / 2) + self.border_size
+        y = int((height + text_size[1]) / 2) + self.border_size_top
 
         return x, y
 
@@ -304,12 +306,88 @@ class DisplayClassnameOverlay(BaseDisplay):
         return time.perf_counter()
 
 
+class DisplayPredictionBarGraph(BaseDisplay):
+    """
+    Display the predicted class probabilities in a bar graph.
+    """
+
+    def __init__(
+            self,
+            keys: List[str],
+            thresholds: Dict[str, float] = None,
+            bar_length: int = 100,
+            display_counts: bool = False,
+            **kwargs,
+    ):
+        """
+        :param keys:
+            List of class names that should be displayed.
+        :param thresholds:
+            A dictionary specifying a threshold for each class name. The color of the corresponding
+            bar in the graph will change when the probability passes the threshold.
+        :param bar_length:
+            Length of the bars in the bar graph.
+        :param display_counts:
+            Whether to display or not event counts (see e.g. postprocess.EventCounter) next
+            to each bar.
+        """
+
+        super().__init__(**kwargs)
+        self.keys = keys
+        self.thresholds = thresholds or {}
+        self.bar_length = bar_length
+        self.display_counts = display_counts
+
+    def display(self, img, display_data):
+        results = dict(display_data['sorted_predictions'])
+
+        font_scale = 1.2
+
+        for index, key in enumerate(self.keys):
+            proba = results[key]
+
+            size_text = cv2.getTextSize(key, FONT, font_scale, 1)[0]
+            x_text = self.x_offset - size_text[0]
+            x_bar_left = self.x_offset + 10
+            x_bar_right = x_bar_left + int(self.bar_length * proba)
+            y_pos = 25 * (index + 1) + self.y_offset
+
+            # determine color of the bar
+            if proba > self.thresholds.get(key, 1.):
+                bar_color = (0, 255, 0)  # bright green
+            else:
+                bar_color = (0, 128, 0)  # darker green
+
+            # display key name
+            put_text(img, key, (x_text, y_pos), font_scale=font_scale)
+
+            # display bar next to key name
+            cv2.line(img, (x_bar_left, y_pos - 5), (x_bar_right, y_pos - 5),
+                     bar_color, 10, cv2.LINE_AA)
+
+            # display proba value next to bar
+            put_text(img, f"{proba:.2f}", (x_bar_right + 10, y_pos), font_scale=font_scale)
+
+            # display event counts
+            if self.display_counts:
+                count = display_data['counting'][key]
+                put_text(img, f"{count}", (x_bar_left + self.bar_length + 100, y_pos), font_scale=font_scale)
+
+        return img
+
+
 class DisplayResults:
     """
     Display window for an image frame with prediction outputs from a neural network.
     """
-    def __init__(self, title: str, display_ops: List[BaseDisplay], border_size: int = 30,
-                 window_size: Tuple[int, int] = (480, 640), display_fn=None):
+    def __init__(
+            self,
+            title: str, display_ops: List[BaseDisplay],
+            border_size_top: int = 30,
+            border_size_right: int = 0,
+            window_size: Tuple[int, int] = (480, 640),
+            display_fn=None
+    ):
         """
         :param title:
             Title of the image frame on display.
@@ -320,17 +398,22 @@ class DisplayResults:
                 - DisplayMETandCalories
                 - DisplayDetailedMETandCalories
                 - DisplayTopKClassificationOutputs
-        :param border_size:
-            Thickness of the display border.
+        :param border_size_top:
+            Thickness of the top display border.
+        :param border_size_right:
+            Thickness of the right display border.
         :param window_size:
             Resolution of the display window.
         """
         self.window_size = window_size
         self._window_title = 'Real-time SenseNet'
-        self.border_size = border_size
+        self.border_size_top = border_size_top
+        self.border_size_right = border_size_right
         if not display_fn:
             cv2.namedWindow(self._window_title, cv2.WINDOW_GUI_NORMAL + cv2.WINDOW_KEEPRATIO)
-            cv2.resizeWindow(self._window_title, self.window_size[1], self.window_size[0] + self.border_size)
+            cv2.resizeWindow(self._window_title,
+                             self.window_size[1] + self.border_size_right,
+                             self.window_size[0] + self.border_size_top)
         self.title = title
         self.display_ops = display_ops
         self.display_fn = display_fn
@@ -390,7 +473,10 @@ class DisplayResults:
         #   - bottom: none
         #   - left-right: so that the width is equal to window_size[1]
         lr_pad = max(round((self.window_size[1] - new_width) / 2), 0)
-        img = cv2.copyMakeBorder(img, self.border_size, 0, lr_pad, lr_pad, cv2.BORDER_CONSTANT)
+        img = cv2.copyMakeBorder(img,
+                                 self.border_size_top, 0,
+                                 lr_pad, lr_pad + self.border_size_right,
+                                 cv2.BORDER_CONSTANT)
         return img
 
     def clean_up(self):

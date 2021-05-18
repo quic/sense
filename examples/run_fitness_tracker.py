@@ -95,7 +95,7 @@ def run_fitness_tracker(model_name, model_version, path_in=None, path_out=None, 
         sense.display.DisplayMETandCalories(y_offset=40),
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops,
-                                                   border_size=50, display_fn=display_fn)
+                                                   border_size_top=50, display_fn=display_fn)
 
     # Run live inference
     controller = Controller(
