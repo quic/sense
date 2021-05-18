@@ -13,6 +13,19 @@ function toggleMETConverters() {
     }
 }
 
+async function getSupportedModelsByDemo(url) {
+    let demo = document.getElementById('demo');
+    let modelName = document.getElementById('modelName');
+    data = {
+        'demo': demo.value
+    };
+
+    let response = await asyncRequest(url, data);
+    modelName.innerHTML = null;
+    for (model of response['models']) {
+        modelName.insertAdjacentHTML('beforeend', `<option>${model}</option>`);
+    };
+}
 
 function addTerminalMessage(message) {
     let terminal = document.getElementById('demoTerminal');
@@ -38,11 +51,11 @@ async function startDemo(url) {
     let inputVideoPathValue = (webcamInput.checked) ? '' : inputVideoPath.value;
     let outputVideoName = document.getElementById('outputVideoName');
     let outputVideoNameValue = (saveVideo.checked) ? outputVideoName.value : '';
-    let path = document.getElementById('path').value;
     let title = document.getElementById('title').value;
     let buttonRunDemo = document.getElementById('btnRunDemo');
     let buttonCancelDemo = document.getElementById('btnCancelDemo');
     let frame = document.getElementById('frame');
+    let gpuInput = document.getElementById('gpuInput').checked;
 
     data = {
         demo: demo.options[demo.selectedIndex].text,
@@ -53,8 +66,8 @@ async function startDemo(url) {
         weight: weight,
         age: age,
         gender: gender,
-        path: path,
         title: title,
+        gpuInput: gpuInput,
     };
 
     buttonRunDemo.disabled = true;
@@ -142,10 +155,7 @@ async function checkInputFields() {
     let buttonRunDemo = document.getElementById('btnRunDemo');
     let buttonCancelDemo = document.getElementById('btnCancelDemo');
 
-    let project = document.getElementById('project');
-    let projectName = project.value;
-
-    let directoriesResponse = await browseDirectory(inputVideoPathValue, projectName);
+    let directoriesResponse = await browseDirectory(inputVideoPathValue, '');
 
     let disabled = false;
 
