@@ -1,6 +1,6 @@
 {% extends 'skeleton.html' %}
 
-{% block title %} Examples {% endblock %}
+{% block title %} Demos {% endblock %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
@@ -8,7 +8,7 @@
 
 {% block main %}
 <div class="uk-container uk-container-xsmall">
-    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Examples</h1>
+    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Demos</h1>
     <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
         <span uk-icon="icon: folder"></span> {{ path }}
     </div>
@@ -21,16 +21,16 @@
              <div>
                 <div class="uk-child-width-1-2@s uk-grid-small uk-grid-match" uk-grid>
                     <div class="uk-inline">
-                        <label class="uk-form-label" for="example">Examples</label>
+                        <label class="uk-form-label" for="demo">Demo</label>
                         <div class="uk-form-controls uk-width-1-1">
-                            <select class="uk-select {{ 'uk-form-danger' if not examples }}" id="example" name="example"
-                                    onchange="toggleIrrelevantFields();">
-                                {% if examples %}
-                                    {% for example in examples %}
-                                        <option value="{{ example }}">{{ example }}</option>
+                            <select class="uk-select {{ 'uk-form-danger' if not demos }}" id="demo" name="demo"
+                                    onchange="toggleMETConverters();">
+                                {% if demos %}
+                                    {% for demo in demos %}
+                                        <option value="{{ demo }}">{{ demo }}</option>
                                     {% endfor %}
                                 {% else %}
-                                    <option value="">No examples available</option>
+                                    <option value="">No demos available</option>
                                 {% endif %}
                             </select>
                         </div>
@@ -175,12 +175,12 @@
         </div>
 
         <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnRunDemo" type="button" tabindex="0"
-                onclick="startDemo('{{ url_for('.start_running_example') }}');"
+                onclick="startDemo('{{ url_for('.start_demo') }}');"
                 {% if not models %} disabled {% endif %}>
-            Run Example
+            Run Demo
         </button>
         <button class="uk-button uk-button-danger" id="btnCancelDemo" type="button" tabindex="1"
-                onclick="cancelDemo('{{ url_for('.cancel_running_example') }}');" disabled>
+                onclick="cancelDemo('{{ url_for('.cancel_demo') }}');" disabled>
             Cancel
         </button>
     </form>
@@ -198,6 +198,6 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='examples.js') }}"></script>
+    <script src="{{ url_for('static', filename='demos.js') }}"></script>
 {% endblock %}
 

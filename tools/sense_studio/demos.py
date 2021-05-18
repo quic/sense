@@ -1,5 +1,4 @@
 import base64
-import importlib
 import multiprocessing
 import os
 import queue
@@ -18,29 +17,35 @@ from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
 from tools.sense_studio import utils
 
-examples_bp = Blueprint('examples_bp', __name__)
+from examples.run_calorie_estimation import run_calorie_estimation
+from examples.run_fitness_tracker import run_fitness_tracker
+from examples.run_fitness_rep_counter import run_fitness_rep_counter
+from examples.run_gesture_recognition import run_gesture_recognition
 
-example_process: Optional[multiprocessing.Process] = None
-queue_example_output: Optional[multiprocessing.Queue] = None
+demos_bp = Blueprint('demos_bp', __name__)
+
+demo_process: Optional[multiprocessing.Process] = None
+queue_demo_output: Optional[multiprocessing.Queue] = None
 stop_event: Optional[multiprocessing.Event] = None
 
 
-@examples_bp.route('/<string:project>', methods=['GET'])
-def examples_page(project):
+@demos_bp.route('/<string:project>', methods=['GET'])
+def demos_page(project):
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
     project_config = project_utils.load_project_config(path)
-    output_path_prefix = os.path.join(os.path.basename(path), 'checkpoints', '')
+    output_path_prefix = os.path.join(os.path.basename(path), 'output_videos', '')
 
-    examples = project_utils.get_examples()
-    return render_template('examples.html', project=project, path=path, output_path_prefix=output_path_prefix,
+    demos = project_utils.get_demos()
+    return render_template('demos.html', project=project, path=path, output_path_prefix=output_path_prefix,
                            project_config=project_config, models=utils.get_available_backbone_models(),
-                           examples=examples)
+                           demos=demos)
 
 
-@examples_bp.route('/start-running-example', methods=['POST'])
-def start_running_example():
+@demos_bp.route('/start-demo', methods=['POST'])
+def start_demo():
     data = request.json
+    demo_script_fn = data['demo']
     path_in = data['inputVideoPath']
     output_video_name = data['outputVideoName']
     title = data['title']
@@ -56,67 +61,61 @@ def start_running_example():
         path_out = os.path.join(output_dir, output_video_name + '.mp4')
     else:
         path_out = None
-
     ctx = multiprocessing.get_context('spawn')
 
-    global queue_example_output
+    global queue_demo_output
     global stop_event
-    queue_example_output = ctx.Queue()
+    queue_demo_output = ctx.Queue()
     stop_event = ctx.Event()
 
     example_kwargs = {
         'model_version': model_version,
         'model_name': model_name,
-        'weight': int(data['weight']),
-        'height': int(data['height']),
-        'gender': data['gender'],
-        'age': int(data['age']),
         'path_in': path_in,
         'path_out': path_out,
+        'weight': float(data['weight']),
+        'height': float(data['height']),
+        'age': float(data['age']),
+        'gender': data['gender'],
         'title': title,
         'use_gpu': config['use_gpu'],
-        'display_fn': queue_example_output.put,
+        'display_fn': queue_demo_output.put,
         'stop_event': stop_event,
     }
 
-    examples = project_utils.get_examples()
-
-    example_script = importlib.import_module(examples[int(data['example'])])
-    print(example_script)
-    print(getattr(f'examples.{example_script}', 'run_example'))
-    global example_process
-    example_process = ctx.Process(target=getattr(f'examples.{example_script}', 'run_example'), kwargs=example_kwargs)
-    example_process.start()
+    global demo_process
+    demo_process = ctx.Process(target=eval(demo_script_fn), kwargs=example_kwargs)
+    demo_process.start()
 
     return jsonify(success=True)
 
 
-@examples_bp.route('/cancel-running_example')
-def cancel_running_example():
-    global example_process
+@demos_bp.route('/cancel-demo')
+def cancel_demo():
+    global demo_process
     global stop_event
-    if example_process:
+    if demo_process:
         # Send signal to stop inference
         stop_event.set()
         # Wait until process is complete
-        example_process.join()
-        example_process = None
+        demo_process.join()
+        demo_process = None
         stop_event.clear()
 
     return jsonify(success=True)
 
 
-@socketio.on('stream_video', namespace='/stream-video')
-def stream_video(msg):
-    global example_process
-    global queue_example_output
+@socketio.on('stream_demo', namespace='/stream-demo')
+def stream_demo(msg):
+    global demo_process
+    global queue_demo_output
 
     try:
-        while example_process.is_alive():
+        while demo_process.is_alive():
             try:
-                output = queue_example_output.get(timeout=1)
+                output = queue_demo_output.get(timeout=1)
                 if type(output) == str:
-                    emit('testing_logs', {'log': output})
+                    emit('demo_logs', {'log': output})
                 else:
                     # Encode frame as jpeg
                     frame = cv2.imencode('.jpg', output)[1].tobytes()
@@ -127,13 +126,13 @@ def stream_video(msg):
                 # No message received during the last second
                 pass
 
-        example_process.terminate()
-        example_process = None
+        demo_process.terminate()
+        demo_process = None
     except AttributeError:
-        # example_process has been cancelled and is None
+        # demo_process has been cancelled and is None
         pass
     finally:
-        queue_example_output.close()
+        queue_demo_output.close()
 
     emit('success', {'status': 'Complete'})
 

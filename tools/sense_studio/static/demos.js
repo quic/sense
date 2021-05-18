@@ -1,12 +1,12 @@
-function toggleIrrelevantFields() {
-    let example = document.getElementById('example');
+function toggleMETConverters() {
+    let demo = document.getElementById('demo');
     let metToCalorieConverters = document.getElementById('metToCalorieConverters');
 
-    // Script names containing MET converters (e.g. weight, height, age, gender)
-    // If add new example with any converter from above, add that script name here in below list (without .py)
-    let examplesWithMETConverters = ["run_calorie_estimation", "run_fitness_tracker"];
+    // Demos containing MET converters (e.g. weight, height, age, gender)
+    // If add new demo with any converter from above, add that script name here in below list (without .py)
+    let demosWithMETConverters = ["run_calorie_estimation", "run_fitness_tracker"];
 
-    if (examplesWithMETConverters.includes(example.value)) {
+    if (demosWithMETConverters.includes(demo.value)) {
         metToCalorieConverters.classList.remove('uk-hidden');
     } else {
         metToCalorieConverters.classList.add('uk-hidden');
@@ -20,13 +20,13 @@ function addTerminalMessage(message) {
     terminal.scrollTop = terminal.scrollHeight;
 }
 
-function streamVideo(message) {
+function streamDemo(message) {
     let frame = document.getElementById('frame');
     frame.src = message.image;
 }
 
 async function startDemo(url) {
-    let example = document.getElementById('example');
+    let demo = document.getElementById('demo');
     let weight = document.getElementById('weight').value;
     let age = document.getElementById('age').value;
     let height = document.getElementById('height').value;
@@ -45,7 +45,7 @@ async function startDemo(url) {
     let frame = document.getElementById('frame');
 
     data = {
-        example: example.options[example.selectedIndex].text,
+        demo: demo.options[demo.selectedIndex].text,
         modelName: modelName,
         inputVideoPath: inputVideoPathValue,
         outputVideoName: outputVideoNameValue,
@@ -62,14 +62,14 @@ async function startDemo(url) {
 
     await asyncRequest(url, data);
 
-    let socket = io.connect('/stream-video');
+    let socket = io.connect('/stream-demo');
     socket.on('connect', function() {
         console.log('Socket Connected');
-        socket.emit('stream_video', {status: 'Socket Connected'});
+        socket.emit('stream_demo', {status: 'Socket Connected'});
     });
 
     socket.on('stream_frame', function(message) {
-        streamVideo(message);
+        streamDemo(message);
     });
 
     socket.on('success', function(message) {
@@ -80,12 +80,12 @@ async function startDemo(url) {
 
             buttonCancelDemo.disabled = true;
 
-            // Enable Test button again depending on input fields
+            // Enable run demo button again depending on input fields
             checkInputFields();
         }
     });
 
-    socket.on('example_logs', function(message) {
+    socket.on('demo_logs', function(message) {
         addTerminalMessage(message.log);
     });
 
@@ -98,7 +98,7 @@ async function cancelDemo(url) {
 
     document.getElementById('btnCancelDemo').disabled = true;
 
-    // Enable run example button again depending on input fields
+    // Enable run demo button again depending on input fields
     checkInputFields();
 }
 
@@ -177,7 +177,7 @@ async function checkInputFields() {
         setFormWarning(outputVideoNameLabel, outputVideoName, '');
     }
 
-    // Don't enable the run example button, if the model is currently running (i.e. Cancel button is enabled)
+    // Don't enable the run demo button, if the model is currently running (i.e. Cancel button is enabled)
     if (!buttonCancelDemo.disabled) {
         disabled = true;
     }

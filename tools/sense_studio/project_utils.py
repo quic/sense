@@ -230,9 +230,9 @@ def set_timer_default(path, countdown, recording):
     write_project_config(path, config)
 
 
-def get_examples():
-    """Get indexed dictionary of examples from examples directory"""
-    examples = [example.split('.')[0]
-                for example in os.listdir(os.path.join(os.getcwd(), 'examples')) if not example.startswith('__')]
-    examples = natsorted(examples, alg=ns.IC)
-    return examples
+def get_demos():
+    """Get list of demos from examples directory"""
+    demos = [demo.split('.')[0]
+             for demo in os.listdir(os.path.join(os.getcwd(), 'examples')) if not demo.startswith('__')]
+    demos = natsorted(demos, alg=ns.IC)
+    return demos
