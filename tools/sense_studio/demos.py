@@ -21,6 +21,7 @@ from examples.run_calorie_estimation import run_calorie_estimation
 from examples.run_fitness_tracker import run_fitness_tracker
 from examples.run_fitness_rep_counter import run_fitness_rep_counter
 from examples.run_gesture_recognition import run_gesture_recognition
+from examples.run_gesture_detection import run_gesture_detection
 
 demos_bp = Blueprint('demos_bp', __name__)
 

@@ -22,9 +22,18 @@ async function getSupportedModelsByDemo(url) {
 
     let response = await asyncRequest(url, data);
     modelName.innerHTML = null;
-    for (model of response['models']) {
-        modelName.insertAdjacentHTML('beforeend', `<option>${model}</option>`);
-    };
+    let models = response['models'];
+
+    if (models.length > 0) {
+        modelName.classList.remove('uk-form-danger');
+        for (model of models) {
+            modelName.insertAdjacentHTML('beforeend', `<option>${model}</option>`);
+        }
+    } else {
+        modelName.classList.add('uk-form-danger');
+        modelName.insertAdjacentHTML('beforeend', `<option value="">No models available</option>`);
+    }
+
 }
 
 function addTerminalMessage(message) {
