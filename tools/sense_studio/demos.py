@@ -1,8 +1,8 @@
 import base64
+import importlib
 import multiprocessing
 import os
 import queue
-import urllib
 
 from typing import Optional
 
@@ -31,7 +31,7 @@ stop_event: Optional[multiprocessing.Event] = None
 
 @demos_bp.route('/', methods=['GET'])
 def demos_page():
-    output_path_prefix = os.path.join(os.getcwd(), 'demo_output_videos', '')
+    output_path_prefix = os.path.join(os.path.basename(os.getcwd()), 'demo_output_videos', '')
     demos = project_utils.get_demos()
     return render_template('demos.html', output_path_prefix=output_path_prefix,
                            models=utils.get_available_backbone_models(), demos=demos)
@@ -44,11 +44,8 @@ def start_demo():
     path_in = data['inputVideoPath']
     output_video_name = data['outputVideoName']
     title = data['title']
-    path = data['path']
     model_name = data['modelName']
     model_name, model_version = model_name.split('-')
-
-    config = project_utils.load_project_config(path)
 
     if output_video_name:
         output_dir = os.path.join(os.getcwd(), 'demo_output_videos')
@@ -74,7 +71,7 @@ def start_demo():
         'age': float(data['age']),
         'gender': data['gender'],
         'title': title,
-        'use_gpu': config['use_gpu'],
+        'use_gpu': data['gpuInput'],
         'display_fn': queue_demo_output.put,
         'stop_event': stop_event,
     }
@@ -132,3 +129,11 @@ def stream_demo(msg):
 
     emit('success', {'status': 'Complete'})
 
+
+@demos_bp.route('/get-supported-models', methods=['POST'])
+def get_supported_models():
+    data = request.json
+    demo_name = data['demo']
+    import_demo = importlib.import_module(f'examples.{demo_name}')
+    models = utils.get_available_backbone_models(import_demo.SUPPORTED_MODEL_CONFIGURATIONS)
+    return jsonify({'models': models})
