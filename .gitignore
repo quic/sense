@@ -5,6 +5,4 @@
 __pycache__
 *.pyc
 videos
-resources/coreml/*
-resources/backbone/*
 dataset

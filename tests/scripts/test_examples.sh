@@ -10,6 +10,10 @@ PYTHONPATH=./ python examples/run_gesture_recognition.py --path_in=$test_video_p
 PYTHONPATH=./ python examples/run_gesture_recognition.py --path_in=$test_video_path --model_name=StridedInflatedMobileNetV2
 PYTHONPATH=./ python examples/run_gesture_recognition.py --path_in=$test_video_path --model_name=StridedInflatedMobileNetV2 --model_version=lite
 
+echo "Test Gesture Detection demo ::"
+PYTHONPATH=./ python examples/run_gesture_detection.py --path_in=$test_video_path
+PYTHONPATH=./ python examples/run_gesture_detection.py --path_in=$test_video_path --model_version=lite
+
 echo "Test Fitness Tracker demo ::"
 PYTHONPATH=./ python examples/run_fitness_tracker.py $calorie_estimation_args
 PYTHONPATH=./ python examples/run_fitness_tracker.py $calorie_estimation_args --model_version=lite
