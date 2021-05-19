@@ -72,7 +72,7 @@ def run_fitness_rep_counter(model_name, model_version, path_in=None, path_out=No
         sense.display.DisplayRepCounts()
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops,
-                                                   border_size=100, display_fn=display_fn)
+                                                   border_size_top=100, display_fn=display_fn)
 
     # Run live inference
     controller = Controller(
