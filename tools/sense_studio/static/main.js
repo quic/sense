@@ -341,6 +341,21 @@ async function toggleAssistedTagging(path, split, label) {
     window.location.reload();
 }
 
+
+function changeFps(element, originalModelFps) {
+    UIkit.modal.confirm('Are you sure you want to change the model fps? ' +
+                        'Your existing annotations will be converted to the new frame rate, ' +
+                        'but some information might get lost or be inaccurate. ' +
+                        'Please make sure to check the annotations after this operation.').then(function() {
+        // Confirmed -> TODO: Change model fps and convert annotations
+        console.log('Confirmed.')
+    }, function () {
+        // Cancelled -> Reset select field
+        element.value = originalModelFps;
+    });
+}
+
+
 async function addSelectedTagToClass(classIdx, className, path)  {
     let selectedTagsList = document.getElementById(`selectedTagsList${classIdx}`);
     let selectTagDropdown = document.getElementById(`selectTag${classIdx}`);
