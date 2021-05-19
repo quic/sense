@@ -250,7 +250,7 @@ function getProjectConfig(projectName) {
 }
 
 
-function loading(element, message, url) {
+function loadingButton(element, message, url) {
     let icon = element.children[0];
     let text = element.children[1];
 
@@ -262,6 +262,12 @@ function loading(element, message, url) {
     if (url) {
         window.location = url;
     }
+}
+
+
+function loadingLink(element) {
+    element.setAttribute('uk-spinner', 'ratio: 0.6');
+    element.innerHTML = '';
 }
 
 
@@ -333,9 +339,14 @@ async function toggleMakeProjectTemporal(path) {
 }
 
 
-async function toggleAssistedTagging(path, split, label) {
-    let response = await asyncRequest('/toggle-project-setting',
-                                      {path: path, setting: 'assisted_tagging', split: split, label: label});
+async function toggleAssistedTagging(path) {
+    let checkbox = document.getElementById('assistedTaggingCheckbox');
+    let spinner = document.getElementById('assistedTaggingSpinner');
+
+    checkbox.classList.add('uk-hidden');
+    spinner.classList.remove('uk-hidden');
+
+    let response = await asyncRequest('/toggle-project-setting', {path: path, setting: 'assisted_tagging'});
 
     // Reload page to update predictions
     window.location.reload();

@@ -38,7 +38,7 @@
 ---
 
 <!-- Add some bullet points for what this repo provides-->
-`sense`is an inference engine to serve powerful neural networks for action recognition, with a low
+`sense` is an inference engine to serve powerful neural networks for action recognition, with a low
  computational footprint. In this repository, we provide: 
  - Two models out-of-the-box pre-trained on millions of videos of humans performing 
  actions in front of, and interacting with, a camera. Both neural networks are small, efficient, and run smoothly in real time on a CPU.
@@ -51,18 +51,21 @@
 ###### Gesture Recognition
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/gesture_recognition_1.gif" width="300px">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/gesture_recognition_2.gif" width="300px">
+    <img src="docs/gifs/gesture_recognition_1.gif" width="300px">
+    <img src="docs/gifs/gesture_recognition_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
 
+<p align="center">
+    <img src="docs/gifs/hand_gesture_event_detection.gif" width="600px" height="300px">
+</p>
 
 ###### Fitness Activity Tracker and Calorie Estimation
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/fitness_tracking_1.gif" width="300px">
-    <img src="https://raw.githubusercontent.com/TwentyBN/sense/master/docs/gifs/fitness_tracking_2.gif" width="300px">
+    <img src="docs/gifs/fitness_tracking_1.gif" width="300px">
+    <img src="docs/gifs/fitness_tracking_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1f1y0wg7Y1kpSBwKSEFx1TDoD5lGA8DtQ/view?usp=sharing))*
@@ -131,9 +134,9 @@ needs to be downloaded separately.
 --- 
 
 ## Getting Started
-To get started, try out the demos we've provided. Inside the `sense/examples` directory, you will find 3 Python scripts,
-`run_gesture_recognition.py`, `run_fitness_tracker.py`, and `run_calorie_estimation.py`. Launching each demo is as
- simple as running the script in terminal as described below. 
+To get started, try out the demos we've provided. Inside the `sense/examples` directory, you will find multiple Python scripts 
+that each apply our pre-trained models to a specific use-case. Launching each demo is as simple as running the script in terminal 
+as described below. 
 
 #### Demo 1: Gesture Recognition
 
@@ -146,8 +149,20 @@ Usage:
 PYTHONPATH=./ python examples/run_gesture_recognition.py
 ```
 
+#### Demo 2: Hand Gesture Event Detection
 
-#### Demo 2: Fitness Activity Tracking
+`examples/run_gesture_detection.py` applies our pre-trained models to the detection of 8 hand gesture events 
+(6 swiping gestures + thumbs up + thumbs down). Compared to Demo 1, the model used in this case was trained 
+to trigger the correct class for a short period of time right after the hand gesture occurred. This behavior 
+policy makes it easier to quickly trigger multiple hand gestures in a row. 
+
+Usage:
+```shell
+PYTHONPATH=./ python examples/run_gesture_detection.py
+```
+
+
+#### Demo 3: Fitness Activity Tracking
 
 `examples/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
@@ -178,7 +193,7 @@ For the best performance, the following is recommended:
 - Try to be in a simple environment (with a clean background) 
 
 
-#### Demo 3: Calorie Estimation
+#### Demo 4: Calorie Estimation
 
 In order to estimate burned calories, we trained a neural net to convert activity features to the corresponding [MET value](https://en.wikipedia.org/wiki/Metabolic_equivalent_of_task).
 We then post-process these MET values (see correction and aggregation steps performed [here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/calorie_estimation/calorie_accumulator.py)) 
@@ -194,6 +209,16 @@ PYTHONPATH=./ python examples/run_calorie_estimation.py --weight=65 --age=30 --h
 
 The estimated calorie estimates are roughly in the range produced by wearable devices, though they have not been verified in terms of accuracy. 
 From our experiments, our estimates correlate well with the workout intensity (intense workouts burn more calories) so, regardless of the absolute accuracy, it should be fair to use this metric to compare one workout to another.
+
+
+#### Demo 5: Repetition Counting 
+
+This demo turns our models into a repetition counter for 2 fitness exercises: jumping jacks and squats.
+
+Usage:
+```shell
+PYTHONPATH=./ python examples/run_fitness_rep_counter.py
+```
 
 ---
 

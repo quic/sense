@@ -25,10 +25,12 @@ from docopt import docopt
 import sense.display
 from sense.controller import Controller
 from sense.downstream_tasks.fitness_rep_counting import INT2LAB
+from sense.downstream_tasks.fitness_rep_counting import LAB2INT
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
+from sense.downstream_tasks.postprocess import AggregatedPostProcessors
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
-from sense.downstream_tasks.postprocess import PostprocessRepCounts
+from sense.downstream_tasks.postprocess import TwoPositionsCounter
 from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
@@ -70,7 +72,25 @@ if __name__ == "__main__":
     net = Pipe(backbone_network, rep_counter)
 
     postprocessor = [
-        PostprocessRepCounts(INT2LAB),
+        AggregatedPostProcessors(
+            post_processors=[
+                TwoPositionsCounter(
+                    pos0_idx=LAB2INT['counting - jumping_jacks_position=arms_down'],
+                    pos1_idx=LAB2INT['counting - jumping_jacks_position=arms_up'],
+                    threshold0=0.4,
+                    threshold1=0.4,
+                    out_key='Jumping Jacks',
+                ),
+                TwoPositionsCounter(
+                    pos0_idx=LAB2INT['counting - squat_position=high'],
+                    pos1_idx=LAB2INT['counting - squat_position=low'],
+                    threshold0=0.4,
+                    threshold1=0.4,
+                    out_key='squats',
+                ),
+            ],
+            out_key='counting',
+        ),
         PostprocessClassificationOutput(INT2LAB, smoothing=1)
     ]
 
@@ -78,10 +98,10 @@ if __name__ == "__main__":
         sense.display.DisplayFPS(expected_camera_fps=net.fps,
                                  expected_inference_fps=net.fps / net.step_size),
         sense.display.DisplayTopKClassificationOutputs(top_k=1, threshold=0.5),
-        sense.display.DisplayRepCounts()
+        sense.display.DisplayExerciseRepCounts()
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops,
-                                                   border_size=100)
+                                                   border_size_top=100)
 
     # Run live inference
     controller = Controller(

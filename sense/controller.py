@@ -164,6 +164,7 @@ class Controller:
         self.frame_index = 0
         self.inference_engine.start()
         self.video_stream.start()
+        self.results_display.initialize()
 
     def _stop_inference(self):
         print("Stopping inference")

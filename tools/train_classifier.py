@@ -49,7 +49,6 @@ from sense.finetuning import training_loops
 from sense.loading import build_backbone_network
 from sense.loading import get_relevant_weights
 from sense.loading import ModelConfig
-from sense.loading import update_backbone_weights
 from tools.sense_studio.project_utils import load_project_config
 from sense.utils import clean_pipe_state_dict_key
 from tools import directories
@@ -96,12 +95,14 @@ def train_model(path_in, path_out, model_name, model_version, model_fps=16, num_
     if resume:
         # Load the last classifier
         checkpoint_classifier = torch.load(os.path.join(path_out, 'last_classifier.checkpoint'))
-
-        # Update original weights in case some intermediate layers have been finetuned
-        update_backbone_weights(backbone_weights, checkpoint_classifier)
+    else:
+        checkpoint_classifier = None
 
     # Load backbone network
-    backbone_network = build_backbone_network(selected_config, backbone_weights, fps=model_fps)
+    backbone_network = build_backbone_network(selected_config,
+                                              backbone_weights,
+                                              weights_finetuned=checkpoint_classifier,
+                                              fps=model_fps)
 
     # Get the required temporal dimension of feature tensors in order to
     # finetune the provided number of layers

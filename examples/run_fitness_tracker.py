@@ -109,7 +109,7 @@ if __name__ == "__main__":
     ]
     display_results = sense.display.DisplayResults(title=title,
                                                    display_ops=display_ops,
-                                                   border_size=50)
+                                                   border_size_top=50)
 
     # Run live inference
     controller = Controller(

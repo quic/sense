@@ -303,7 +303,7 @@
                                 Record
                             </a>
                             <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-                               onclick="loading(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}');">
+                               onclick="loadingButton(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}');">
                                 <span uk-icon="icon: file-edit"></span>
                                 <span>Annotate</span>
                             </button>
@@ -321,7 +321,7 @@
                                 Record
                             </a>
                             <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-                               onclick="loading(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}');">
+                               onclick="loadingButton(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}');">
                                 <span uk-icon="icon: file-edit"></span>
                                 <span>Annotate</span>
                             </button>
