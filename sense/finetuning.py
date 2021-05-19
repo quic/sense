@@ -63,7 +63,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
         num_preds = features.shape[0]
 
         temporal_annotation = self.temporal_annotations[idx]
-        # remove beggining of prediction that is not padded
+        # remove beginning of prediction that is not padded
         if temporal_annotation is not None:
             temporal_annotation = np.array(temporal_annotation)
 
@@ -92,8 +92,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
                 position = np.random.randint(minimum_position, num_preds - self.num_timesteps)
                 features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
-        if temporal_annotation is None:
-            temporal_annotation = [-100]
+        if temporal_annotation is None or len(temporal_annotation) == 0:
+            temporal_annotation = np.array([-100])
         return [features, self.labels[idx], temporal_annotation]
 
 

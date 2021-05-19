@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 import queue
 import time
 
@@ -58,6 +59,9 @@ class VideoSource:
         self._frame_idx = 0
 
         if filename:
+            if not os.path.exists(filename):
+                raise FileNotFoundError(filename)
+
             self._cam = cv2.VideoCapture(filename)
 
             if target_fps is not None:

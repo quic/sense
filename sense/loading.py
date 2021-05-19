@@ -93,8 +93,13 @@ class ModelConfig:
             return None
 
 
-def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_name=None,
-                         requested_version=None, log_fn=print) -> Optional[Tuple[ModelConfig, dict]]:
+def get_relevant_weights(
+        model_config_list: List[ModelConfig],
+        requested_model_name=None,
+        requested_version=None,
+        requested_converter=None,
+        log_fn=print,
+) -> Optional[Tuple[ModelConfig, dict]]:
     """
     Returns the model weights for the appropriate backbone and classifier head based on
     a list of compatible model configs. The first available config is returned.
@@ -105,25 +110,31 @@ def get_relevant_weights(model_config_list: List[ModelConfig], requested_model_n
         Name of a specific model to use (i.e. StridedInflatedEfficientNet or StridedInflatedMobileNetV2)
     :param requested_version:
         Version of the model to use (i.e. pro or lite)
+    :param requested_converter:
+        Feature converter to use
     :param log_fn:
         Function to use for logging messages
     :return:
         First available model config and dictionary of model weights
     """
 
-    # Filter out model configurations that don't match requested name and version
+    # Filter out model configurations that don't match requested name, version and converter
     if requested_model_name:
         model_config_list = [config for config in model_config_list
                              if config.model_name == requested_model_name]
     if requested_version:
         model_config_list = [config for config in model_config_list
                              if config.version == requested_version]
+    if requested_converter:
+        model_config_list = [config for config in model_config_list
+                             if requested_converter in config.feature_converters]
 
     # Check if not empty
     if not model_config_list:
         msg = (f'ERROR - Could not find a model configuration matching requested parameters:\n'
                f'\tmodel_name={requested_model_name}\n'
-               f'\tversion={requested_version}')
+               f'\tversion={requested_version}\n'
+               f'\tfeature_converter={requested_converter}')
         log_fn(msg)
         raise Exception(msg)
 
