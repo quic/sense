@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 
+from collections import deque
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -49,6 +50,12 @@ class BaseDisplay:
     def __init__(self, x_offset=350, y_offset=20):
         self.x_offset = x_offset
         self.y_offset = y_offset
+
+    def initialize(self):
+        """
+        Called once the setup is done and the inference is ready to start.
+        """
+        pass
 
     def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """
@@ -125,20 +132,48 @@ class DisplayTopKClassificationOutputs(BaseDisplay):
         return img
 
 
-class DisplayRepCounts(BaseDisplay):
+class DisplayCounts(BaseDisplay):
 
-    def __init__(self, y_offset=40, **kwargs):
+    def __init__(self, y_offset=40, highlight_changes=False, highlight_duration=3., fps=16, **kwargs):
+        """
+        :param y_offset:
+            Vertical offset for showing the counts.
+        :param highlight_changes:
+            True if updated counts should be highlighted for some time.
+        :param highlight_duration:
+            The number of sections that an updated count should be highlighted.
+        :param fps:
+            The frame rate at which the display will be updated.
+        """
         super().__init__(y_offset=y_offset, **kwargs)
+        self.highlight_changes = highlight_changes
+        self.previous_counts = deque(maxlen=int(highlight_duration * fps))
+
+    def display_count(self, activity, count, img, y_pos, color):
+        put_text(img, f'{activity}: {count}', (10 + self.x_offset, y_pos), color=color)
 
     def display(self, img, display_data):
         counters = display_data['counting']
-        index = 0
-        for activity, count in counters.items():
+        for index, (activity, count) in enumerate(counters.items()):
+            if (self.highlight_changes
+                    and self.previous_counts
+                    and self.previous_counts[0].get(activity, 0) < count):
+                color = (44, 176, 82)
+            else:
+                color = (255, 255, 255)
             y_pos = 20 * (index + 1) + self.y_offset
-            put_text(img, 'Exercise: {}'.format(activity[0:50]), (10, y_pos))
-            put_text(img, 'Count: {}'.format(count), (10 + self.x_offset, y_pos))
-            index += 1
+            self.display_count(activity, count, img, y_pos, color)
+
+        self.previous_counts.append(counters)
+
         return img
+
+
+class DisplayExerciseRepCounts(DisplayCounts):
+
+    def display_count(self, activity, count, img, y_pos, color):
+        put_text(img, f'Exercise: {activity[0:50]}', (10, y_pos), color=color)
+        put_text(img, f'Count: {count}', (10 + self.x_offset, y_pos), color=color)
 
 
 class DisplayFPS(BaseDisplay):
@@ -160,8 +195,13 @@ class DisplayFPS(BaseDisplay):
         self.default_text_color = (44, 176, 82)
         self.running_delta_time_inference = 1. / expected_inference_fps if expected_inference_fps else 0
         self.running_delta_time_camera = 1. / expected_camera_fps if expected_camera_fps else 0
-        self.last_update_time_camera = time.perf_counter()
-        self.last_update_time_inference = time.perf_counter()
+        self.last_update_time_camera = None
+        self.last_update_time_inference = None
+
+    def initialize(self):
+        now = time.perf_counter()
+        self.last_update_time_camera = now
+        self.last_update_time_inference = now
 
     def display(self, img: np.ndarray, display_data: dict) -> np.ndarray:
 
@@ -382,15 +422,14 @@ class DisplayResults:
     """
     def __init__(
             self,
-            title: str, display_ops: List[BaseDisplay],
+            display_ops: List[BaseDisplay],
+            title: Optional[str] = None,
             border_size_top: int = 30,
             border_size_right: int = 0,
             window_size: Tuple[int, int] = (480, 640),
             display_fn=None
     ):
         """
-        :param title:
-            Title of the image frame on display.
         :param display_ops:
             Additional options to be displayed on top of the image frame.
             Display options are class objects that implement the `display(self, img, display_data)` method.
@@ -398,6 +437,8 @@ class DisplayResults:
                 - DisplayMETandCalories
                 - DisplayDetailedMETandCalories
                 - DisplayTopKClassificationOutputs
+        :param title:
+            Title of the image frame on display.
         :param border_size_top:
             Thickness of the top display border.
         :param border_size_right:
@@ -417,6 +458,13 @@ class DisplayResults:
         self.title = title
         self.display_ops = display_ops
         self.display_fn = display_fn
+
+    def initialize(self):
+        """
+        Initialize all contained display operations. Called once the setup is done and the inference is ready to start.
+        """
+        for display_op in self.display_ops:
+            display_op.initialize()
 
     def show(self, img: np.ndarray, display_data: dict) -> np.ndarray:
         """

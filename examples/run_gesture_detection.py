@@ -33,7 +33,8 @@ from sense.downstream_tasks.gesture_detection import ENABLED_LABELS
 from sense.downstream_tasks.gesture_detection import LAB_THRESHOLDS
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
-from sense.downstream_tasks.postprocess import PostprocessEventCounts
+from sense.downstream_tasks.postprocess import AggregatedPostProcessors
+from sense.downstream_tasks.postprocess import EventCounter
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import get_relevant_weights
 from sense.loading import build_backbone_network
@@ -70,7 +71,12 @@ def run_gesture_detection(model_name, model_version, path_in=None, path_out=None
 
     postprocessor = [
         PostprocessClassificationOutput(INT2LAB, smoothing=1),
-        PostprocessEventCounts(ENABLED_LABELS, LAB2INT, LAB_THRESHOLDS)
+        AggregatedPostProcessors(
+            post_processors=[
+                EventCounter(key, LAB2INT[key], LAB_THRESHOLDS[key]) for key in ENABLED_LABELS
+            ],
+            out_key='counting',
+        ),
     ]
 
     border_size_top = 0

@@ -33,9 +33,10 @@
 
                 <div>
                     <label uk-tooltip="Train a simple logistic regression model live on temporal annotations and show current predictions">
-                        <input type="checkbox" class="uk-checkbox"
+                        <input type="checkbox" id="assistedTaggingCheckbox" class="uk-checkbox"
                                {% if project_config.assisted_tagging %} checked {% endif %}
-                               onclick="toggleAssistedTagging('{{ path }}', '{{ split }}', '{{ label }}');">
+                               onclick="toggleAssistedTagging('{{ path }}');">
+                        <span id="assistedTaggingSpinner" uk-spinner="ratio: 0.535" class="uk-hidden"></span>
                         Assisted Tagging
                     </label>
                 </div>
