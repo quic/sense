@@ -262,14 +262,14 @@
                         <select class="uk-select" id="selectTag{{ class_idx }}"
                                 onchange="addSelectedTagToClass('{{ class_idx }}', '{{ class }}', '{{ path }}');">
                             {% if tags %}
-                                <option value="">Select tags...</option>
+                                <option value="" hidden>Select tags...</option>
                                 {% for tag_index, tag_name in tags.items()|sort(attribute='1') %}
                                     {% if tag_index not in selected_tags %}
                                         <option value="{{ tag_index }}">{{ tag_name }}</option>
                                     {% endif %}
                                 {% endfor %}
                             {% else %}
-                                <option value="">No tags available</option>
+                                <option value="" hidden>No tags available</option>
                             {% endif %}
                         </select>
                         <ul id="selectedTagsList{{ class_idx }}" class="uk-list uk-margin-top">
