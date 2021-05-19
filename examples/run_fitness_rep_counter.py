@@ -24,7 +24,8 @@ from docopt import docopt
 
 import sense.display
 from sense.controller import Controller
-from sense.downstream_tasks.fitness_rep_counting import INT2LAB, LAB2INT
+from sense.downstream_tasks.fitness_rep_counting import INT2LAB
+from sense.downstream_tasks.fitness_rep_counting import LAB2INT
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import AggregatedPostProcessors
