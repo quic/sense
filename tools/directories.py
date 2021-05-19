@@ -38,11 +38,9 @@ def get_tags_dir(dataset_path, split, label=None):
     return _get_data_dir('tags', dataset_path, split, subdirs)
 
 
-def get_logreg_dir(dataset_path, model: Optional[ModelConfig] = None, label=None):
+def get_logreg_dir(dataset_path, model: Optional[ModelConfig] = None):
     subdirs = None
     if model:
         subdirs = [model.combined_model_name]
-        if label:
-            subdirs.append(label)
 
     return _get_data_dir('logreg', dataset_path, subdirs=subdirs)

@@ -239,6 +239,8 @@ def compute_frames_and_features(inference_engine: InferenceEngine, project_path:
     :param features_dir:
         Directory where computed features should be stored. One .npy file will be created per video.
     """
+    assisted_tagging = utils.get_project_setting(project_path, 'assisted_tagging')
+
     # Create features and frames folders
     os.makedirs(features_dir, exist_ok=True)
     os.makedirs(frames_dir, exist_ok=True)
@@ -254,8 +256,7 @@ def compute_frames_and_features(inference_engine: InferenceEngine, project_path:
         path_frames = os.path.join(frames_dir, video_name)
         path_features = os.path.join(features_dir, f'{video_name}.npy')
 
-        features_needed = (utils.get_project_setting(project_path, 'assisted_tagging')
-                           and not os.path.exists(path_features))
+        features_needed = (assisted_tagging and not os.path.exists(path_features))
 
         frames = extract_frames(video_path=video_path,
                                 inference_engine=inference_engine,
