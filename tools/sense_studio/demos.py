@@ -17,12 +17,6 @@ from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
 from tools.sense_studio import utils
 
-from examples.run_calorie_estimation import run_calorie_estimation
-from examples.run_fitness_tracker import run_fitness_tracker
-from examples.run_fitness_rep_counter import run_fitness_rep_counter
-from examples.run_gesture_recognition import run_gesture_recognition
-from examples.run_gesture_detection import run_gesture_detection
-
 demos_bp = Blueprint('demos_bp', __name__)
 
 demo_process: Optional[multiprocessing.Process] = None
@@ -77,8 +71,10 @@ def start_demo():
         'stop_event': stop_event,
     }
 
+    # Dynamically import the script based on demo name
+    import_demo = importlib.import_module(f'examples.{demo}')
     global demo_process
-    demo_process = ctx.Process(target=eval(demo), kwargs=example_kwargs)
+    demo_process = ctx.Process(target=getattr(import_demo, demo), kwargs=example_kwargs)
     demo_process.start()
 
     return jsonify(success=True)
@@ -136,5 +132,5 @@ def get_supported_models():
     data = request.json
     demo_name = data['demo']
     import_demo = importlib.import_module(f'examples.{demo_name}')
-    models = utils.get_available_backbone_models(import_demo.SUPPORTED_MODEL_CONFIGURATIONS)
+    models = utils.get_available_backbone_models(getattr(import_demo, 'SUPPORTED_MODEL_CONFIGURATIONS'))
     return jsonify({'models': models})
