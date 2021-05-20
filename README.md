@@ -48,7 +48,7 @@
 
 <div align="center">
 
-###### Action Recognition
+##### Action Recognition
 
 <p align="center">
     <img src="docs/gifs/action_recognition_1.gif" width="300px">
@@ -57,13 +57,13 @@
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
 
-###### Gesture Control
+##### Gesture Control
 
 <p align="center">
     <img src="docs/gifs/gesture_control.gif" width="600px" height="300px">
 </p>
 
-###### Fitness Activity Tracker and Calorie Estimation
+##### Fitness Activity Tracker and Calorie Estimation
 
 <p align="center">
     <img src="docs/gifs/fitness_tracking_1.gif" width="300px">
