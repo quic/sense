@@ -57,12 +57,6 @@
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
 
-##### Gesture Control
-
-<p align="center">
-    <img src="docs/gifs/gesture_control.gif" width="600px" height="300px">
-</p>
-
 ##### Fitness Activity Tracker and Calorie Estimation
 
 <p align="center">
@@ -71,6 +65,12 @@
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1f1y0wg7Y1kpSBwKSEFx1TDoD5lGA8DtQ/view?usp=sharing))*
+
+##### Gesture Control
+
+<p align="center">
+    <img src="docs/gifs/gesture_control.gif" width="600px" height="250px">
+</p>
 
 </div>
 
