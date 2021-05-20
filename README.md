@@ -319,7 +319,7 @@ python tools/conversion/convert_to_tflite.py --classifier=custom_classifier --pa
 Our [gallery](https://github.com/TwentyBN/sense/wiki/gallery) lists cool external projects that were built using Sense. Check it out! 
 
 <p align="center">
-    <img src="docs/gifs/gallery_mosaic.gif" width="600px" height="250px">
+    <img src="docs/gifs/gallery_mosaic.gif" width="800px" height="320px">
 </p>
 
 ## Citation
