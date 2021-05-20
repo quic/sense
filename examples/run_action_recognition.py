@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """
-Real time detection of 30 hand gestures.
+Real time detection of 30 actions.
 
 Usage:
-  run_gesture_recognition.py [--camera_id=CAMERA_ID]
-                             [--path_in=FILENAME]
-                             [--path_out=FILENAME]
-                             [--title=TITLE]
-                             [--model_name=NAME]
-                             [--model_version=VERSION]
-                             [--use_gpu]
-  run_gesture_recognition.py (-h | --help)
+  run_action_recognition.py [--camera_id=CAMERA_ID]
+                            [--path_in=FILENAME]
+                            [--path_out=FILENAME]
+                            [--title=TITLE]
+                            [--model_name=NAME]
+                            [--model_version=VERSION]
+                            [--use_gpu]
+  run_action_recognition.py (-h | --help)
 
 Options:
   --path_in=FILENAME         Video file to stream from
@@ -35,10 +35,10 @@ from sense.loading import ModelConfig
 
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
-    ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_recognition']),
-    ModelConfig('StridedInflatedMobileNetV2', 'pro', ['gesture_recognition']),
-    ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_recognition']),
-    ModelConfig('StridedInflatedMobileNetV2', 'lite', ['gesture_recognition']),
+    ModelConfig('StridedInflatedEfficientNet', 'pro', ['action_recognition']),
+    ModelConfig('StridedInflatedMobileNetV2', 'pro', ['action_recognition']),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', ['action_recognition']),
+    ModelConfig('StridedInflatedMobileNetV2', 'lite', ['action_recognition']),
 ]
 
 if __name__ == "__main__":
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # Create a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
                                             num_out=30)
-    gesture_classifier.load_state_dict(weights['gesture_recognition'])
+    gesture_classifier.load_state_dict(weights['action_recognition'])
     gesture_classifier.eval()
 
     # Concatenate backbone network and logistic regression

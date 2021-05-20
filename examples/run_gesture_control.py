@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 """
-Real time detection of 6 hand gesture events. Compared to `run_gesture_recognition`, the models used
+Real time detection of 6 hand gesture events. Compared to `run_action_recognition`, the models used
 in this script were trained to trigger the correct class only for a short period of time right after
 the hand gesture occurred. This behavior policy makes it easier to quickly trigger multiple hand
 gestures in a row.
 
 Usage:
-  run_gesture_detection.py [--camera_id=CAMERA_ID]
-                           [--path_in=FILENAME]
-                           [--path_out=FILENAME]
-                           [--title=TITLE]
-                           [--model_name=NAME]
-                           [--model_version=VERSION]
-                           [--use_gpu]
-  run_gesture_detection.py (-h | --help)
+  run_gesture_control.py [--camera_id=CAMERA_ID]
+                         [--path_in=FILENAME]
+                         [--path_out=FILENAME]
+                         [--title=TITLE]
+                         [--model_name=NAME]
+                         [--model_version=VERSION]
+                         [--use_gpu]
+  run_gesture_control.py (-h | --help)
 
 Options:
   --path_in=FILENAME         Video file to stream from
@@ -42,8 +42,8 @@ from sense.loading import ModelConfig
 
 
 SUPPORTED_MODEL_CONFIGURATIONS = [
-    ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_detection']),
-    ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_detection']),
+    ModelConfig('StridedInflatedEfficientNet', 'pro', ['gesture_control']),
+    ModelConfig('StridedInflatedEfficientNet', 'lite', ['gesture_control']),
 ]
 
 if __name__ == "__main__":
@@ -66,12 +66,12 @@ if __name__ == "__main__":
 
     # Load backbone network
     backbone_network = build_backbone_network(selected_config, weights['backbone'],
-                                              weights_finetuned=weights['gesture_detection'])
+                                              weights_finetuned=weights['gesture_control'])
 
     # Create a logistic regression classifier
     gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
                                             num_out=len(INT2LAB))
-    gesture_classifier.load_state_dict(weights['gesture_detection'])
+    gesture_classifier.load_state_dict(weights['gesture_control'])
     gesture_classifier.eval()
 
     # Concatenate backbone network and logistic regression
