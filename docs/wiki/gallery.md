@@ -4,9 +4,9 @@ If you've implemented your own application with Sense, please don't hesitate to 
 PR.
 
 
-### [sense-for-smartTVs](https://github.com/guillaumebrg/sense-for-smartTVs)
+### [SmartTV Gesture Control](https://github.com/guillaumebrg/sense-for-smartTVs)
 
-This repo applies Sense pretrained models to gesture control for smart TVs.
+This [repo](https://github.com/guillaumebrg/sense-for-smartTVs) applies Sense pretrained models to gesture control for smart TVs.
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/guillaumebrg/sense-for-smartTVs/master/resources/smarttv_gesture_control/video_test.gif" width="400px">
@@ -54,4 +54,13 @@ model is in progress but here's a quick preview of what was achieved with a tiny
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/sunny-panchal/sense/demo/wlasl/docs/gifs/wlasl_v1.gif" width="400px">
+</p>
+
+
+### Virtual Race App (preview)
+
+An app that will make you run faster.
+
+<p align="center">
+    <img src="docs/gifs/virtual_race_app.gif" width="200px">
 </p>
