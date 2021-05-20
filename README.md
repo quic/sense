@@ -55,16 +55,12 @@
     <img src="docs/gifs/action_recognition_2.gif" width="300px">
 </p>
 
-*(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
-
 ##### Fitness Activity Tracker and Calorie Estimation
 
 <p align="center">
     <img src="docs/gifs/fitness_tracking_1.gif" width="300px">
     <img src="docs/gifs/fitness_tracking_2.gif" width="300px">
 </p>
-
-*(full video can be found [here](https://drive.google.com/file/d/1f1y0wg7Y1kpSBwKSEFx1TDoD5lGA8DtQ/view?usp=sharing))*
 
 ##### Gesture Control
 
