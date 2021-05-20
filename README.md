@@ -48,17 +48,19 @@
 
 <div align="center">
 
-###### Gesture Recognition
+###### Action Recognition
 
 <p align="center">
-    <img src="docs/gifs/gesture_recognition_1.gif" width="300px">
-    <img src="docs/gifs/gesture_recognition_2.gif" width="300px">
+    <img src="docs/gifs/action_recognition_1.gif" width="300px">
+    <img src="docs/gifs/action_recognition_2.gif" width="300px">
 </p>
 
 *(full video can be found [here](https://drive.google.com/file/d/1G5OaCsPco_4H7F5-s6n2Mm3wI5V9K6WE/view?usp=sharing))*
 
+###### Gesture Control
+
 <p align="center">
-    <img src="docs/gifs/hand_gesture_event_detection.gif" width="600px" height="300px">
+    <img src="docs/gifs/gesture_control.gif" width="600px" height="300px">
 </p>
 
 ###### Fitness Activity Tracker and Calorie Estimation
@@ -138,10 +140,10 @@ To get started, try out the demos we've provided. Inside the `sense/examples` di
 that each apply our pre-trained models to a specific use-case. Launching each demo is as simple as running the script in terminal 
 as described below. 
 
-#### Demo 1: Gesture Recognition
+#### Demo 1: Action Recognition
 
-`examples/run_gesture_recognition.py` applies our pre-trained models to hand gesture recognition.
-30 gestures are supported (see full list 
+`examples/run_gesture_recognition.py` applies our pre-trained models to action recognition.
+30 actions are supported (see full list 
 [here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/gesture_recognition/__init__.py)).
 
 Usage:
@@ -149,7 +151,7 @@ Usage:
 PYTHONPATH=./ python examples/run_gesture_recognition.py
 ```
 
-#### Demo 2: Hand Gesture Event Detection
+#### Demo 2: Gesture Control
 
 `examples/run_gesture_detection.py` applies our pre-trained models to the detection of 8 hand gesture events 
 (6 swiping gestures + thumbs up + thumbs down). Compared to Demo 1, the model used in this case was trained 
