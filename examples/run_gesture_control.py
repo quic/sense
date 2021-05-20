@@ -27,10 +27,10 @@ from docopt import docopt
 
 import sense.display
 from sense.controller import Controller
-from sense.downstream_tasks.gesture_detection import LAB2INT
-from sense.downstream_tasks.gesture_detection import INT2LAB
-from sense.downstream_tasks.gesture_detection import ENABLED_LABELS
-from sense.downstream_tasks.gesture_detection import LAB_THRESHOLDS
+from sense.downstream_tasks.gesture_control import LAB2INT
+from sense.downstream_tasks.gesture_control import INT2LAB
+from sense.downstream_tasks.gesture_control import ENABLED_LABELS
+from sense.downstream_tasks.gesture_control import LAB_THRESHOLDS
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import AggregatedPostProcessors

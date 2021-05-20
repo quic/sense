@@ -24,8 +24,8 @@ from docopt import docopt
 
 import sense.display
 from sense.controller import Controller
-from sense.downstream_tasks.gesture_recognition import INT2LAB
-from sense.downstream_tasks.gesture_recognition import LAB_THRESHOLDS
+from sense.downstream_tasks.action_recognition import INT2LAB
+from sense.downstream_tasks.action_recognition import LAB_THRESHOLDS
 from sense.downstream_tasks.nn_utils import LogisticRegression
 from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
