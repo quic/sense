@@ -108,10 +108,11 @@ def stream_demo(msg):
                     emit('demo_logs', {'log': output})
                 else:
                     # Encode frame as jpeg
+                    height, width = output.shape[:2]
                     frame = cv2.imencode('.jpg', output)[1].tobytes()
                     # Encode frame in base64 version and remove utf-8 encoding
                     frame = base64.b64encode(frame).decode('utf-8')
-                    emit('stream_frame', {'image': f'data:image/jpeg;base64,{frame}'})
+                    emit('stream_frame', {'image': f'data:image/jpeg;base64,{frame}', 'height': height, 'width': width})
             except queue.Empty:
                 # No message received during the last second
                 pass

@@ -45,6 +45,8 @@ function addTerminalMessage(message) {
 function streamDemo(message) {
     let frame = document.getElementById('frame');
     frame.src = message.image;
+    frame.width = message.width;
+    frame.height = message.height;
 }
 
 async function startDemo(url) {
@@ -97,6 +99,9 @@ async function startDemo(url) {
     socket.on('success', function(message) {
         if (message.status === 'Complete') {
             frame.removeAttribute('src');
+            // Set frame placeholder to default height and width
+            frame.height = 480;
+            frame.width = 640;
             socket.disconnect();
             console.log('Socket Disconnected');
 
