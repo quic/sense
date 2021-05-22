@@ -140,7 +140,7 @@ as described below.
 
 `examples/run_action_recognition.py` applies our pre-trained models to action recognition.
 30 actions are supported (see full list 
-[here](https://github.com/TwentyBN/sense/blob/master/sense/downstream_tasks/gesture_recognition/__init__.py)).
+[here](sense/downstream_tasks/action_recognition/__init__.py)).
 
 Usage:
 ```shell
