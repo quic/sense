@@ -42,7 +42,7 @@
  computational footprint. In this repository, we provide: 
  - Two models out-of-the-box pre-trained on millions of videos of humans performing 
  actions in front of, and interacting with, a camera. Both neural networks are small, efficient, and run smoothly in real time on a CPU.
-- Demo applications showcasing the potential of our models: gesture recognition, fitness activity tracking, live
+- Demo applications showcasing the potential of our models: action recognition, gesture control, fitness activity tracking, live
  calorie estimation.
 - A pipeline to record and annotate your own video dataset and train a custom classifier on top of our models with an easy-to-use script to fine-tune our weights.
 
@@ -121,7 +121,7 @@ resources
 │   └── strided_inflated_mobilenet.ckpt
 ├── fitness_activity_recognition
 │   └── ...
-├── gesture_recognition
+├── action_recognition
 │   └── ...
 └── ...
 ```
