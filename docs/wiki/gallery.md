@@ -62,5 +62,5 @@ model is in progress but here's a quick preview of what was achieved with a tiny
 An app that will make you run faster.
 
 <p align="center">
-    <img src="docs/gifs/virtual_race_app.gif" width="200px">
+    <img src="../gifs/virtual_race_app.gif" width="200px">
 </p>
