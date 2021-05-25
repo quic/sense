@@ -13,6 +13,7 @@
   <a href="#getting-started">Getting Started</a> •
   <a href="#build-your-own-classifier">Build Your Own Classifier</a> •
   <a href="#ios-deployment">iOS Deployment</a> •
+  <a href="#gallery">Gallery</a> •
   <a href="https://20bn.com/products/datasets">Datasets</a> •   
   <a href="https://20bn.com/licensing/sdk/evaluation">SDK License</a>
 </p>
@@ -69,11 +70,6 @@
 </p>
 
 </div>
-
-<!-- 
-## From the Community 
--->
-<!-- Projects from the community -->
 
 ---
 
@@ -147,20 +143,7 @@ Usage:
 PYTHONPATH=./ python examples/run_action_recognition.py
 ```
 
-#### Demo 2: Gesture Control
-
-`examples/run_gesture_control.py` applies our pre-trained models to the detection of 8 hand gesture events 
-(6 swiping gestures + thumbs up + thumbs down). Compared to Demo 1, the model used in this case was trained 
-to trigger the correct class for a short period of time right after the hand gesture occurred. This behavior 
-policy makes it easier to quickly trigger multiple hand gestures in a row. 
-
-Usage:
-```shell
-PYTHONPATH=./ python examples/run_gesture_control.py
-```
-
-
-#### Demo 3: Fitness Activity Tracking
+#### Demo 2: Fitness Activity Tracking
 
 `examples/run_fitness_tracker.py` applies our pre-trained models to real-time fitness activity recognition and calorie estimation. 
 In total, 80 different fitness exercises are recognized (see full list 
@@ -190,6 +173,18 @@ For the best performance, the following is recommended:
 - Ensure your body is fully visible (head-to-toe) 
 - Try to be in a simple environment (with a clean background) 
 
+
+#### Demo 3: Gesture Control
+
+`examples/run_gesture_control.py` applies our pre-trained models to the detection of 8 hand gesture events 
+(6 swiping gestures + thumbs up + thumbs down). Compared to Demo 1, the model used in this case was trained 
+to trigger the correct class for a short period of time right after the hand gesture occurred. This behavior 
+policy makes it easier to quickly trigger multiple hand gestures in a row. 
+
+Usage:
+```shell
+PYTHONPATH=./ python examples/run_gesture_control.py
+```
 
 #### Demo 4: Calorie Estimation
 
