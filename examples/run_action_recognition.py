@@ -63,13 +63,13 @@ if __name__ == "__main__":
     backbone_network = build_backbone_network(selected_config, weights['backbone'])
 
     # Create a logistic regression classifier
-    gesture_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
-                                            num_out=30)
-    gesture_classifier.load_state_dict(weights['action_recognition'])
-    gesture_classifier.eval()
+    action_classifier = LogisticRegression(num_in=backbone_network.feature_dim,
+                                           num_out=30)
+    action_classifier.load_state_dict(weights['action_recognition'])
+    action_classifier.eval()
 
     # Concatenate backbone network and logistic regression
-    net = Pipe(backbone_network, gesture_classifier)
+    net = Pipe(backbone_network, action_classifier)
 
     postprocessor = [
         PostprocessClassificationOutput(INT2LAB, smoothing=4)
