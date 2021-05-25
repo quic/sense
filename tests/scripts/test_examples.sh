@@ -4,13 +4,13 @@
 test_video_path="tests/resources/test_video.mp4"
 calorie_estimation_args="--weight=65 --age=30 --height=170 --gender=female --path_in=$test_video_path"
 
-echo "Test Gesture Recognition demo ::"
+echo "Test Action Recognition demo ::"
 PYTHONPATH=./ python examples/run_action_recognition.py --path_in=$test_video_path
 PYTHONPATH=./ python examples/run_action_recognition.py --path_in=$test_video_path --model_version=lite
 PYTHONPATH=./ python examples/run_action_recognition.py --path_in=$test_video_path --model_name=StridedInflatedMobileNetV2
 PYTHONPATH=./ python examples/run_action_recognition.py --path_in=$test_video_path --model_name=StridedInflatedMobileNetV2 --model_version=lite
 
-echo "Test Gesture Detection demo ::"
+echo "Test Gesture Control demo ::"
 PYTHONPATH=./ python examples/run_gesture_control.py --path_in=$test_video_path
 PYTHONPATH=./ python examples/run_gesture_control.py --path_in=$test_video_path --model_version=lite
 
