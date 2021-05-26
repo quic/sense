@@ -107,8 +107,7 @@ See all available install commands [here](https://pytorch.org/).
 #### Step 3: Download the SenseKit Weights
 Pre-trained weights can be downloaded from [here](https://20bn.com/licensing/sdk/evaluation), subject to separate terms. 
 Follow the instructions to create an account, agree to evaluation license and download the weights. Once downloaded, unzip the folder and move the 
-folder named `backbone` into `sense/resources`. In the end, your resources folder structure should look like
- this:
+contents into `sense/resources`. In the end, your resources folder structure should look like this:
 
 ```
 resources
@@ -122,8 +121,8 @@ resources
 └── ...
 ```
 
-Note: The remaining folders in `resources/` will already have the necessary files -- only `resources/backbone` 
-needs to be downloaded separately. 
+Note: The remaining folders in `resources/` will already have the necessary files -- only some additional larger folders
+need to be downloaded separately.
 
 --- 
 
