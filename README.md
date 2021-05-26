@@ -130,7 +130,17 @@ needs to be downloaded separately.
 ## Getting Started
 To get started, try out the demos we've provided. Inside the `sense/examples` directory, you will find multiple Python scripts 
 that each apply our pre-trained models to a specific use-case. Launching each demo is as simple as running the script in terminal 
-as described below. 
+as described below.
+
+The examples will display information on the achieved frame rate in the lower left corner, so you can verify that your
+installation is running well.
+- `Camera FPS` is the rate at which frames are read from the webcam or from the provided file. Per default, 16fps is the
+maximum that was configured as a trade-off between high input frame rate and low computational footprint of the model.
+  The input video stream will be up- or down-sampled accordingly, so that all processing happens in real-time.
+- `Model FPS` is the rate at which the model produces predictions. In order to keep computations low, our model always
+  collects four frames before passing them through the network, so the expected output frame rate is 4fps. Through temporal
+  convolutions with striding, the model still maintains a larger receptive field.
+
 
 #### Demo 1: Action Recognition
 
