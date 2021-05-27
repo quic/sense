@@ -84,7 +84,7 @@ cd sense
 ```
 
 #### Step 2: Install Dependencies
-We recommended creating a new virtual environment to install our dependencies using 
+We recommend creating a new virtual environment to install our dependencies using 
 [conda](https://docs.conda.io/en/latest/miniconda.html) or [`virtualenv`](https://docs.python.org/3/library/venv.html
 ). The following instructions will help create a conda environment. 
 
