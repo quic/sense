@@ -38,13 +38,13 @@ For installation and instructions on runnning the already included demos, please
 
 This repo demonstrates a RGB-based gesture recognition system aimed for Human Robot Interaction. This repository was further integrated [here](https://github.com/alberttjc/hiROS) into the ROS framework with the intention to be used for HRI research.
 
+## Gestures
 
 The following gestures supported are:
 
-## Gestures
 <div align="center">
 
-|||||
+|List of gestures used||||
 | ------------- |-------------| ---------| ------------- |
 | Come forward                | Handwave           | Pointing       | Rotate Arm Clockwise |
 | Come forward                | Pause              |Resume          | Rotate Arm anti-Clockwise |
