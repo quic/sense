@@ -61,7 +61,6 @@ class ModelConfig:
         self.model_name = model_name
         self.version = version
         self.combined_model_name = f'{self.model_name}-{self.version}'
-
         self.feature_converters = feature_converters
 
     def check_weight_files(self):
@@ -117,17 +116,17 @@ def get_relevant_weights(
     :return:
         First available model config and dictionary of model weights
     """
+    for config in model_config_list:
+        print(config.feature_converters)
 
     # Filter out model configurations that don't match requested name, version and converter
     if requested_model_name:
         model_config_list = [config for config in model_config_list
                              if config.model_name == requested_model_name]
+        print(model_config_list)
     if requested_version:
         model_config_list = [config for config in model_config_list
                              if config.version == requested_version]
-    if requested_converter:
-        model_config_list = [config for config in model_config_list
-                             if requested_converter in config.feature_converters]
 
     # Check if not empty
     if not model_config_list:
