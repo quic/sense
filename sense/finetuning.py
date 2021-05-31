@@ -63,7 +63,7 @@ class FeaturesDataset(torch.utils.data.Dataset):
         num_preds = features.shape[0]
 
         temporal_annotation = self.temporal_annotations[idx]
-        # remove beggining of prediction that is not padded
+        # remove beginning of prediction that is not padded
         if temporal_annotation is not None:
             temporal_annotation = np.array(temporal_annotation)
 
@@ -92,8 +92,8 @@ class FeaturesDataset(torch.utils.data.Dataset):
                 position = np.random.randint(minimum_position, num_preds - self.num_timesteps)
                 features = features[position: position + self.num_timesteps]
             # will assume that we need only one output
-        if temporal_annotation is None:
-            temporal_annotation = [-100]
+        if temporal_annotation is None or len(temporal_annotation) == 0:
+            temporal_annotation = np.array([-100])
         return [features, self.labels[idx], temporal_annotation]
 
 
@@ -114,20 +114,31 @@ def generate_data_loader(project_config, features_dir, tags_dir, label_names, la
         labels += [label2int[label]] * len(feature_temp)
         labels_string += [label] * len(feature_temp)
 
+    if project_config:
+        tag_mapping = project_config['tags'].copy()
+        tag_mapping[0] = 'background'
+
     # Check if temporal annotations exist for each video
     for label, feature in zip(labels_string, features):
         temporal_annotation_file = feature.replace(features_dir, tags_dir).replace(".npy", ".json")
         if os.path.isfile(temporal_annotation_file) and temporal_annotation_only:
-            if project_config:
-                tag1, tag2 = project_config['classes'][label]
-            else:
+            if not project_config:
                 tag1 = f'{label}_tag1'
                 tag2 = f'{label}_tag2'
-            class_mapping = {0: 'background', 1: tag1, 2: tag2}
+                tag_mapping = {0: 'background', 1: tag1, 2: tag2}
+                class_tags = {0, 1, 2}
+            else:
+                class_tags = set(project_config['classes'][label])
 
-            annotation = json.load(open(temporal_annotation_file))["time_annotation"]
-            annotation = np.array([label2int_temporal_annotation[class_mapping[y]] for y in annotation])
-            temporal_annotation.append(annotation)
+            with open(temporal_annotation_file, 'r') as f:
+                annotations = json.load(f)['time_annotation']
+
+            # Translate tags to class names and then to integer labels for this training run
+            # Reset tags that have been removed from a class to 'background'
+            annotations = np.array([label2int_temporal_annotation[tag_mapping[y]] if y in class_tags
+                                    else label2int_temporal_annotation['background']
+                                    for y in annotations])
+            temporal_annotation.append(annotations)
         else:
             temporal_annotation.append(None)
 
@@ -228,6 +239,8 @@ def compute_frames_and_features(inference_engine: InferenceEngine, project_path:
     :param features_dir:
         Directory where computed features should be stored. One .npy file will be created per video.
     """
+    assisted_tagging = utils.get_project_setting(project_path, 'assisted_tagging')
+
     # Create features and frames folders
     os.makedirs(features_dir, exist_ok=True)
     os.makedirs(frames_dir, exist_ok=True)
@@ -243,8 +256,7 @@ def compute_frames_and_features(inference_engine: InferenceEngine, project_path:
         path_frames = os.path.join(frames_dir, video_name)
         path_features = os.path.join(features_dir, f'{video_name}.npy')
 
-        features_needed = (utils.get_project_setting(project_path, 'assisted_tagging')
-                           and not os.path.exists(path_features))
+        features_needed = (assisted_tagging and not os.path.exists(path_features))
 
         frames = extract_frames(video_path=video_path,
                                 inference_engine=inference_engine,
@@ -259,15 +271,18 @@ def compute_frames_and_features(inference_engine: InferenceEngine, project_path:
                              num_timesteps=1)
 
 
-def extract_features(path_in, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1, log_fn=print):
+def extract_features(path_in, label_names, model_config, net, num_layers_finetune, use_gpu, num_timesteps=1,
+                     log_fn=print):
     # Create inference engine
     inference_engine = engine.InferenceEngine(net, use_gpu=use_gpu)
 
     # extract features
     for split in SPLITS:
+        video_files = []
         videos_dir = directories.get_videos_dir(path_in, split)
         features_dir = directories.get_features_dir(path_in, split, model_config, num_layers_finetune)
-        video_files = glob.glob(os.path.join(videos_dir, "*", "*.mp4"))
+        for label in label_names:
+            video_files.extend(glob.glob(os.path.join(videos_dir, label, "*.mp4")))
 
         num_videos = len(video_files)
         log_fn(f"\nFound {num_videos} videos to process in the {split}-set")

@@ -5,15 +5,16 @@ import os
 import urllib
 
 from flask import Blueprint
-from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import send_from_directory
 from flask import url_for
+from joblib import dump
 from joblib import load
 from natsort import natsorted
 from natsort import ns
+from sklearn.linear_model import LogisticRegression
 
 from sense import SPLITS
 from sense.finetuning import compute_frames_and_features
@@ -43,9 +44,7 @@ def show_video_list(project, split, label):
     frames_dir = directories.get_frames_dir(path, split, label)
     features_dir = directories.get_features_dir(path, split, model_config, label=label)
     tags_dir = directories.get_tags_dir(path, split, label)
-    logreg_dir = directories.get_logreg_dir(path, model_config, label)
 
-    os.makedirs(logreg_dir, exist_ok=True)
     os.makedirs(tags_dir, exist_ok=True)
 
     # compute the features and frames missing
@@ -80,12 +79,20 @@ def annotate(project, split, label, idx):
     label = urllib.parse.unquote(label)
     split = urllib.parse.unquote(split)
 
+    config = project_utils.load_project_config(path)
+    tags = config['tags'].copy()
+    tags[0] = 'background'
+
+    class_tags = config['classes'][label].copy()
+    class_tags.append(0)  # Always add 'background'
+    class_tags.sort()
+
     _, model_config = utils.load_feature_extractor(path)
 
     frames_dir = directories.get_frames_dir(path, split, label)
     features_dir = directories.get_features_dir(path, split, model_config, label=label)
     tags_dir = directories.get_tags_dir(path, split, label)
-    logreg_dir = directories.get_logreg_dir(path, model_config, label)
+    logreg_dir = directories.get_logreg_dir(path, model_config)
 
     videos = os.listdir(frames_dir)
     videos = natsorted(videos, alg=ns.IC)
@@ -104,6 +111,9 @@ def annotate(project, split, label, idx):
             features = np.load(features_path).mean(axis=(2, 3))
             classes = list(logreg.predict(features))
 
+            # Reset tags that have been removed from the class to 'background'
+            classes = [tag_idx if tag_idx in class_tags else 0 for tag_idx in classes]
+
     # Natural sort images, so that they are sorted by number
     images = natsorted(images, alg=ns.IC)
     # Extract image file name (without full path) and include class label
@@ -115,17 +125,17 @@ def annotate(project, split, label, idx):
         with open(annotations_file, 'r') as f:
             data = json.load(f)
             annotations = data['time_annotation']
+
+            # Reset tags that have been removed from the class to 'background'
+            annotations = [tag_idx if tag_idx in class_tags else 0 for tag_idx in annotations]
     else:
         # Use "background" label for all frames per default
         annotations = [0] * len(images)
 
-    # Read tags from config
-    config = project_utils.load_project_config(path)
-    tags = config['classes'][label]
-
     return render_template('frame_annotation.html', images=images, annotations=annotations, idx=idx, fps=16,
                            n_images=len(images), video_name=videos[idx], project_config=config,
-                           split=split, label=label, path=path, tags=tags, project=project, n_videos=len(videos))
+                           split=split, label=label, path=path, project=project, n_videos=len(videos),
+                           tags=tags, class_tags=class_tags)
 
 
 @annotation_bp.route('/submit-annotation', methods=['POST'])
@@ -160,20 +170,7 @@ def submit_annotation():
 
     # Automatic re-training of the logistic regression model
     if utils.get_project_setting(path, 'assisted_tagging'):
-        inference_engine, model_config = utils.load_feature_extractor(path)
-        videos_dir = directories.get_videos_dir(path, split, label)
-        frames_dir = directories.get_frames_dir(path, split, label)
-        features_dir = directories.get_features_dir(path, split, model_config, label=label)
-
-        # Compute the respective frames and features
-        compute_frames_and_features(inference_engine=inference_engine,
-                                    project_path=path,
-                                    videos_dir=videos_dir,
-                                    frames_dir=frames_dir,
-                                    features_dir=features_dir)
-
-        # Re-train the logistic regression model
-        utils.train_logreg(path=path, split=split, label=label)
+        train_logreg(path=path)
 
     if next_frame_idx >= len(os.listdir(frames_dir)):
         return redirect(url_for('.show_video_list', project=project, split=split, label=label))
@@ -189,3 +186,67 @@ def download_file(project, split, label, video_name, img_file):
     dataset_path = project_utils.lookup_project_path(project)
     img_dir = os.path.join(directories.get_frames_dir(dataset_path, split, label), video_name)
     return send_from_directory(img_dir, img_file, as_attachment=True)
+
+
+def train_logreg(path):
+    """
+    (Re-)Train a logistic regression model on all annotations that have been submitted so far.
+    """
+    inference_engine, model_config = utils.load_feature_extractor(path)
+
+    logreg_dir = directories.get_logreg_dir(path, model_config)
+    logreg_path = os.path.join(logreg_dir, 'logreg.joblib')
+    project_config = project_utils.load_project_config(path)
+    classes = project_config['classes']
+
+    all_features = []
+    all_annotations = []
+
+    for split in SPLITS:
+        for label, class_tags in classes.items():
+            videos_dir = directories.get_videos_dir(path, split, label)
+            frames_dir = directories.get_frames_dir(path, split, label)
+            features_dir = directories.get_features_dir(path, split, model_config, label=label)
+            tags_dir = directories.get_tags_dir(path, split, label)
+
+            if not os.path.exists(tags_dir):
+                continue
+
+            # Compute the respective frames and features
+            compute_frames_and_features(inference_engine=inference_engine,
+                                        project_path=path,
+                                        videos_dir=videos_dir,
+                                        frames_dir=frames_dir,
+                                        features_dir=features_dir)
+
+            video_tag_files = os.listdir(tags_dir)
+
+            for video_tag_file in video_tag_files:
+                feature_file = os.path.join(features_dir, video_tag_file.replace('.json', '.npy'))
+                annotation_file = os.path.join(tags_dir, video_tag_file)
+
+                features = np.load(feature_file)
+                for f in features:
+                    all_features.append(f.mean(axis=(1, 2)))
+
+                with open(annotation_file, 'r') as f:
+                    annotations = json.load(f)['time_annotation']
+
+                # Reset tags that have been removed from the class to 'background'
+                annotations = [tag_idx if tag_idx in class_tags else 0 for tag_idx in annotations]
+
+                all_annotations.extend(annotations)
+
+    # Use low class weight for background and higher weight for all present tags
+    annotated_tags = set(all_annotations)
+    class_weight = {tag: 2 for tag in annotated_tags}
+    class_weight[0] = 0.5
+
+    all_features = np.array(all_features)
+    all_annotations = np.array(all_annotations)
+
+    if len(annotated_tags) > 1:
+        os.makedirs(logreg_dir, exist_ok=True)
+        logreg = LogisticRegression(C=0.1, class_weight=class_weight)
+        logreg.fit(all_features, all_annotations)
+        dump(logreg, logreg_path)

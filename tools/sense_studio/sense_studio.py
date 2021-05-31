@@ -20,16 +20,15 @@ from flask import request
 from flask import url_for
 
 from sense import SPLITS
-from sense.finetuning import compute_frames_and_features
 from tools import directories
 from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
-from tools.sense_studio import utils
 from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.annotation import train_logreg
 from tools.sense_studio.testing import testing_bp
 from tools.sense_studio.training import training_bp
 from tools.sense_studio.video_recording import video_recording_bp
-
+from tools.sense_studio.tags import tags_bp
 
 app = Flask(__name__)
 app.secret_key = 'd66HR8dç"f_-àgjYYic*dh'
@@ -39,6 +38,7 @@ app.register_blueprint(annotation_bp, url_prefix='/annotation')
 app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(testing_bp, url_prefix='/testing')
+app.register_blueprint(tags_bp, url_prefix='/tags')
 
 socketio.init_app(app)
 
@@ -152,11 +152,8 @@ def update_project():
     project_name = data['projectName']
     path = data['path']
 
-    try:
-        # Check for existing config file
-        config = project_utils.load_project_config(path)
-    except FileNotFoundError:
-        config = None
+    # Check for existing config file (might be None)
+    config = project_utils.load_project_config(path)
 
     # Make sure the directory is correctly set up
     project_utils.setup_new_project(project_name, path, config)
@@ -174,13 +171,12 @@ def import_project():
     data = request.form
     path = data['path']
 
-    try:
-        # Check for existing config file and make sure project name is unique
-        config = project_utils.load_project_config(path)
+    # Check for existing config file and make sure project name is unique
+    config = project_utils.load_project_config(path)
+    if config:
         project_name = project_utils.get_unique_project_name(config['name'])
-    except FileNotFoundError:
+    else:
         # Use folder name as project name and make sure it is unique
-        config = None
         project_name = project_utils.get_unique_project_name(os.path.basename(path))
 
     # Make sure the directory is correctly set up
@@ -199,7 +195,7 @@ def project_details(project):
     config = project_utils.load_project_config(path)
 
     stats = {}
-    for class_name, tags in config['classes'].items():
+    for class_name in config['classes']:
         stats[class_name] = {}
         for split in SPLITS:
             videos_dir = directories.get_videos_dir(path, split, class_name)
@@ -208,8 +204,9 @@ def project_details(project):
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
             }
-
-    return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'])
+    tags = config['tags']
+    return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
+                           tags=tags)
 
 
 @app.route('/add-class/<string:project>', methods=['POST'])
@@ -217,15 +214,14 @@ def add_class(project):
     """
     Add a new class to the given project.
     """
+    data = request.form
     project = urllib.parse.unquote(project)
     path = project_utils.lookup_project_path(project)
-
-    # Get class name and tags
-    class_name, tag1, tag2 = utils.get_class_name_and_tags(request.form)
+    class_name = data['className']
 
     # Update project config
     config = project_utils.load_project_config(path)
-    config['classes'][class_name] = [tag1, tag2]
+    config['classes'][class_name] = []
     project_utils.write_project_config(path, config)
 
     # Setup directory structure
@@ -250,23 +246,7 @@ def toggle_project_setting():
 
     # Update logreg model if assisted tagging was just enabled
     if setting == 'assisted_tagging' and new_status:
-        split = data['split']
-        label = data['label']
-        inference_engine, model_config = utils.load_feature_extractor(path)
-
-        videos_dir = directories.get_videos_dir(path, split, label)
-        frames_dir = directories.get_frames_dir(path, split, label)
-        features_dir = directories.get_features_dir(path, split, model_config, label=label)
-
-        # Compute the respective frames and features
-        compute_frames_and_features(inference_engine=inference_engine,
-                                    project_path=path,
-                                    videos_dir=videos_dir,
-                                    frames_dir=frames_dir,
-                                    features_dir=features_dir)
-
-        # Re-train the logistic regression model
-        utils.train_logreg(path=path, split=split, label=label)
+        train_logreg(path=path)
 
     return jsonify(setting_status=new_status)
 
@@ -274,19 +254,20 @@ def toggle_project_setting():
 @app.route('/edit-class/<string:project>/<string:class_name>', methods=['POST'])
 def edit_class(project, class_name):
     """
-    Edit the class name and tags for an existing class in the given project.
+    Edit the name for an existing class in the given project.
     """
+    data = request.form
     project = urllib.parse.unquote(project)
     class_name = urllib.parse.unquote(class_name)
     path = project_utils.lookup_project_path(project)
-
-    # Get new class name and tags
-    new_class_name, new_tag1, new_tag2 = utils.get_class_name_and_tags(request.form)
+    new_class_name = data['className']
 
     # Update project config
     config = project_utils.load_project_config(path)
+    tags = config['classes'][class_name]
+
     del config['classes'][class_name]
-    config['classes'][new_class_name] = [new_tag1, new_tag2]
+    config['classes'][new_class_name] = tags
     project_utils.write_project_config(path, config)
 
     # Update directory names
@@ -305,10 +286,6 @@ def edit_class(project, class_name):
             data_dirs.extend([os.path.join(model_dir, tuned_layers)
                               for model_dir in model_dirs
                               for tuned_layers in os.listdir(model_dir)])
-
-    logreg_dir = directories.get_logreg_dir(path)
-    if os.path.exists(logreg_dir):
-        data_dirs.extend([os.path.join(logreg_dir, model_dir) for model_dir in os.listdir(logreg_dir)])
 
     for base_dir in data_dirs:
         class_dir = os.path.join(base_dir, class_name)
@@ -335,6 +312,42 @@ def remove_class(project, class_name):
     project_utils.write_project_config(path, config)
 
     return redirect(url_for("project_details", project=project))
+
+
+@app.route('/assign-tag-to-class', methods=['POST'])
+def assign_tag_to_class():
+    """
+    Assign selected tag to class label in project config.
+    """
+    data = request.json
+    path = data['path']
+    tag_index = data['tagIndex']
+    class_name = data['className']
+
+    config = project_utils.load_project_config(path)
+    class_tags = config['classes'][class_name]
+    class_tags.append(int(tag_index))
+    class_tags.sort()
+
+    project_utils.write_project_config(path, config)
+    return jsonify(success=True)
+
+
+@app.route('/remove-tag-from-class', methods=['POST'])
+def remove_tag_from_class():
+    """
+    Remove selected tag from class label in project config.
+    """
+    data = request.json
+    path = data['path']
+    tag_index = data['tagIndex']
+    class_name = data['className']
+
+    config = project_utils.load_project_config(path)
+    config['classes'][class_name].remove(int(tag_index))
+
+    project_utils.write_project_config(path, config)
+    return jsonify(success=True)
 
 
 @app.after_request

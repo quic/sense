@@ -30,7 +30,6 @@ from sense.downstream_tasks.nn_utils import Pipe
 from sense.downstream_tasks.postprocess import PostprocessClassificationOutput
 from sense.loading import build_backbone_network
 from sense.loading import load_backbone_model_from_config
-from sense.loading import update_backbone_weights
 
 
 def run_custom_classifier(custom_classifier, camera_id=0, path_in=None, path_out=None, title=None, use_gpu=True,
@@ -50,11 +49,10 @@ def run_custom_classifier(custom_classifier, camera_id=0, path_in=None, path_out
         else:
             print(msg)
         return None
-    # Update original weights in case some intermediate layers have been finetuned
-    update_backbone_weights(backbone_weights, checkpoint_classifier)
 
     # Create backbone network
-    backbone_network = build_backbone_network(backbone_model_config, backbone_weights)
+    backbone_network = build_backbone_network(backbone_model_config, backbone_weights,
+                                              weights_finetuned=checkpoint_classifier)
 
     with open(os.path.join(custom_classifier, 'label2int.json')) as file:
         class2int = json.load(file)
