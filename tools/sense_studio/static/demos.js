@@ -67,6 +67,8 @@ async function startDemo(url) {
     let buttonCancelDemo = document.getElementById('btnCancelDemo');
     let frame = document.getElementById('frame');
     let gpuInput = document.getElementById('gpuInput').checked;
+    let terminal = document.getElementById('demoTerminal');
+    terminal.innerHTML = '';
 
     data = {
         demo: demo.options[demo.selectedIndex].text,
@@ -98,6 +100,7 @@ async function startDemo(url) {
 
     socket.on('success', function(message) {
         if (message.status === 'Complete') {
+            addTerminalMessage('Stopped Inference...');
             frame.removeAttribute('src');
             // Set frame placeholder to default height and width
             frame.height = 480;
@@ -120,7 +123,6 @@ async function startDemo(url) {
 }
 
 async function cancelDemo(url) {
-    addTerminalMessage('Stopping Inference...');
     await asyncRequest(url);
 
     document.getElementById('btnCancelDemo').disabled = true;
