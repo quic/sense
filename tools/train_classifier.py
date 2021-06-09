@@ -86,7 +86,7 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
         SUPPORTED_MODEL_CONFIGURATIONS,
         model_name,
         model_version,
-        log_fn,
+        log_fn=log_fn,
     )
     backbone_weights = weights['backbone']
 
