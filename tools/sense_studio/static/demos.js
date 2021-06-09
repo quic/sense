@@ -1,3 +1,8 @@
+
+document.addEventListener("DOMContentLoaded", function () {
+    toggleMETConverters();
+});
+
 function toggleMETConverters() {
     let demo = document.getElementById('demo');
     let metToCalorieConverters = document.getElementById('metToCalorieConverters');
