@@ -23,7 +23,7 @@
                         <label class="uk-form-label" for="demo">Demo</label>
                         <div class="uk-form-controls uk-width-1-1">
                             <select class="uk-select {{ 'uk-form-danger' if not demos }}" id="demo" name="demo"
-                                    onchange="toggleMETConverters(); getSupportedModelsByDemo('{{ url_for('.get_supported_models') }}');">
+                                    onchange="toggleMETConverters(); getSupportedModelsByDemo('{{ url_for('.get_supported_models') }}'); cancelDemo('{{ url_for('.cancel_demo') }}');">
                                 {% if demos %}
                                     {% for demo in demos %}
                                         <option value="{{ demo }}">{{ demo }}</option>
