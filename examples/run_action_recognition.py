@@ -43,7 +43,7 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 
 
 def run_action_recognition(model_name, model_version, path_in=None, path_out=None, title=None, camera_id=0,
-                            use_gpu=True, display_fn=None, stop_event=None, **kwargs):
+                           use_gpu=True, display_fn=None, stop_event=None, **kwargs):
     # Load weights
     selected_config, weights = get_relevant_weights(
         SUPPORTED_MODEL_CONFIGURATIONS,
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     _model_version = args['--model_version'] or None
     _use_gpu = args['--use_gpu']
 
-    run_gesture_recognition(
+    run_action_recognition(
         model_name=_model_name,
         model_version=_model_version,
         path_in=_path_in,
