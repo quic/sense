@@ -42,7 +42,7 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-def run_gesture_recognition(model_name, model_version, path_in=None, path_out=None, title=None, camera_id=0,
+def run_action_recognition(model_name, model_version, path_in=None, path_out=None, title=None, camera_id=0,
                             use_gpu=True, display_fn=None, stop_event=None, **kwargs):
     # Load weights
     selected_config, weights = get_relevant_weights(
