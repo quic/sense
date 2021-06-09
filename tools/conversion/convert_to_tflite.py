@@ -16,7 +16,7 @@ Usage:
 
 Options:
   --classifier=CLASSIFIER              Name of the classifier model. Either one of the pre-trained classifiers
-                                       such as "gesture_recognition" or "fitness_activity_recognition",
+                                       such as "action_recognition" or "fitness_activity_recognition",
                                        or "custom_classifier" for converting a custom trained one.
                                        For the pre-trained classifiers, a name and version for the backbone model
                                        need to be provided. For a custom classifier, path_in needs to be provided.
@@ -71,7 +71,7 @@ SUPPORTED_BACKBONE_CONVERSIONS = {
 }
 
 SUPPORTED_CLASSIFIER_CONVERSIONS = {
-    "gesture_recognition": {
+    "action_recognition": {
         "config_file": "tools/conversion/cfg/logistic_regression.cfg",
         "placeholder_values": {"NUM_CLASSES": "30"},
     },
