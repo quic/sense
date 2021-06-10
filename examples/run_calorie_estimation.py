@@ -51,9 +51,9 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 
 
 def run_calorie_estimation(model_name: str, model_version: str, path_in: Optional[str] = None,
-                        path_out: Optional[str] = None, weight: Optional[int, float] = 70.0,
-                        height: Optional[int, float] = 170.0, age: float = 30.0, gender: Optional[str] = None,
-                        title: Optional[str] = None, camera_id: object = 0, use_gpu: bool = True, **kwargs):
+                           path_out: Optional[str] = None, weight: Optional[int, float] = 70.0,
+                           height: Optional[int, float] = 170.0, age: float = 30.0, gender: Optional[str] = None,
+                           title: Optional[str] = None, camera_id: object = 0, use_gpu: bool = True, **kwargs):
     """
     :param model_name:
         Model from backbone (StridedInflatedEfficientNet or StridedInflatedMobileNetV2).
