@@ -54,7 +54,7 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 def run_fitness_tracker(model_name: str, model_version: str, path_in: Optional[str] = None,
                         path_out: Optional[str] = None, weight: Optional[int, float] = 70.0,
                         height: Optional[int, float] = 170.0, age: float = 30.0, gender: Optional[str] = None,
-                        title: Optional[str] = None, camera_id: object = 0, use_gpu: bool = True, **kwargs):
+                        title: Optional[str] = None, camera_id: int = 0, use_gpu: bool = True, **kwargs):
     """
     :param model_name:
         Model from backbone (StridedInflatedEfficientNet or StridedInflatedMobileNetV2).
@@ -143,28 +143,17 @@ def run_fitness_tracker(model_name: str, model_version: str, path_in: Optional[s
 if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
-    _weight = float(args['--weight'])
-    _height = float(args['--height'])
-    _age = float(args['--age'])
-    _gender = args['--gender'] or None
-    _model_name = args['--model_name'] or None
-    _model_version = args['--model_version'] or None
-    _use_gpu = args['--use_gpu']
-    _camera_id = int(args['--camera_id'] or 0)
-    _path_in = args['--path_in'] or None
-    _path_out = args['--path_out'] or None
-    _title = args['--title'] or None
 
     run_fitness_tracker(
-        model_name=_model_name,
-        model_version=_model_version,
-        path_in=_path_in,
-        path_out=_path_out,
-        weight=_weight,
-        height=_height,
-        age=_age,
-        gender=_gender,
-        title=_title,
-        camera_id=_camera_id,
-        use_gpu=_use_gpu
+        model_name=args['--model_name'] or None,
+        model_version=args['--model_version'] or None,
+        path_in=args['--path_in'] or None,
+        path_out=args['--path_out'] or None,
+        weight=float(args['--weight']),
+        height=float(args['--height']),
+        age=float(args['--age']),
+        gender=args['--gender'] or None,
+        title=args['--title'] or None,
+        camera_id=int(args['--camera_id'] or 0),
+        use_gpu=args['--use_gpu']
     )

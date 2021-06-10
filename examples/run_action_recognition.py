@@ -116,20 +116,13 @@ def run_action_recognition(model_name: str, model_version: str, path_in: Optiona
 if __name__ == "__main__":
     # Parse arguments
     args = docopt(__doc__)
-    _camera_id = int(args['--camera_id'] or 0)
-    _path_in = args['--path_in'] or None
-    _path_out = args['--path_out'] or None
-    _title = args['--title'] or None
-    _model_name = args['--model_name'] or None
-    _model_version = args['--model_version'] or None
-    _use_gpu = args['--use_gpu']
 
     run_action_recognition(
-        model_name=_model_name,
-        model_version=_model_version,
-        path_in=_path_in,
-        path_out=_path_out,
-        title=_title,
-        camera_id=0,
-        use_gpu=_use_gpu,
+        camera_id=int(args['--camera_id'] or 0),
+        path_in=args['--path_in'] or None,
+        path_out=args['--path_out'] or None,
+        title=args['--title'] or None,
+        model_name=args['--model_name'] or None,
+        model_version=args['--model_version'] or None,
+        use_gpu=args['--use_gpu'],
     )
