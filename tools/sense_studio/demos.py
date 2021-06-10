@@ -3,7 +3,6 @@ import importlib
 import multiprocessing
 import os
 import queue
-
 from typing import Optional
 
 import cv2
@@ -34,6 +33,10 @@ def demos_page():
 
 @demos_bp.route('/start-demo', methods=['POST'])
 def start_demo():
+    global queue_demo_output
+    global stop_event
+    global demo_process
+
     data = request.json
     demo = data['demo']
     path_in = data['inputVideoPath']
@@ -51,8 +54,6 @@ def start_demo():
 
     ctx = multiprocessing.get_context('spawn')
 
-    global queue_demo_output
-    global stop_event
     queue_demo_output = ctx.Queue()
     stop_event = ctx.Event()
 
@@ -73,7 +74,7 @@ def start_demo():
 
     # Dynamically import the script based on demo name
     import_demo = importlib.import_module(f'examples.{demo}')
-    global demo_process
+
     demo_process = ctx.Process(target=getattr(import_demo, demo), kwargs=example_kwargs)
     demo_process.start()
 
@@ -99,7 +100,7 @@ def cancel_demo():
 def stream_demo(msg):
     global demo_process
     global queue_demo_output
-
+    print(msg['status'])
     try:
         while demo_process.is_alive():
             try:
