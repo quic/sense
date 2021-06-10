@@ -20,6 +20,8 @@ Options:
   --model_version=VERSION    Version of the model to be used.
   --use_gpu                  Whether to run inference on the GPU or not.
 """
+from typing import Optional
+
 from docopt import docopt
 
 import sense.display
@@ -42,8 +44,25 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-def run_action_recognition(model_name, model_version, path_in=None, path_out=None, title=None, camera_id=0,
-                           use_gpu=True, display_fn=None, stop_event=None, **kwargs):
+def run_action_recognition(model_name: str, model_version: str, path_in: Optional[str] = None,
+                           path_out: Optional[str] = None, title: Optional[str] = None, camera_id: int = 0,
+                           use_gpu: bool = True, **kwargs):
+    """
+    :param model_name:
+        Model from backbone (StridedInflatedEfficientNet or StridedInflatedMobileNetV2).
+    :param model_version:
+        Model version (pro or lite)
+    :param path_in:
+        The index of the webcam that is used. Default to 0.
+    :param path_out:
+        If provided, store the captured video in a file in this location.
+    :param title:
+            Title of the image frame on display.
+    :param camera_id:
+        The index of the webcam that is used. Default id is 0.
+    :param use_gpu:
+        If True, run the model on the GPU
+    """
     # Load weights
     selected_config, weights = get_relevant_weights(
         SUPPORTED_MODEL_CONFIGURATIONS,
@@ -76,7 +95,8 @@ def run_action_recognition(model_name, model_version, path_in=None, path_out=Non
         sense.display.DisplayClassnameOverlay(thresholds=LAB_THRESHOLDS,
                                               border_size_top=border_size if not title else border_size + 50),
     ]
-    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops, display_fn=display_fn)
+    display_results = sense.display.DisplayResults(title=title, display_ops=display_ops,
+                                                   display_fn=kwargs.get('display_fn', None))
 
     # Run live inference
     controller = Controller(
@@ -88,7 +108,7 @@ def run_action_recognition(model_name, model_version, path_in=None, path_out=Non
         path_in=path_in,
         path_out=path_out,
         use_gpu=use_gpu,
-        stop_event=stop_event,
+        stop_event=kwargs.get('stop_event', None),
     )
     controller.run_inference()
 
