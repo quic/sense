@@ -1,20 +1,20 @@
 
 document.addEventListener("DOMContentLoaded", function () {
-    toggleMETConverters();
+    toggleMETParametersSelection();
 });
 
-function toggleMETConverters() {
+function toggleMETParametersSelection() {
     let demo = document.getElementById('demo');
-    let metToCalorieConverters = document.getElementById('metToCalorieConverters');
+    let metToCalorieParameters = document.getElementById('metToCalorieParameters');
 
-    // Demos containing MET converters (e.g. weight, height, age, gender)
-    // If add new demo with any converter from above, add that script name here in below list (without .py)
-    let demosWithMETConverters = ["run_calorie_estimation", "run_fitness_tracker"];
+    // Some demos need these additional parameters:  weight, height, age, gender
+    // NOTE: New demos requiring these should be added to the list below.
+    let demosWithMETParameters = ["run_calorie_estimation", "run_fitness_tracker"];
 
-    if (demosWithMETConverters.includes(demo.value)) {
-        metToCalorieConverters.classList.remove('uk-hidden');
+    if (demosWithMETParameters.includes(demo.value)) {
+        metToCalorieParameters.classList.remove('uk-hidden');
     } else {
-        metToCalorieConverters.classList.add('uk-hidden');
+        metToCalorieParameters.classList.add('uk-hidden');
     }
 }
 
@@ -41,7 +41,7 @@ async function getSupportedModelsByDemo(url) {
 
 }
 
-function addTerminalMessage(message) {
+function addMessageToDemoTerminal(message) {
     let terminal = document.getElementById('demoTerminal');
     terminal.insertAdjacentHTML('beforeend', `<div class='monospace-font'><b>${message}</b></div>`);
     terminal.scrollTop = terminal.scrollHeight;
@@ -56,22 +56,27 @@ function streamDemo(message) {
 
 async function startDemo(url) {
     let demo = document.getElementById('demo');
+    let modelName = document.getElementById('modelName').value;
+
     let weight = document.getElementById('weight').value;
     let age = document.getElementById('age').value;
     let height = document.getElementById('height').value;
     let gender = document.getElementById('gender').value;
-    let modelName = document.getElementById('modelName').value;
+    let title = document.getElementById('title').value;
+    let gpuInput = document.getElementById('gpuInput').checked;
+
     let webcamInput = document.getElementsByName('inputSource')[0];
-    let saveVideo = document.getElementById('saveVideo');
     let inputVideoPath = document.getElementById('inputVideoPath');
     let inputVideoPathValue = (webcamInput.checked) ? '' : inputVideoPath.value;
+
+    let saveVideo = document.getElementById('saveVideo');
     let outputVideoName = document.getElementById('outputVideoName');
     let outputVideoNameValue = (saveVideo.checked) ? outputVideoName.value : '';
-    let title = document.getElementById('title').value;
-    let buttonRunDemo = document.getElementById('btnRunDemo');
-    let buttonCancelDemo = document.getElementById('btnCancelDemo');
+
+    let buttonRunDemo = document.getElementById('buttonRunDemo');
+    let buttonCancelDemo = document.getElementById('buttonCancelDemo');
+
     let frame = document.getElementById('frame');
-    let gpuInput = document.getElementById('gpuInput').checked;
     let terminal = document.getElementById('demoTerminal');
     terminal.innerHTML = '';
 
@@ -105,7 +110,7 @@ async function startDemo(url) {
 
     socket.on('success', function(message) {
         if (message.status === 'Complete') {
-            addTerminalMessage('Stopped Inference...');
+            addMessageToDemoTerminal('Stopped Inference...');
             frame.removeAttribute('src');
             // Set frame placeholder to default height and width
             frame.height = 480;
@@ -121,16 +126,16 @@ async function startDemo(url) {
     });
 
     socket.on('demo_logs', function(message) {
-        addTerminalMessage(message.log);
+        addMessageToDemoTerminal(message.log);
     });
 
-    addTerminalMessage('Starting Inference...');
+    addMessageToDemoTerminal('Starting Inference...');
 }
 
 async function cancelDemo(url) {
     await asyncRequest(url);
 
-    document.getElementById('btnCancelDemo').disabled = true;
+    document.getElementById('buttonCancelDemo').disabled = true;
 
     // Enable run demo button again depending on input fields
     checkInputFields();
@@ -173,8 +178,8 @@ async function checkInputFields() {
     let outputVideoName = document.getElementById('outputVideoName');
     let outputVideoNameValue = outputVideoName.value;
 
-    let buttonRunDemo = document.getElementById('btnRunDemo');
-    let buttonCancelDemo = document.getElementById('btnCancelDemo');
+    let buttonRunDemo = document.getElementById('buttonRunDemo');
+    let buttonCancelDemo = document.getElementById('buttonCancelDemo');
 
     let directoriesResponse = await browseDirectory(inputVideoPathValue, '');
 

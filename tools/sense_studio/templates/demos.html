@@ -23,7 +23,7 @@
                         <label class="uk-form-label" for="demo">Demo</label>
                         <div class="uk-form-controls uk-width-1-1">
                             <select class="uk-select {{ 'uk-form-danger' if not demos }}" id="demo" name="demo"
-                                    onchange="toggleMETConverters(); getSupportedModelsByDemo('{{ url_for('.get_supported_models') }}'); cancelDemo('{{ url_for('.cancel_demo') }}');">
+                                    onchange="toggleMETParametersSelection(); getSupportedModelsByDemo('{{ url_for('.get_supported_models') }}'); cancelDemo('{{ url_for('.cancel_demo') }}');">
                                 {% if demos %}
                                     {% for demo in demos %}
                                         <option value="{{ demo }}">{{ demo }}</option>
@@ -65,7 +65,7 @@
                 </div>
              </div>
 
-            <div id="metToCalorieConverters">
+            <div id="metToCalorieParameters">
                 <div class="uk-child-width-1-4@s uk-grid-small uk-grid-match" uk-grid>
                     <div uk-tooltip="title: To convert predicted MET value to calories;">
                         <label class="uk-form-label" for="weight">Weight <b class="uk-text-muted">(in kgs)</b></label>
@@ -173,12 +173,12 @@
             </div>
         </div>
 
-        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnRunDemo" type="button" tabindex="0"
+        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="buttonRunDemo" type="button" tabindex="0"
                 onclick="startDemo('{{ url_for('.start_demo') }}');"
                 {% if not models %} disabled {% endif %}>
             Run Demo
         </button>
-        <button class="uk-button uk-button-danger" id="btnCancelDemo" type="button" tabindex="1"
+        <button class="uk-button uk-button-danger" id="buttonCancelDemo" type="button" tabindex="1"
                 onclick="cancelDemo('{{ url_for('.cancel_demo') }}');" disabled>
             Cancel
         </button>
