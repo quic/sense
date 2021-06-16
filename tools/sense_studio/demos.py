@@ -62,15 +62,19 @@ def start_demo():
         'model_name': model_name,
         'path_in': path_in,
         'path_out': path_out,
-        'weight': float(data['weight']),
-        'height': float(data['height']),
-        'age': float(data['age']),
-        'gender': data['gender'],
         'title': title,
         'use_gpu': data['gpuInput'],
         'display_fn': queue_demo_output.put,
         'stop_event': stop_event,
     }
+
+    if demo in ['run_calorie_estimation', 'run_fitness_tracker']:
+        example_kwargs.update({
+            'weight': float(data['weight']),
+            'height': float(data['height']),
+            'age': float(data['age']),
+            'gender': data['gender'],
+        })
 
     # Dynamically import the script based on demo name
     import_demo = importlib.import_module(f'examples.{demo}')
