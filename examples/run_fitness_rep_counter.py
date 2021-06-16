@@ -20,6 +20,7 @@ Options:
   --model_version=VERSION         Version of the model to be used.
   --use_gpu                       Whether to run inference on the GPU or not.
 """
+from typing import Callable
 from typing import Optional
 
 from docopt import docopt
@@ -43,24 +44,20 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-def run_fitness_rep_counter(model_name: str, model_version: str, path_in: Optional[str] = None,
-                            path_out: Optional[str] = None, title: Optional[str] = None, camera_id: int = 0,
-                            use_gpu: bool = True, **kwargs):
+def run_fitness_rep_counter(model_name: str,
+                            model_version: str,
+                            title: Optional[str] = None,
+                            display_fn: Optional[Callable] = None,
+                            **kwargs):
     """
     :param model_name:
         Model from backbone (StridedInflatedEfficientNet or StridedInflatedMobileNetV2).
     :param model_version:
         Model version (pro or lite)
-    :param path_in:
-        The index of the webcam that is used. Default to 0.
-    :param path_out:
-        If provided, store the captured video in a file in this location.
     :param title:
-            Title of the image frame on display.
-    :param camera_id:
-        The index of the webcam that is used. Default id is 0.
-    :param use_gpu:
-        If True, run the model on the GPU
+        Title of the image frame on display.
+    :param display_fn:
+        Optional function to further process displayed image
     """
     # Load weights
     selected_config, weights = get_relevant_weights(
@@ -111,7 +108,7 @@ def run_fitness_rep_counter(model_name: str, model_version: str, path_in: Option
         sense.display.DisplayExerciseRepCounts()
     ]
     display_results = sense.display.DisplayResults(title=title, display_ops=display_ops,
-                                                   border_size_top=100, display_fn=kwargs.get('display_fn', None))
+                                                   border_size_top=100, display_fn=display_fn)
 
     # Run live inference
     controller = Controller(
@@ -119,11 +116,7 @@ def run_fitness_rep_counter(model_name: str, model_version: str, path_in: Option
         post_processors=postprocessor,
         results_display=display_results,
         callbacks=[],
-        camera_id=camera_id,
-        path_in=path_in,
-        path_out=path_out,
-        use_gpu=use_gpu,
-        stop_event=kwargs.get('stop_event', None),
+        **kwargs
     )
     controller.run_inference()
 
