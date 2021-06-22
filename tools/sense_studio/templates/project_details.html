@@ -8,7 +8,6 @@
 
 {% block main %}
 <div class="uk-container">
-
     <div class="uk-margin-large-top" uk-grid>
         <div class="uk-width-expand">
             <h1 class="uk-heading-medium uk-margin-remove-bottom">{{ project }}</h1>
@@ -274,46 +273,54 @@
                     </div>
 
                     <div class="uk-card-footer">
-                        <h4>Videos</h4>
-                        <h5>
-                            Train: {{ stats[class].train.total }}
-                            <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
-                                ({{ stats[class].train.tagged }} annotated)
-                            </span>
-                        </h5>
-                        <div class="uk-button-group">
-                            <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
-                                <span uk-icon="icon: video-camera"></span>
-                                Record
-                            </a>
-                            <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-                               onclick="loadingButton(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}');">
-                                <span uk-icon="icon: file-edit"></span>
-                                <span>Annotate</span>
-                            </button>
-                        </div>
-
-                        <h5>
-                            Valid: {{ stats[class].valid.total }}
-                            <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
-                                ({{ stats[class].valid.tagged }} annotated)
-                            </span>
-                        </h5>
-                        <div class="uk-button-group">
-                            <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
-                                <span uk-icon="icon: video-camera"></span>
-                                Record
-                            </a>
-                            <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
-                               onclick="loadingButton(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}');">
-                                <span uk-icon="icon: file-edit"></span>
-                                <span>Annotate</span>
-                            </button>
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand">
+                                <h4 class="uk-float-left">Videos</h4>
+                            </div>
+                            <div class="uk-width-auto uk-text-center">
+                                <a uk-icon="icon: refresh; ratio: 1.1" uk-tooltip="Flip videos"></a>
+                            </div>
+                            <div class="uk-width-auto">
+                                <h5>
+                                    Train: {{ stats[class].train.total }}
+                                    <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
+                                        ({{ stats[class].train.tagged }} annotated)
+                                    </span>
+                                </h5>
+                                <div class="uk-button-group">
+                                    <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
+                                        <span uk-icon="icon: video-camera"></span>
+                                        Record
+                                    </a>
+                                    <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+                                       onclick="loadingButton(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}');">
+                                        <span uk-icon="icon: file-edit"></span>
+                                        <span>Annotate</span>
+                                    </button>
+                                </div>
+                                <h5>
+                                    Valid: {{ stats[class].valid.total }}
+                                    <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
+                                        ({{ stats[class].valid.tagged }} annotated)
+                                    </span>
+                                </h5>
+                                <div class="uk-button-group">
+                                    <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
+                                        <span uk-icon="icon: video-camera"></span>
+                                        Record
+                                    </a>
+                                    <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+                                       onclick="loadingButton(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}');">
+                                        <span uk-icon="icon: file-edit"></span>
+                                        <span>Annotate</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}
