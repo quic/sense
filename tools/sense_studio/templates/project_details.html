@@ -278,7 +278,7 @@
                                 <h4 class="uk-float-left">Videos</h4>
                             </div>
                             <div class="uk-width-auto uk-text-center">
-                                <a uk-icon="icon: refresh; ratio: 1.1" uk-tooltip="Flip videos"></a>
+                                <a uk-toggle="target: #classModal{{ class_idx }}" uk-icon="icon: refresh; ratio: 1.1" uk-tooltip="Flip videos"></a>
                             </div>
                             <div class="uk-width-auto">
                                 <h5>
@@ -319,8 +319,24 @@
                         </div>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
+            <div id="classModal{{ class_idx }}" uk-modal>
+                <div class="uk-modal-dialog uk-modal-body">
+                    <button class="uk-modal-close-default" type="button" uk-close></button>
+                    <h3 class="uk-modal-title">Create Counterpart</h3>
+                    <div class="uk-child-width-1-2@m uk-grid-match" uk-grid>
+                        <div id="classShow{{ class_idx }}" class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand">
+                                <h3 class="uk-card-title uk-float-left">{{ class }}</h3>
+                            </div>
+                            <div class="uk-width-auto uk-text-center">
+                                <a uk-icon="icon: pencil; ratio: 1.1" onclick="editClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}
