@@ -20,6 +20,8 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+from natsort import natsorted
+from natsort import ns
 
 from sense import SPLITS
 from tools import directories
@@ -208,6 +210,7 @@ def project_details(project):
             stats[class_name][split] = {
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
+                'videos': natsorted(os.listdir(videos_dir), alg=ns.IC),
             }
     tags = config['tags']
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
@@ -401,7 +404,7 @@ def flip_videos():
     copy tags of selected original videos for flipped version of it.
     """
     data = request.json
-    project = data['project']
+    project = data['projectName']
     path = project_utils.lookup_project_path(project)
     config = project_utils.load_project_config(path)
     counterpart_class_name = str(data['counterpartClassName'])
