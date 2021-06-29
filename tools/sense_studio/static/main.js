@@ -458,3 +458,93 @@ function cancelEditTag(tagIdx) {
     tagEdit.classList.add('uk-hidden');
     tagShow.classList.remove('uk-hidden');
 }
+
+///////////////////////////////////////////// Counterpart Class Operations //////////////////////////////////////////////////
+
+function createCounterpartClass(index) {
+    let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
+    let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let counterpartClassName = document.getElementById(`counterpartClassName${index}`);
+    let classNameInput = document.getElementById(`editCounterpartClassName${index}`);
+    let className = classNameInput.value;
+
+    counterpartClassName.innerHTML = className;
+    counterpartClassEdit.classList.add('uk-hidden');
+    counterpartClassShow.classList.remove('uk-hidden');
+}
+
+function editCounterpartClass(index, shouldEdit) {
+    let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
+    let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let className = document.getElementById(`editCounterpartClassName${index}`);
+
+    if (shouldEdit) {
+        counterpartClassShow.classList.add('uk-hidden');
+        counterpartClassEdit.classList.remove('uk-hidden');
+    } else {
+        counterpartClassShow.classList.remove('uk-hidden');
+        counterpartClassEdit.classList.add('uk-hidden');
+        className.value = className.attributes.value.value;
+    }
+}
+
+function updateCounterpartClass(index) {
+    let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
+    let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let counterpartClassName = document.getElementById(`counterpartClassName${index}`);
+    let counterpartClassNameLabel = document.getElementById(`counterpartClassNameLabel${index}`);
+    let submitCounterpartClassButton = document.getElementById(`submitCounterpartClass${index}`);
+    let classNameInput = document.getElementById(`editCounterpartClassName${index}`);
+    let className = classNameInput.value;
+
+    let disabled = false;
+
+    // Check that class name is filled and unique
+    if (className === '') {
+        setFormWarning(counterpartClassNameLabel, classNameInput, 'Class name cannot be left empty');
+        disabled = true;
+    } else {
+        setFormWarning(counterpartClassNameLabel, classNameInput, '');
+    }
+    submitCounterpartClassButton.disabled = disabled;
+}
+
+
+async function createCounterpartVideos(projectName, originalClassName, index, url) {
+    let trainVideoList = document.getElementById(`trainVideoList${index}`);
+    let validVideoList = document.getElementById(`validVideoList${index}`);
+    let counterpartClassName = document.getElementById(`counterpartClassShow${index}`).value;
+    let saveCounterpartsButton = document.getElementById(`saveCounterparts${index}`);
+    let copyTrainVideoTags = [];
+    let copyValidVideoTags = [];
+
+    loadingButton(saveCounterpartsButton, 'Preparing');
+
+    // Create list of video names from train set whose tags need to be copied
+    for (videos of trainVideoList.children) {
+        let video = videos.children[0];
+        if (video.checked) {
+            copyTrainVideoTags.push(video.value);
+        }
+    }
+
+    // Create list of video names from valid set whose tags need to be copied
+    for (videos of validVideoList.children) {
+        let video = videos.children[0];
+        if (video.checked) {
+            copyValidVideoTags.push(video.value);
+        }
+    }
+
+    data = {
+        projectName: projectName,
+        originalClassName : originalClassName,
+        counterpartClassName: counterpartClassName,
+        copyTrainVideoTags: copyTrainVideoTags,
+        copyValidVideoTags: copyValidVideoTags,
+    };
+
+    console.log(data);
+
+    let response = await asyncRequest(url, data);
+}

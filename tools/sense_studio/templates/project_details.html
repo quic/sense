@@ -278,7 +278,7 @@
                                 <h4 class="uk-float-left">Videos</h4>
                             </div>
                             <div class="uk-width-auto uk-text-center">
-                                <a uk-toggle="target: #classModal{{ class_idx }}" uk-icon="icon: refresh; ratio: 1.1" uk-tooltip="Flip videos"></a>
+                                <a uk-toggle="target: #counterpartClassModal{{ class_idx }}" uk-icon="icon: refresh; ratio: 1.1" uk-tooltip="Flip videos"></a>
                             </div>
                             <div class="uk-width-auto">
                                 <h5>
@@ -320,19 +320,80 @@
                     </div>
                 </div>
             </div>
-            <div id="classModal{{ class_idx }}" uk-modal>
+            <div id="counterpartClassModal{{ class_idx }}" class="uk-modal-container" uk-modal>
                 <div class="uk-modal-dialog uk-modal-body">
                     <button class="uk-modal-close-default" type="button" uk-close></button>
-                    <h3 class="uk-modal-title">Create Counterpart</h3>
-                    <div class="uk-child-width-1-2@m uk-grid-match" uk-grid>
-                        <div id="classShow{{ class_idx }}" class="uk-grid-small" uk-grid>
-                            <div class="uk-width-expand">
-                                <h3 class="uk-card-title uk-float-left">{{ class }}</h3>
+                    <div class="uk-modal-header">
+                        <h4 class="uk-modal-title">Create Counterpart</h4>
+                    </div>
+                    <div class="uk-modal-body">
+                        <div class="uk-child-width-1-1@m uk-grid-match" uk-grid>
+                            <div class="uk-width-1-1">
+                                <label class="uk-form-label uk-text-danger" id="counterpartClassNameLabel{{ class_idx }}"></label>
                             </div>
-                            <div class="uk-width-auto uk-text-center">
-                                <a uk-icon="icon: pencil; ratio: 1.1" onclick="editClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
+                            <div id="counterpartClassShow{{ class_idx }}" class="uk-grid-small">
+                                <div class="uk-width-expand">
+                                    <h3 id="counterpartClassName{{ class_idx }}" class="uk-card-title uk-float-left">{{ class }}</h3>
+                                </div>
+                                <div class="uk-width-auto uk-text-center uk-text-right">
+                                    <a uk-icon="icon: pencil; ratio: 1.1" onclick="editCounterpartClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
+                                </div>
+                            </div>
+
+                            <div id="counterpartClassEdit{{ class_idx }}" class="uk-margin-remove-top uk-hidden uk-margin-small-bottom">
+                                <div class="uk-inline uk-width-expand">
+                                    <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                                    <input class="uk-input uk-width-expand" type="text" id="editCounterpartClassName{{ class_idx }}" name="className"
+                                           placeholder="Class Name" value="{{ class }}" autocomplete="off"
+                                           oninput="updateCounterpartClass('{{ class_idx }}');">
+                                </div>
+                                <div class="uk-margin-small-left uk-width-auto">
+                                    <button class="uk-button uk-button-primary" type="button" id="submitCounterpartClass{{ class_idx }}"
+                                            onclick="createCounterpartClass('{{ class_idx }}');" uk-tooltip="Save Changes">
+                                        <span uk-icon="icon: check"></span>
+                                    </button>
+                                </div>
+                                 <div class="uk-margin-small-left uk-width-auto">
+                                    <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="editCounterpartClass('{{ class_idx }}', false);">
+                                        <span uk-icon="icon: close"></span>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="uk-width-1-1 uk-margin-remove-top">
+                                <p><b>Note:</b> <em>Check videos from original set to copy their tags to flipped version.</em></p>
+                            </div>
+                            <div class="uk-margin-remove-top">
+                                <div class="uk-width-1-2 uk-padding-small">
+                                    <h4>Train</h4>
+                                    <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
+                                        <ul id="trainVideoList{{ class_idx }}" class="uk-list uk-list-divider">
+                                            {% for video_name in stats[class].train.videos %}
+                                                <li>
+                                                    <input class="uk-checkbox" type="checkbox" value="{{ video_name }}" checked> {{ video_name }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="uk-width-1-2 uk-padding-small">
+                                    <h4>Valid</h4>
+                                    <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
+                                        <ul id="validVideoList{{ class_idx }}" class="uk-list uk-list-divider">
+                                            {% for video_name in stats[class].valid.videos %}
+                                                <li>
+                                                    <input class="uk-checkbox" type="checkbox" value="{{ video_name }}" checked> {{ video_name }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="uk-modal-footer uk-text-right">
+                        <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
+                        <button class="uk-button uk-button-primary" type="button" id="saveCounterparts{{ class_idx }}"
+                                onclick="createCounterpartVideos('{{ project }}', '{{ class }}', '{{ class_idx }}', '{{ url_for('.flip_videos') }}');" >Save</button>
                     </div>
                 </div>
             </div>
