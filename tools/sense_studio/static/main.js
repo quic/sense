@@ -513,7 +513,7 @@ function updateCounterpartClass(index) {
 async function createCounterpartVideos(projectName, originalClassName, index, url) {
     let trainVideoList = document.getElementById(`trainVideoList${index}`);
     let validVideoList = document.getElementById(`validVideoList${index}`);
-    let counterpartClassName = document.getElementById(`counterpartClassShow${index}`).value;
+    let counterpartClassName = document.getElementById(`counterpartClassName${index}`).innerHTML;
     let saveCounterpartsButton = document.getElementById(`saveCounterparts${index}`);
     let copyTrainVideoTags = [];
     let copyValidVideoTags = [];
@@ -544,7 +544,7 @@ async function createCounterpartVideos(projectName, originalClassName, index, ur
         copyValidVideoTags: copyValidVideoTags,
     };
 
-    console.log(data);
-
     let response = await asyncRequest(url, data);
+
+    window.location.href = response.url;
 }
