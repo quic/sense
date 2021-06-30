@@ -416,7 +416,7 @@ def flip_videos():
 
     if counterpart_class_name not in config['classes']:
         config['classes'][counterpart_class_name] = config['classes'][original_class_name] \
-                                                    if copy_train_video_tags or copy_valid_video_tags else []
+            if copy_train_video_tags or copy_valid_video_tags else []
         project_utils.write_project_config(path, config)
 
     for split in SPLITS:
