@@ -420,10 +420,13 @@ def flip_videos():
     for split in SPLITS:
         videos_path_in = os.path.join(path, f'videos_{split}', original_class_name)
         videos_path_out = os.path.join(path, f'videos_{split}', counterpart_class_name)
-        tags_path = os.path.join(path, f'tags_{split}', original_class_name)
+        original_tags_path = os.path.join(path, f'tags_{split}', original_class_name)
+        counterpart_tags_path = os.path.join(path, f'tags_{split}', counterpart_class_name)
 
         # Create directory to save flipped videos
         os.makedirs(videos_path_out, exist_ok=True)
+        os.makedirs(counterpart_tags_path, exist_ok=True)
+
         video_list = os.listdir(videos_path_in)
         for video in video_list:
             print(f'Processing video: {video}')
@@ -445,9 +448,8 @@ def flip_videos():
 
                 # Copy tags of original video to flipped video (in train set)
                 if video in copy_train_video_tags and split == 'train':
-                    original_tags_file = os.path.join(tags_path, original_class_name, video.replace('.mp4', '.json'))
-                    flipped_tags_file = os.path.join(tags_path, counterpart_class_name,
-                                                     flipped_video_name.replace('.mp4', '.json'))
+                    original_tags_file = os.path.join(original_tags_path, video.replace('.mp4', '.json'))
+                    flipped_tags_file = os.path.join(counterpart_tags_path, flipped_video_name.replace('.mp4', '.json'))
 
                     if os.path.exists(original_tags_file):
                         with open(original_tags_file) as f:
@@ -458,10 +460,8 @@ def flip_videos():
 
                 # Copy tags of original video to flipped video (in valid set)
                 if video in copy_valid_video_tags and split == 'valid':
-                    original_tags_file = os.path.join(tags_path, original_class_name,
-                                                      video.replace('.mp4', '.json'))
-                    flipped_tags_file = os.path.join(tags_path, counterpart_class_name,
-                                                     flipped_video_name.replace('.mp4', '.json'))
+                    original_tags_file = os.path.join(original_tags_path, video.replace('.mp4', '.json'))
+                    flipped_tags_file = os.path.join(counterpart_tags_path, flipped_video_name.replace('.mp4', '.json'))
 
                     if os.path.exists(original_tags_file):
                         with open(original_tags_file) as f:
@@ -471,7 +471,7 @@ def flip_videos():
                             f.write(json.dumps(original_video_tags, indent=2))
 
     print("Processing complete!")
-    return redirect(url_for("project_details", project=project))
+    return jsonify(status=True, url=url_for("project_details", project=project))
 
 
 if __name__ == '__main__':
