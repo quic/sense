@@ -360,7 +360,7 @@
                                 </div>
                             </div>
                             <div class="uk-width-1-1 uk-margin-remove-top">
-                                <p><b>Note:</b> <em>Check videos from original set to copy their tags to flipped version.</em></p>
+                                <p><b>Note:</b> <em>Select videos to copy temporal tags to their flipped version.</em></p>
                             </div>
                             <div class="uk-margin-remove-top">
                                 <div class="uk-width-1-2 uk-padding-small">
@@ -391,9 +391,11 @@
                         </div>
                     </div>
                     <div class="uk-modal-footer uk-text-right">
-                        <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
                         <button class="uk-button uk-button-primary" type="button" id="saveCounterparts{{ class_idx }}"
-                                onclick="createCounterpartVideos('{{ project }}', '{{ class }}', '{{ class_idx }}', '{{ url_for('.flip_videos') }}');" >Save</button>
+                                onclick="createCounterpartVideos('{{ project }}', '{{ class }}', '{{ class_idx }}', '{{ url_for('.flip_videos') }}');">
+                            <span uk-icon="icon: check"></span>
+                            <span>Save</span>
+                        </button>
                     </div>
                 </div>
             </div>
