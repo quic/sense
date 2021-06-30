@@ -24,6 +24,7 @@ from tools import directories
 from tools.sense_studio import project_utils
 from tools.sense_studio import socketio
 from tools.sense_studio.annotation import annotation_bp
+from tools.sense_studio.demos import demos_bp
 from tools.sense_studio.annotation import train_logreg
 from tools.sense_studio.testing import testing_bp
 from tools.sense_studio.training import training_bp
@@ -39,6 +40,7 @@ app.register_blueprint(video_recording_bp, url_prefix='/video-recording')
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(testing_bp, url_prefix='/testing')
 app.register_blueprint(tags_bp, url_prefix='/tags')
+app.register_blueprint(demos_bp, url_prefix='/demos')
 
 socketio.init_app(app)
 

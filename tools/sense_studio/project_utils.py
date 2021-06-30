@@ -2,6 +2,9 @@ import datetime
 import json
 import os
 
+from natsort import natsorted
+from natsort import ns
+
 from sense import SPLITS
 from tools import directories
 
@@ -224,3 +227,11 @@ def set_timer_default(path, countdown, recording):
     config['video_recording'] = video_recording
 
     write_project_config(path, config)
+
+
+def get_demos():
+    """Get list of demos from examples directory"""
+    demos = [demo.split('.')[0]
+             for demo in os.listdir(os.path.join(os.getcwd(), 'examples')) if not demo.startswith('__')]
+    demos = natsorted(demos, alg=ns.IC)
+    return demos

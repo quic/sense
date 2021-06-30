@@ -1,0 +1,205 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} Demos {% endblock %}
+
+{% block main %}
+<div class="uk-container uk-container-xsmall">
+    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Demos</h1>
+
+    <form class="uk-form-stacked uk-margin-small-top">
+
+        <div class="uk-child-width-1-1@s uk-grid-small uk-grid-match" uk-grid>
+            <div>
+                <div>
+                    <label class="uk-float-right">
+                        <input type="checkbox" id="gpuInput" class="uk-checkbox">
+                        Use GPU
+                    </label>
+                </div>
+            </div>
+             <div>
+                <div class="uk-child-width-1-2@s uk-grid-small uk-grid-match" uk-grid>
+                    <div class="uk-inline">
+                        <label class="uk-form-label" for="demo">Demo</label>
+                        <div class="uk-form-controls uk-width-1-1">
+                            <select class="uk-select {{ 'uk-form-danger' if not demos }}" id="demo" name="demo"
+                                    onchange="toggleMETParametersSelection(); getSupportedModelsByDemo('{{ url_for('.get_supported_models') }}'); cancelDemo('{{ url_for('.cancel_demo') }}');">
+                                {% if demos %}
+                                    {% for demo in demos %}
+                                        <option value="{{ demo }}">{{ demo }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="">No demos available</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="uk-inline">
+                        <label class="uk-form-label" for="modelName">Backbone Model</label>
+                        <div class="uk-form-controls uk-width-1-1">
+                            <select class="uk-select {{ 'uk-form-danger' if not models }}" id="modelName" name="modelName">
+                                {% if models %}
+                                    {% for model in models %}
+                                        <option>{{ model }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="">No models available</option>
+                                {% endif %}
+                            </select>
+                            {% if not models %}
+                                <div uk-dropdown>
+                                    <p>
+                                        Pre-trained backbone model weights couldn't be found.
+                                    </p>
+                                    To download, please go to
+                                    <a target="_blank" rel="noopener noreferrer" href="https://20bn.com/licensing/sdk/evaluation">
+                                        https://20bn.com/licensing/sdk/evaluation
+                                    </a>
+                                    and follow the instructions.
+                                    Then, extract the <code>backbone</code> folder into <code>sense/resources</code>.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+             </div>
+
+            <div id="metToCalorieParameters">
+                <div class="uk-child-width-1-4@s uk-grid-small uk-grid-match" uk-grid>
+                    <div uk-tooltip="title: To convert predicted MET value to calories;">
+                        <label class="uk-form-label" for="weight">Weight <b class="uk-text-muted">(in kgs)</b></label>
+                        <div class="uk-form-controls">
+                            <div class="uk-width-1-1">
+                                <input class="uk-input" type="number" id="weight" name="weight" value="70" min="30" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div uk-tooltip="title: To convert predicted MET value to calories;">
+                        <label class="uk-form-label" for="height">Height <b class="uk-text-muted">(in cms)</b></label>
+                        <div class="uk-form-controls">
+                            <div class="uk-width-1-1">
+                                <input class="uk-input" type="number" id="height" name="height" value="170" min="50" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div uk-tooltip="title: To convert predicted MET value to calories;">
+                        <label class="uk-form-label" for="age">Age <b class="uk-text-muted">(in years)</b></label>
+                        <div class="uk-form-controls">
+                            <div class="uk-width-1-1 uk-inline">
+                                <input class="uk-input" type="number" id="age" name="age" value="30" min="15" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div uk-tooltip="title: To convert predicted MET value to calories;">
+                        <label class="uk-form-label" for="gender">Gender</label>
+                        <div class="uk-form-controls">
+                            <div class="uk-width-1-1 uk-inline">
+                                <select class="uk-select" id="gender" name="gender">
+                                    <option value="male" selected>Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="uk-child-width-1-2@s uk-grid-small uk-grid-match" uk-grid>
+                    <div class="uk-hidden">
+                        <label class="uk-form-label" for="title">Window Title</label>
+                        <div class="uk-form-controls">
+                            <div class="uk-width-1-1 uk-inline">
+                                <span class="uk-form-icon" uk-icon="icon: pencil"></span>
+                                <input class="uk-input" type="text" id="title" placeholder="Title" autocomplete="off" />
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">Input Source</label>
+                         <div class="uk-form-controls">
+                             <div class="uk-inline uk-width-1-1">
+                                <label>
+                                    <input class="uk-radio" type="radio" name="inputSource" value="0"
+                                           autocomplete="off" onclick="toggleInputVideoField();" checked>
+                                    Webcam
+                                </label>
+                                <label class="uk-margin-large-left">
+                                    <input class="uk-radio" type="radio" name="inputSource" value="1"
+                                           autocomplete="off" onclick="toggleInputVideoField();">
+                                    Input Video
+                                </label>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="inputVideoDiv" class="uk-hidden">
+                <label class="uk-form-label" for="inputVideoPath">Input video path <span class="uk-label">.mp4</span></label>
+                <label class="uk-form-label uk-text-danger" id="inputVideoPathLabel"></label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
+                        <input class="uk-input file-path-search" type="text" id="inputVideoPath" placeholder="/path/to/input-video"
+                               autocomplete="off" oninput="checkInputFields();">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                 <div class="uk-form-controls uk-width-1-1">
+                    <input class="uk-checkbox" type="checkbox" id="saveVideo" autocomplete="off"
+                           onclick="toggleOutputVideoField();">
+                        Save Output Video
+                </div>
+            </div>
+
+            <div id="outputVideoDiv" class="uk-hidden">
+                <label class="uk-form-label" for="outputVideoName">
+                    Output video name ({{ output_path_prefix }}..) <span class="uk-label">.mp4</span>
+                </label>
+                <label class="uk-form-label uk-text-danger" id="outputVideoNameLabel"></label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: video-camera"></span>
+                        <input class="uk-input" type="text" id="outputVideoName" placeholder="Output video name"
+                               autocomplete="off" oninput="checkInputFields();">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="buttonRunDemo" type="button" tabindex="0"
+                onclick="startDemo('{{ url_for('.start_demo') }}');"
+                {% if not models %} disabled {% endif %}>
+            Run Demo
+        </button>
+        <button class="uk-button uk-button-danger" id="buttonCancelDemo" type="button" tabindex="1"
+                onclick="cancelDemo('{{ url_for('.cancel_demo') }}');" disabled>
+            Cancel
+        </button>
+    </form>
+</div>
+<div class="uk-container uk-container-expand">
+
+    <!-- Output video streaming frame-wise (Automatically filled) -->
+    <div class="uk-margin uk-text-center">
+        <h4> Output Video Stream</h4>
+        <div class="uk-section uk-section-muted uk-padding-remove-vertical uk-inline">
+            <img id="frame" height="480" width="640">
+        </div>
+    </div>
+</div>
+<div class="uk-container uk-container-xsmall">
+    <div id="demoTerminal" class="uk-section uk-section-secondary uk-padding-small uk-margin-top"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='demos.js') }}"></script>
+{% endblock %}
+
