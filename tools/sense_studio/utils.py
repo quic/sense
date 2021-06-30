@@ -13,12 +13,14 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-def get_available_backbone_models():
+def get_available_backbone_models(supported_models=None):
     """
     Get list of combined model names for all backbone models for which weights can be found in the local resources
-    folder.
+    folder and supported by the operation.
     """
-    return [model.combined_model_name for model in SUPPORTED_MODEL_CONFIGURATIONS if model.weights_available()]
+    if supported_models is None:
+        supported_models = SUPPORTED_MODEL_CONFIGURATIONS
+    return [model.combined_model_name for model in supported_models if model.weights_available()]
 
 
 def load_feature_extractor(project_path):

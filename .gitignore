@@ -6,3 +6,4 @@ __pycache__
 *.pyc
 videos
 dataset
+demo_output_videos
