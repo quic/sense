@@ -212,7 +212,7 @@ def project_details(project):
             stats[class_name][split] = {
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
-                'videos': natsorted(os.listdir(videos_dir), alg=ns.IC),
+                'videos': natsorted([video for video in os.listdir(videos_dir) if video.endswith('.mp4')], alg=ns.IC),
             }
     tags = config['tags']
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
@@ -429,7 +429,8 @@ def flip_videos():
         os.makedirs(videos_path_out, exist_ok=True)
         os.makedirs(counterpart_tags_path, exist_ok=True)
 
-        video_list = os.listdir(videos_path_in)
+        video_list = [video for video in os.listdir(videos_path_in) if video.endswith('.mp4')]
+
         for video in video_list:
             print(f'Processing video: {video}')
             if '_flipped' in video:
