@@ -461,6 +461,16 @@ function cancelEditTag(tagIdx) {
 
 ///////////////////////////////////////////// Counterpart Class Operations //////////////////////////////////////////////////
 
+function toggleVideoList(index, isHidden) {
+    let copyVideoTags = document.getElementById(`copyVideoTags${index}`);
+    if (isHidden) {
+        copyVideoTags.classList.remove('uk-hidden');
+    } else {
+        copyVideoTags.classList.add('uk-hidden');
+    }
+}
+
+
 function createCounterpartClass(index) {
     let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
     let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
@@ -476,6 +486,8 @@ function createCounterpartClass(index) {
 function editCounterpartClass(index, shouldEdit) {
     let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
     let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let counterpartClassNameLabel = document.getElementById(`counterpartClassNameLabel${index}`);
+    let classNameInput = document.getElementById(`editCounterpartClassName${index}`);
     let className = document.getElementById(`editCounterpartClassName${index}`);
 
     if (shouldEdit) {
@@ -485,6 +497,7 @@ function editCounterpartClass(index, shouldEdit) {
         counterpartClassShow.classList.remove('uk-hidden');
         counterpartClassEdit.classList.add('uk-hidden');
         className.value = className.attributes.value.value;
+        setFormWarning(counterpartClassNameLabel, classNameInput, '');
     }
 }
 
@@ -510,29 +523,60 @@ function updateCounterpartClass(index) {
 }
 
 
+function showCounterpartClassFields(index) {
+    let selectCounterpartClass = document.getElementById(`selectCounterpartClass${index}`);
+    let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
+
+    // Show/Hide counterpart class input field if dropdown value is -1.
+    if (selectCounterpartClass.value == '-1') {
+        counterpartClassEdit.classList.remove('uk-hidden');
+    } else {
+        counterpartClassEdit.classList.add('uk-hidden');
+        counterpartClassShow.classList.add('uk-hidden');
+    }
+}
+
 async function createCounterpartVideos(projectName, originalClassName, index, url) {
+    let saveCounterpartsButton = document.getElementById(`saveCounterparts${index}`);
+
+    let selectCounterpartClass = document.getElementById(`selectCounterpartClass${index}`);
+    let copyTagsRadio = document.getElementsByName(`copyTag${index}`)[0];
+    let counterpartClassName = null;
+    let copyTags = false;
+
     let trainVideoList = document.getElementById(`trainVideoList${index}`);
     let validVideoList = document.getElementById(`validVideoList${index}`);
-    let counterpartClassName = document.getElementById(`counterpartClassName${index}`).innerHTML;
-    let saveCounterpartsButton = document.getElementById(`saveCounterparts${index}`);
     let copyTrainVideoTags = [];
     let copyValidVideoTags = [];
 
     loadingButton(saveCounterpartsButton, 'Preparing');
 
-    // Create list of video names from train set whose tags need to be copied
-    for (videos of trainVideoList.children) {
-        let video = videos.children[0];
-        if (video.checked) {
-            copyTrainVideoTags.push(video.value);
-        }
+    if (copyTagsRadio.value == 1 && copyTagsRadio.checked) {
+        copyTags = true;
     }
 
-    // Create list of video names from valid set whose tags need to be copied
-    for (videos of validVideoList.children) {
-        let video = videos.children[0];
-        if (video.checked) {
-            copyValidVideoTags.push(video.value);
+    if (selectCounterpartClass.value === '-1') {
+        counterpartClassName = document.getElementById(`counterpartClassName${index}`).innerHTML;
+    } else {
+        counterpartClassName = selectCounterpartClass.value;
+    }
+
+    if (copyTags) {
+        // Create list of video names from train set whose tags need to be copied
+        for (videos of trainVideoList.children) {
+            let video = videos.children[0];
+            if (video.checked) {
+                copyTrainVideoTags.push(video.value);
+            }
+        }
+
+        // Create list of video names from valid set whose tags need to be copied
+        for (videos of validVideoList.children) {
+            let video = videos.children[0];
+            if (video.checked) {
+                copyValidVideoTags.push(video.value);
+            }
         }
     }
 

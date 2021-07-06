@@ -327,20 +327,28 @@
                         <h4 class="uk-modal-title">Create Counterpart</h4>
                     </div>
                     <div class="uk-modal-body">
-                        <div class="uk-child-width-1-1@m uk-grid-match" uk-grid>
+                        <div class="uk-child-width-1-1@m uk-grid-match uk-grid-small" uk-grid>
+                            <div class="uk-width-1-1">
+                                <select class="uk-select" id="selectCounterpartClass{{ class_idx }}" onchange="showCounterpartClassFields('{{ class_idx }}');">
+                                    {% for class_name, class_tags in config.classes.items()|sort %}
+                                        <option value="{{ class_name }}" {% if class_name == class %} selected {% endif %}>{{ class_name }}</option>
+                                    {% endfor %}
+                                        <option value="-1">Add New Class</option>
+                                </select>
+                            </div>
                             <div class="uk-width-1-1">
                                 <label class="uk-form-label uk-text-danger" id="counterpartClassNameLabel{{ class_idx }}"></label>
                             </div>
-                            <div id="counterpartClassShow{{ class_idx }}" class="uk-grid-small">
+                            <div id="counterpartClassShow{{ class_idx }}" class="uk-hidden">
                                 <div class="uk-width-expand">
-                                    <h3 id="counterpartClassName{{ class_idx }}" class="uk-card-title uk-float-left">{{ class }}</h3>
+                                    <h5 id="counterpartClassName{{ class_idx }}" class="uk-card-title uk-float-left">{{ class }}</h5>
                                 </div>
                                 <div class="uk-width-auto uk-text-center uk-text-right">
                                     <a uk-icon="icon: pencil; ratio: 1.1" onclick="editCounterpartClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
                                 </div>
                             </div>
 
-                            <div id="counterpartClassEdit{{ class_idx }}" class="uk-margin-remove-top uk-hidden uk-margin-small-bottom">
+                            <div id="counterpartClassEdit{{ class_idx }}" class="uk-hidden uk-margin-small-bottom">
                                 <div class="uk-inline uk-width-expand">
                                     <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
                                     <input class="uk-input uk-width-expand" type="text" id="editCounterpartClassName{{ class_idx }}" name="className"
@@ -359,12 +367,27 @@
                                     </a>
                                 </div>
                             </div>
-                            <div class="uk-width-1-1 uk-margin-remove-top">
-                                <p><b>Note:</b> <em>Select videos to copy temporal tags to their flipped version.</em></p>
+
+                            <div class="uk-width-1-1">
+                                <div class="uk-width-2-3">
+                                    <label>Copy temporal tags from original video to flipped version?</label>
+                                </div>
+                                <div class="uk-width-1-3" uk-grid>
+                                    <div class="uk-width-1-2">
+                                        <label><input class="uk-radio" type="radio" name="copyTag{{ class_idx }}" value="1" onclick="toggleVideoList('{{ class_idx }}', true);"> Yes</label>
+                                    </div>
+                                    <div class="uk-width-1-2">
+                                        <label><input class="uk-radio" type="radio" name="copyTag{{ class_idx }}" value="0" onclick="toggleVideoList('{{ class_idx }}', false);" checked> No</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="uk-margin-remove-top">
-                                <div class="uk-width-1-2 uk-padding-small">
-                                    <h4>Train</h4>
+
+                            <div id="copyVideoTags{{ class_idx }}" class="uk-margin-small-top uk-grid-small uk-hidden">
+                                <div class="uk-width-1-1 uk-text-center">
+                                    <label>Select videos to copy temporal tags</label>
+                                </div>
+                                <div class="uk-width-1-2">
+                                    <h5 class="uk-text-center">Train</h5>
                                     <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
                                         <ul id="trainVideoList{{ class_idx }}" class="uk-list uk-list-divider">
                                             {% for video_name in stats[class].train.videos %}
@@ -375,8 +398,8 @@
                                         </ul>
                                     </div>
                                 </div>
-                                <div class="uk-width-1-2 uk-padding-small">
-                                    <h4>Valid</h4>
+                                <div class="uk-width-1-2">
+                                    <h5 class="uk-text-center">Valid</h5>
                                     <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
                                         <ul id="validVideoList{{ class_idx }}" class="uk-list uk-list-divider">
                                             {% for video_name in stats[class].valid.videos %}
@@ -394,7 +417,7 @@
                         <button class="uk-button uk-button-primary" type="button" id="saveCounterparts{{ class_idx }}"
                                 onclick="createCounterpartVideos('{{ project }}', '{{ class }}', '{{ class_idx }}', '{{ url_for('.flip_videos') }}');">
                             <span uk-icon="icon: check"></span>
-                            <span>Save</span>
+                            <span>Flip</span>
                         </button>
                     </div>
                 </div>
