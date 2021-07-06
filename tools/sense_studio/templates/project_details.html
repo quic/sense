@@ -278,9 +278,9 @@
                                 <h4 class="uk-float-left">Videos</h4>
                             </div>
                             <div class="uk-width-auto uk-text-center">
-                                <a uk-toggle="target: #counterpartClassModal{{ class_idx }}" uk-icon="icon: refresh; ratio: 1.1" uk-tooltip="Flip videos"></a>
+                                <a class="uk-button uk-button-text" uk-toggle="target: #counterpartClassModal{{ class_idx }}">Flip</a>
                             </div>
-                            <div class="uk-width-auto">
+                            <div class="uk-width-1-1">
                                 <h5>
                                     Train: {{ stats[class].train.total }}
                                     <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
@@ -317,108 +317,111 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div id="counterpartClassModal{{ class_idx }}" class="uk-modal-container" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <button class="uk-modal-close-default" type="button" uk-close></button>
-                    <div class="uk-modal-header">
-                        <h4 class="uk-modal-title">Create Counterpart</h4>
-                    </div>
-                    <div class="uk-modal-body">
-                        <div class="uk-child-width-1-1@m uk-grid-match uk-grid-small" uk-grid>
-                            <div class="uk-width-1-1">
-                                <select class="uk-select" id="selectCounterpartClass{{ class_idx }}" onchange="showCounterpartClassFields('{{ class_idx }}');">
-                                    {% for class_name, class_tags in config.classes.items()|sort %}
-                                        <option value="{{ class_name }}" {% if class_name == class %} selected {% endif %}>{{ class_name }}</option>
-                                    {% endfor %}
-                                        <option value="-1">Add New Class</option>
-                                </select>
-                            </div>
-                            <div class="uk-width-1-1">
-                                <label class="uk-form-label uk-text-danger" id="counterpartClassNameLabel{{ class_idx }}"></label>
-                            </div>
-                            <div id="counterpartClassShow{{ class_idx }}" class="uk-hidden">
-                                <div class="uk-width-expand">
-                                    <h5 id="counterpartClassName{{ class_idx }}" class="uk-card-title uk-float-left">{{ class }}</h5>
+                        <div id="counterpartClassModal{{ class_idx }}" class="uk-modal-container" uk-modal>
+                            <div class="uk-modal-dialog uk-modal-body">
+                                <button class="uk-modal-close-default" type="button" uk-close></button>
+                                <div class="uk-modal-header">
+                                    <h4 class="uk-modal-title">Left-Right flip videos</h4>
                                 </div>
-                                <div class="uk-width-auto uk-text-center uk-text-right">
-                                    <a uk-icon="icon: pencil; ratio: 1.1" onclick="editCounterpartClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
-                                </div>
-                            </div>
+                                <div class="uk-modal-body">
+                                    <div class="uk-child-width-1-1@m uk-grid-match uk-grid-small" uk-grid>
+                                        <div class="uk-width-1-1">
+                                            <label>Which class should the flipped videos belong to?</label>
+                                        </div>
+                                        <div class="uk-width-1-1">
+                                            <select class="uk-select" id="selectCounterpartClass{{ class_idx }}" onchange="showCounterpartClassFields('{{ class_idx }}');">
+                                                {% for class_name, class_tags in config.classes.items()|sort %}
+                                                    <option value="{{ class_name }}" {% if class_name == class %} selected {% endif %}>{{ class_name }}</option>
+                                                {% endfor %}
+                                                    <option value="-1">Add New Class</option>
+                                            </select>
+                                        </div>
+                                        <div class="uk-width-1-1">
+                                            <label class="uk-form-label uk-text-danger" id="counterpartClassNameLabel{{ class_idx }}"></label>
+                                        </div>
+                                        <div id="counterpartClassShow{{ class_idx }}" class="uk-hidden">
+                                            <div class="uk-width-expand">
+                                                <h5 id="counterpartClassName{{ class_idx }}" class="uk-card-title uk-float-left">{{ class }}</h5>
+                                            </div>
+                                            <div class="uk-width-auto uk-text-center uk-text-right">
+                                                <a uk-icon="icon: pencil; ratio: 1.1" onclick="editCounterpartClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
+                                            </div>
+                                        </div>
 
-                            <div id="counterpartClassEdit{{ class_idx }}" class="uk-hidden uk-margin-small-bottom">
-                                <div class="uk-inline uk-width-expand">
-                                    <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
-                                    <input class="uk-input uk-width-expand" type="text" id="editCounterpartClassName{{ class_idx }}" name="className"
-                                           placeholder="Class Name" value="{{ class }}" autocomplete="off"
-                                           oninput="updateCounterpartClass('{{ class_idx }}');">
+                                        <div id="counterpartClassEdit{{ class_idx }}" class="uk-hidden uk-margin-small-bottom">
+                                            <div class="uk-inline uk-width-expand">
+                                                <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                                                <input class="uk-input uk-width-expand" type="text" id="editCounterpartClassName{{ class_idx }}" name="className"
+                                                       placeholder="Class Name" value="{{ class }}" autocomplete="off"
+                                                       oninput="updateCounterpartClass('{{ class_idx }}');">
+                                            </div>
+                                            <div class="uk-margin-small-left uk-width-auto">
+                                                <button class="uk-button uk-button-primary" type="button" id="submitCounterpartClass{{ class_idx }}"
+                                                        onclick="createCounterpartClass('{{ class_idx }}');" uk-tooltip="Save Changes">
+                                                    <span uk-icon="icon: check"></span>
+                                                </button>
+                                            </div>
+                                             <div class="uk-margin-small-left uk-width-auto">
+                                                <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="editCounterpartClass('{{ class_idx }}', false);">
+                                                    <span uk-icon="icon: close"></span>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div class="uk-width-1-1">
+                                            <div class="uk-width-2-3">
+                                                <label>Do you want to copy temporal tags from the original videos?</label>
+                                            </div>
+                                            <div class="uk-width-1-3" uk-grid>
+                                                <div class="uk-width-1-2">
+                                                    <label><input class="uk-radio" type="radio" name="copyTag{{ class_idx }}" value="1" onclick="toggleVideoList('{{ class_idx }}', true);"> Yes</label>
+                                                </div>
+                                                <div class="uk-width-1-2">
+                                                    <label><input class="uk-radio" type="radio" name="copyTag{{ class_idx }}" value="0" onclick="toggleVideoList('{{ class_idx }}', false);" checked> No</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="copyVideoTags{{ class_idx }}" class="uk-margin-small-top uk-grid-small uk-hidden">
+                                            <div class="uk-width-1-1 uk-text-center">
+                                                <label>Select videos from which to copy temporal tags:</label>
+                                            </div>
+                                            <div class="uk-width-1-2">
+                                                <h5 class="uk-text-center">Train</h5>
+                                                <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
+                                                    <ul id="trainVideoList{{ class_idx }}" class="uk-list uk-list-divider">
+                                                        {% for video_name in stats[class].train.videos %}
+                                                            <li>
+                                                                <input class="uk-checkbox" type="checkbox" value="{{ video_name }}" checked> {{ video_name }}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="uk-width-1-2">
+                                                <h5 class="uk-text-center">Valid</h5>
+                                                <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
+                                                    <ul id="validVideoList{{ class_idx }}" class="uk-list uk-list-divider">
+                                                        {% for video_name in stats[class].valid.videos %}
+                                                            <li>
+                                                                <input class="uk-checkbox" type="checkbox" value="{{ video_name }}" checked> {{ video_name }}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="uk-margin-small-left uk-width-auto">
-                                    <button class="uk-button uk-button-primary" type="button" id="submitCounterpartClass{{ class_idx }}"
-                                            onclick="createCounterpartClass('{{ class_idx }}');" uk-tooltip="Save Changes">
+                                <div class="uk-modal-footer uk-text-right">
+                                    <button class="uk-button uk-button-primary" type="button" id="saveCounterparts{{ class_idx }}"
+                                            onclick="createCounterpartVideos('{{ project }}', '{{ class }}', '{{ class_idx }}', '{{ url_for('.flip_videos') }}');">
                                         <span uk-icon="icon: check"></span>
+                                        <span>Flip</span>
                                     </button>
-                                </div>
-                                 <div class="uk-margin-small-left uk-width-auto">
-                                    <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="editCounterpartClass('{{ class_idx }}', false);">
-                                        <span uk-icon="icon: close"></span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="uk-width-1-1">
-                                <div class="uk-width-2-3">
-                                    <label>Copy temporal tags from original video to flipped version?</label>
-                                </div>
-                                <div class="uk-width-1-3" uk-grid>
-                                    <div class="uk-width-1-2">
-                                        <label><input class="uk-radio" type="radio" name="copyTag{{ class_idx }}" value="1" onclick="toggleVideoList('{{ class_idx }}', true);"> Yes</label>
-                                    </div>
-                                    <div class="uk-width-1-2">
-                                        <label><input class="uk-radio" type="radio" name="copyTag{{ class_idx }}" value="0" onclick="toggleVideoList('{{ class_idx }}', false);" checked> No</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="copyVideoTags{{ class_idx }}" class="uk-margin-small-top uk-grid-small uk-hidden">
-                                <div class="uk-width-1-1 uk-text-center">
-                                    <label>Select videos to copy temporal tags</label>
-                                </div>
-                                <div class="uk-width-1-2">
-                                    <h5 class="uk-text-center">Train</h5>
-                                    <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
-                                        <ul id="trainVideoList{{ class_idx }}" class="uk-list uk-list-divider">
-                                            {% for video_name in stats[class].train.videos %}
-                                                <li>
-                                                    <input class="uk-checkbox" type="checkbox" value="{{ video_name }}" checked> {{ video_name }}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="uk-width-1-2">
-                                    <h5 class="uk-text-center">Valid</h5>
-                                    <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
-                                        <ul id="validVideoList{{ class_idx }}" class="uk-list uk-list-divider">
-                                            {% for video_name in stats[class].valid.videos %}
-                                                <li>
-                                                    <input class="uk-checkbox" type="checkbox" value="{{ video_name }}" checked> {{ video_name }}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="uk-modal-footer uk-text-right">
-                        <button class="uk-button uk-button-primary" type="button" id="saveCounterparts{{ class_idx }}"
-                                onclick="createCounterpartVideos('{{ project }}', '{{ class }}', '{{ class_idx }}', '{{ url_for('.flip_videos') }}');">
-                            <span uk-icon="icon: check"></span>
-                            <span>Flip</span>
-                        </button>
                     </div>
                 </div>
             </div>
