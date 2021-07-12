@@ -432,13 +432,14 @@ def flip_videos():
         video_list = [video for video in os.listdir(videos_path_in) if video.endswith('.mp4')]
 
         for video in video_list:
+            output_video_list = [op_video for op_video in os.listdir(videos_path_out) if op_video.endswith('.mp4')]
             print(f'Processing video: {video}')
             if '_flipped' in video:
                 flipped_video_name = ''.join(video.split('_flipped'))
             else:
                 flipped_video_name = video.split('.')[0] + '_flipped' + VIDEO_EXT
 
-            if flipped_video_name not in video_list:
+            if flipped_video_name not in output_video_list:
                 # Original video as input
                 original_video = ffmpeg.input(os.path.join(videos_path_in, video))
                 # Do horizontal flip
