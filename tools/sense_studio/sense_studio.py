@@ -116,7 +116,7 @@ def browse_directory():
     project_dir = project_utils.get_folder_name_for_project(project)
     full_path = os.path.join(path, project_dir)
 
-    video_files = [f for f in glob.glob(f'{path}*.mp4')]
+    video_files = [f for f in glob.glob(f'{path}*{VIDEO_EXT}')]
     projects = project_utils.load_project_overview_config()
 
     return jsonify(
@@ -212,7 +212,7 @@ def project_details(project):
             stats[class_name][split] = {
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
-                'videos': natsorted([video for video in os.listdir(videos_dir) if video.endswith('.mp4')], alg=ns.IC),
+                'videos': natsorted([video for video in os.listdir(videos_dir) if video.endswith(VIDEO_EXT)], alg=ns.IC),
             }
     tags = config['tags']
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
@@ -411,12 +411,11 @@ def flip_videos():
     config = project_utils.load_project_config(path)
     counterpart_class_name = str(data['counterpartClassName'])
     original_class_name = str(data['originalClassName'])
-    copy_train_video_tags = data['copyTrainVideoTags']
-    copy_valid_video_tags = data['copyValidVideoTags']
+    copy_video_tags = data['videosToCopyTags']
 
     if counterpart_class_name not in config['classes']:
         config['classes'][counterpart_class_name] = config['classes'][original_class_name] \
-            if copy_train_video_tags or copy_valid_video_tags else []
+            if copy_video_tags['train'] or copy_video_tags['valid'] else []
         project_utils.write_project_config(path, config)
 
     for split in SPLITS:
@@ -429,10 +428,10 @@ def flip_videos():
         os.makedirs(videos_path_out, exist_ok=True)
         os.makedirs(counterpart_tags_path, exist_ok=True)
 
-        video_list = [video for video in os.listdir(videos_path_in) if video.endswith('.mp4')]
+        video_list = [video for video in os.listdir(videos_path_in) if video.endswith(VIDEO_EXT)]
 
         for video in video_list:
-            output_video_list = [op_video for op_video in os.listdir(videos_path_out) if op_video.endswith('.mp4')]
+            output_video_list = [op_video for op_video in os.listdir(videos_path_out) if op_video.endswith(VIDEO_EXT)]
             print(f'Processing video: {video}')
             if '_flipped' in video:
                 flipped_video_name = ''.join(video.split('_flipped'))
@@ -450,22 +449,11 @@ def flip_videos():
                 # Run to render and save video
                 ffmpeg.run(flipped_video_output)
 
-                # Copy tags of original video to flipped video (in train set)
-                if video in copy_train_video_tags and split == 'train':
-                    original_tags_file = os.path.join(original_tags_path, video.replace('.mp4', '.json'))
-                    flipped_tags_file = os.path.join(counterpart_tags_path, flipped_video_name.replace('.mp4', '.json'))
-
-                    if os.path.exists(original_tags_file):
-                        with open(original_tags_file) as f:
-                            original_video_tags = json.load(f)
-                        original_video_tags['file'] = flipped_video_name
-                        with open(flipped_tags_file, 'w') as f:
-                            f.write(json.dumps(original_video_tags, indent=2))
-
-                # Copy tags of original video to flipped video (in valid set)
-                if video in copy_valid_video_tags and split == 'valid':
-                    original_tags_file = os.path.join(original_tags_path, video.replace('.mp4', '.json'))
-                    flipped_tags_file = os.path.join(counterpart_tags_path, flipped_video_name.replace('.mp4', '.json'))
+                # Copy tags of original video to flipped video (in train/valid set)
+                if video in copy_video_tags[split]:
+                    original_tags_file = os.path.join(original_tags_path, video.replace(VIDEO_EXT, '.json'))
+                    flipped_tags_file = os.path.join(counterpart_tags_path,
+                                                     flipped_video_name.replace(VIDEO_EXT, '.json'))
 
                     if os.path.exists(original_tags_file):
                         with open(original_tags_file) as f:
