@@ -584,8 +584,10 @@ async function createCounterpartVideos(projectName, originalClassName, index, ur
         projectName: projectName,
         originalClassName : originalClassName,
         counterpartClassName: counterpartClassName,
-        copyTrainVideoTags: copyTrainVideoTags,
-        copyValidVideoTags: copyValidVideoTags,
+        videosToCopyTags: {
+            train: copyTrainVideoTags,
+            valid: copyValidVideoTags
+        }
     };
 
     let response = await asyncRequest(url, data);
