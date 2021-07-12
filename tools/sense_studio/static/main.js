@@ -458,3 +458,139 @@ function cancelEditTag(tagIdx) {
     tagEdit.classList.add('uk-hidden');
     tagShow.classList.remove('uk-hidden');
 }
+
+///////////////////////////////////////////// Counterpart Class Operations //////////////////////////////////////////////////
+
+function toggleVideoList(index, isHidden) {
+    let copyVideoTags = document.getElementById(`copyVideoTags${index}`);
+    if (isHidden) {
+        copyVideoTags.classList.remove('uk-hidden');
+    } else {
+        copyVideoTags.classList.add('uk-hidden');
+    }
+}
+
+
+function createCounterpartClass(index) {
+    let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
+    let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let counterpartClassName = document.getElementById(`counterpartClassName${index}`);
+    let classNameInput = document.getElementById(`editCounterpartClassName${index}`);
+    let className = classNameInput.value;
+
+    counterpartClassName.innerHTML = className;
+    counterpartClassEdit.classList.add('uk-hidden');
+    counterpartClassShow.classList.remove('uk-hidden');
+}
+
+function editCounterpartClass(index, shouldEdit) {
+    let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
+    let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let counterpartClassNameLabel = document.getElementById(`counterpartClassNameLabel${index}`);
+    let classNameInput = document.getElementById(`editCounterpartClassName${index}`);
+    let className = document.getElementById(`editCounterpartClassName${index}`);
+
+    if (shouldEdit) {
+        counterpartClassShow.classList.add('uk-hidden');
+        counterpartClassEdit.classList.remove('uk-hidden');
+    } else {
+        counterpartClassShow.classList.remove('uk-hidden');
+        counterpartClassEdit.classList.add('uk-hidden');
+        className.value = className.attributes.value.value;
+        setFormWarning(counterpartClassNameLabel, classNameInput, '');
+    }
+}
+
+function updateCounterpartClass(index) {
+    let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
+    let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let counterpartClassName = document.getElementById(`counterpartClassName${index}`);
+    let counterpartClassNameLabel = document.getElementById(`counterpartClassNameLabel${index}`);
+    let submitCounterpartClassButton = document.getElementById(`submitCounterpartClass${index}`);
+    let classNameInput = document.getElementById(`editCounterpartClassName${index}`);
+    let className = classNameInput.value;
+
+    let disabled = false;
+
+    // Check that class name is filled and unique
+    if (className === '') {
+        setFormWarning(counterpartClassNameLabel, classNameInput, 'Class name cannot be left empty');
+        disabled = true;
+    } else {
+        setFormWarning(counterpartClassNameLabel, classNameInput, '');
+    }
+    submitCounterpartClassButton.disabled = disabled;
+}
+
+
+function showCounterpartClassFields(index) {
+    let selectCounterpartClass = document.getElementById(`selectCounterpartClass${index}`);
+    let counterpartClassEdit = document.getElementById(`counterpartClassEdit${index}`);
+    let counterpartClassShow = document.getElementById(`counterpartClassShow${index}`);
+
+    // Show/Hide counterpart class input field if dropdown value is -1.
+    if (selectCounterpartClass.value == '-1') {
+        counterpartClassEdit.classList.remove('uk-hidden');
+    } else {
+        counterpartClassEdit.classList.add('uk-hidden');
+        counterpartClassShow.classList.add('uk-hidden');
+    }
+}
+
+async function createCounterpartVideos(projectName, originalClassName, index, url) {
+    let saveCounterpartsButton = document.getElementById(`saveCounterparts${index}`);
+
+    let selectCounterpartClass = document.getElementById(`selectCounterpartClass${index}`);
+    let copyTagsRadio = document.getElementsByName(`copyTag${index}`)[0];
+    let counterpartClassName = null;
+    let copyTags = false;
+
+    let trainVideoList = document.getElementById(`trainVideoList${index}`);
+    let validVideoList = document.getElementById(`validVideoList${index}`);
+    let copyTrainVideoTags = [];
+    let copyValidVideoTags = [];
+
+    loadingButton(saveCounterpartsButton, 'Preparing');
+
+    if (copyTagsRadio.value == 1 && copyTagsRadio.checked) {
+        copyTags = true;
+    }
+
+    if (selectCounterpartClass.value === '-1') {
+        counterpartClassName = document.getElementById(`counterpartClassName${index}`).innerHTML;
+    } else {
+        counterpartClassName = selectCounterpartClass.value;
+    }
+
+    if (copyTags) {
+        // Create list of video names from train set whose tags need to be copied
+        for (videos of trainVideoList.children) {
+            let video = videos.children[0];
+            if (video.checked) {
+                copyTrainVideoTags.push(video.value);
+            }
+        }
+
+        // Create list of video names from valid set whose tags need to be copied
+        for (videos of validVideoList.children) {
+            let video = videos.children[0];
+            if (video.checked) {
+                copyValidVideoTags.push(video.value);
+            }
+        }
+    }
+
+    data = {
+        projectName: projectName,
+        originalClassName : originalClassName,
+        counterpartClassName: counterpartClassName,
+        videosToCopyTags: {
+            train: copyTrainVideoTags,
+            valid: copyValidVideoTags
+        }
+    };
+
+    let response = await asyncRequest(url, data);
+
+    window.location.href = response.url;
+}

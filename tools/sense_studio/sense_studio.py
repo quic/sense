@@ -8,16 +8,20 @@ Web app for maintaining all of your video datasets:
 """
 
 import glob
+import json
 import multiprocessing
 import os
 import urllib
 
+import ffmpeg
 from flask import Flask
 from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+from natsort import natsorted
+from natsort import ns
 
 from sense import SPLITS
 from tools import directories
@@ -43,6 +47,9 @@ app.register_blueprint(tags_bp, url_prefix='/tags')
 app.register_blueprint(demos_bp, url_prefix='/demos')
 
 socketio.init_app(app)
+
+# Training script expects videos in MP4 format
+VIDEO_EXT = '.mp4'
 
 
 @app.route('/')
@@ -109,7 +116,7 @@ def browse_directory():
     project_dir = project_utils.get_folder_name_for_project(project)
     full_path = os.path.join(path, project_dir)
 
-    video_files = [f for f in glob.glob(f'{path}*.mp4')]
+    video_files = [f for f in glob.glob(f'{path}*{VIDEO_EXT}')]
     projects = project_utils.load_project_overview_config()
 
     return jsonify(
@@ -205,6 +212,7 @@ def project_details(project):
             stats[class_name][split] = {
                 'total': len(os.listdir(videos_dir)),
                 'tagged': len(os.listdir(tags_dir)) if os.path.exists(tags_dir) else 0,
+                'videos': natsorted([video for video in os.listdir(videos_dir) if video.endswith(VIDEO_EXT)], alg=ns.IC)
             }
     tags = config['tags']
     return render_template('project_details.html', config=config, path=path, stats=stats, project=config['name'],
@@ -389,6 +397,73 @@ def set_timer_default():
     project_utils.set_timer_default(path, countdown, recording)
 
     return jsonify(status=True)
+
+
+@app.route('/flip-videos', methods=['POST'])
+def flip_videos():
+    """
+    Flip the videos horizontally for given class and
+    copy tags of selected original videos for flipped version of it.
+    """
+    data = request.json
+    project = data['projectName']
+    path = project_utils.lookup_project_path(project)
+    config = project_utils.load_project_config(path)
+    counterpart_class_name = str(data['counterpartClassName'])
+    original_class_name = str(data['originalClassName'])
+    copy_video_tags = data['videosToCopyTags']
+
+    if counterpart_class_name not in config['classes']:
+        config['classes'][counterpart_class_name] = config['classes'][original_class_name] \
+            if copy_video_tags['train'] or copy_video_tags['valid'] else []
+        project_utils.write_project_config(path, config)
+
+    for split in SPLITS:
+        videos_path_in = os.path.join(path, f'videos_{split}', original_class_name)
+        videos_path_out = os.path.join(path, f'videos_{split}', counterpart_class_name)
+        original_tags_path = os.path.join(path, f'tags_{split}', original_class_name)
+        counterpart_tags_path = os.path.join(path, f'tags_{split}', counterpart_class_name)
+
+        # Create directory to save flipped videos
+        os.makedirs(videos_path_out, exist_ok=True)
+        os.makedirs(counterpart_tags_path, exist_ok=True)
+
+        video_list = [video for video in os.listdir(videos_path_in) if video.endswith(VIDEO_EXT)]
+
+        for video in video_list:
+            output_video_list = [op_video for op_video in os.listdir(videos_path_out) if op_video.endswith(VIDEO_EXT)]
+            print(f'Processing video: {video}')
+            if '_flipped' in video:
+                flipped_video_name = ''.join(video.split('_flipped'))
+            else:
+                flipped_video_name = video.split('.')[0] + '_flipped' + VIDEO_EXT
+
+            if flipped_video_name not in output_video_list:
+                # Original video as input
+                original_video = ffmpeg.input(os.path.join(videos_path_in, video))
+                # Do horizontal flip
+                flipped_video = ffmpeg.hflip(original_video)
+                # Get flipped video output
+                flipped_video_output = ffmpeg.output(flipped_video,
+                                                     filename=os.path.join(videos_path_out, flipped_video_name))
+                # Run to render and save video
+                ffmpeg.run(flipped_video_output)
+
+                # Copy tags of original video to flipped video (in train/valid set)
+                if video in copy_video_tags[split]:
+                    original_tags_file = os.path.join(original_tags_path, video.replace(VIDEO_EXT, '.json'))
+                    flipped_tags_file = os.path.join(counterpart_tags_path,
+                                                     flipped_video_name.replace(VIDEO_EXT, '.json'))
+
+                    if os.path.exists(original_tags_file):
+                        with open(original_tags_file) as f:
+                            original_video_tags = json.load(f)
+                        original_video_tags['file'] = flipped_video_name
+                        with open(flipped_tags_file, 'w') as f:
+                            f.write(json.dumps(original_video_tags, indent=2))
+
+    print("Processing complete!")
+    return jsonify(status=True, url=url_for("project_details", project=project))
 
 
 if __name__ == '__main__':
