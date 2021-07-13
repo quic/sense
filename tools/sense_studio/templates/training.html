@@ -1,0 +1,124 @@
+{% extends 'skeleton.html' %}
+
+{% block title %} Training {% endblock %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock navigation %}
+
+{% block main %}
+<div class="uk-container uk-container-xsmall">
+    <h1 class="uk-heading-medium uk-margin-large-top uk-margin-remove-bottom">Training</h1>
+    <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+        <span uk-icon="icon: folder"></span> {{ path }}
+    </div>
+
+    <form class="uk-form-stacked">
+        <input type="hidden" id="project" name="project" value="{{ project }}">
+        <input type="hidden" id="path" name="path" value="{{ path }}">
+
+        <div class="uk-child-width-1-2@s uk-grid-small uk-grid-match" uk-grid>
+            <div class="uk-inline">
+                <label class="uk-form-label" for="modelName">Backbone Model</label>
+                <div class="uk-form-controls uk-width-1-1">
+                    <select class="uk-select {{ 'uk-form-danger' if not models }}" id="modelName"
+                            onchange="updateLayersToFinetuneSlider();">
+                        {% if models %}
+                            {% for model in models %}
+                                <option>{{ model }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">No models available</option>
+                        {% endif %}
+                    </select>
+                    {% if not models %}
+                        <div uk-dropdown>
+                            <p>
+                                Pre-trained backbone model weights couldn't be found.
+                            </p>
+                            To download, please go to
+                            <a target="_blank" rel="noopener noreferrer" href="https://20bn.com/licensing/sdk/evaluation">
+                                https://20bn.com/licensing/sdk/evaluation
+                            </a>
+                            and follow the instructions.
+                            Then, extract the <code>backbone</code> folder into <code>sense/resources</code>.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <label class="uk-form-label" for="layersToFinetune">Number of backbone layers to fine-tune</label>
+                <div class="uk-form-controls">
+                    <div class="uk-width-1-1 uk-grid-small uk-grid-match" uk-grid>
+                        <div class="uk-width-3-4">
+                            <input class="uk-range" type="range" id="layersToFinetune" value="9" min="0" max="32" step="1"
+                                   oninput="updateLayersToFinetuneOutput();">
+                        </div>
+                        <div class="uk-width-1-4">
+                            <output class="line-height-normal" id="layersToFinetuneOutput" for="layersToFinetune">9</output>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="uk-form-label" for="epochs">Epochs</label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: refresh"></span>
+                        <input class="uk-input" type="number" id="epochs" value="40" min="1">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="uk-form-label" for="outputFolder">
+                    Output folder ({{ output_path_prefix }}...)
+                </label>
+                <div class="uk-form-controls">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon" uk-icon="icon: folder"></span>
+                        <input class="uk-input" type="text" id="outputFolder" value="{{ output_folder }}"
+                               placeholder="Folder Name" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label uk-tooltip="Train the model on temporal annotations instead of whole-video class labels">
+                    <input type="checkbox" id="makeProjectTemporal" class="uk-checkbox"
+                           {% if project_config.temporal %} checked {% endif %}
+                           onclick="toggleMakeProjectTemporal('{{ path }}');">
+                    Temporal Annotations
+                </label>
+            </div>
+
+            <div>
+                <label>
+                    <input type="checkbox" id="gpuInput" class="uk-checkbox"
+                           {% if project_config.use_gpu %} checked {% endif %}
+                           onclick="toggleGPU('{{ path }}');">
+                    Use GPU
+                </label>
+            </div>
+        </div>
+
+        <button class="uk-button uk-button-primary uk-margin uk-margin-right" id="btnTrain" type="button" tabindex="0"
+                onclick="startTraining('{{ url_for('.start_training') }}');"
+                {% if not models %} disabled {% endif %}>
+            Train model
+        </button>
+        <button class="uk-button uk-button-danger" id="btnCancelTrain" type="button" tabindex="1"
+                onclick="cancelTraining('{{ url_for('.cancel_training') }}');" disabled>
+            Cancel
+        </button>
+    </form>
+    <div id="terminal" class="uk-section uk-section-secondary uk-padding-small"></div>
+    <img id="confusionMatrix" class="uk-margin" src="" />
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='training.js') }}"></script>
+{% endblock %}

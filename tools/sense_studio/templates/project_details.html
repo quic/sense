@@ -7,193 +7,425 @@
 {% endblock navigation %}
 
 {% block main %}
-<div id="main" class="ui main text container">
-    <div class="ui segment right floated">
-        <h3 class="ui header center aligned">Settings</h3>
-        <div class="ui toggle checkbox hashoverpopup"
-           data-content="Should GPU be used for computing features?"
-           onclick="toggleGPU('{{ path }}');">
-            <input type="checkbox" id="gpuInput" {% if config.use_gpu %} checked="checked" {% endif %}>
-            <label>Use GPU</label>
-        </div>
-        <br/>
-        <br/>
-        <div class="ui toggle checkbox hashoverpopup"
-           data-content="Do you want to tag your video with frame-wise temporal annotations?"
-           onclick="toggleMakeProjectTemporal('{{ path }}');">
-            <input type="checkbox" id="makeProjectTemporal" {% if config.temporal %} checked="checked" {% endif %}>
-            <label>Use Temporal Annotations</label>
-        </div>
-    </div>
-    <h1 class="ui header">
-        {{ project }}
-        <div class="sub header">
-            <i class="folder open icon"></i>
-            {{ path }}
-        </div>
-    </h1>
-    <a class="ui icon button hashoverpopup" onclick="loading(this);"
-       href="{{ url_for('annotation_bp.prepare_annotation', project=project) }}"
-       data-content="Prepare required files for all classes">
-        <i class="file video outline icon"></i>
-        Prepare Annotations
-    </a>
-    <input type="hidden" id="projectName" value="{{ project }}">
-
-    <div class="ui icon message">
-        <i class="info circle icon"></i>
-        <i class="close icon"></i>
-        <div class="content">
-            <div class="header">
-                Classes and Tags?
+<div class="uk-container">
+    <div class="uk-margin-large-top" uk-grid>
+        <div class="uk-width-expand">
+            <h1 class="uk-heading-medium uk-margin-remove-bottom">{{ project }}</h1>
+            <div class="uk-text-meta uk-text-large uk-margin-medium-bottom">
+                <span uk-icon="icon: folder"></span>
+                {{ path }}
             </div>
-            <p>
-                Each video will have exactly one class label.
-                Tags can be used for temporally annotating single frames out of a video with more specific labels,
-                which later enable you to perform tasks such as counting certain actions.
-            </p>
         </div>
-    </div>
 
-    <h3 class="ui header">Classes</h3>
-    <div class="ui centered cards">
-        {% for class, tags in config.classes.items() %}
-        <div class="card" id="classShow{{ loop.index }}">
-            <div class="content">
-                <div class="header">
-                    <span>
-                        {{ class }}
-                    </span>
-                    <a class="right floated" onclick="editClass('{{ loop.index }}', true)">
-                         <i class="edit icon"></i>
-                    </a>
+        <div class="uk-width-medium">
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+                <h3 class="uk-card-title">Settings</h3>
+
+                <div>
+                    <label class="uk-margin"
+                           uk-tooltip="Tag your videos with frame-wise temporal annotations">
+                        <input type="checkbox" id="makeProjectTemporal" class="uk-checkbox"
+                               {% if config.temporal %} checked {% endif %}
+                               onclick="toggleMakeProjectTemporal('{{ path }}');">
+                        Temporal Annotations
+                    </label>
+                </div>
+
+                <div class="uk-margin-small-top">
+                    <label uk-tooltip="Use a GPU for computing features and running the model training">
+                        <input type="checkbox" id="gpuInput" class="uk-checkbox"
+                               {% if config.use_gpu %} checked {% endif %}
+                               onclick="toggleGPU('{{ path }}');">
+                        Use GPU
+                    </label>
                 </div>
             </div>
-            <div class="content temporal {{ 'display-hidden' if not config.temporal }}" >
-                <h4>Tags</h4>
-                <div class="ui list">
-                    {% for tag in tags %}
-                    <div class="item">
-                        <i class="tag icon"></i>
-                        <div class="content">
-                            <div class="description">
-                                {{ tag }}
+        </div>
+    </div>
+
+    <input type="hidden" id="projectName" value="{{ project }}">
+    <input type="hidden" id="path" value="{{ path }}">
+
+    <div class="uk-margin-medium-top" uk-alert>
+        <a class="uk-alert-close" uk-close></a>
+        <div class="uk-grid-match uk-grid-small" uk-grid>
+            <div class="uk-width-auto">
+                <span class="uk-margin-small-left uk-margin-auto-vertical" uk-icon="icon: info; ratio: 2"></span>
+            </div>
+            <div class="uk-width-expand">
+                <h3 class="uk-margin-remove-bottom">Classes and Tags?</h3>
+                <div>
+                    Each video will have exactly one class label.
+                    If you enable the "Use Temporal Annotations" setting, tags can be used for annotating single frames
+                    out of a video with more specific labels, which later enable you to perform tasks such as counting
+                    certain actions.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="uk-margin-medium-top uk-margin-medium-bottom temporal {{ 'uk-hidden' if not config.temporal }}" uk-grid>
+        <div>
+            <h1>Tags</h1>
+        </div>
+
+        <div>
+            <button class="uk-button uk-button-default uk-width-1-1" type="submit">
+                <span uk-icon="icon: plus"></span>
+                Add New Tag
+            </button>
+            <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
+                <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
+                      action="{{ url_for('tags_bp.create_tag', project=project) }}">
+                    <div class="uk-card-body">
+                        <div>
+                            <label class="uk-form-label uk-text-danger" id="newTagLabel"></label>
+                            <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                                <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                                <input class="uk-input" type="text" id="newTagName" name="newTagName" placeholder="Tag Name"
+                                       oninput="checkIfTagExist({{ tags }}, 'newTagName', 'newTagLabel', 'addTag');" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <button class="uk-button uk-button-default uk-width-1-1" type="submit" id="addTag" disabled>
+                            <span uk-icon="icon: plus"></span>
+                            Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="temporal {{ 'uk-hidden' if not config.temporal }}">
+        <div class="uk-child-width-1-2@m uk-child-width-1-3@l uk-grid-match" uk-grid>
+            {% for tag_idx, tag_name in tags.items()|sort(attribute='1') %}
+            <div>
+                <div class="uk-card uk-card-default uk-card-hover uk-card-header">
+                    <div id="tagShow{{ tag_idx }}" class="uk-grid-small" uk-grid>
+                        <div class="uk-width-expand">
+                            <h3 class="uk-card-title uk-float-left">{{ tag_name }}</h3>
+                        </div>
+                        <div class="uk-width-auto">
+                            <a uk-icon="icon: pencil; ratio: 1.1" uk-tooltip="Edit Tag" onclick="editTag('{{ tag_idx }}');"></a>
+                        </div>
+                        <div class="uk-width-auto">
+                            <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Tag"></a>
+                            <div uk-dropdown="mode: click; pos:bottom-justify">
+                                <p>
+                                    Remove tag from the config. All annotations with this tag will be lost.
+                                </p>
+                                <a class="uk-button uk-button-danger"
+                                    href="{{ url_for('tags_bp.remove_tag', project=project, tag_idx=tag_idx) }}">
+                                    <span uk-icon="icon: trash"></span> REMOVE
+                                </a>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="content">
-                <h4>Videos</h4>
-                <div class="ui segments">
-                    <div class="ui segment">
-                        <h5>Train: {{ stats[class].train.total }} <span class="temporal {{ 'display-hidden' if not config.temporal }}">({{ stats[class].train.tagged }} annotated)</span></h5>
-                        <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
-                            <i class="record icon"></i>
-                            Record
-                        </a>
-                        <a class="ui icon button temporal {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}">
-                            <i class="edit icon"></i>
-                            Annotate
-                        </a>
-                    </div>
-                    <div class="ui segment">
-                        <h5>Valid: {{ stats[class].valid.total }} <span class="temporal {{ 'display-hidden' if not config.temporal }}">({{ stats[class].valid.tagged }} annotated)</span></h5>
-                        <a class="ui icon button" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
-                            <i class="record icon"></i>
-                            Record
-                        </a>
-                        <a class="ui icon button temporal {{ 'display-hidden' if not config.temporal }}" onclick="loading(this);" href="{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}">
-                            <i class="edit icon"></i>
-                            Annotate
-                        </a>
+
+                    <div id="tagEdit{{ tag_idx }}" class="uk-hidden">
+                        <form method="POST" class="uk-grid-small"
+                              action="{{ url_for('tags_bp.edit_tag', project=project, tag_idx=tag_idx) }}" uk-grid>
+                            <div class="uk-width-1-1">
+                                <label id="tagEditError{{ tag_idx }}" class="uk-form-label uk-text-danger"></label>
+                            </div>
+                            <div class="uk-form-control uk-width-expand uk-margin-remove-top">
+                                <div class="uk-inline">
+                                    <span class="uk-form-icon" uk-icon="icon: tag"></span>
+                                    <input class="uk-input" type="text" placeholder="Tag name" autocomplete="off"
+                                           oninput="checkIfTagExist({{ tags }}, 'tag{{ tag_idx }}', 'tagEditError{{ tag_idx }}', 'saveTag{{ tag_idx }}', '{{ tag_name }}');"
+                                           id="tag{{ tag_idx }}" name="newTagName" value="{{ tag_name }}" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="uk-width-auto uk-margin-remove-top">
+                                <button class="uk-button uk-button-primary narrow-button" type="submit" uk-tooltip="Save Tag" id="saveTag{{ tag_idx }}">
+                                    <span uk-icon="icon: check"></span>
+                                </button>
+                                <a class="uk-button uk-button-danger narrow-button" uk-tooltip="Cancel" onclick="cancelEditTag('{{ tag_idx }}');">
+                                    <span uk-icon="icon: close"></span>
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="uk-margin-medium-top uk-margin-medium-bottom" uk-grid>
+        <div>
+            <h1>Classes</h1>
         </div>
 
-        <form class="ui form card class-card display-hidden" id="classEdit{{ loop.index }}" method="POST"
-              action="{{ url_for('edit_class', project=project, class_name=class) }}">
-            <div class="content">
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="eye icon"></i>
-                        <input type="text" name="className" placeholder="Class Name" value="{{ class }}" />
-                    </div>
-                </div>
-            </div>
-            <div class="content temporal {{ 'display-hidden' if not config.temporal }}">
-                <h4>Tags</h4>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag1" placeholder="Tag 1" value="{{ tags[0] }}" />
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag2" placeholder="Tag 2" value="{{ tags[1] }}" />
-                    </div>
-                </div>
-                <div class="ui error message"></div>
-            </div>
-            <button class="ui bottom attached button" type="button" onclick="editClass('{{ loop.index }}', false)">
-                <i class="close icon"></i>
-                Cancel
-            </button>
-            <button class="ui bottom attached button" type="submit">
-                <i class="download icon"></i>
-                Save Changes
-            </button>
-            <button class="ui bottom attached button hasclickpopup" type="button">
-                <i class="trash alternate outline icon"></i>
-                Delete Class
-            </button>
-            <div class="ui popup transition hidden">
-                <p>
-                    Remove class from the local config.
-                    No data will be deleted.
-                </p>
-                <a class="ui red icon button" href="{{ url_for('remove_class', project=project, class_name=class) }}">
-                    <i class="trash alternate outline icon"></i>
-                    Delete Class
-                </a>
-            </div>
-        </form>
-        {% endfor %}
-
-        <form class="ui form card class-card" method="POST" action="{{ url_for('add_class', project=project) }}">
-            <div class="content">
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="eye icon"></i>
-                        <input type="text" name="className" placeholder="Class Name" />
-                    </div>
-                </div>
-            </div>
-            <div class="content temporal {{ 'display-hidden' if not config.temporal }}">
-                <h4>Tags</h4>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag1" placeholder="Tag 1" />
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="ui left icon input">
-                        <i class="tag icon"></i>
-                        <input type="text" name="tag2" placeholder="Tag 2" />
-                    </div>
-                </div>
-                <div class="ui error message"></div>
-            </div>
-            <button class="ui bottom attached button" type="submit">
-                <i class="plus icon"></i>
+        <div>
+            <button class="uk-button uk-button-default uk-width-1-1" type="submit">
+                <span uk-icon="icon: plus"></span>
                 Add New Class
             </button>
-        </form>
+            <div class="uk-width-large" uk-drop="pos: bottom-center; mode:click">
+                <form class="uk-card uk-card-default uk-card-hover uk-form-stacked" method="POST"
+                      action="{{ url_for('add_class', project=project) }}">
+                    <div class="uk-card-body">
+                        <div>
+                            <label class="uk-form-label uk-text-danger" id="newClassNameLabel"></label>
+                            <div class="uk-inline uk-width-1-1 uk-margin-bottom">
+                                <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                                <input class="uk-input" type="text" id="newClassName" name="className" placeholder="Class Name"
+                                       oninput="editAddClass('{{ project }}');" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <button class="uk-button uk-button-default uk-width-1-1" type="submit" id="addClass" disabled>
+                            <span uk-icon="icon: plus"></span>
+                            Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="uk-child-width-1-2@m uk-child-width-1-3@l" uk-grid>
+        {% for class, selected_tags in config.classes.items()|sort %}
+            {% set class_idx = loop.index %}
+            <div>
+                <div class="uk-card uk-card-default uk-card-hover">
+                    <div class="uk-card-header">
+                        <div id="classShow{{ class_idx }}" class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand">
+                                <h3 class="uk-card-title uk-float-left">{{ class }}</h3>
+                            </div>
+                            <div class="uk-width-auto uk-text-center">
+                                <a uk-icon="icon: pencil; ratio: 1.1" onclick="editClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
+                            </div>
+                            <div class="uk-width-auto uk-text-center">
+                                <a href="#" uk-icon="icon: trash; ratio: 1.1" uk-tooltip="Remove Class"></a>
+                                <div uk-dropdown="mode: click; pos:bottom-justify">
+                                    <p>
+                                        Remove class from the local config.
+                                        No data will be deleted.
+                                    </p>
+                                    <a class="uk-button uk-button-danger" href="{{ url_for('remove_class', project=project, class_name=class) }}">
+                                        <span uk-icon="icon: trash"></span>
+                                        Remove
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="classEdit{{ class_idx }}" class="uk-hidden">
+                            <form method="POST" class="uk-grid-small"
+                                  action="{{ url_for('edit_class', project=project, class_name=class) }}" uk-grid>
+                                <div class="uk-width-1-1">
+                                    <label class="uk-form-label uk-text-danger" id="editClassNameLabel{{ class_idx }}"></label>
+                                </div>
+                                <div class="uk-width-expand uk-margin-remove-top">
+                                    <div class="uk-inline">
+                                        <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                                        <input class="uk-input" type="text" id="editClassName{{ class_idx }}" name="className"
+                                               placeholder="Class Name" value="{{ class }}" autocomplete="off"
+                                               oninput="editUpdateClass('{{ project }}', '{{ class }}', '{{ class_idx }}');">
+                                    </div>
+                                </div>
+                                <div class="uk-width-auto uk-margin-remove-top">
+                                    <button class="uk-button uk-button-primary narrow-button" type="submit" id="submitEditClass{{ class_idx }}" uk-tooltip="Save Changes">
+                                        <span uk-icon="icon: check"></span>
+                                    </button>
+                                    <a class="uk-button uk-button-danger narrow-button" uk-tooltip="Cancel" onclick="editClass('{{ class_idx }}', false);">
+                                        <span uk-icon="icon: close"></span>
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="uk-card-body temporal {{ 'uk-hidden' if not config.temporal }}">
+                        <h4>Tags</h4>
+                        <select class="uk-select" id="selectTag{{ class_idx }}"
+                                onchange="addSelectedTagToClass('{{ class_idx }}', '{{ class }}', '{{ path }}');">
+                            {% if tags %}
+                                <option value="">Select tags...</option>
+                                {% for tag_index, tag_name in tags.items()|sort(attribute='1') %}
+                                    {% if tag_index not in selected_tags %}
+                                        <option value="{{ tag_index }}">{{ tag_name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <option value="">No tags available</option>
+                            {% endif %}
+                        </select>
+                        <ul id="selectedTagsList{{ class_idx }}" class="uk-list uk-margin-top">
+                            {% if selected_tags %}
+                                {% for tag_idx in selected_tags %}
+                                    <li id="tagList{{ class_idx }}-{{ tag_idx }}">
+                                        <span uk-icon="icon: tag"></span>
+                                        {{ tags[tag_idx] }}
+                                        <a class="uk-float-right">
+                                            <span uk-icon="icon: close" class="uk-text-danger"
+                                                  onclick="deselectTagFromList('{{ class_idx }}', '{{ tag_idx }}','{{ tags[tag_idx] }}', '{{ path }}', '{{ class }}');">
+                                            </span>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="uk-card-footer">
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand">
+                                <h4 class="uk-float-left">Videos</h4>
+                            </div>
+                            <div class="uk-width-auto uk-text-center">
+                                <a class="uk-button uk-button-text" uk-toggle="target: #counterpartClassModal{{ class_idx }}">Flip</a>
+                            </div>
+                            <div class="uk-width-1-1">
+                                <h5>
+                                    Train: {{ stats[class].train.total }}
+                                    <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
+                                        ({{ stats[class].train.tagged }} annotated)
+                                    </span>
+                                </h5>
+                                <div class="uk-button-group">
+                                    <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='train', label=class) }}">
+                                        <span uk-icon="icon: video-camera"></span>
+                                        Record
+                                    </a>
+                                    <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+                                       onclick="loadingButton(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='train', label=class) }}');">
+                                        <span uk-icon="icon: file-edit"></span>
+                                        <span>Annotate</span>
+                                    </button>
+                                </div>
+                                <h5>
+                                    Valid: {{ stats[class].valid.total }}
+                                    <span class="temporal {{ 'uk-hidden' if not config.temporal }}">
+                                        ({{ stats[class].valid.tagged }} annotated)
+                                    </span>
+                                </h5>
+                                <div class="uk-button-group">
+                                    <a class="uk-button uk-button-default" href="{{ url_for('video_recording_bp.record_video', project=project, split='valid', label=class) }}">
+                                        <span uk-icon="icon: video-camera"></span>
+                                        Record
+                                    </a>
+                                    <button class="uk-button uk-button-default temporal {{ 'uk-hidden' if not config.temporal }}"
+                                       onclick="loadingButton(this, 'Preparing', '{{ url_for('annotation_bp.show_video_list', project=project, split='valid', label=class) }}');">
+                                        <span uk-icon="icon: file-edit"></span>
+                                        <span>Annotate</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="counterpartClassModal{{ class_idx }}" class="uk-modal-container" uk-modal>
+                            <div class="uk-modal-dialog uk-modal-body">
+                                <button class="uk-modal-close-default" type="button" uk-close></button>
+                                <div class="uk-modal-header">
+                                    <h4 class="uk-modal-title">Left-Right flip videos</h4>
+                                </div>
+                                <div class="uk-modal-body">
+                                    <div class="uk-child-width-1-1@m uk-grid-match uk-grid-small" uk-grid>
+                                        <div class="uk-width-1-1">
+                                            <label>Which class should the flipped videos belong to?</label>
+                                        </div>
+                                        <div class="uk-width-1-1">
+                                            <select class="uk-select" id="selectCounterpartClass{{ class_idx }}" onchange="showCounterpartClassFields('{{ class_idx }}');">
+                                                {% for class_name, class_tags in config.classes.items()|sort %}
+                                                    <option value="{{ class_name }}" {% if class_name == class %} selected {% endif %}>{{ class_name }}</option>
+                                                {% endfor %}
+                                                    <option value="-1">Add New Class</option>
+                                            </select>
+                                        </div>
+                                        <div class="uk-width-1-1">
+                                            <label class="uk-form-label uk-text-danger" id="counterpartClassNameLabel{{ class_idx }}"></label>
+                                        </div>
+                                        <div id="counterpartClassShow{{ class_idx }}" class="uk-hidden">
+                                            <div class="uk-width-expand">
+                                                <h5 id="counterpartClassName{{ class_idx }}" class="uk-card-title uk-float-left">{{ class }}</h5>
+                                            </div>
+                                            <div class="uk-width-auto uk-text-center uk-text-right">
+                                                <a uk-icon="icon: pencil; ratio: 1.1" onclick="editCounterpartClass('{{ class_idx }}', true);" uk-tooltip="Edit Class"></a>
+                                            </div>
+                                        </div>
+
+                                        <div id="counterpartClassEdit{{ class_idx }}" class="uk-hidden uk-margin-small-bottom">
+                                            <div class="uk-inline uk-width-expand">
+                                                <span class="uk-form-icon" uk-icon="icon: bookmark"></span>
+                                                <input class="uk-input uk-width-expand" type="text" id="editCounterpartClassName{{ class_idx }}" name="className"
+                                                       placeholder="Class Name" value="{{ class }}" autocomplete="off"
+                                                       oninput="updateCounterpartClass('{{ class_idx }}');">
+                                            </div>
+                                            <div class="uk-margin-small-left uk-width-auto">
+                                                <button class="uk-button uk-button-primary" type="button" id="submitCounterpartClass{{ class_idx }}"
+                                                        onclick="createCounterpartClass('{{ class_idx }}');" uk-tooltip="Save Changes">
+                                                    <span uk-icon="icon: check"></span>
+                                                </button>
+                                            </div>
+                                             <div class="uk-margin-small-left uk-width-auto">
+                                                <a class="uk-button uk-button-danger" uk-tooltip="Cancel" onclick="editCounterpartClass('{{ class_idx }}', false);">
+                                                    <span uk-icon="icon: close"></span>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div class="uk-width-1-1">
+                                            <div class="uk-width-2-3">
+                                                <label>Do you want to copy temporal tags from the original videos?</label>
+                                            </div>
+                                            <div class="uk-width-1-3" uk-grid>
+                                                <div class="uk-width-1-2">
+                                                    <label><input class="uk-radio" type="radio" name="copyTag{{ class_idx }}" value="1" onclick="toggleVideoList('{{ class_idx }}', true);"> Yes</label>
+                                                </div>
+                                                <div class="uk-width-1-2">
+                                                    <label><input class="uk-radio" type="radio" name="copyTag{{ class_idx }}" value="0" onclick="toggleVideoList('{{ class_idx }}', false);" checked> No</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="copyVideoTags{{ class_idx }}" class="uk-margin-small-top uk-grid-small uk-hidden">
+                                            <div class="uk-width-1-1 uk-text-center">
+                                                <label>Select videos from which to copy temporal tags:</label>
+                                            </div>
+                                            <div class="uk-width-1-2">
+                                                <h5 class="uk-text-center">Train</h5>
+                                                <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
+                                                    <ul id="trainVideoList{{ class_idx }}" class="uk-list uk-list-divider">
+                                                        {% for video_name in stats[class].train.videos %}
+                                                            <li>
+                                                                <input class="uk-checkbox" type="checkbox" value="{{ video_name }}" checked> {{ video_name }}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="uk-width-1-2">
+                                                <h5 class="uk-text-center">Valid</h5>
+                                                <div class="uk-overflow-auto uk-height-small uk-resize-vertical">
+                                                    <ul id="validVideoList{{ class_idx }}" class="uk-list uk-list-divider">
+                                                        {% for video_name in stats[class].valid.videos %}
+                                                            <li>
+                                                                <input class="uk-checkbox" type="checkbox" value="{{ video_name }}" checked> {{ video_name }}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="uk-modal-footer uk-text-right">
+                                    <button class="uk-button uk-button-primary" type="button" id="saveCounterparts{{ class_idx }}"
+                                            onclick="createCounterpartVideos('{{ project }}', '{{ class }}', '{{ class_idx }}', '{{ url_for('.flip_videos') }}');">
+                                        <span uk-icon="icon: check"></span>
+                                        <span>Flip</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}
