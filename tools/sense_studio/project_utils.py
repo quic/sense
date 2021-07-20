@@ -56,6 +56,10 @@ def _backwards_compatibility_update(path, config):
         }
         updated = True
 
+    if 'model_fps' not in config:
+        config['model_fps'] = 16
+        updated = True
+
     if 'tags' not in config:
         # Collect class-wise tags
         old_classes = config['classes']

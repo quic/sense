@@ -7,10 +7,22 @@ class RealtimeNeuralNet(nn.Module):
     """
     RealtimeNeuralNet is the abstract class for all neural networks used in InferenceEngine.
 
-    Subclasses should overwrite the methods in RealtimeNeuralNet.
+    Subclasses should overwrite the preprocess method.
     """
-    def __init__(self):
+    def __init__(self, step_size: int, fps: int, expected_frame_size: Tuple[int, int]):
+        """
+        :param step_size:
+            The temporal step size of the neural network, i.e. how many frames should be consumed before outputting
+            the next prediction.
+        :param fps:
+            The input frame per second rate of the neural network.
+        :param expected_frame_size:
+            The expected frame size of the neural network.
+        """
         super().__init__()
+        self.step_size = step_size
+        self.fps = fps
+        self.expected_frame_size = expected_frame_size
 
     def preprocess(self, clip: np.ndarray):
         """
@@ -18,32 +30,13 @@ class RealtimeNeuralNet(nn.Module):
         """
         raise NotImplementedError
 
-    @property
-    def step_size(self) -> int:
-        """
-        Return the step size of the neural network.
-        """
-        raise NotImplementedError
-
-    @property
-    def fps(self) -> int:
-        """
-        Return the frame per second rate of the neural network.
-        """
-        raise NotImplementedError
-
-    @property
-    def expected_frame_size(self) -> Tuple[int, int]:
-        """
-        Return the expected frame size of the neural network.
-        """
-        raise NotImplementedError
-
 
 class Pipe(RealtimeNeuralNet):
 
     def __init__(self, feature_extractor, feature_converter):
-        super().__init__()
+        super().__init__(step_size=feature_extractor.step_size,
+                         fps=feature_extractor.fps,
+                         expected_frame_size=self.feature_extractor.expected_frame_size)
         self.feature_extractor = feature_extractor
         self.feature_converter = feature_converter
 
@@ -52,18 +45,6 @@ class Pipe(RealtimeNeuralNet):
         if isinstance(self.feature_converter, list):
             return [convert(feature) for convert in self.feature_converter]
         return self.feature_converter(feature)
-
-    @property
-    def expected_frame_size(self) -> Tuple[int, int]:
-        return self.feature_extractor.expected_frame_size
-
-    @property
-    def fps(self) -> int:
-        return self.feature_extractor.fps
-
-    @property
-    def step_size(self) -> int:
-        return self.feature_extractor.step_size
 
     def preprocess(self, clip: np.ndarray):
         return self.feature_extractor.preprocess(clip)

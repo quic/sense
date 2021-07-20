@@ -61,6 +61,7 @@ def start_training():
         'path_out': path_out,
         'model_version': model_version,
         'model_name': model_name,
+        'model_fps': config['model_fps'],
         'epochs': int(epochs),
         'use_gpu': config['use_gpu'],
         'temporal_training': config['temporal'],

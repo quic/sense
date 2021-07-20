@@ -28,7 +28,7 @@
                                 <option>{{ model }}</option>
                             {% endfor %}
                         {% else %}
-                            <option value="">No models available</option>
+                            <option value="" hidden>No models available</option>
                         {% endif %}
                     </select>
                     {% if not models %}

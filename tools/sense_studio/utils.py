@@ -28,7 +28,8 @@ def load_feature_extractor(project_path):
     model_config, weights = get_relevant_weights(SUPPORTED_MODEL_CONFIGURATIONS)
 
     # Setup backbone network
-    backbone_network = build_backbone_network(model_config, weights['backbone'])
+    model_fps = get_project_setting(project_path, 'model_fps')
+    backbone_network = build_backbone_network(model_config, weights['backbone'], fps=model_fps)
 
     # Create Inference Engine
     use_gpu = get_project_setting(project_path, 'use_gpu')

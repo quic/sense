@@ -6,6 +6,7 @@ Usage:
   train_classifier.py  --path_in=PATH
                        [--model_name=NAME]
                        [--model_version=VERSION]
+                       [--model_fps=NUM]
                        [--num_layers_to_finetune=NUM]
                        [--epochs=NUM]
                        [--use_gpu]
@@ -20,6 +21,7 @@ Options:
                                  Important: this folder should follow the structure described in the README.
   --model_name=NAME              Name of the backbone model to be used.
   --model_version=VERSION        Version of the backbone model to be used.
+  --model_fps=NUM                Input frame per second rate for the model [default: 16].
   --num_layers_to_finetune=NUM   Number of layers to finetune in addition to the final layer [default: 9].
   --epochs=NUM                   Number of epochs to run [default: 80].
   --path_out=PATH                Where to save results. Will default to `path_in` if not provided.
@@ -60,7 +62,7 @@ SUPPORTED_MODEL_CONFIGURATIONS = [
 ]
 
 
-def train_model(path_in, path_out, model_name, model_version, num_layers_to_finetune, epochs,
+def train_model(path_in, path_out, model_name, model_version, model_fps=16, num_layers_to_finetune=9, epochs=80,
                 use_gpu=True, overwrite=True, temporal_training=None, resume=False, log_fn=print,
                 confmat_event=None):
     os.makedirs(path_out, exist_ok=True)
@@ -97,8 +99,10 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
         checkpoint_classifier = None
 
     # Load backbone network
-    backbone_network = build_backbone_network(selected_config, backbone_weights,
-                                              weights_finetuned=checkpoint_classifier)
+    backbone_network = build_backbone_network(selected_config,
+                                              backbone_weights,
+                                              weights_finetuned=checkpoint_classifier,
+                                              fps=model_fps)
 
     # Get the required temporal dimension of feature tensors in order to
     # finetune the provided number of layers
@@ -218,6 +222,7 @@ def train_model(path_in, path_out, model_name, model_version, num_layers_to_fine
     config = {
         'backbone_name': selected_config.model_name,
         'backbone_version': selected_config.version,
+        'model_fps': model_fps,
         'num_layers_to_finetune': num_layers_to_finetune,
         'classifier': str(gesture_classifier),
         'temporal_training': temporal_training,
@@ -259,6 +264,7 @@ if __name__ == "__main__":
     _model_version = args['--model_version'] or None
     _num_layers_to_finetune = int(args['--num_layers_to_finetune'])
     _epochs = int(args['--epochs'])
+    _model_fps = int(args['--model_fps'])
     _temporal_training = args['--temporal_training']
     _resume = args['--resume']
     _overwrite = args['--overwrite']
@@ -268,6 +274,7 @@ if __name__ == "__main__":
         path_out=_path_out,
         model_name=_model_name,
         model_version=_model_version,
+        model_fps=_model_fps,
         num_layers_to_finetune=_num_layers_to_finetune,
         epochs=_epochs,
         use_gpu=_use_gpu,

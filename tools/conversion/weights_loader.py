@@ -6,7 +6,7 @@ from sense.loading import load_backbone_model_from_config
 
 def load_custom_classifier_weights(path_in):
     # Load backbone network according to config file
-    backbone_model_config, backbone_weights = load_backbone_model_from_config(path_in)
+    backbone_model_config, backbone_weights, _ = load_backbone_model_from_config(path_in)
 
     # Load custom classifier checkpoint
     weights_file = os.path.join(path_in, 'best_classifier.checkpoint')

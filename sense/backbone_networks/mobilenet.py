@@ -150,13 +150,10 @@ class InvertedResidual(nn.Module):  # noqa: D101
 
 class StridedInflatedMobileNetV2(RealtimeNeuralNet):
 
-    expected_frame_size = (256, 256)
-    fps = 16
-    step_size = 4
     feature_dim = 1280
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, fps=16):
+        super().__init__(step_size=4, fps=fps, expected_frame_size=(256, 256))
 
         self.cnn = nn.Sequential(
             ConvReLU(3, 32, 3, stride=2),

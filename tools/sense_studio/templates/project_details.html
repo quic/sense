@@ -39,6 +39,22 @@
                         Use GPU
                     </label>
                 </div>
+
+                <form class="uk-margin-small-top uk-grid-match uk-grid-small" autocomplete="off"
+                     uk-tooltip="Input frame rate for the model. Output frequency will be 4 times smaller. Also affects resolution of temporal annotations."
+                     uk-grid>
+                    <div class="uk-width-auto" >
+                        <select class="uk-select" onchange="changeFps(this, {{ config.model_fps }});">
+                            <option value="8" {{ 'selected' if config.model_fps == 8 }}>8 fps</option>
+                            <option value="16" {{ 'selected' if config.model_fps == 16 }}>16 fps</option>
+                            <option value="30" {{ 'selected' if config.model_fps == 30 }}>30 fps</option>
+                        </select>
+                    </div>
+
+                    <div class="uk-width-expand uk-flex uk-flex-middle line-height-normal">
+                        Model Input Frame Rate
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -245,14 +261,14 @@
                         <select class="uk-select" id="selectTag{{ class_idx }}"
                                 onchange="addSelectedTagToClass('{{ class_idx }}', '{{ class }}', '{{ path }}');">
                             {% if tags %}
-                                <option value="">Select tags...</option>
+                                <option value="" hidden>Select tags...</option>
                                 {% for tag_index, tag_name in tags.items()|sort(attribute='1') %}
                                     {% if tag_index not in selected_tags %}
                                         <option value="{{ tag_index }}">{{ tag_name }}</option>
                                     {% endif %}
                                 {% endfor %}
                             {% else %}
-                                <option value="">No tags available</option>
+                                <option value="" hidden>No tags available</option>
                             {% endif %}
                         </select>
                         <ul id="selectedTagsList{{ class_idx }}" class="uk-list uk-margin-top">
